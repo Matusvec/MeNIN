@@ -8,8 +8,9 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 
 | Time | Where | Who's there | Why now |
 | --- | --- | --- | --- |
-| **9:45 AM** | **MLH**, upstairs on the Mezzanine (map sponsor-46) | Ryan (MLH): "I'm at the MLH table upstairs!" (Sat 6:50 AM) | Quick, before the Figma line forms. No demo needed. |
-| **10:15 AM** | **Figma, Booth #35**: the coffee cart activation, 10 AM–2 PM | TK (Thien-Kim) Dang, Stephanie Zhou | Bring every teammate's Edu verification proof. Their stage log is worth $2,000 on its own. |
+| **9:45 AM** | **MLH**, upstairs on the Mezzanine (map sponsor-46) | Ryan (MLH): "I'm at the MLH table upstairs!" (Sat 6:50 AM) | Right after the 9:15–9:35 discus tuning. Quick, and no demo needed. |
+| 10:00–11:30 AM | *Matus is at the Microsoft workshop (10:00–10:45), then the coffee chat (11:00).* | | |
+| **11:45 AM** | **Figma, Booth #35**: the coffee cart activation, 10 AM–2 PM | TK (Thien-Kim) Dang, Stephanie Zhou | **Matus goes**, since the designer shows the workflow best, and it's before the 12 PM lunch rush. Bring every teammate's Edu verification proof. Their stage log is worth $2,000 on its own. |
 | 1–2 PM *(optional)* | Anthropic workshop, Theater: "Building Agents & Multi-Agent Teams with Claude" | Arinze Obiezue, Tyler Lacroix | Our build is literally a multi-agent team. Catch Arinze afterwards. |
 | **2 PM** | *The battle checkpoint (reality-check.md).* The tour below only shows the battle if it passed. If it failed, show Practice Spar on one phone, or skip the tour. | | |
 | **2:30 PM** | **Cartesia**, main floor (sponsor-11), "near the big stairs", beside Meta | Grant Timmerman, Vikram Srinivasan, Kelly Arifin | After the checkpoint, so they hear Homer judge a real turn. Hours are unconfirmed; check #spons-cartesia first. |
@@ -36,7 +37,8 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 - **Opt in to the Commit Fellowship** category, if the team wants it.
 - Show nothing unless asked. If Ryan's curious, hand him a phone.
 
-### Figma (Booth #35, 10:15 AM)
+### Figma (Booth #35, 11:45 AM)
+- **If Matus's coffee chat runs past 12:15,** a teammate goes instead, by 1:30 PM at the latest (the activation ends at 2). Open the Directions file in the Figma app on a phone, or on the Mac, and use the same talking points.
 - **Edu verification first.** Anyone not verified: TK's fix is to give her your email at the booth.
 - **Show the file, then the app.** Open "MeNIN · Directions" (figma.com/design/qyaXnV3HbIUPIfYVbyqKwv):
   - One variable collection with two modes, Atelier and Cut paper. Flip the mode and the whole screen changes direction.
