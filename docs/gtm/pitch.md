@@ -20,7 +20,7 @@ The table demo is in [demo-script.md](demo-script.md). This file holds everythin
 
 | Length | Line |
 | --- | --- |
-| **The opener (spoken, the first 8 s)** | "The first word of Western literature is *mēnin*. Rage. Homer opened with a fight, and so do we. **MeNIN** is ancient Greek party games, like Wii Sports, with your iPhone as the controller. The main event is a poetry battle, judged by Homer." |
+| **The opener (first 10 s)** | **Homer** (the app's own first-open line, P12): "The first word of Western literature is *mēnin*. Rage." Then **Matus**: "MeNIN. Ancient Greek party games, like Wii Sports, with your iPhone as the controller. The main event is a poetry battle, judged by Homer." If the app can't play it, Matus says Homer's line himself. |
 | 5 s (written) | **MeNIN: ancient Greek party games, hosted by Homer. Battle in verse on one screen, with your iPhone as the controller.** |
 | The second history line (only for Q&A or Devpost, never in the opener) | "The Greeks didn't separate sport and poetry: at the Panathenaic Games, poets competed reciting Homer right next to the athletes." |
 | The hand, in one line (mechanics, not history) | "You're dealt phrases that already fit the beat. That's how Homer improvised, and how freestyle works." |

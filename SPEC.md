@@ -39,7 +39,7 @@ MeNIN is ancient Greek Wii Sports: party games from the Greek *agon* (contest), 
 
 ## First open
 
-The first time someone opens MeNIN, Homer speaks before any menu: "The first word of Western literature is mēnin. Rage. Give me one line." You say anything, the scene answers your voice, and Homer says: "Good. Now let me show you how I did it." Then the event menu. Every later launch opens straight on the menu.
+The first time someone opens MeNIN, Homer speaks before any menu: "The first word of Western literature is mēnin. Rage. Give me one line." You say anything, the scene answers your voice, and Homer says: "Good. Now let me show you how I did it." Then the event menu. Every later launch opens straight on the menu. The TTS must say mēnin as "MAY-nin"; spell it phonetically in the TTS input and check it on a real speaker.
 
 ## The three modes
 
@@ -158,6 +158,7 @@ Judging is a 2-minute pitch with a live demo at a shared table, three times over
 - The stitched song is capped at 4 lines; the crown is one line.
 - Optional: the judges pick from 3 theme cards on the arena (first thing to cut).
 - Rematch resets in under 10 seconds.
+- One operator tap on the arena replays the first-open line with captions (the same pre-rendered audio), since we pitch three times on the same arena.
 - Judges play on team iPhones handed to them, already on the join screen. Judges can't install TestFlight builds at the table.
 
 The script is `docs/gtm/demo-script.md`.

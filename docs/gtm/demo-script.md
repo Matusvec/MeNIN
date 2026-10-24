@@ -32,18 +32,19 @@ Setup: iPhones plus a Mac arena, at a shared table with 3 judges in a noisy hall
 
 | Time | Who | What happens on the arena | What's said |
 | --- | --- | --- | --- |
-| **0:00–0:08** | Matus | **The event menu** over the idling scene: the poetry battle lit, other shipped events lit, the rest locked tiles. | "The first word of Western literature is *mēnin*. Rage. Homer opened with a fight, and so do we. **MeNIN** ('MAY-nin') is ancient Greek party games, like Wii Sports, with your iPhone as the controller. The main event is a poetry battle." *(Say "MeNIN" before anyone reads it. "Wii Sports" is a spoken comparison only and never appears on screen. If P12 is approved, the app's first line is the same "mēnin. Rage.", so Homer can say it instead.)* |
-| **0:08–0:12** | Judge | Matus opens the poetry battle, and three theme cards appear. | Matus: "Pick our battleground." The judge points and the operator taps. *(This is the 10-second judge moment: low pressure, and it proves nothing is pre-scripted. Cut it first if we're over time. If discus shipped, the judge's real moment is the throw after 2:00.)* |
-| **0:12–0:16** | Homer | The theme lands and both phones get their private hands. | Homer, MC voice: "A ship that never came home. **Salt-Tongued** Priya, the sea is yours." *(The epithet is whatever the poet forged in lesson 3; the name here is a placeholder.)* |
-| **0:16–0:31** | Poet | **Turn 1: count-in, then 2 lines with a rest bar after each (15 s).** The beat lane fills as stresses hit pulses and land like drum strikes. The poet's phone pulses the beat in their hand. A formula card flips onto the arena when it's spoken. The scene floods with color as the feeling turns. | The poet spits. Prepared bones, live delivery. *(The hand gets explained here, in the moment: "Five phrases that already fit the beat. That's how Homer improvised.")* |
-| **0:31–0:37** | Homer | "Hah." at 0.3 s. The verdict starts by about 3 s, with five axes counting up and the best line quoted. | Homer: one knockout line, e.g. "Strong bones. That second line drowned the whole fleet." |
-| **0:37–0:55** | Matus | **Turn 2 (about 18 s), with a planned freeze.** Matus starts line 1, then stops. After about 1 s his hand glows on the phone and on the arena, and Homer whispers a formula that fits. Matus grabs it, finishes the line, and lands line 2. The card flips. | Matus spits. The freeze is staged, but the rescue is the real feature running live. |
-| **0:55–1:01** | Homer | Verdict and scores. | Homer roasts gently: "Saved by the Muse. Your second line earned the rescue back." |
-| **1:01–1:08** | Homer | **Round verdict.** The best line of the round is carved in gold across the arena and stays there. The scoreboard sorts. | "The round goes to the line that sank the ship:" and Homer reads it. |
-| **1:08–1:26** | Matus | The carved line stays up. The scene idles under it. | "Nothing here is mocked. **SpacetimeDB** runs the hall: turns, scores, and our voices streaming from each phone to the arena about twenty times a second, all in one shared state. **Cartesia** hears every word and gives Homer his voice, and the verdict lands about three seconds after the last syllable. **Claude** judges with the beat already counted by our stress scanner, so every score shows its reasons." |
+| **0:00–0:04** | Homer | The operator triggers **the first-open line** (demo mode: *replay opening*). The scene stirs to his voice, with captions. | Homer: "The first word of Western literature is *mēnin*. Rage." *(This is SPEC "First open", P12. The TTS must say "MAY-nin", so check the pronunciation.)* |
+| **0:04–0:10** | Matus | **The event menu** over the idling scene: the poetry battle lit, other shipped events lit, the rest locked tiles. | "**MeNIN**. Ancient Greek party games, like Wii Sports, with your iPhone as the controller. The main event is a poetry battle, judged by Homer." *("Wii Sports" is a spoken comparison only and never appears on screen.)* |
+| **0:10–0:14** | Judge | Matus opens the poetry battle, and three theme cards appear. | Matus: "Pick our battleground." The judge points and the operator taps. *(This is the 10-second judge moment: low pressure, and it proves nothing is pre-scripted. Cut it first if we're over time. If discus shipped, the judge's real moment is the throw after 2:00.)* |
+| **0:14–0:18** | Homer | The theme lands and both phones get their private hands. | Homer, MC voice: "A ship that never came home. **Salt-Tongued** Priya, the sea is yours." *(The epithet is whatever the poet forged in lesson 3; the name here is a placeholder.)* |
+| **0:18–0:33** | Poet | **Turn 1: count-in, then 2 lines with a rest bar after each (15 s).** The beat lane fills as stresses hit pulses and land like drum strikes. The poet's phone pulses the beat in their hand. A formula card flips onto the arena when it's spoken. The scene floods with color as the feeling turns. | The poet spits. Prepared bones, live delivery. *(The hand gets explained here, in the moment: "Five phrases that already fit the beat. That's how Homer improvised.")* |
+| **0:33–0:39** | Homer | "Hah." at 0.3 s. The verdict starts by about 3 s, with five axes counting up and the best line quoted. | Homer: one knockout line, e.g. "Strong bones. That second line drowned the whole fleet." |
+| **0:39–0:57** | Matus | **Turn 2 (about 18 s), with a planned freeze.** Matus starts line 1, then stops. After about 1 s his hand glows on the phone and on the arena, and Homer whispers a formula that fits. Matus grabs it, finishes the line, and lands line 2. The card flips. | Matus spits. The freeze is staged, but the rescue is the real feature running live. |
+| **0:57–1:03** | Homer | Verdict and scores. | Homer roasts gently: "Saved by the Muse. Your second line earned the rescue back." |
+| **1:03–1:10** | Homer | **Round verdict.** The best line of the round is carved in gold across the arena and stays there. The scoreboard sorts. | "The round goes to the line that sank the ship:" and Homer reads it. |
+| **1:10–1:26** | Matus | The carved line stays up. The scene idles under it. | "Nothing here is mocked. **SpacetimeDB** runs the hall: turns, scores, and every phone's voice streaming to the arena twenty times a second. **Cartesia** hears every word and gives Homer his voice, about three seconds after your last syllable. **Claude** judges, with the beat already counted by our stress scanner." *(Trimmed to about 16 s to make room for Homer's opening.)* |
 | **1:26–1:38** | Poet | Same. | "I do slam. Open mics are once a week, and in between you practice alone in your room. MeNIN is a stage every night that hears your beat. Tonight we sat five people who'd never freestyled in front of lesson one. Their beat went from **[X] to [Y]** in four minutes." *(Use the real number from Saturday's first-timer study. If there's no number, drop the last two sentences.)* |
 | **1:38–1:41** | Homer | Totals roll. | "Before I crown anyone, listen." |
-| **1:41–1:55** | Homer | **The stitched song: 4 lines over the beat.** Each line appears with its poet's name, the gold line returns, and the scene replays each line's colors. *(Generation starts the moment Matus's transcript is final, about 0:52, so it has about 45 s of headroom.)* | Homer performs the battle back as one poem. A rhapsode was a song-stitcher. Let the line land; don't explain it. |
+| **1:41–1:55** | Homer | **The stitched song: 4 lines over the beat.** Each line appears with its poet's name, the gold line returns, and the scene replays each line's colors. *(Generation starts the moment Matus's transcript is final, about 0:54, so it has about 45 s of headroom.)* | Homer performs the battle back as one poem. A rhapsode was a song-stitcher. Let the line land; don't explain it. |
 | **1:55–2:00** | Homer, Matus | The champion and the room code. | Homer: "Salt-Tongued takes the hall." Matus: "That's MeNIN. Want to throw the discus?" *(If discus didn't ship: "Want to battle us?")* |
 
 **Total: 2:00.** The 2 minutes stay about 90% poetry battle. Other events get one sentence and a tile.
@@ -65,7 +66,7 @@ Never cut the turns, Homer's spoken verdict, or the stitched song. Those three a
 
 ## When the judge is a sponsor
 
-Swap the 1:08–1:26 line for theirs. Same length, same spot.
+Swap the 1:10–1:26 line for theirs. Same length, same spot.
 
 | Judge from | Say this instead |
 | --- | --- |
@@ -84,7 +85,7 @@ Swap the 1:08–1:26 line for theirs. Same length, same spot.
 | No verdict at 4 s | Homer's pre-recorded stall line plays ("The Muse is still counting.") and Beat and Range show. Keep talking. | Fill silence with apologies |
 | No verdict at 10 s | Beat and Range only, then move on. Never show a canned verdict; that would be a mocked response. | Fake it |
 | Network down | The ethernet should prevent this. If not, play the backup video and run Practice where it works offline. | Use a hotspot (banned at the venue) |
-| The judge has 60 seconds, not 120 | Run only 0:00–0:37 (one turn and one verdict), then jump to the stitched song from a prior battle. That's still live: it's the last real battle's song. | Rush the whole script |
+| The judge has 60 seconds, not 120 | Run only 0:00–0:39 (the opening, one turn and one verdict), then jump to the stitched song from a prior battle. That's still live: it's the last real battle's song. | Rush the whole script |
 
 ## Rehearsal
 
