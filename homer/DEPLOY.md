@@ -119,7 +119,7 @@ homer/scripts/web_deploy.sh matus@<ip>                 # from the repo root: bui
 homer/scripts/web_deploy.sh matus@<ip> --placeholder   # the "hall opens soon" page
 ```
 
-`web/` with a `package.json` is built with `npm ci && npm run build`, and its `dist/`, `build/` or `out/` is published; a plain `web/` with an `index.html` is published as is. The files are swapped in place (`rsync --delay-updates`), with nothing restarted, so it's safe at any time.
+The site is `web/` at the repo root (or `homer/web/` while it sits there). With a `package.json` it is built in a scratch copy, so its folder is never written to: `pnpm install --frozen-lockfile && pnpm run build` when there's a `pnpm-lock.yaml` (pnpm, else corepack, else `npx pnpm@<the .mise.toml version>`), otherwise `npm ci && npm run build`; then `dist/`, `build/` or `out/` is published. `VITE_*` variables in your environment reach the build. Figma Make's `vite.config.ts` imports `.figma/make/site.json`, which Make keeps outside the repo; when it's missing, `homer/web_site.json` (title, description, language) stands in. A plain folder with an `index.html` is published as is. The files are swapped in place (`rsync --delay-updates`), with nothing restarted, so it never touches the agent.
 
 The agent gives CORS headers only to the origins in `HOMER_WEB_ORIGINS` (comma-separated, in `.env`). A keyless call from one of them passes even when `HOMER_APP_KEY_REQUIRED=1`. That isn't a lock, since anyone can send that Origin; the per-IP limits and the hourly budget are the guard. The website never ships the app key. For a new domain, add it to both `WEB_HOST` (a second site block, or replace the name) and `HOMER_WEB_ORIGINS`.
 
