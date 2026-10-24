@@ -12,23 +12,43 @@ Two videos, both from real takes. Nothing is mocked, and nothing is shown as liv
 
 ## When
 
-The evening is full: the study runs 6–8 PM, the extras checkpoint is at 8, karaoke is 8–9:30 in the Theater, and the hall noise test is at 9. So **the main battle shoot happens at 5 PM**, after the 2 PM battle checkpoint, and only the extras get filmed after 8.
+**The 2 PM full-battle checkpoint doubles as the main footage** (leader, Sat 11:05 AM). If it's usable, the 5 PM shoot is only pickups, and 11 PM is a reshoot only if something's missing.
 
 | Time (Sat) | What | Who |
 | --- | --- | --- |
-| Any time before 5 PM | B-roll, 2 minutes at most per shot: the haptic beat in a palm (close-up), a hand of formula cards, a thumb on the discus button | Whoever has a free minute |
-| **5:00–5:45 PM** | **The main shoot**, in the quietest corner you can find. Not the Theater, where SpacetimeDB's workshop runs 4–5. Three demo-mode battle takes back to back, plus the first-open line on its own. | Everyone (roles below) |
-| 5:45–6:00 PM | Copy the footage to the Mac. **Export the backup video now**, so it exists even if the evening goes wrong. | Matus, operator |
-| 6–8 PM | **The first-timer shot**, during the study (`docs/study.md`). Film only someone who said yes to consent question 4, and film **the screen and their voice, never their face**. Matus starts the Devpost edit in between. | Poet runs the study; a second person films |
+| Any time before 2 PM | B-roll, 2 minutes at most per shot: the haptic beat in a palm (close-up), a hand of formula cards, a thumb on the discus button | Whoever has a free minute |
+| **1:45 PM** | Set up the capture for the 2 PM run ([below](#the-2-pm-capture-the-checkpoint-run-is-the-footage)) | Operator, camera teammate |
+| **2:00 PM** | **The checkpoint run, recorded:** arena, over-the-shoulder and wide shots | Everyone |
+| 2:30–3:00 PM | Copy the footage to the Mac. Matus checks it against the shot list, marks what's missing for 5 PM, and **exports the backup video from it** | Matus, operator |
+| 5:00–5:30 PM | **Pickups only:** whatever 2 PM missed, plus the first-open line on its own. Use the quietest corner you can find. | Everyone needed |
+| 6–8 PM | **The first-timer shot**, during the study (`docs/study.md`). Film only someone who said yes to consent question 4, and film **the screen and their voice, never their face**. Matus edits in between. | Poet runs the study; a second person films |
 | 8:00 PM | The extras checkpoint decides whether debate and discus appear at 1:15–1:25 | Leader |
-| 8:05–8:20 PM | If they passed: film 5 s of Socrates opening a debate and one discus throw | Operator, Matus |
+| 8:05–8:20 PM | If they passed: 5 s of Socrates opening a debate and one discus throw. If Fetch shipped, also the ASI:One screen recording for the Fetch cut. | Operator, Matus |
 | 8:20–9:00 PM *(optional)* | Karaoke in the Theater, with the arena and two phones: Hacker's Choice clips ([below](#hackers-choice-clips-separate-from-both-videos)) | Poet + one more |
 | 9:00–9:30 PM | Hall noise test (reality-check.md) | Everyone |
-| 9:30–11:00 PM | Finish the Devpost edit | Matus |
-| 11:00–11:15 PM | Upload to YouTube, put the link in Devpost, and copy the backup video to every device | Matus, operator |
+| 9:30–11:00 PM | Finish the Devpost edit, and the Fetch cut if needed | Matus |
+| 11:00–11:15 PM | **Reshoot only if a shot is still missing.** Then upload to YouTube, put the link in Devpost, and copy the backup video to every device. | Matus, operator |
 | 11 PM | Feature freeze ([reality-check.md](reality-check.md) checkpoint). The video can still be added to Devpost after this; only the code freezes. | |
 
-**If the 2 PM battle checkpoint failed:** the main shoot moves to 8:20 PM, right after the extras check, and karaoke is dropped.
+**If the 2 PM checkpoint fails:** footage from a failing run is useless. The shoot moves to 5 PM if the fix lands by then, otherwise to 8:20 PM, and karaoke is dropped.
+
+## The 2 PM capture: the checkpoint run is the footage
+
+**The checkpoint comes first. If any recording slows the arena or the phones, stop recording, not the run.**
+
+**Before 1:45 PM:** check `memory_pressure | grep 'free percentage'` on the Mac and get it to at least 30% free (quit Xcode and the simulators). Make sure every phone has at least 5 GB free and Do Not Disturb on. Start every recording, then **clap once in view of every camera**. Then the operator starts the count-in.
+
+| # | Shot | Device and settings | Framing | Must catch |
+| --- | --- | --- | --- | --- |
+| **A** | **The arena screen recording** | The Mac, in **OBS**: macOS Screen Capture → Application → MeNIN, app audio on, mic muted; Apple VT H264 hardware encoder, 60 fps, MKV. Settings are below. | Full arena, nothing else on screen | The whole run: the entrance, both turns, both verdicts with scores counting up, the carved line, the stitched song, the crown. Captions on. |
+| **B** | **Over the shoulder** | **iPhone C**, handheld by the free teammate: 1080p at 60 fps, landscape, AE/AF lock on the arena, then drag exposure down a little | From behind and just above a poet's shoulder: the phone's hand in the foreground, the arena beyond it, in focus on the phone | **Matus's freeze rescue:** his hand comes forward, one card is raised, Homer whispers. Stay on Matus for turn 2; take poet 1 for turn 1. |
+| **C** | **A wide shot of the table** | **Any spare phone**, such as a teammate's own, propped or on a stand: 1080p at 60 fps, landscape, AE/AF lock on a face | Both poets, the arena screen and the operator in one frame, from about 2 m away at chest height | The human moment: two people battling, a reaction to a verdict, the room listening to the song. **Room audio comes from here.** |
+| *(D)* | *Optional:* the poets' own phone screens | Control Center → Screen Recording, **mic off** (the app has the mic) | The phone screen | Hand close-ups. Skip it if either phone is low on battery. |
+
+**If there's no spare phone for C,** iPhone C does B for turn 2 only, then moves to the wide spot for the verdict, the song and the crown. Or C waits for the 5 PM pickups.
+
+**After the run:** name the files `2pm-A-arena.mkv`, `2pm-B-ots.mov`, `2pm-C-wide.mov` and `2pm-D-phone1.mov`, and copy them to the Mac over a USB-C cable or by AirDrop. Remux the MKV to MP4 in OBS. Matus checks each shot in the Devpost shot list below and writes "missing: …" for the 5 PM pickups.
+
 
 **Before the shoot:** run `memory_pressure | grep 'free percentage'` on the Mac. Quit Xcode and every simulator for the shoot and the edit, and confirm at least 30% free. OBS and iMovie each need memory, and the Mac is shared with the Claude sessions.
 

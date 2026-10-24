@@ -2,18 +2,16 @@
 
 Paste this into Devpost. **Never submit a claim that isn't true on Sunday morning.** The guide recommends submitting a draft Saturday night and editing it until 9:00 AM.
 
-**State: Sat Oct 24, 8:30 AM.** Everything outside `[brackets]` is true now. Each bracket waits on one of these:
+**State: Sat Oct 24, 11:30 AM.** Everything outside `[brackets]` is true now. What's left:
 
-| Placeholder | Comes from | When |
-| --- | --- | --- |
-| `[N]`, `[first]`, `[last]`, `[time]`, poet quotes | The first-timer study (`docs/study.md`, run by the poet) and the poet's texts. Use one of pm's line options in study.md. | Sat 8 PM |
-| `[real-mic WER]` | swift's rerun of the keyterm test on a real iPhone mic. If it differs from 3%/20%, it replaces those numbers everywhere. | Once the agent is public (it is now) |
-| `[composer's name]`, `[how the score was made]` | Matus | Today |
-| `[p50]` | Now filled from homer/README: p50 1.0 s, p95 1.5 s (10 calls, Fri). Update it if the Sat 10 AM production checkpoint differs. | Sat 10 AM |
-| `[If debate passed]`, `[If discus passed]` | The Sat 8 PM check: 5 runs in a row without a failure. Delete the section if the event failed. | Sat 8 PM |
-| `[TestFlight public link]` | Apple's Beta App Review | When approved |
-| `[Video]`, `[Figma Slides]` | [video.md](video.md); the Figma Slides deck | Sat 11 PM |
-| `[team]` | Every teammate's name and role | Today |
+| Placeholder | Kind | Comes from | When |
+| --- | --- | --- | --- |
+| `[N]`, `[first]`, `[last]`, `[time]` | **Number** | The first-timer study on build 4 (`docs/study.md`), using one of pm's line options | Sat 8 PM |
+| `[real-mic WER]` | **Number** | swift's rerun of the keyterm test on a real iPhone mic. If it differs from 3%/20%, it replaces those numbers everywhere. | When swift runs it |
+| `[turn-to-voice p50]` | **Number** | The measured time from a turn's end to Homer's first word, on build 4 (the 2 PM run's latency HUD) | Sat 2 PM |
+| `[poet's name]`, `[the poet's scene]`, `[poet quote]`, `[composer's name]`, `[how the score was made]`, `[team]` | **A fact only Matus has** | Matus (the list went to leader) | Today |
+| `[If debate passed]`, `[If discus passed]` | Checkpoint | The Sat 8 PM check: 5 runs in a row without a failure. Delete the section if the event failed. | Sat 8 PM |
+| `[TestFlight public link]`, `[Video]`, `[Figma Slides]`, `[ASI:One link]` | Link | Apple's Beta App Review; [video.md](video.md); the Slides deck; builder | As each lands |
 
 ---
 
@@ -23,7 +21,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 
 *Trademarks: no "Wii", "Wii Sports", "Guitar Hero" or "Olympic" anywhere in this page.*
 
-**Try it:** [TestFlight public link] · [playmenin.tech] *(pending Matus registering it)* · Video: [Video] · Figma: [Figma Slides] · Clickable prototypes: [first open → practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102) · [a full battle](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364)
+**Try it:** [TestFlight public link] · [playmenin.tech, if registered] · Video: [Video] · Figma: [Figma Slides] · Clickable prototypes: [first open → practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102) · [a full battle](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364)
 
 ---
 
@@ -33,7 +31,7 @@ The first word of Western literature is μῆνιν (*mēnin*, pronounced "MAY-n
 
 **AI can write anything now. What it can't do is stand up in a room and move people for you.** That's becoming the skill that matters most, and the Greeks treated it as one you train in public, by contest: rhapsodes competing at the Panathenaic Games, citizens arguing in the Assembly, Socrates questioning strangers in the agora. Most AI talks for you. We wanted AI that makes you talk.
 
-MeNIN is for spoken-word and slam poets in [the poet's scene]. [Poet's name] is one of them. Open mics are once a week, and between them you practice alone in your room, with no one to tell you whether your beat landed. [Quote from a poet interviewed Saturday, with permission.] Improvising out loud is a learnable skill: Homer did it with stock phrases built to fit the beat, and freestyle rappers do it every night. Almost nobody gets to practice it with friends.
+MeNIN is for spoken-word and slam poets in [the poet's scene]. [poet's name] is one of them. Open mics are once a week, and between them you practice alone in your room, with no one to tell you whether your beat landed. [poet quote: one line from a poet texted Saturday, with permission] Improvising out loud is a learnable skill: Homer did it with stock phrases built to fit the beat, and freestyle rappers do it every night. Almost nobody gets to practice it with friends.
 
 So we built ancient Greek party games for your voice, with AI as the coach and the judge, never the speaker, and made the poetry battle the main event.
 
@@ -95,7 +93,7 @@ Other events show as locked tiles, because we only unlock what's solid.
   - Cartesia TTS is Homer (**sonic-3.6**, the voice Carl, "Steady Storyteller"), with first audio in about **100 ms**: lessons, entrances, verdicts, the freeze whisper and the stitched song.
 - **Claude (Anthropic)** is the judge, the coach and the MC.
   - The judge gets your hand, the verse you're answering and the scanner's stress count. It returns five scores, the best line and a one-line verdict.
-  - Each judgment is one streamed request to **Claude Opus 5.5**: fast mode, low effort, a cached system prompt and a JSON schema, so the output is always valid. Verdict text lands in **p50 1.0 s, p95 1.5 s** (10 live calls, Fri Oct 23, `homer/scripts/latency.py`). [Update if the Sat 10 AM production check differs.]
+  - Each judgment is one streamed request to **Claude Opus 5.5**: fast mode, low effort, a cached system prompt and a JSON schema, so the output is always valid. Verdict text lands in **p50 1.0 s, p95 1.5 s** (10 live calls, Fri Oct 23, `homer/scripts/latency.py`).
   - Claude also names poets and coins epithets, writes Homer's lesson feedback, his sparring verses and the round verdicts, and writes the stitched song. The freeze whisper makes no model call: it picks the formula from your hand that fits the line, so it's instant.
 - **The stress scanner** (Python, CMU Pronouncing Dictionary) counts the beat deterministically. The **Beat** score never comes from the model's opinion.
 - **Python + FastAPI** service for the Claude calls, the scanner and the formula bank, in Docker behind Caddy on **DigitalOcean**.
@@ -117,15 +115,17 @@ Other events show as locked tiles, because we only unlock what's solid.
 
 - **One room, many mics.** The drum and Homer's voice bleed into every phone's mic. We put the beat in your palm through haptics and duck the arena drum while you speak.
 - **Hearing "rose-fingered Dawn" through a drum.** Recognizers mangle exactly the rare phrases the game runs on. We feed your hand to the recognizer as keyterms, and with the drum at full volume in our tests the word error rate fell from 20% to 3%.
-- **A verdict that lands in three seconds.** Our first judge was a slow, multi-step tool loop. We cut it to one streamed Claude call with the scanner's count already in the prompt, low effort and a fixed JSON schema. [p50 and p95 from Saturday's measurement.]
+- **A verdict that lands in three seconds.** Our first judge was a slow, multi-step tool loop. We cut it to one streamed Claude call with the scanner's count already in the prompt, low effort and a fixed JSON schema. Verdict text now arrives in p50 1.0 s and p95 1.5 s, and Homer's voice starts about 100 ms later.
 - **Every phone was syncing every room.** The community Swift SDK subscribes to whole tables, so with a 20 Hz voice stream each phone would have received every room's traffic. We patched it to subscribe per room.
 - **We switched from web to iOS mid-build.** On Friday night the scene was already written for the web in React, Three.js and GLSL. The palette and motion lived in plain math tables, so they carried over to Metal almost line for line. The React code didn't survive.
-- [Honest additions on Sunday morning.]
+- **Six AI sessions on one 24 GB laptop.** The whole team of Claude Code sessions, plus Xcode and the simulators, shared one MacBook Air. We set a memory budget (keep 25% free, one simulator at a time, shut everything down after each screenshot) so the machine never ran out mid-build.
+- **An agent the Agentverse button couldn't reach.** Our Fetch.ai agent runs inside Docker on the server, where the Inspector's Connect button can't reach it, so we register its mailbox with an API key from inside the container instead.
+- **Meaning-based dealing can skew.** With Moss, "A city that never sleeps" kept dealing Troy epithets, the Iliad's city, so that theme came off the judging cards while we retag the bank and add modern city formulas. The first list our Apify Actor mined was full of "dear son" and "great wealth" before we restricted it to Homer's fixed epithets.
 
 ## Accomplishments that we're proud of
 
 - [N] people who'd never freestyled took lesson one at Cal Hacks. Their Beat score went from **[first] to [last]** out of 10, in about [time] minutes. *(Beat only, first try vs last. If fewer than three landed, drop the time.)*
-- A live battle on iPhones, with a spoken verdict about three seconds after the last word. [Swap in the measured p50.]
+- A live battle on iPhones, with Homer's spoken verdict [turn-to-voice p50] s after the last word.
 - 3% word error rate with the drum at full volume in our tests, down from 20%, by feeding each poet's hand to the recognizer.
 - The stitched song: the room leaves with one poem it made together.
 - [If debate or discus passed: three events on one engine.]
@@ -162,12 +162,12 @@ Other events show as locked tiles, because we only unlock what's solid.
 - **English stress has edge cases** with names, slang and loanwords. The scanner flags uncertain syllables instead of marking them wrong.
 - **A roast can sting a beginner.** Roasts stay gentle and only in Battle; in lessons Homer is a calm coach.
 - **Bad content.** A verse that isn't fit for the hall scores nothing, and Homer won't quote it. Names are filtered before Homer says them.
-- **Privacy:** no audio passes through our server. Your phone streams the mic straight to Cartesia for transcription. Transcripts, scores and lines live in the room's tables, and Rematch clears them. [Confirm before submitting: how long finished rooms are kept, and Cartesia's retention setting on our account.]
+- **Privacy:** no audio passes through our server. Your phone streams the mic straight to Cartesia for transcription. Transcripts, scores and lines live in the room's tables on SpacetimeDB, and Rematch clears them. Finished rooms aren't deleted yet; an automatic cleanup is on our list. On our current plan Cartesia's standard data terms apply. For launch we'd turn on Cartesia's zero-data-retention option, which covers STT audio and transcripts and is available on their enterprise plan.
 - **Accessibility:** captions on everything Homer says. The beat is in your palm as haptics, so you can feel it without hearing it.
 
 ## Built with
 
-swift · swiftui · metal · avfoundation · core-haptics · [core-motion] · spacetimedb · typescript · python · fastapi · anthropic · claude · claude-code · cartesia · cmu-pronouncing-dictionary · figma · xcodegen · docker · caddy · digitalocean · [apify]
+swift · swiftui · metal · avfoundation · core-haptics · core-motion · spacetimedb · typescript · python · fastapi · anthropic · claude · claude-code · cartesia · cmu-pronouncing-dictionary · figma · xcodegen · docker · caddy · digitalocean · apify · crawlee · moss · fetch-ai · agentverse · uagents
 
 ---
 
