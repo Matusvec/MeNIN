@@ -13,10 +13,12 @@ import json
 import logging
 import os
 import random
+import re
 from contextlib import asynccontextmanager
 from dataclasses import asdict, is_dataclass
 from typing import Any, Literal
 
+import httpx2
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
@@ -29,6 +31,7 @@ from .deal import Card, deal, pick_theme, rescue, themes
 from .judge import EmptyVerse, Judge, Judgment, Turn
 from .scanner import TimedWord, VerseScan, beat_lane, scan_verse
 from .stdb import Refused, Stdb, StdbError
+from .voice import RateLimit, VoiceConfig, VoiceError, mint
 
 log = logging.getLogger("homer")
 
@@ -50,17 +53,28 @@ def arena() -> Arena:
     return _arena
 
 
+# What /health reports: the judge's prompt cache and the SpacetimeDB claim.
+status: dict[str, str] = {"judge": "off", "stdb": "off"}
+
+
+async def _warm_judge() -> None:
+    status["judge"] = "warming"
+    status["judge"] = "warm" if await judge().warm() else "failed"
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     scan_verse("warm the dictionary")  # loads CMU once, before the first turn
     formulas.bank()
     cfg = settings()
     if os.environ.get("HOMER_WARM", "1") not in ("0", "false") and os.environ.get("ANTHROPIC_API_KEY"):
-        asyncio.get_running_loop().create_task(judge().warm())
+        asyncio.get_running_loop().create_task(_warm_judge())
     if cfg.stdb_token and cfg.service_key:
         try:
             await arena().db.claim_service()
+            status["stdb"] = "claimed"
         except StdbError as exc:
+            status["stdb"] = "failed"
             log.warning("claim_service failed: %s", exc)
     yield
 
@@ -145,7 +159,16 @@ def scorecard(j: Judgment, bpm: float | None = None, started_at: float = 0.0, ev
 @app.get("/health")
 async def health() -> dict[str, Any]:
     cfg = settings()
-    return {"ok": True, "judgeModel": cfg.judge_model, "judgeEffort": cfg.judge_effort, "events": list(events.EVENTS)}
+    return {
+        "ok": True,
+        "judgeModel": cfg.judge_model,
+        "judgeEffort": cfg.judge_effort,
+        "judgeSpeed": cfg.judge_speed or "standard",
+        "judge": status["judge"],  # off | warming | warm | failed: the prompt cache before the first turn
+        "stdb": status["stdb"],  # off | claimed | failed
+        "stdbDb": cfg.stdb_db,
+        "events": list(events.EVENTS),
+    }
 
 
 @app.post("/scan")
@@ -275,16 +298,14 @@ class PoetIn(Model):
 class BattleDealRequest(Model):
     room_id: int
     round_no: int
-    theme: str = ""
-    event: str = "poetry"
-    form: str = "four_beat"
-    poets: list[PoetIn]
+    theme: str = ""  # room.next_theme when the judges picked one; empty and the agent picks
+    poets: list[PoetIn] | None = None  # normally read from SQL
 
 
 @app.post("/battle/deal")
 async def battle_deal(req: BattleDealRequest) -> dict[str, Any]:
     """Pick the theme if it's empty, deal every poet, and call deal_round. Safe to retry."""
-    poets = [Poet(p.player_id, p.name, p.epithet, p.hoard) for p in req.poets]
+    poets = [Poet(p.player_id, p.name, p.epithet, p.hoard) for p in req.poets] if req.poets else None
     try:
         theme, hands = await arena().deal_round(req.room_id, req.round_no, req.theme, poets)
     except Refused as exc:
@@ -337,6 +358,43 @@ async def battle_judge(req: BattleJudgeRequest) -> dict[str, Any]:
     except StdbError as exc:
         raise HTTPException(502, str(exc)) from None
     return {"posted": posted, **scorecard(j, event=req.event)}
+
+
+class VoiceTokenRequest(Model):
+    role: Literal["phone", "arena", "solo"]
+    room_code: str = ""
+    player_id: int = 0
+
+
+_voice_http: httpx2.AsyncClient | None = None
+_voice_limit = RateLimit(limit=30, window=60.0)
+ROOM_CODE_RE = re.compile(r"^[A-Za-z]{4}$")
+
+
+@app.post("/voice/token")
+async def voice_token(req: VoiceTokenRequest, request: Request) -> dict[str, Any]:
+    """A short-lived Cartesia token: phone gets stt, arena gets tts, solo gets both."""
+    global _voice_http
+    ip = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "?")
+    if not _voice_limit.allow(ip):
+        raise HTTPException(429, "too many voice tokens; wait a minute")
+    cfg = settings()
+    if req.room_code and cfg.stdb_token:
+        if not ROOM_CODE_RE.match(req.room_code):
+            raise HTTPException(400, "bad room code")
+        try:
+            rooms = await arena().db.sql(f"SELECT id FROM room WHERE code = '{req.room_code.upper()}'")
+        except StdbError as exc:  # never let the database take the voice down
+            log.warning("room check skipped: %s", exc)
+            rooms = [{}]
+        if not rooms:
+            raise HTTPException(403, "no such room")
+    if _voice_http is None:
+        _voice_http = httpx2.AsyncClient(timeout=5.0)
+    try:
+        return await mint(VoiceConfig.from_env(), req.role, _voice_http)
+    except VoiceError as exc:
+        raise HTTPException(503, str(exc)) from None
 
 
 @app.exception_handler(ValueError)

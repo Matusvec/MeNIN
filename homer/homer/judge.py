@@ -330,10 +330,12 @@ class Judge:
             return ""
         return " ".join(coined.split()).strip(" \"'“”.,;:!?")
 
-    async def warm(self) -> None:
+    async def warm(self) -> bool:
         """One real judge call so the system prompt is cached before the first turn."""
         turn = Turn(transcript="the wind was cold, the waves were grey\nthe sea kept time and so did I", theme="the sea")
         try:
-            await self.judge(turn)
+            j = await self.judge(turn)
         except Exception:
-            pass
+            log.exception("warm-up judge call failed")
+            return False
+        return not j.silent

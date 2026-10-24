@@ -7,12 +7,14 @@ The Python service in `homer/`. This file is the contract between the service an
 | Endpoint | Caller | Status |
 | --- | --- | --- |
 | `GET /health` | anyone | live |
+| `POST /voice/token` | app (all devices) | live |
 | `POST /scan` | app (Bard, Practice, beat lane) | live |
 | `POST /judge` | app (Practice, Bard) | live |
+| `GET /themes` | arena, app | live |
+| `POST /deal` | app (Practice) | live |
+| `POST /rescue` | phone, any mode | live |
+| `POST /battle/deal` | arena | live |
 | `POST /battle/judge` | arena | live |
-| `POST /rescue` | phone, any mode | planned |
-| `POST /deal` | app (Practice) | planned |
-| `POST /battle/deal` | arena | planned |
 | `POST /battle/poet` | arena | planned |
 | `POST /emotion`, `POST /battle/emotion` | app / arena | planned |
 | `POST /battle/verdict` | arena | planned |
@@ -110,7 +112,51 @@ An untimed verse (Homer's own, or typed text) is laid on the grid: each beat on 
 
 ### `GET /health`
 
-`{"ok": true, "judgeModel": "claude-opus-5-5", "judgeEffort": "low", "events": ["poetry"]}`
+```json
+{"ok": true, "judgeModel": "claude-opus-5-5", "judgeEffort": "low", "judgeSpeed": "fast",
+ "judge": "warm", "stdb": "claimed", "stdbDb": "homer-calhacks", "events": ["poetry"]}
+```
+
+- `judge` is `off`, `warming`, `warm` or `failed`. At startup, one real judge call caches the prompt, so wait for `warm` before a demo.
+- `stdb` is `off`, `claimed` or `failed`: whether this service registered with SpacetimeDB.
+
+### `POST /voice/token`
+
+Mints a short-lived Cartesia access token, so the app never holds the API key (docs/voice.md, section 2). The device opens the Cartesia WebSocket itself with `?access_token=…&cartesia_version=…`.
+
+```json
+{"role": "phone", "roomCode": "ABCD", "playerId": 12}
+```
+
+- `role` is `phone` (a battle mic, which gets `stt`), `arena` (Homer's voice, `tts`) or `solo` (Practice and Bard on one phone, both).
+- With `roomCode`, the room must exist in SpacetimeDB: 403 if it doesn't, 400 if the code is malformed. If the database can't be reached, the token is minted anyway.
+
+Returns:
+
+```json
+{"token": "…", "expiresAt": 1761300300000, "cartesiaVersion": "2026-08-14",
+ "stt": {"model": "ink-2", "encoding": "pcm_s16le", "sampleRate": 16000},
+ "tts": {"model": "sonic-3.6", "voiceId": "…"}}
+```
+
+- `stt` and `tts` are present only when granted. Models and the voice come from the server's env, so they change without an app build.
+- Tokens last 300 s. If an open socket dies when its token expires, mint one per turn.
+- The limit is 30 tokens a minute per IP: over it you get 429. With no `CARTESIA_API_KEY` set on the server you get 503.
+
+### `GET /themes?n=3&demo=false`
+
+`{"themes": ["A ship that never came home", "…", "…"]}`. These are the arena's theme cards. With `demo=true` you get the three rehearsed demo themes, in order.
+
+### `POST /deal`
+
+A Practice hand. `{"theme": "", "hoard": ["storm-throated"], "exclude": [], "n": 5}` returns `{"theme": "…", "hand": [FormulaCard]}`. An empty theme gets a random one. Each card is `{"id", "text", "kind", "used": false, "beats", "hoard"}`: `FormulaCard` plus `beats` (the hits it fills, 1 or 2) and `hoard` (the poet's own card). A hand mixes kinds, holds up to two hoard cards, and leans to the theme.
+
+### `POST /rescue`
+
+The freeze rescue: which card Homer whispers. `{"transcript": "the verse so far", "hand": ["…"], "played": ["…"], "theme": "…"}` returns `{"formula": "the whale-road", "card": FormulaCard}`. There is no model call; it takes a few ms.
+
+- It fills what the current line (after the last `\n`) still needs: a half-line at a line start, a two-hit card with two or more hits to go, else a one-hit card. Spent cards are skipped.
+- 409 means every card is spent.
 
 ### `POST /scan`
 
@@ -153,6 +199,18 @@ data: {Scorecard}
 
 `verdict` comes first, usually a few hundred ms before `scorecard`. It is skipped when the verse is declined. On failure the stream sends `event: error`.
 
+### `POST /battle/deal`
+
+The arena calls this in `dealing`, or early in `round_end` to deal round_no + 1. The agent then calls `deal_round`.
+
+```json
+{"roomId": 10, "roundNo": 1, "theme": ""}
+```
+
+- `theme` is `room.next_theme` when the judges picked one. Empty means the agent picks one this room hasn't had yet.
+- Poets and their hoards are read from SQL. Each poet is offered 8 candidates, different from the other poets' and from anything offered to them earlier in the battle. The module tops each hand up to 5.
+- Returns `{"theme": "…", "hands": {"<playerId>": ["card", …]}}`.
+
 ### `POST /battle/judge`
 
 The arena calls this when a turn reaches `judging`. The agent then calls `post_score [turn_id, [beat, craft, image, answer, range], verdict, best_line, coined]`, or `decline_turn [turn_id]`.
@@ -173,9 +231,6 @@ The arena calls this when a turn reaches `judging`. The agent then calls `post_s
 
 These shapes may still change; they'll be confirmed here when built.
 
-- **`POST /rescue`** `{transcript, hand, theme, played}` → `{"formula": "the whale-road"}`. Answered inline in well under 100 ms, with no Claude call. It picks the hand card that best fits the hits left in the current line and the theme. The phone then calls the `rescue` reducer.
-- **`POST /deal`** `{theme?, hoard, n: 5}` → `{"theme", "hand": [FormulaCard]}`, for Practice.
-- **`POST /battle/deal`** `{roomId, roundNo, theme, event, poets: [{playerId, name, epithet, hoard}]}` calls `deal_round`. An empty `theme` means the agent picks one.
 - **`POST /battle/poet`** `{playerId, name, epithet}` calls `name_poet`, with a PG-checked name and an epithet coined if it's empty.
 - **`POST /emotion`** `{text, loudness?, pitch?}` returns the 8 weights. **`POST /battle/emotion`** `{turnId, text, loudness?, pitch?}` calls `set_scene` and keeps the sample for Range. Call either about every 1.5 s while speaking.
 - **`POST /battle/verdict`** `{roundId, theme, verses: [{turnId, name, transcript, total, bestLine}]}` calls `post_verdict`.

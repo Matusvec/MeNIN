@@ -97,3 +97,31 @@ def test_battle_judge_endpoint(monkeypatch):
             assert c.post("/battle/judge", json={"turn_id": 4, "transcript": " "}).status_code == 422
     finally:
         server._judge = server._arena = None
+
+
+class SqlDb(FakeDb):
+    """FakeDb that also answers the player query."""
+
+    def handler(self, request):
+        if request.url.path.endswith("/sql"):
+            self.calls.append(("sql", request.content.decode(), None))
+            cols = [{"name": {"some": n}} for n in ("id", "room_id", "name", "epithet", "hoard", "seat")]
+            rows = [[2, 1, "Bo", "Breaker of Deadlines", ["storm-throated"], 1], [1, 1, "Ada", "", [], 0]]
+            return httpx2.Response(200, json=[{"schema": {"elements": cols}, "rows": rows}])
+        return super().handler(request)
+
+
+def test_deal_reads_poets_from_sql_and_picks_a_theme():
+    db = SqlDb()
+    arena = Arena(Judge(client=FakeClient(reply()), cfg=cfg()), Stdb(cfg(), httpx2.AsyncClient(transport=httpx2.MockTransport(db.handler))))
+    theme, hands = asyncio.run(arena.deal_round(1, 1, ""))
+    assert theme
+    reducer, args, _ = db.calls[-1]
+    assert reducer == "deal_round" and args[:3] == [1, 1, theme]
+    assert [pid for pid, _ in args[3]] == [1, 2]  # seat order
+    ada, bo = args[3][0][1], args[3][1][1]
+    assert len(ada) == len(bo) == 8 and not set(ada) & set(bo)
+    assert "storm-throated" in bo
+    # Round two deals fresh cards and a fresh theme.
+    theme2, hands2 = asyncio.run(arena.deal_round(1, 2, ""))
+    assert theme2 != theme and not set(hands2[1]) & set(ada)

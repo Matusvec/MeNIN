@@ -1,0 +1,30 @@
+# Production: the agent service behind a Cloudflare Tunnel.
+#
+# No ports are published; the tunnel is the only way in. In the Cloudflare
+# dashboard, give the tunnel a public hostname api.<domain> -> http://homer:8000.
+# Secrets come only from homer/.env (gitignored): see .env.example.
+#
+#   docker compose up -d --build
+#   docker compose logs -f homer
+#
+# Run one replica only: dealt hands, emotion samples and in-flight judging live in memory.
+# Never run this tunnel on the laptop and the VPS at once; they fight over the token.
+
+services:
+  homer:
+    build:
+      context: .
+      additional_contexts:
+        content: ../content
+    env_file: .env
+    restart: unless-stopped
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?set CLOUDFLARE_TUNNEL_TOKEN in homer/.env}
+    depends_on:
+      homer:
+        condition: service_healthy
+    restart: unless-stopped

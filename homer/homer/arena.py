@@ -92,10 +92,21 @@ class Arena:
 
         return await self.once(("judge", bt.turn_id), work)
 
-    async def deal_round(self, room_id: int, round_no: int, theme: str, poets: list[Poet]) -> tuple[str, dict[int, list[str]]]:
+    async def poets(self, room_id: int) -> list[Poet]:
+        """The room's poets in seat order, from SQL (the source of truth for hoards)."""
+        rows = await self.db.sql(f"SELECT * FROM player WHERE room_id = {int(room_id)}")
+        rows.sort(key=lambda r: r.get("seat", 0))
+        return [Poet(r["id"], r.get("name", ""), r.get("epithet", ""), list(r.get("hoard") or [])) for r in rows]
+
+    async def deal_round(
+        self, room_id: int, round_no: int, theme: str, poets: list[Poet] | None = None
+    ) -> tuple[str, dict[int, list[str]]]:
         """Pick the theme if none was chosen, deal every poet, and call deal_round."""
 
         async def work() -> tuple[str, dict[int, list[str]]]:
+            nonlocal poets
+            if poets is None:
+                poets = await self.poets(room_id)
             t = theme.strip() or pick_theme(avoid=self.themes_used.get(room_id, []))
             offered: set[str] = set()  # poets in one round get different cards
             hands: list[list] = []
