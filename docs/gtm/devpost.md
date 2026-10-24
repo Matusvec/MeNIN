@@ -160,6 +160,8 @@ swift · swiftui · metal · avfoundation · core-haptics · [core-motion] · sp
 
 ## Tracks to tag on Devpost
 
+**As of Sat 8:27 AM, Devpost's prize list has no Spacetime, no Anthropic, and no MLH Gen AI, .Tech or DigitalOcean.** It also lists Figma's old five prizes. The Hacker Guide wins, and a question to the directors is drafted ([slack-intel.md](slack-intel.md)). Tag every track below that Devpost offers by Sunday, and follow the directors' answer for the rest.
+
 - [ ] Spacetime
 - [ ] Meta: Bringing People Closer Together with AI
 - [ ] Cartesia: Best Use of Cartesia

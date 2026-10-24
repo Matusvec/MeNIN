@@ -32,7 +32,8 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 ## What to show at each booth
 
 ### MLH (Mezzanine, 9:45 AM)
-- **Ask for DigitalOcean credits.** The prize text says to "reach out to your MLH Coach for credits". Our agent service already runs on a DigitalOcean droplet, so ask whether the credits can go on our existing account.
+- **Ask about DigitalOcean credits, but don't count on them.** The Hive prize text says to "reach out to your MLH Coach for credits", but no Slack post mentions DigitalOcean, MLH's cloud credits are Vultr, and the DigitalOcean prize isn't on Devpost yet. Ask whether the prize is real at this event, and whether credits can go on our existing account.
+- **Ask how to tag MLH Gen AI, .Tech and DigitalOcean**, since Devpost doesn't list them yet.
 - **Ask for the free .tech domain code**, then register `playmenin.tech` with it. The .Tech prize includes a .tech domain for up to 10 years.
 - **Opt in to the Commit Fellowship** category, if the team wants it.
 - Show nothing unless asked. If the coach is curious, hand them a phone.
