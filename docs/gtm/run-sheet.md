@@ -11,12 +11,12 @@ Logistics for judging day, Sunday Oct 25: what goes where, what gets charged, ho
 | Time | What | Who |
 | --- | --- | --- |
 | Sat 11 PM | Feature freeze. The demo build goes to TestFlight and is installed on all three iPhones and the Mac. Write the build number here: ______ | iOS lead |
-| Sat night | Everything charges overnight to 100% (see Power). Five rematch drills in a row, timed. Save the backup video to the Mac **and** to all three phones. | All |
+| Sat night | Everything charges overnight to 100% (see Power). Five rematch drills in a row, timed. Save the backup video to the Mac **and** to all three phones. On the Mac, confirm `python3 --version` works (it needs Xcode or the Command Line Tools) and that the repo is pulled, then run the demo check once against the production URL. | All |
 | Sun 7:00 | Pack, using the list at the bottom. | All |
 | 8:00 | At the venue. | All |
 | 8:45 | Devpost submitted, every track tagged. The hard deadline is 9:00. | Matus |
 | 9:00–9:20 | **Get our judging table number and move there.** The Hacker Guide: "Shortly after the 9:00 AM submission deadline, all projects will be assigned a table number. You will need to move to your assigned table by 10:30 AM." Watch #0-announcements and the app. The table may not be where we hacked. | Matus |
-| 9:20–10:00 | Hall check **at the assigned table**: find the nearest hardline switch (there's one every 3 tables, per the announcements), plug in ethernet, set sound at demo volume, run the noise test, and do two full warm-up runs. If no switch reaches, tell a director immediately. | All |
+| 9:20–10:00 | Hall check **at the assigned table**: find the nearest hardline switch (there's one every 3 tables, per the announcements), plug in ethernet, and **run the demo check until it says GO with no no-go warnings** (see Before each judge). Then set sound at demo volume, run the noise test, and do two full warm-up runs. If no switch reaches, tell a director immediately. | All |
 | 10:15 | Table set: demo config loaded, the main room open, **the backup room created on the Mac** (code written down), and the backup video cued. | Operator |
 | 10:30–12:30 | Judging. The whole team stays at the table. The guide: "If your entire team is not present while a judge comes, you will not be judged!" Take bathroom breaks one at a time, never two at once. Reset with the rematch drill between judges. | All |
 
@@ -26,7 +26,7 @@ Every device runs the same TestFlight build. Check under TestFlight, MeNIN, buil
 
 | Device | Held by | Role | Connection | Power |
 | --- | --- | --- | --- | --- |
-| **Mac (arena)** | Operator | **The arena, full screen, with the display turned to face the judges.** Demo config on, operator keys, latency HUD on. The main room is live, and the **backup room is a second room code the Mac can switch to**. The backup video is paused in a second window. | Ethernet, through the USB-C adapter | **100% at the start.** Wall outlet if the table has one, or a power bank if one can feed it (see Power). |
+| **Mac (arena)** | Operator | **The arena, full screen, with the display turned to face the judges.** Demo config on, operator keys, latency HUD on. A Terminal sits on a second desktop for the demo check. The main room is live, and the **backup room is a second room code the Mac can switch to**. The backup video is paused in a second window. | Ethernet, through the USB-C adapter | **100% at the start.** Wall outlet if the table has one, or a power bank if one can feed it (see Power). |
 | **iPhone A** | The poet | Poet 1: mic and hand. | Venue Wi-Fi, with cellular data as plan B | Power bank between runs |
 | **iPhone B** | Matus | Poet 2: mic and hand, and the staged freeze. | Same | Same |
 | **iPhone C** | Operator | **The spare, with duties in priority order:** 1) replaces a dead poet phone; 2) **backup arena** in arena mode, landscape, if the Mac dies (small, but it works); 3) plays the backup video if the Mac is gone; 4) the judge's phone after 2:00, for discus or a rematch. Grippy case. | Same | Same |
@@ -86,6 +86,14 @@ Before every run:
 - [ ] Speaker volume is set and captions are on.
 - [ ] The operator key "replay opening" is ready.
 - [ ] The backup room code is written down, and the backup video is paused at 0:00 on the Mac.
+- [ ] **Run the demo check** on the Mac, from the repo root, in a Terminal on a second desktop (never over the arena while a judge is looking):
+  `python3 homer/scripts/demo_check.py https://api.playmenin.tech` *(the domain is pending Matus; until then, use the agent's current URL)*
+  It takes about 5 s. It checks the agent's health, times one real judged turn (Practice mode, so nothing is written to the room), and checks the themes, the freeze rescue and the voice token. **Read the lines, not just the last one.** It prints GO whenever nothing FAILs, even with warnings, and three warnings are really no-go:
+  - `WARN spacetimedb ... battles can't be written`: **no battle.** Run Practice Spar for this judge and tell leader.
+  - `WARN voice token ... NO VOICE ID`: **Homer is mute.** Fix it before the judge sits down, or use the backup video.
+  - `WARN judge cache ... cold`: run the check again. The second run warms it.
+  - `WARN judge ... verdict in X s` over 2.5 s: still GO. Expect the stall line, and tell Matus.
+  - Any `FAIL`: **NO-GO.** Use the fallbacks below.
 - [ ] The latency HUD shows the last run's verdict under 3.5 s.
 - [ ] Mac battery: ____%. If it's under 30%, tell Matus, and only then turn on Low Power Mode.
 - [ ] Phones come off their banks only when the judge sits down.
