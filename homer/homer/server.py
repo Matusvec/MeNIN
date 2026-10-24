@@ -14,6 +14,7 @@ import logging
 import os
 import random
 import re
+import time
 from contextlib import asynccontextmanager
 from dataclasses import asdict, is_dataclass
 from typing import Any, Literal
@@ -36,6 +37,19 @@ from .stdb import Refused, Stdb, StdbError
 from .voice import RateLimit, VoiceConfig, VoiceError, mint
 
 log = logging.getLogger("homer")
+if not log.handlers:  # one compact line per timed call, next to uvicorn's own log
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(logging.Formatter("%(levelname)s homer: %(message)s"))
+    log.addHandler(_handler)
+    log.setLevel(logging.INFO)
+    log.propagate = False
+
+# Calls the demo waits on, and how long each may take before the log flags it SLOW (ms).
+TIMED = {
+    "/battle/judge": 2500, "/judge": 2500, "/battle/emotion": 2500, "/emotion": 2500, "/rescue": 300,
+    "/battle/deal": 3000, "/battle/poet": 5000, "/battle/verdict": 5000, "/battle/song": 8000,
+    "/debate/whispers": 5000, "/lesson/feedback": 6000, "/spar": 8000, "/voice/token": 1500,
+}
 
 _judge: Judge | None = None
 _arena: Arena | None = None
@@ -103,6 +117,20 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="Homer agent service", lifespan=lifespan)
+
+
+@app.middleware("http")
+async def timing(request: Request, call_next):
+    """Log how long each demo-path call took, and flag the slow ones (streams: time to the first byte)."""
+    t0 = time.perf_counter()
+    response = await call_next(request)
+    limit = TIMED.get(request.url.path)
+    if limit is not None:
+        ms = (time.perf_counter() - t0) * 1000
+        slow = ms > limit
+        log.log(logging.WARNING if slow else logging.INFO, "%s %s %d %.0fms%s",
+                request.method, request.url.path, response.status_code, ms, " SLOW" if slow else "")
+    return response
 
 
 # ----- Wire shapes -----------------------------------------------------------
@@ -450,6 +478,8 @@ async def battle_judge(req: BattleJudgeRequest) -> dict[str, Any]:
     )
     try:
         posted, j = await arena().judge_turn(bt)
+        log.info("judge turn=%s %s verdict=%sms done=%sms%s", req.turn_id, req.event, j.timing.get("verdict", "-"),
+                 j.timing.get("done", "-"), " SILENT " + j.error if j.silent else "")
     except EmptyVerse as exc:
         raise HTTPException(422, str(exc)) from None
     except Refused as exc:
@@ -578,11 +608,29 @@ async def get_lessons(bpm: float = 80) -> dict[str, Any]:
                 "demoSpoken": spoken_demo(l),
                 "demoLane": demo_lane(l, bpm),
                 "success": l.success,
-                "feedback": l.id in ("beat", "formula", "epithet"),
+                "exercise": l.exercise_lines,  # lines Homer speaks in the exercise (lessons 5 and 6), as notation
+                "feedback": True,
             }
             for l in lessons().values()
         ]
     }
+
+
+class LessonChecks:
+    """What lessons need beyond the scanner: the judge (lesson 3), the classifier (4), Homer's reading (5, 6)."""
+
+    async def craft(self, a: Attempt) -> int:
+        j = await judge().judge(Turn(a.transcript, mode="lesson", theme="the poet's own battle title"))
+        return j.scores["craft"] if not j.silent else 10  # a silent judge doesn't fail the poet
+
+    async def emotions(self, lines: list[str]) -> list[dict[str, float] | None]:
+        return list(await asyncio.gather(*(arena().classifier.classify(line) for line in lines)))
+
+    async def answer(self, thrown: str, lines: list[str]) -> dict | None:
+        return await host().lesson_answer(thrown, lines)
+
+    async def boast(self, setup: list[str], closing: str) -> dict | None:
+        return await host().lesson_boast(setup, closing)
 
 
 class LessonFeedbackRequest(Model):
@@ -594,6 +642,7 @@ class LessonFeedbackRequest(Model):
     rescue: str = ""  # the card Homer whispered on this try, if he did
     name: str = ""  # the poet's name (lesson 3 finds the title after it)
     lines_expected: int | None = None
+    prompt: str = ""  # lesson 5: the line Homer threw (one of the exercise's lines)
 
 
 @app.post("/lesson/feedback")
@@ -601,14 +650,11 @@ async def lesson_feedback_endpoint(req: LessonFeedbackRequest) -> dict[str, Any]
     """Homer's one line for a try: the first miss in the lesson's table, or its success line."""
     if req.lesson not in lessons():
         raise HTTPException(404, f"no lesson {req.lesson}")
-    attempt = Attempt(req.lesson, req.transcript, _words(req), req.bpm, req.hand, req.rescue, req.name, req.lines_expected)
-
-    async def craft(a: Attempt) -> int:
-        j = await judge().judge(Turn(a.transcript, mode="lesson", theme="the poet's own battle title"))
-        return j.scores["craft"] if not j.silent else 10  # a silent judge doesn't fail the poet
-
+    attempt = Attempt(
+        req.lesson, req.transcript, _words(req), req.bpm, req.hand, req.rescue, req.name, req.lines_expected, req.prompt
+    )
     try:
-        f = await lesson_feedback(attempt, craft)
+        f = await lesson_feedback(attempt, checks=LessonChecks())
     except NotImplementedError as exc:
         raise HTTPException(501, str(exc)) from None
     return {

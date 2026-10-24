@@ -2,7 +2,7 @@
 
 The Python service in `homer/`. This file is the contract between the service and its callers; `spacetime/CONTRACT.md` is the contract for the battle database.
 
-**Status:** every endpoint here is built and tested. Lesson feedback covers lessons 1 to 3; lessons 4 to 6 return 501 until they're built (they're in the cut order).
+**Status:** every endpoint here is built and tested, including lesson feedback for all six Bard lessons.
 
 | Endpoint | Caller | Status |
 | --- | --- | --- |
@@ -18,7 +18,7 @@ The Python service in `homer/`. This file is the contract between the service an
 | `POST /emotion` | app (Practice, Bard) | live |
 | `POST /spar` | app (Practice, lesson demos) | live |
 | `GET /lessons` | app (Bard) | live |
-| `POST /lesson/feedback` | app (Bard) | live, lessons 1 to 3 |
+| `POST /lesson/feedback` | app (Bard) | live, lessons 1 to 6 |
 | `POST /battle/poet` | arena | live |
 | `POST /battle/emotion` | arena | live |
 | `POST /battle/verdict` | arena | live |
@@ -285,12 +285,25 @@ Homer's one line after a try: the first miss in the lesson's table that applies,
 ```
 
 - `hand` and `rescue` (the card Homer whispered on this try, if he did) are for lesson 2. `name` is for lesson 3, which reads the title after it on the first line.
+- `prompt` is for lesson 5: the line Homer threw, one of that lesson's `exercise` lines from `GET /lessons` (notation is fine).
 - `words` and `bpm` let lesson 1 hear "rushing the drum".
 
 Returns `{"landed": false, "line": "Three hits. I need four. Add a word with weight.", "miss": "Three hits or fewer", "title": "", "scan": VerseScan}`.
 
 - `miss` is the table row that applied, or `null` when the try landed. With no words it is `"No speech heard"`.
 - On lesson 3, `title` is the coined epithet when it lands: put it in the hoard and use it as the battle name. Lesson 3's "generic" check is a judge call (about 1 s); the other checks are instant.
+
+Lessons 4 to 6:
+
+| Lesson | How it's checked | Takes |
+| --- | --- | --- |
+| 4, the turn | The emotion classifier reads each of the four lines. The turn is where the verse swings most between triumph and loss, and it has to be at line 3. A feeling named instead of shown ("sad", "I felt") is a miss. The scanner checks line 3 kept four hits. Fewer than four lines gets the short-try line first. | about 1.5–5 s (four classifier calls at once) |
+| 5, the answer | One Claude reading of the two lines against Homer's thrown line: `turned`, `ignored`, `agreed` or `denied`, plus an Answer score. The scanner checks both lines have four hits. Lands at Answer 7 or more. | about 2–3.5 s |
+| 6, the boast | The closing line must end on a hit (else "You ended on {last_word}"), be one line, not hedge ("maybe", "I think"), close Homer's setup (Claude), and have four hits. Lands at Image 7 or more. The setup is that lesson's `exercise` lines. | about 1.5 s |
+
+- If a Claude reading doesn't come back, the result is `{"landed": false, "line": "", "miss": "Homer is silent"}`: show "Homer is silent on this one", never a canned line.
+- `miss` can also be `"Answer below 7"` or `"Image below 7"`: a clean try that the reading scores under the bar. lessons.md has no line for it yet, so Homer says the shared "Again." (a TODO(spec) for pm).
+- `GET /lessons` also returns each lesson's `exercise` lines (notation) and `feedback: true` for all six.
 
 ### `POST /battle/poet`
 

@@ -12,6 +12,10 @@ ROWS = {
                 "The card alone, nothing of their own", "Their own half is off"],
     "epithet": ["Three or more hits in the title", "One hit in the title", "Generic, judged weak",
                 "Title not used in the line", "The line around it is off"],
+    "turn": ["No turn", "Turned at line 1 or 2", "Turned at line 4", "Said the feeling instead of showing it",
+             "The turn cost a hit"],
+    "answer": ["Ignored the line", "Agreed with it", "Denied it", "Only one line", "Good answer, but a hit short"],
+    "boast": ["Ended on a weak word", "Kept going after the hit", "Hedged", "Didn't close the setup", "A hit short"],
 }
 
 
@@ -104,6 +108,108 @@ def test_a_short_try_is_told_how_many_lines():
     assert f.line == "You stopped short. I asked for two lines. Finish it."
 
 
-def test_later_lessons_are_not_built_yet():
-    with pytest.raises(NotImplementedError):
-        say("turn", "we broke their gates")
+# ----- Lessons 4 to 6 ---------------------------------------------------------
+
+
+class FakeChecks:
+    """Stands in for the classifier and Homer's readings."""
+
+    def __init__(self, leads=None, answer=None, boast=None):
+        self.leads, self._answer, self._boast = leads or [], answer, boast
+        self.seen = []
+
+    async def craft(self, a):
+        return 8
+
+    async def emotions(self, lines):
+        return [{e: 0.9} if e else None for e in self.leads[: len(lines)]]
+
+    async def answer(self, thrown, lines):
+        self.seen.append(thrown)
+        return self._answer
+
+    async def boast(self, setup, closing):
+        self.seen.append(setup)
+        return self._boast
+
+
+def check(lesson, transcript, **kw):
+    checks = FakeChecks(**{k: kw.pop(k) for k in ("leads", "answer", "boast") if k in kw})
+    return asyncio.run(feedback(Attempt(lesson, transcript, **kw), checks=checks)), checks
+
+
+TURN_VERSE = ("we broke their gates, we burned their towers\nwe drank their wine till the dawn came up\n"
+              "then I saw my brother lying in the sand\nand the wine turned to ash in the back of my throat")
+
+
+@pytest.mark.parametrize(
+    "leads, verse, miss",
+    [
+        (["joy", "joy", "grief", "grief"], TURN_VERSE, None),
+        (["joy", "joy", "joy", "joy"], TURN_VERSE, "No turn"),
+        (["joy", "grief", "grief", "grief"], TURN_VERSE, "Turned at line 1 or 2"),
+        (["joy", "joy", "joy", "grief"], TURN_VERSE, "Turned at line 4"),
+        (["joy", "joy", "grief", "grief"], TURN_VERSE.replace("then I saw my brother", "then I felt so sad, my brother"),
+         "Said the feeling instead of showing it"),
+        (["joy", "joy", "grief", "grief"], TURN_VERSE.replace("then I saw my brother lying in the sand", "then I saw him"),
+         "The turn cost a hit"),
+    ],
+)
+def test_lesson_four_the_turn(leads, verse, miss):
+    f, _ = check("turn", verse, leads=leads)
+    assert f.miss == miss and f.landed == (miss is None)
+    if miss is None:
+        assert f.line == "You moved the room. That's the turn."
+
+
+def test_lesson_four_needs_all_four_lines():
+    f, _ = check("turn", "we broke their gates\nwe drank their wine", leads=["joy", "grief"])
+    assert f.miss == "Fewer lines than the exercise asks for" and "four lines" in f.line
+
+
+THROWN = "you SPEAK like a SPARrow / LOST in a STORM"
+ANSWERED = "a sparrow in a storm still flies to the shore\nwhile your thunder dies in the clouds that you bore"
+
+
+@pytest.mark.parametrize(
+    "answer, verse, miss",
+    [
+        ({"stance": "turned", "answer": 8}, ANSWERED, None),
+        ({"stance": "ignored", "answer": 3}, ANSWERED, "Ignored the line"),
+        ({"stance": "agreed", "answer": 4}, ANSWERED, "Agreed with it"),
+        ({"stance": "denied", "answer": 4}, ANSWERED, "Denied it"),
+        ({"stance": "turned", "answer": 8}, ANSWERED.split("\n")[0], "Only one line"),
+        ({"stance": "turned", "answer": 8}, ANSWERED.split("\n")[0] + "\nyou lose", "Good answer, but a hit short"),
+        ({"stance": "turned", "answer": 5}, ANSWERED, "Answer below 7"),
+        (None, ANSWERED, "Homer is silent"),
+    ],
+)
+def test_lesson_five_the_answer(answer, verse, miss):
+    f, checks = check("answer", verse, answer=answer, prompt=THROWN)
+    assert f.miss == miss and f.landed == (miss is None)
+    assert checks.seen == ["you speak like a sparrow lost in a storm"]  # notation stripped for Homer's reading
+    if miss == "Homer is silent":
+        assert f.line == ""
+
+
+CLOSING = "and I walk through the gate as the hall goes still"
+
+
+@pytest.mark.parametrize(
+    "boast, verse, miss, fill",
+    [
+        ({"closes_setup": True, "image": 8}, CLOSING, None, None),
+        ({"closes_setup": True, "image": 8}, "and I walk through the gate of the hall like a", "Ended on a weak word", "a"),
+        ({"closes_setup": True, "image": 8}, CLOSING + "\nand then I sit down", "Kept going after the hit", None),
+        ({"closes_setup": True, "image": 8}, "and maybe I walk through the gate as the hall goes still", "Hedged", None),
+        ({"closes_setup": False, "image": 8}, CLOSING, "Didn't close the setup", None),
+        ({"closes_setup": True, "image": 8}, "I won the hall", "A hit short", None),
+        ({"closes_setup": True, "image": 5}, CLOSING, "Image below 7", None),
+    ],
+)
+def test_lesson_six_the_boast(boast, verse, miss, fill):
+    f, checks = check("boast", verse, boast=boast)
+    assert f.miss == miss and f.landed == (miss is None)
+    assert checks.seen[0][2] == "and now you stand at the gate of the hall"  # Homer's setup, from lessons.md
+    if fill:
+        assert f.line == f"You ended on {fill}. End on the word that hits hardest."

@@ -260,3 +260,24 @@ class Host:
             user += "\n\n" + block("answer_to", answer_to)
         data = await self._ask("spar", schema, user, events.DEBATE)
         return [clean_verdict(str(x)) for x in (data or {}).get("lines", []) if str(x).strip()][:n]
+
+    # ----- Bard lessons 5 and 6: Homer's reading, not his voice ---------------
+
+    async def lesson_answer(self, thrown: str, lines: list[str]) -> dict | None:
+        """Lesson 5: did the answer turn Homer's line, ignore it, agree with it, or deny it?"""
+        schema = claude.obj({"stance": {"type": "string", "enum": ["turned", "ignored", "agreed", "denied"]},
+                             "answer": {"type": "integer", "enum": list(range(1, 11))}})
+        user = block("thrown", thrown) + "\n\n" + block("answer", "\n".join(lines))
+        data = await self._ask("lesson_answer", schema, user, events.POETRY)
+        if data is None or data.get("stance") not in ("turned", "ignored", "agreed", "denied"):
+            return None
+        return {"stance": data["stance"], "answer": max(1, min(10, int(data.get("answer", 1))))}
+
+    async def lesson_boast(self, setup: list[str], closing: str) -> dict | None:
+        """Lesson 6: does the closing line pay off Homer's setup, and how strong is its picture?"""
+        schema = claude.obj({"closes_setup": {"type": "boolean"}, "image": {"type": "integer", "enum": list(range(1, 11))}})
+        user = block("setup", "\n".join(setup)) + "\n\n" + block("closing", closing)
+        data = await self._ask("lesson_boast", schema, user, events.POETRY)
+        if data is None:
+            return None
+        return {"closes_setup": bool(data.get("closes_setup")), "image": max(1, min(10, int(data.get("image", 1))))}

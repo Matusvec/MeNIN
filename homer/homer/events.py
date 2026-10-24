@@ -78,7 +78,14 @@ POETRY = Event(
     ),
     hand="formulas",
     beat=True,
-    tasks=(("poet", "poet"), ("verdict", "verdict"), ("song", "song"), ("spar", "spar")),
+    tasks=(
+        ("poet", "poet"),
+        ("verdict", "verdict"),
+        ("song", "song"),
+        ("spar", "spar"),
+        ("lesson_answer", "lesson_answer"),
+        ("lesson_boast", "lesson_boast"),
+    ),
 )
 
 # content/debate.md, "The rubric". Poise is measured from the delivery, never scored by Claude.

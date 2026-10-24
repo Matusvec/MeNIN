@@ -5,18 +5,21 @@ table is read in order, and each row is matched to a detector here by its
 position. Homer says the first miss that applies; with no miss, the lesson
 lands. tests/test_lessons.py checks the rows still line up with the detectors.
 
-Lessons 1 to 3 are built. TODO(spec): lessons 4 to 6 (the turn, the answer,
-the boast) are in the cut order and come after the battle works.
+Lessons 1 to 3 run on the scanner alone (lesson 3's "generic" check asks the
+judge). Lessons 4 to 6 add the emotion classifier (the turn) and one small
+Claude check each (the answer, the boast), behind the `Checks` interface so
+tests can fake them.
 """
 
 from __future__ import annotations
 
 import re
 from collections.abc import Awaitable, Callable
+from typing import Protocol
 from dataclasses import dataclass, field
 from functools import cache
 
-from . import formulas
+from . import emotion, formulas
 from .formulas import CONTENT_DIR, Formula
 from .scanner import LineScan, TimedWord, VerseScan, scan_verse, strong_hits
 
@@ -32,6 +35,7 @@ class Lesson:
     move: str = ""  # "Name the move", spoken
     exercise: str = ""  # spoken
     demo: list[str] = field(default_factory=list)  # notation: CAPS are hits, " / " the break
+    exercise_lines: list[str] = field(default_factory=list)  # lines Homer speaks in the exercise (lessons 5 and 6)
     misses: list[tuple[str, str]] = field(default_factory=list)  # (miss, Homer's line)
     success: str = ""
 
@@ -64,6 +68,9 @@ def lessons() -> dict[str, Lesson]:
         demo = re.search(r"\*\*Demo verse[^\n]*\n(?:[^\n]*\n)*?```\n(.*?)```", section, re.S)
         if demo:
             lesson.demo = [line for line in demo.group(1).splitlines() if line.strip()]
+        ex = re.search(r"\*\*Exercise[^\n]*\n(?:[^\n]*\n)*?```\n(.*?)```", section.split("**Feedback**")[0], re.S)
+        if ex:
+            lesson.exercise_lines = [line for line in ex.group(1).splitlines() if line.strip()]
         table = section.split("**Feedback**", 1)[1] if "**Feedback**" in section else ""
         for row in table.splitlines():
             cells = [c.strip() for c in row.strip().strip("|").split("|")]
@@ -149,6 +156,8 @@ class Attempt:
     rescue: str = ""  # lesson 2: the card Homer whispered, if he did
     name: str = ""  # lesson 3: the poet's name, to find the title after it
     lines_expected: int | None = None  # the exercise's count when None
+    prompt: str = ""  # lesson 5: the line Homer threw (notation or plain)
+    facts: dict = field(default_factory=dict)  # filled before the detectors run (lessons 4 to 6)
 
 
 @dataclass
@@ -163,6 +172,15 @@ class Feedback:
 # A detector returns the placeholder values when its miss applies, else None.
 Detector = Callable[[VerseScan, Attempt], dict | None]
 CraftCheck = Callable[[Attempt], Awaitable[int]]
+
+
+class Checks(Protocol):
+    """What some lessons need beyond the scanner. The server provides it; tests fake it."""
+
+    async def craft(self, a: Attempt) -> int: ...
+    async def emotions(self, lines: list[str]) -> list[dict[str, float] | None]: ...
+    async def answer(self, thrown: str, lines: list[str]) -> dict | None: ...  # {"stance", "answer"}
+    async def boast(self, setup: list[str], closing: str) -> dict | None: ...  # {"closes_setup", "image"}
 
 
 def _first(scan: VerseScan, test: Callable[[LineScan], bool]) -> LineScan | None:
@@ -236,13 +254,126 @@ EPITHET: list[Detector] = [
     lambda s, a: {} if (x := _title_line(a, s)) is not None and x.hits < 4 else None,
 ]
 
-DETECTORS: dict[str, list[Detector | None]] = {"beat": BEAT, "formula": FORMULA, "epithet": EPITHET}
-LINES = {"beat": 2, "formula": 1, "epithet": 2}  # what each exercise asks for (content/lessons.md)
+# Lesson 4: the feeling named instead of shown. Homer's rule: show it, never say it.
+FEELING_RE = re.compile(
+    r"\b(?:sad|sadness|happy|happiness|angry|anger|mad|furious|scared|afraid|fearful|frightened|terrified|"
+    r"joyful|glad|grieving|lonely|depressed|upset|heartbroken|miserable|ashamed|excited|nervous|anxious|"
+    r"hopeless|jealous|feel|feels|felt|feeling|feelings|emotion|emotions)\b",
+    re.I,
+)
+
+TURN: list[Detector | None] = [
+    lambda s, a: {} if a.facts["turn_at"] is None else None,  # no turn
+    lambda s, a: {} if a.facts["turn_at"] == 1 else None,  # turned at line 2: too soon
+    lambda s, a: {} if a.facts["turn_at"] == 3 else None,  # turned on the last line
+    lambda s, a: {} if FEELING_RE.search(" ".join(line.text for line in s.lines)) else None,
+    lambda s, a: {} if len(s.lines) >= 3 and s.lines[2].hits < 4 else None,  # the bend cost line 3 a hit
+]
+
+ANSWER: list[Detector | None] = [
+    lambda s, a: {} if a.facts["stance"] == "ignored" else None,
+    lambda s, a: {} if a.facts["stance"] == "agreed" else None,
+    lambda s, a: {} if a.facts["stance"] == "denied" else None,
+    lambda s, a: {} if len(s.lines) < 2 else None,  # only one line
+    lambda s, a: {} if any(line.hits < 4 for line in s.lines[:2]) else None,
+]
+
+# Lesson 6: a boast that hedges isn't one.
+HEDGE_RE = re.compile(
+    r"\b(?:maybe|might|perhaps|probably|possibly|hopefully|almost|i think|i guess|i hope|i suppose|"
+    r"kind of|sort of|could be|try to|trying to)\b",
+    re.I,
+)
+
+
+def _last_word(line: LineScan) -> str:
+    return line.words[-1].text if line.words else ""
+
+
+BOAST: list[Detector | None] = [
+    lambda s, a: {"last_word": _last_word(s.lines[0])} if s.lines[0].words and not s.lines[0].words[-1].hit else None,
+    lambda s, a: {} if len(s.lines) > 1 else None,  # landed it, then kept talking
+    lambda s, a: {} if HEDGE_RE.search(s.lines[0].text) else None,
+    lambda s, a: {} if not a.facts["closes_setup"] else None,
+    lambda s, a: {} if s.lines[0].hits < 4 else None,
+]
+
+DETECTORS: dict[str, list[Detector | None]] = {
+    "beat": BEAT, "formula": FORMULA, "epithet": EPITHET, "turn": TURN, "answer": ANSWER, "boast": BOAST,
+}
+LINES = {"beat": 2, "formula": 1, "epithet": 2, "turn": 4, "answer": 2, "boast": 1}  # what each exercise asks for
 GOOD_CRAFT = 6
+GOOD_ANSWER = 7  # lesson 5 lands at Answer 7 or more
+GOOD_IMAGE = 7  # lesson 6 lands at Image 7 or more
+SILENT = "Homer is silent"  # a Claude check didn't answer: no line, never a canned one
 
 
-async def feedback(a: Attempt, craft: CraftCheck | None = None) -> Feedback:
+def lead(weights: dict[str, float] | None) -> str | None:
+    return max(weights, key=weights.get) if weights and any(weights.values()) else None
+
+
+# How each emotion leans, from triumph (+1) to loss (-1). A turn is a swing along this line.
+VALENCE = {"joy": 1.0, "awe": 0.6, "tenderness": 0.6, "defiance": 0.5, "longing": -0.4, "anger": -0.4, "fear": -0.9, "grief": -1.0}
+TURN_SWING = 0.6  # the smallest valence swing between before and after that counts as a turn
+
+
+def valence(weights: dict[str, float] | None) -> float | None:
+    if not weights or not any(weights.values()):
+        return None
+    total = sum(max(0.0, float(v)) for v in weights.values())
+    return sum(VALENCE.get(e, 0.0) * max(0.0, float(v)) for e, v in weights.items()) / total if total else None
+
+
+def turn_at(weights: list[dict[str, float] | None]) -> int | None:
+    """The 0-based line where the verse turns, or None.
+
+    Each line gets a valence (triumph to loss). The turn is where the mean
+    before and the mean after differ most; ties go to line 3, where the
+    lesson wants it. A swing smaller than TURN_SWING is no turn at all.
+    """
+    v = [valence(w) for w in weights]
+    known = [x for x in v if x is not None]
+    if len(known) < 2:
+        return None
+    v = [x if x is not None else sum(known) / len(known) for x in v]
+    best, best_swing = None, 0.0
+    for k in sorted(range(1, len(v)), key=lambda k: abs(k - 2)):  # line 3 first, so it wins ties
+        swing = abs(sum(v[:k]) / k - sum(v[k:]) / (len(v) - k))
+        if swing > best_swing + 1e-9:
+            best, best_swing = k, swing
+    return best if best_swing >= TURN_SWING else None
+
+
+async def _facts(a: Attempt, scan: VerseScan, checks: Checks | None) -> bool:
+    """Work out what lessons 4 to 6 need before the detectors run. False if a Claude check went silent."""
+    lines = [line.text for line in scan.lines]
+    if a.lesson == "turn":
+        weights = await checks.emotions(lines[:4]) if checks else [None] * len(lines[:4])
+        weights = [w or emotion.lexicon_weights(text) for w, text in zip(weights, lines[:4])]
+        a.facts["leads"] = [lead(w) for w in weights]
+        a.facts["valence"] = [None if (x := valence(w)) is None else round(x, 2) for w in weights]
+        a.facts["turn_at"] = turn_at(weights)
+    elif a.lesson == "answer":
+        thrown = " ".join(a.prompt.replace(" / ", " ").split()).lower()
+        r = await checks.answer(thrown, lines[:2]) if checks else None
+        if r is None:
+            return False
+        a.facts["stance"] = str(r.get("stance", ""))
+        a.facts["answer"] = int(r.get("answer", 0) or 0)
+    elif a.lesson == "boast":
+        setup = [" ".join(x.replace(" / ", " ").split()).lower() for x in lessons()["boast"].exercise_lines]
+        r = await checks.boast(setup, lines[0]) if checks else None
+        if r is None:
+            return False
+        a.facts["closes_setup"] = bool(r.get("closes_setup"))
+        a.facts["image"] = int(r.get("image", 0) or 0)
+    return True
+
+
+async def feedback(a: Attempt, craft: CraftCheck | None = None, checks: Checks | None = None) -> Feedback:
     """Homer's one line for this try: the first miss that applies, or the lesson's success line."""
+    if craft is None and checks is not None:
+        craft = checks.craft
     lesson = lessons()[a.lesson]
     detectors = DETECTORS.get(a.lesson)
     if detectors is None:
@@ -252,6 +383,11 @@ async def feedback(a: Attempt, craft: CraftCheck | None = None) -> Feedback:
     scan = scan_verse(a.transcript, words=a.words, bpm=a.bpm, lines_expected=expected, cards=cards)
     if not any(line.words for line in scan.lines):
         return Feedback(False, common().get("No speech heard", ""), "No speech heard", scan)
+    short = "Fewer lines than the exercise asks for"
+    if a.lesson == "turn" and len(scan.lines) < expected:  # a turn needs all four lines to be found
+        return Feedback(False, _fill(common()[short], {"lines": spell(expected).lower()}), short, scan)
+    if not await _facts(a, scan, checks):
+        return Feedback(False, "", SILENT, scan)
 
     for (miss, line), detect in zip(lesson.misses, detectors):
         if detect is None:
@@ -263,8 +399,13 @@ async def feedback(a: Attempt, craft: CraftCheck | None = None) -> Feedback:
             return Feedback(False, _fill(line, fills), miss, scan)
 
     if len(scan.lines) < expected:
-        short = "Fewer lines than the exercise asks for"
         return Feedback(False, _fill(common()[short], {"lines": spell(expected).lower()}), short, scan)
+    # TODO(spec): lessons.md has no line for a clean try that the judge rates below the bar
+    # (Answer under 7, Image under 7); Homer says the shared "Again." line.
+    if a.lesson == "answer" and a.facts.get("answer", 0) < GOOD_ANSWER:
+        return Feedback(False, common().get("After feedback, before the next try", "Again."), "Answer below 7", scan)
+    if a.lesson == "boast" and a.facts.get("image", 0) < GOOD_IMAGE:
+        return Feedback(False, common().get("After feedback, before the next try", "Again."), "Image below 7", scan)
     title = title_of(a, scan) if a.lesson == "epithet" else ""
     return Feedback(True, _fill(lesson.success, {"title": title}), None, scan, title=title)
 
