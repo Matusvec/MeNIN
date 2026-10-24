@@ -94,7 +94,7 @@ Before every run:
   - Any other `FAIL`: **NO-GO.** Use the fallbacks below.
   - `WARN judge cache ... cold`: run the check again. The second run warms it.
   - `WARN judge ... verdict in X s` over 2.5 s: still GO. Expect the stall line, and tell Matus.
-  - `WARN this python3 uses LibreSSL 2.8`: informational only. This Mac has Homebrew Python 3.13, and the check re-runs itself there automatically. Read the result lines below it.
+  - `WARN this python3 uses LibreSSL 2.8`: this won't appear on Matus's Mac. It has Homebrew Python 3.13, and the check switches to it automatically. If you ever see it, you're on a different Mac, so run the check from the arena Mac instead.
 - [ ] The latency HUD shows the last run's verdict under 3.5 s.
 - [ ] Mac battery: ____%. If it's under 30%, tell Matus, and only then turn on Low Power Mode.
 - [ ] Phones come off their banks only when the judge sits down.
