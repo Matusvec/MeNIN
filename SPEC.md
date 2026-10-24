@@ -20,7 +20,7 @@ The feel is professional and badass, never academic. Homer is a legendary bard, 
 
 MeNIN is a universal iOS app (SwiftUI, iOS 18+, iPhone and iPad), shared with the team through TestFlight. Universal so the arena runs full-screen on an iPad or a Mac. There is no web app. The display name is MeNIN; internal names (the `Homer` Xcode target, the `homer/` folder, the bundle id) stay as they are. The same app runs every mode; in a battle each device runs it as either the arena or a player.
 
-The look: colorful but matte, open and simple. Flat layered color fields like cut paper, lots of negative space, no glow or neon.
+The look is **Atelier** (Matus's pick, Sat 11:55 AM): cream cards with Bodoni display type and Inter UI, wine and gold accents, over the full-screen scene of matte, painted color. Open and simple, lots of negative space, no glow or neon. Names and the wordmark must read from 2 m away on a laptop screen.
 
 ## The games
 
