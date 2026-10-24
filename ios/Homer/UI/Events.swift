@@ -81,20 +81,21 @@ struct Ruling: Equatable {
         outOf = 100
     }
 
-    /// Poetry's weights (the server's ScoreRow.total): the picture and the answer count most.
-    /// Image ×3, Answer ×3, Craft ×2, Flow ×1, Range ×1, out of 100.
+    /// Poetry's total when the server's isn't passed: Image ×4, Answer ×3, Craft ×3,
+    /// out of 100. Pass the server's ScoreRow.total as `weightedTotal` to be exact.
     static func poetryTotal(_ axes: [AxisScore]) -> Int {
-        let weights = ["Image": 3, "Answer": 3, "Craft": 2, "Flow": 1, "Beat": 1, "Range": 1]
-        return axes.reduce(0) { $0 + (weights[$1.name] ?? 1) * $1.value }
+        let weights = ["Image": 4, "Answer": 3, "Craft": 3]
+        return axes.reduce(0) { $0 + (weights[$1.name] ?? 0) * $1.value }
     }
 
-    /// Poetry as the players read it (the playtest): Beat is called Flow, and the
-    /// card leads with the picture: Image, Answer, Craft, Flow, Range. Debate is unchanged.
+    /// Poetry is judged on content (Matus): the card shows three bars, Image,
+    /// Answer, Craft. Beat and Range still arrive from the server but aren't
+    /// scored in a battle (the scene still reads the emotion). Debate is unchanged.
     private static func shown(_ axes: [AxisScore]) -> [AxisScore] {
-        let order = ["Image", "Answer", "Craft", "Flow", "Range"]
+        let order = ["Image", "Answer", "Craft"]
         guard axes.contains(where: { $0.name == "Beat" }) else { return axes }
         return axes
-            .map { $0.name == "Beat" ? AxisScore(name: "Flow", value: $0.value) : $0 }
+            .filter { order.contains($0.name) }
             .sorted { (order.firstIndex(of: $0.name) ?? 9) < (order.firstIndex(of: $1.name) ?? 9) }
     }
 }

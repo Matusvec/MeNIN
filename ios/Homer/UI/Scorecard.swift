@@ -33,9 +33,9 @@ struct ScorecardView: View {
     static func hint(for axis: String, debate: Bool) -> String? {
         switch (axis.lowercased(), debate) {
         case ("beat", _), ("flow", _): "You kept a steady rhythm"
-        case ("craft", false): "You worked your cards in, varied them, coined new ones"
-        case ("image", _): "How strong the picture is"
-        case ("answer", false): "You answered the last verse, or the topic if you went first"
+        case ("craft", false): "Homer's phrases and your own turns"
+        case ("image", _): "Pictures we can see"
+        case ("answer", false): "You hit back at the other poet"
         case ("range", _): "How much feeling the verse covered"
         case ("claim", _): "You took your side, said it plainly, and held it to the end"
         case ("reason", _): "Your reasons and examples actually support your claim"
