@@ -39,21 +39,16 @@ struct ArenaScreen: View {
 
     /// Before a room exists: start one, or resume the last one this arena hosted.
     private var startPanel: some View {
-        List {
-            Section {
-                LabeledContent("Server", value: "\(ServerConfig.spacetime.host() ?? "?") / \(ServerConfig.database)")
-                LabeledContent("Connection", value: "\(battle.connection)")
-                if let error = battle.lastError { Text(error).foregroundStyle(.red) }
-            }
-            Section("New battle") {
-                Button("Start a battle") { battle.createRoom(.standard) }
-                Button("Start a demo battle") { battle.createRoom(.demoMode) }
-                if let latest = battle.latestHostedRoom {
-                    Button("Resume \(latest.code) (\(latest.phase))") { battle.watchRoom(latest.id) }
-                }
-            }
-            .disabled(battle.connection != .connected)
-        }
+        let latest = battle.latestHostedRoom
+        let status: String? = battle.connection == .connected ? nil
+            : (battle.lastError ?? (battle.connection == .disconnected ? "Can't reach the hall. Retrying…" : "Connecting…"))
+        return ArenaStartView(
+            status: status,
+            resumeCode: latest?.code,
+            onStart: { battle.createRoom(.standard) },
+            onDemo: { battle.createRoom(.demoMode) },
+            onResume: latest.map { room in { battle.watchRoom(room.id) } }
+        )
     }
 
     /// Small, out of the judges' way: only shows when something is wrong.

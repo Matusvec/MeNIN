@@ -112,7 +112,8 @@ final class TurnRecorder {
             phase = .unavailable("Voice is offline: \(error.localizedDescription)")
             return
         }
-        let stt = CartesiaSTT(token: token)
+        let keyterms = battle.myHand + (battle.me?.hoard ?? []) + [battle.currentRound?.theme].compactMap { $0 }
+        let stt = CartesiaSTT(token: token, keyterms: keyterms)
         self.stt = stt
         stt.start()
         tasks.append(Task { [weak self] in
@@ -205,7 +206,7 @@ final class TurnRecorder {
     // MARK: events
 
     private func handle(_ event: CartesiaSTT.Event) {
-        print("VOICE stt \(event)")
+        Self.log.info("stt \(String(describing: event), privacy: .public)")
         switch event {
         case .partial(let text):
             partial = text

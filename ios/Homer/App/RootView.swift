@@ -5,6 +5,15 @@ import SwiftUI
 struct RootView: View {
     @State private var app = AppModel()
 
+    /// The dev menu (server switch, diagnostics, scene lab) is for the team, not reviewers.
+    static var devMenuEnabled: Bool {
+        #if DEBUG
+        true
+        #else
+        UserDefaults.standard.bool(forKey: "devMenu")
+        #endif
+    }
+
     var body: some View {
         ZStack {
             SceneView(driver: app.scene)
@@ -31,7 +40,7 @@ struct RootView: View {
                     default: app.route = .battle
                     }
                 },
-                onProfile: { app.route = .dev }
+                onProfile: Self.devMenuEnabled ? { app.route = .dev } : nil
             )
         case .battle:
             Routed(app: app, title: "Battle") { BattleChoiceView(app: app) }

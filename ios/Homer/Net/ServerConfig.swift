@@ -14,25 +14,21 @@ enum ServerConfig {
 
     // TODO: the agent's public URL once builder's deploy (Vultr + Cloudflare Tunnel) is up.
     static let maincloud = Preset(id: "maincloud", url: "https://maincloud.spacetimedb.com", database: "homer-calhacks", agent: "")
-    static let local = Preset(
-        id: "local",
-        url: {
+    /// The laptop that hosts SpacetimeDB and the agent in dev. Simulators and the Mac app
+    /// (Designed for iPad) reach it on 127.0.0.1; a phone needs its LAN address.
+    static var local: Preset {
+        let onThisMac: Bool = {
             #if targetEnvironment(simulator)
-            "http://127.0.0.1:3000"
+            true
             #else
-            "http://10.0.16.91:3000"  // Matus's Mac on the local network (dev)
-            #endif
-        }(),
-        database: "homer",
-        agent: {
-            #if targetEnvironment(simulator)
-            "http://127.0.0.1:8000"
-            #else
-            "http://10.0.16.91:8000"
+            ProcessInfo.processInfo.isiOSAppOnMac
             #endif
         }()
-    )
-    static let presets = [maincloud, local]
+        let host = onThisMac ? "127.0.0.1" : "10.0.16.91"  // Matus's Mac on the local network (dev)
+        return Preset(id: "local", url: "http://\(host):3000", database: "homer", agent: "http://\(host):8000")
+    }
+
+    static var presets: [Preset] { [maincloud, local] }
 
     /// Simulators default to the laptop; devices (and TestFlight) default to Maincloud.
     static var defaultPreset: Preset {

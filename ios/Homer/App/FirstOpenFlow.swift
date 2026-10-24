@@ -10,11 +10,11 @@ import Observation
 final class FirstOpenFlow {
     enum Beat: Equatable { case homerSpeaks, listening, homerAnswers, done }
 
-    /// Caption text shows mēnin; the TTS text spells it the way Homer should say it.
+    /// Caption text shows mēnin; the TTS text spells it "may-nin" ("MAY-nin" gets spelled out).
     static let opening = HomerVoice.Script(
         key: "first-open-1",
         caption: "The first word of Western literature is mēnin. Rage. Give me one line.",
-        speech: "The first word of Western literature is MAY-nin. Rage. Give me one line."
+        speech: "The first word of Western literature is may-nin. Rage. Give me one line."  // lowercase, hyphenated: verified through STT
     )
     static let answer = HomerVoice.Script(
         key: "first-open-2",

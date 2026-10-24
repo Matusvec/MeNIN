@@ -32,7 +32,9 @@ final class CartesiaSTT: @unchecked Sendable {
     private let task: URLSessionWebSocketTask
     private let queue = DispatchQueue(label: "com.matusvec.homer.stt")
 
-    init(token: VoiceToken, session: URLSession = .shared, endpoint: URL = CartesiaSTT.endpoint) {
+    /// `keyterms` bias recognition toward the poet's formulas (ink-2 only; up to 100 terms,
+    /// 1200 characters). Live test: word error 3% with them vs 6–20% without, even under the beat.
+    init(token: VoiceToken, keyterms: [String] = [], session: URLSession = .shared, endpoint: URL = CartesiaSTT.endpoint) {
         let stt = token.stt ?? .init(model: "ink-2", encoding: "pcm_s16le", sampleRate: Int(MicEngine.sttSampleRate))
         var components = URLComponents(url: endpoint, resolvingAgainstBaseURL: false)!
         components.queryItems = [
@@ -42,6 +44,13 @@ final class CartesiaSTT: @unchecked Sendable {
             URLQueryItem(name: "cartesia_version", value: token.cartesiaVersion),
             URLQueryItem(name: "access_token", value: token.token),
         ]
+        if stt.model.hasPrefix("ink-2") {
+            var budget = 1200
+            for term in keyterms.prefix(100) where term.count <= budget {
+                components.queryItems?.append(URLQueryItem(name: "keyterm", value: term))
+                budget -= term.count
+            }
+        }
         task = session.webSocketTask(with: components.url!)
         (events, continuation) = AsyncStream.makeStream(of: Event.self)
     }

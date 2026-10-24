@@ -96,11 +96,13 @@ final class DevAutopilot {
                 guard let recorder else { return }
                 let lines = Int(room.linesPerTurn)
                 Task {
+                    // Hold through each speaking bar, release in the rest bar.
+                    let bar = room.barSeconds
                     for _ in 0..<lines {
                         recorder.setTalking(true)
-                        try? await Task.sleep(for: .seconds(1.5))
+                        try? await Task.sleep(for: .seconds(bar))
                         recorder.setTalking(false)
-                        try? await Task.sleep(for: .seconds(0.8))
+                        try? await Task.sleep(for: .seconds(bar * Double(max(1, Int(room.barsPerLine)) - 1) + 0.2))
                     }
                     print("AUTOPILOT transcript \(recorder.transcript.replacingOccurrences(of: "\n", with: " | "))")
                     await recorder.finish()

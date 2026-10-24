@@ -1,5 +1,6 @@
 import AVFoundation
 import Observation
+import os
 
 /// Homer speaks one line at a time, with a caption for everything he says (SPEC demo mode).
 /// With no voice (no agent, no Cartesia key) he is captioned but silent, and the line holds
@@ -30,6 +31,7 @@ final class HomerVoice {
     private(set) var voiceError: String?
     var isSpeaking: Bool { caption != nil }
 
+    private static let log = Logger(subsystem: "com.matusvec.homer", category: "homer-voice")
     @ObservationIgnored private let audio: StageAudio
     @ObservationIgnored private let agent: AgentClient?
     @ObservationIgnored private let role: VoiceTokenRequest.Role
@@ -97,10 +99,13 @@ final class HomerVoice {
             played = Double(samples.count) / StageAudio.sampleRate
         } else if let tts = await connectedTTS() {
             do {
+                var firstMs: Double?
                 for try await samples in tts.speak(line.speech ?? line.text, speed: line.whisper ? 0.9 : 1) {
+                    firstMs = firstMs ?? Date().timeIntervalSince(start) * 1000
                     audio.enqueueVoice(samples)
                     played += Double(samples.count) / StageAudio.sampleRate
                 }
+                Self.log.info("tts first audio \(Int(firstMs ?? -1)) ms, \(played, format: .fixed(precision: 2)) s: \(line.text, privacy: .public)")
             } catch {
                 voiceError = error.localizedDescription
                 self.tts = nil
