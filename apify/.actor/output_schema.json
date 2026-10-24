@@ -1,0 +1,21 @@
+{
+    "actorOutputSchemaVersion": 1,
+    "title": "Epithet Miner output",
+    "properties": {
+        "formulas": {
+            "type": "string",
+            "title": "Mined formulas (dataset)",
+            "template": "{{links.apiDefaultDatasetUrl}}/items"
+        },
+        "bank": {
+            "type": "string",
+            "title": "All formulas as one JSON file",
+            "template": "{{links.apiDefaultKeyValueStoreUrl}}/records/formulas.mined.json"
+        },
+        "report": {
+            "type": "string",
+            "title": "Run report",
+            "template": "{{links.apiDefaultKeyValueStoreUrl}}/records/REPORT"
+        }
+    }
+}

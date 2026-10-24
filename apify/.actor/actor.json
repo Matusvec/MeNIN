@@ -15,5 +15,6 @@
     },
     "dockerfile": "./Dockerfile",
     "minMemoryMbytes": 256,
-    "maxMemoryMbytes": 2048
+    "maxMemoryMbytes": 2048,
+    "output": "./output_schema.json"
 }
