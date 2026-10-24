@@ -2,7 +2,15 @@
 
 This is the shared state for **Battle mode** only. Bard and Practice are single-device and talk to the agent service directly, so they are not modeled here. The module lives in `src/index.ts`; if this file and the code disagree, fix one of them.
 
-**Events.** Each game is a config on one engine (SPEC "The games"). `room.event` picks it: `poetry` today, with `debate` and `discus` to come. The module knows only two things about an event, how many score axes it has and what kind of card the hand holds (`EVENTS` in `src/index.ts`). The axis labels, the host, the beat on or off, and the copy all live in the app's event config. Adding debate means one `EVENTS` entry (`{ axes: 5, card: 'move' }`) and no schema change. Discus will add a `throw` table and a `throw` reducer later.
+**Events.** Each game is a config on one engine (SPEC "The games"). `room.event` picks it: `poetry`, `debate` or `discus`. The module knows how many score axes an event has, what kind of card the hand holds (`EVENTS` in `src/index.ts`), and its turn timing (`turnWindow`). The axis labels, the host, the beat on or off, and the copy all live in the app's event config.
+
+| Event | Axes | Hand | Turn | Agent |
+| --- | --- | --- | --- | --- |
+| `poetry` | 5: beat, craft, image, answer, range | `formula` cards | one bar of count-in, then lines × bars_per_line bars | yes |
+| `debate` | 5: claim, reason, answer, craft, poise | `move` cards | a 3 s count-in, then 45 s | yes, the same endpoints as poetry |
+| `discus` | none | empty | no count-in, 30 s in the circle | **none**: see [Discus](#discus) |
+
+An open hall switches events with `set_event`, keeping its poets (P16).
 
 Server: SpacetimeDB 2.13. Database name: `homer`.
 
@@ -42,6 +50,10 @@ lobby ─start_battle─▶ dealing ─deal_round─▶ ready ─start_turn─�
 scored ─advance (last turn)─▶ round_end ─advance─▶ ready (next round, if dealt) │ dealing / theme (if not) │ finale (after the last round)
 finale ─advance─▶ finished
 any phase but lobby ─rematch─▶ dealing (or theme)
+lobby │ finished ─set_event─▶ lobby (another event, same poets)
+
+discus:  lobby ─start_battle─▶ ready ─start_turn─▶ speaking ─throw_discus / timer─▶ scored
+         scored ─advance─▶ ready (next thrower, or the next round's first) │ finale (after the last throw) ─advance─▶ finished
 ```
 
 | Phase | Meaning | Who moves it on |
@@ -176,6 +188,10 @@ Every `set_scene` also appends `id, room_id, turn_id, ms` (milliseconds since `s
 
 `id, room_id, line_no, turn_id` (whose verse it came from), `text`.
 
+### `discus_throw` (public). Writer: phone (`throw_discus`).
+
+`id, room_id, turn_id, player_id, throw_no` (the round number: each round is one throw each), `speed` (f32, peak rotation rate before release, rad/s), `angle` (f32, release angle in degrees above horizontal), `timing` (f32, speed at release over peak speed, 0–1), `distance` (f32, metres, 0 for a foul), `foul` (bool), `at` (when it landed in the database; the arena flies the discus from here). A turn that timed out has no row (its status is `skipped`).
+
 ### Private tables
 
 `config` (the owner and the service key), `service` (the agent identities), and `turn_timer` (the scheduled turn ends). No client sees these.
@@ -192,7 +208,8 @@ Every `set_scene` also appends `id, room_id, turn_id, ms` (milliseconds since `s
 | `start_turn` | turn_id | auto_ready, or after the 5 s step-up wait | Same as the phone's Ready tap |
 | `advance` | room_id | After each reveal finishes (verdict TTS, round verdict, song) | `scored` → next turn's `ready`, or `round_end`; `round_end` → next round, or `finale`; `finale` → `finished` |
 | `skip_turn` | turn_id | A poet never steps up (the phone dropped: wait 10 s), or the judge never answers | The current turn is `skipped` and the phase becomes `scored` |
-| `rematch` | room_id | "Rematch", or to un-wedge a demo | Any phase but lobby: clears rounds, turns, scores, samples, song and reactions; zeroes totals; empties hands; goes straight to `dealing`. Poets, names, epithets and seats stay. |
+| `rematch` | room_id | "Rematch", or to un-wedge a demo | Any phase but lobby: clears rounds, turns, scores, samples, song, reactions and throws; zeroes totals; empties hands; goes straight to `dealing` (discus: straight to the first throw's `ready`). Poets, names, epithets and seats stay. |
+| `set_event` | room_id, event String, rounds u32 (1–5; ignored in demo) | "New event" (P16), from `lobby` or `finished` | Switches `room.event` and resets the room like a rematch, then returns it to `lobby` so latecomers can join. Poets, names, epithets and seats stay; hands switch to the new event's card kind. turn_seconds and auto_ready follow the new event (auto_ready goes back to the demo default when leaving discus). Errors: `finish this event first`, `unknown event`. |
 
 ### Phone
 
@@ -208,6 +225,7 @@ Every `set_scene` also appends `id, room_id, turn_id, ms` (milliseconds since `s
 | `end_turn` | turn_id, final transcript | All lines spoken, Done tapped, or the mic closed at ends_at | An empty transcript on attempt 1 goes back to `ready` with attempt 2. Empty on attempt 2 is `skipped`. Otherwise `judging`. |
 | `set_prosody` | room_id, loudness f32, pitch f32, hits u32 | About 20 Hz while you're the speaker. In the lobby any poet may send it (the entrance flare). | Overwrites the room's prosody row. Frames from anyone else, or in other phases, are dropped silently. |
 | `react` | room_id, kind | A spectator or poet taps a reaction | Inserts a reaction |
+| `throw_discus` | turn_id, speed f32, angle f32, timing f32, distance f32, foul bool | Discus: once, when the thrower's thumb lifts | Thrower only, while the turn is `speaking`. Refused out of range (speed 0–60, angle −90–90, timing 0–1, distance 0–100). Inserts a `discus_throw` (distance 0 if foul), marks the turn `scored`, raises `player.total` to the best throw in tenths of a metre, and moves to `scored`. |
 
 ### Agent service
 
@@ -229,7 +247,7 @@ All of these require the caller to be a registered service identity (or the owne
 | --- | --- | --- | --- |
 | `set_service_key` | key (16+ characters) | owner, from the CLI | Stores the key the agent registers with |
 | `claim_service` | key | agent, once at startup | Registers the caller's identity as a service. The registration lasts until a data reset. An identity that's already registered succeeds whatever key it sends, so a rotated key never breaks the agent's startup. |
-| `turn_timeout` | — | scheduler only | Closes a turn still `speaking` at ends_at + 2 s, with the last transcript it got |
+| `turn_timeout` | — | scheduler only | Closes a turn still `speaking` at ends_at + 2 s, with the last transcript it got. A discus turn with no throw is `skipped`. |
 
 ## Calling it from the agent service (Python, no SDK)
 
@@ -276,12 +294,27 @@ The arena calls these and ignores the response body; results arrive through Spac
 
 The hand is private, so the judge sees `played` (the cards actually spoken), not the whole hand. If Craft needs the full hand, the agent can remember what it dealt.
 
+## Discus
+
+Discus is a motion minigame: no voice, no Claude, no agent (SPEC "The games", UX flow section 9). It reuses rooms, rounds and turns:
+
+- `create_room` with event `"discus"` and rounds = throws each (3 is the format; best counts). The poetry fields must still be valid (pass the standard preset's) because they are kept for `set_event`. auto_ready is forced on and turn_seconds is 30.
+- `start_battle` lays out the round's turns itself (rotated seat order, like `deal_round`) and goes straight to `ready`. The arena's auto-start calls `start_turn` after its step-up wait, so `speaking` means "the thrower is in the circle" (D1 and D2), with `beat_at` = `started_at` and `ends_at` 30 s later.
+- While the thumb is down, the thrower's phone streams the wind-up over `set_prosody`: `loudness` = swing power 0–1, `pitch` = 0, `hits` = 1 while the discus is held and 0 otherwise. The arena drives its power gauge and the scene's instant layer from it.
+- Release is the thumb lifting, never motion alone. The phone computes the distance (one formula, in the app) and calls `throw_discus` once. The arena reads the new `discus_throw` row, flies it, and calls `advance` after the reveal (D3 to D6).
+- No throw by `ends_at` + 2 s: the scheduler marks the turn `skipped` and moves to `scored`; there is no retry.
+- `advance` from `scored` goes to the next thrower, or straight into the next round's first throw (no `round_end`), then `finale` (the champion) and `finished`. `end_turn` is refused in a discus room.
+- The leaderboard: `player.total` is each poet's best in tenths of a metre; the throws themselves are in `discus_throw`.
+- The arena does **not** call the agent for a discus room.
+
 ## Timing and rates
 
 - **Beat grid.** Beat *k* (0–3) of line *n* (0-based) falls at `beat_at + (4 × bars_per_line × n + k) × 60/bpm`. With rest bars (bars_per_line = 2) that's `(8n + k)`: bar 2n is line n, and bar 2n+1 is its rest. Each device estimates its offset from server time when `status` flips to `speaking` (offset = local receive time − `started_at`). That is good to a network one-way trip (~50–150 ms), which is fine at ~80 bpm.
 - **Prosody**, about 20 Hz: fine for SpacetimeDB, since each call is one small transaction. Keep **at most one `set_prosody` in flight** and drop frames rather than queue them, so a bad network can't build lag. The arena interpolates. Expect 100–200 ms phone-to-arena.
 - **Transcript**: on each STT partial (a few per second). `end_turn` carries the final.
 - **Scene**: about every 1.5 s, from the agent.
+- **Debate**: `beat_at` = `started_at` + 3 s (the three-count), `ends_at` = `beat_at` + 45 s. No beat grid.
+- **Discus**: `beat_at` = `started_at`, `ends_at` = 30 s later. The wind-up streams over `set_prosody` at about 20 Hz, under the same one-in-flight rule.
 
 ## Running it
 
@@ -291,7 +324,7 @@ cd spacetime && npm install
 npm run typecheck
 npm run publish:local                    # keeps data; publish:local:reset wipes it
 npm run publish:test                     # the isolated test database `homer-test` (no dev-agent, no shared key)
-npm run smoke                            # full two-round battle over HTTP against homer-test, 59 checks
+npm run smoke                            # poetry, discus, set_event and debate over HTTP against homer-test, 95 checks (~90 s)
 npm run logs
 ```
 

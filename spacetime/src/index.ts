@@ -195,6 +195,25 @@ const songLine = table(
   }
 );
 
+// Discus: one row per throw. The thrower's phone measures the swing and
+// computes the distance; the module only checks the numbers are sane.
+const discusThrow = table(
+  { public: true },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    roomId: t.u64().index('btree'),
+    turnId: t.u64(),
+    playerId: t.u64(),
+    throwNo: t.u32(), // the room's round number: each round is one throw each
+    speed: t.f32(), // peak rotation rate before release, rad/s
+    angle: t.f32(), // release angle, degrees above horizontal
+    timing: t.f32(), // speed at release over peak speed, 0..1
+    distance: t.f32(), // metres; 0 for a foul
+    foul: t.bool(),
+    at: t.timestamp(),
+  }
+);
+
 // Private: the module owner and the key the agent service registers with.
 const config = table(
   {},
@@ -235,6 +254,7 @@ const spacetimedb = schema({
   prosody,
   reaction,
   songLine,
+  discusThrow,
   config,
   service,
   turnTimer,
@@ -261,12 +281,20 @@ const GRACE_MICROS = 2_000_000n; // the final transcript can land this late
 const CODE_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // no I or O
 const FORMS = ['four_beat', 'hexameter'];
 const EPOCH = Timestamp.UNIX_EPOCH;
+const DEBATE_COUNT_IN_SECONDS = 3; // a three-count, no drum
+const DEBATE_SECONDS = 45;
+const THROW_SECONDS = 30; // a discus thrower's time in the circle
+const MAX_SPEED = 60; // rad/s; a phone gyro tops out near 35
+const MAX_DISTANCE = 100; // metres
 
 // Each event is a config on the same engine (SPEC "The games"). Axis labels
 // live in the app's event config; here we only need how many there are and
-// what kind of card the hand holds. Debate will add { axes: 5, card: 'move' }.
+// what kind of card the hand holds. Timing is in turnWindow. Discus has no
+// hand, no judge and no agent: see isDiscus.
 const EVENTS: Record<string, { axes: number; card: string }> = {
   poetry: { axes: 5, card: 'formula' }, // beat, craft, image, answer, range
+  debate: { axes: 5, card: 'move' }, // claim, reason, answer, craft, poise
+  discus: { axes: 0, card: '' },
 };
 
 // ---------------------------------------------------------------- helpers
@@ -295,6 +323,82 @@ function barMicros(bpm: number): bigint {
 // Each line is one speaking bar, plus a rest bar when barsPerLine is 2.
 function speakingMicros(lines: number, barsPerLine: number, bpm: number): bigint {
   return BigInt(lines * barsPerLine) * barMicros(bpm);
+}
+
+function isDiscus(r: Room): boolean {
+  return r.event === 'discus';
+}
+
+function seconds(s: number): bigint {
+  return BigInt(s) * 1_000_000n;
+}
+
+// A turn's count-in (start to beat_at) and speaking window (beat_at to
+// ends_at). A verse gets one bar of count-in, a debater a three-count, and a
+// thrower the circle at once.
+function turnWindow(event: string, lines: number, barsPerLine: number, bpm: number): { countIn: bigint; speak: bigint } {
+  if (event === 'discus') return { countIn: 0n, speak: seconds(THROW_SECONDS) };
+  if (event === 'debate') return { countIn: seconds(DEBATE_COUNT_IN_SECONDS), speak: seconds(DEBATE_SECONDS) };
+  return { countIn: barMicros(bpm), speak: speakingMicros(lines, barsPerLine, bpm) };
+}
+
+// The settings an event decides: demo plays one round, and discus always
+// auto-starts each thrower's turn (there is no Ready tap).
+function eventSettings(
+  event: string,
+  demo: boolean,
+  rounds: number,
+  autoReady: boolean,
+  lines: number,
+  barsPerLine: number,
+  bpm: number
+): { rounds: number; turnSeconds: number; autoReady: boolean } {
+  if (!demo && (rounds < 1 || rounds > 5)) throw new SenderError('rounds must be 1 to 5');
+  const turnSeconds = Math.ceil(Number(turnWindow(event, lines, barsPerLine, bpm).speak) / 1e6);
+  if (turnSeconds > 120) throw new SenderError('a turn cannot run past 120 seconds');
+  return { rounds: demo ? 1 : rounds, turnSeconds, autoReady: event === 'discus' || demo || autoReady };
+}
+
+// Inserts a round and its turns in seat order, rotated by one seat each
+// round. Returns the turns in order.
+function layOutRound(ctx: Ctx, roomId: bigint, roundNo: number, theme: string): Turn[] {
+  const rd = ctx.db.round.insert({
+    id: 0n,
+    roomId,
+    roundNo,
+    theme,
+    verdict: '',
+    bestTurnId: 0n,
+    bestLine: '',
+    dealtAt: ctx.timestamp,
+  });
+  const players = playersOf(ctx, roomId);
+  const offset = (roundNo - 1) % players.length;
+  const order = [...players.slice(offset), ...players.slice(0, offset)];
+  return order.map((p, i) =>
+    ctx.db.turn.insert({
+      id: 0n,
+      roomId,
+      roundId: rd.id,
+      playerId: p.id,
+      turnNo: i,
+      status: 'waiting',
+      attempt: 1,
+      transcript: '',
+      played: [],
+      rescue: '',
+      rescues: 0,
+      startedAt: EPOCH,
+      beatAt: EPOCH,
+      endsAt: EPOCH,
+    })
+  );
+}
+
+// Discus rounds need no agent: the module lays out each throw itself.
+function startThrowRound(ctx: Ctx, r: Room, roundNo: number): void {
+  const turns = layOutRound(ctx, r.id, roundNo, `Throw ${roundNo}`);
+  ctx.db.room.id.update({ ...r, roundNo, phase: 'ready', nextTheme: '', currentTurnId: turns[0].id });
 }
 
 function getRoom(ctx: Ctx, roomId: bigint): Room {
@@ -387,6 +491,7 @@ function clearBattle(ctx: Ctx, roomId: bigint): void {
   ctx.db.colorSample.roomId.delete(roomId);
   ctx.db.songLine.roomId.delete(roomId);
   ctx.db.reaction.roomId.delete(roomId);
+  ctx.db.discusThrow.roomId.delete(roomId);
   for (const p of playersOf(ctx, roomId)) {
     ctx.db.player.id.update({ ...p, total: 0 });
     const h = ctx.db.hand.playerId.find(p.id);
@@ -407,6 +512,10 @@ function idleScene(ctx: Ctx, roomId: bigint): void {
 function beginBattle(ctx: Ctx, r: Room): void {
   const n = playersOf(ctx, r.id).length;
   if (n < MIN_PLAYERS) throw new SenderError(`need at least ${MIN_PLAYERS} poets`);
+  if (isDiscus(r)) {
+    startThrowRound(ctx, r, 1);
+    return;
+  }
   ctx.db.room.id.update({
     ...r,
     phase: startOfRound(ctx, r),
@@ -499,15 +608,12 @@ export const createRoom = spacetimedb.reducer(
     if (args.barsPerLine !== 1 && args.barsPerLine !== 2) {
       throw new SenderError('barsPerLine is 1 (no rest bar) or 2 (a rest bar after each line)');
     }
-    if (!args.demo && (args.rounds < 1 || args.rounds > 5)) {
-      throw new SenderError('rounds must be 1 to 5');
-    }
     if (!args.demo && (args.linesPerTurn < 1 || args.linesPerTurn > 8)) {
       throw new SenderError('linesPerTurn must be 1 to 8');
     }
+    // The poetry settings are kept for discus too, so set_event can switch back.
     const lines = args.demo ? 2 : args.linesPerTurn;
-    const turnSeconds = Math.ceil(Number(speakingMicros(lines, args.barsPerLine, args.bpm)) / 1e6);
-    if (turnSeconds > 120) throw new SenderError('a turn cannot run past 120 seconds');
+    const s = eventSettings(args.event, args.demo, args.rounds, args.autoReady, lines, args.barsPerLine, args.bpm);
 
     // A host has one open lobby at a time; a double tap must not leave two.
     for (const old of [...ctx.db.room.iter()]) {
@@ -521,13 +627,13 @@ export const createRoom = spacetimedb.reducer(
       host: ctx.sender,
       phase: 'lobby',
       roundNo: 0,
-      rounds: args.demo ? 1 : args.rounds,
-      turnSeconds,
+      rounds: s.rounds,
+      turnSeconds: s.turnSeconds,
       linesPerTurn: lines,
       bpm: args.bpm,
       form: args.form,
       maxPlayers: args.demo ? DEMO_PLAYERS : MAX_PLAYERS,
-      autoReady: args.demo ? true : args.autoReady,
+      autoReady: s.autoReady,
       themeChoice: args.themeChoice,
       demo: args.demo,
       nextTheme: '',
@@ -570,6 +676,34 @@ export const rematch = spacetimedb.reducer({ roomId: t.u64() }, (ctx, { roomId }
   beginBattle(ctx, getRoom(ctx, roomId));
 });
 
+// The hall stays open (P16): from the lobby, or once an event has finished,
+// the arena switches the room to another event. Poets keep their seats and
+// epithets; scores, throws and hands start over, and the room is a lobby
+// again, so latecomers can join before the next event begins.
+export const setEvent = spacetimedb.reducer(
+  { roomId: t.u64(), event: t.string(), rounds: t.u32() },
+  (ctx, { roomId, event, rounds }) => {
+    const r = getRoom(ctx, roomId);
+    requireHost(ctx, r);
+    if (!EVENTS[event]) throw new SenderError('unknown event');
+    if (r.phase !== 'lobby' && r.phase !== 'finished') throw new SenderError('finish this event first');
+    const s = eventSettings(event, r.demo, rounds, r.autoReady && !isDiscus(r), r.linesPerTurn, r.barsPerLine, r.bpm);
+    clearBattle(ctx, roomId);
+    for (const h of [...ctx.db.hand.roomId.filter(roomId)]) {
+      ctx.db.hand.playerId.update({ ...h, kind: EVENTS[event].card, cards: [] });
+    }
+    ctx.db.room.id.update({
+      ...getRoom(ctx, roomId),
+      event,
+      ...s,
+      phase: 'lobby',
+      roundNo: 0,
+      nextTheme: '',
+      currentTurnId: 0n,
+    });
+  }
+);
+
 export const chooseTheme = spacetimedb.reducer(
   { roomId: t.u64(), theme: t.string() },
   (ctx, { roomId, theme }) => {
@@ -590,6 +724,9 @@ export const advance = spacetimedb.reducer({ roomId: t.u64() }, (ctx, { roomId }
     const cur = getTurn(ctx, r.currentTurnId);
     const next = turnsOf(ctx, cur.roundId).find(x => x.turnNo === cur.turnNo + 1);
     if (next) setPhase(ctx, r, 'ready', next.id);
+    // Discus has no verdict: the next round of throws starts at once.
+    else if (isDiscus(r) && r.roundNo < r.rounds) startThrowRound(ctx, r, r.roundNo + 1);
+    else if (isDiscus(r)) setPhase(ctx, r, 'finale', 0n);
     else setPhase(ctx, r, 'round_end', 0n);
   } else if (r.phase === 'round_end') {
     if (r.roundNo >= r.rounds) {
@@ -711,8 +848,9 @@ export const startTurn = spacetimedb.reducer({ turnId: t.u64() }, (ctx, { turnId
     throw new SenderError('this turn is not up');
   }
 
-  const beatAt = after(ctx.timestamp, barMicros(r.bpm)); // one bar of count-in
-  const endsAt = after(beatAt, speakingMicros(r.linesPerTurn, r.barsPerLine, r.bpm));
+  const w = turnWindow(r.event, r.linesPerTurn, r.barsPerLine, r.bpm);
+  const beatAt = after(ctx.timestamp, w.countIn);
+  const endsAt = after(beatAt, w.speak);
   ctx.db.turn.id.update({ ...tr, status: 'speaking', startedAt: ctx.timestamp, beatAt, endsAt });
   ctx.db.turnTimer.insert({
     scheduledId: 0n,
@@ -769,7 +907,48 @@ export const endTurn = spacetimedb.reducer(
   { turnId: t.u64(), transcript: t.string() },
   (ctx, { turnId, transcript }) => {
     const { r, tr } = requireSpeaker(ctx, turnId);
+    if (isDiscus(r)) throw new SenderError('a discus turn ends with throw_discus');
     closeTurn(ctx, r, tr, transcript.slice(0, 4000));
+  }
+);
+
+// The thrower's phone, once, when the thumb lifts. A foul lands at 0 m.
+// player.total keeps the best throw in tenths of a metre, so it ranks the field.
+export const throwDiscus = spacetimedb.reducer(
+  { turnId: t.u64(), speed: t.f32(), angle: t.f32(), timing: t.f32(), distance: t.f32(), foul: t.bool() },
+  (ctx, a) => {
+    const { r, tr } = requireSpeaker(ctx, a.turnId);
+    if (!isDiscus(r)) throw new SenderError('this is not a discus event');
+    const ranges: [string, number, number, number][] = [
+      ['speed', a.speed, 0, MAX_SPEED],
+      ['angle', a.angle, -90, 90],
+      ['timing', a.timing, 0, 1],
+      ['distance', a.distance, 0, MAX_DISTANCE],
+    ];
+    for (const [name, v, lo, hi] of ranges) {
+      if (!Number.isFinite(v) || v < lo || v > hi) throw new SenderError(`${name} must be ${lo} to ${hi}`);
+    }
+    const distance = a.foul ? 0 : a.distance;
+    ctx.db.turnTimer.turnId.delete(tr.id);
+    ctx.db.discusThrow.insert({
+      id: 0n,
+      roomId: r.id,
+      turnId: tr.id,
+      playerId: tr.playerId,
+      throwNo: r.roundNo,
+      speed: a.speed,
+      angle: a.angle,
+      timing: a.timing,
+      distance,
+      foul: a.foul,
+      at: ctx.timestamp,
+    });
+    ctx.db.turn.id.update({ ...tr, status: 'scored' });
+    const p = ctx.db.player.id.find(tr.playerId)!;
+    const best = Math.round(distance * 10);
+    if (best > p.total) ctx.db.player.id.update({ ...p, total: best });
+    idleScene(ctx, r.id);
+    setPhase(ctx, r, 'scored');
   }
 );
 
@@ -820,6 +999,13 @@ export const turnTimeout = spacetimedb.reducer(
     if (!tr || tr.status !== 'speaking') return;
     const r = ctx.db.room.id.find(tr.roomId);
     if (!r || r.currentTurnId !== tr.id) return;
+    if (isDiscus(r)) {
+      // The thrower never let go: no throw this round.
+      ctx.db.turn.id.update({ ...tr, status: 'skipped' });
+      idleScene(ctx, r.id);
+      setPhase(ctx, r, 'scored');
+      return;
+    }
     closeTurn(ctx, r, tr, tr.transcript);
   }
 );
@@ -867,16 +1053,7 @@ export const dealRound = spacetimedb.reducer(
       throw new SenderError('deal exactly one hand to every poet');
     }
 
-    const rd = ctx.db.round.insert({
-      id: 0n,
-      roomId,
-      roundNo,
-      theme: text(theme, 'theme', 1, 120),
-      verdict: '',
-      bestTurnId: 0n,
-      bestLine: '',
-      dealtAt: ctx.timestamp,
-    });
+    const turns = layOutRound(ctx, roomId, roundNo, text(theme, 'theme', 1, 120));
 
     for (const p of players) {
       const h = ctx.db.hand.playerId.find(p.id)!;
@@ -888,27 +1065,6 @@ export const dealRound = spacetimedb.reducer(
       }
       ctx.db.hand.playerId.update({ ...h, cards });
     }
-
-    const offset = (roundNo - 1) % players.length;
-    const order = [...players.slice(offset), ...players.slice(0, offset)];
-    const turns = order.map((p, i) =>
-      ctx.db.turn.insert({
-        id: 0n,
-        roomId,
-        roundId: rd.id,
-        playerId: p.id,
-        turnNo: i,
-        status: 'waiting',
-        attempt: 1,
-        transcript: '',
-        played: [],
-        rescue: '',
-        rescues: 0,
-        startedAt: EPOCH,
-        beatAt: EPOCH,
-        endsAt: EPOCH,
-      })
-    );
 
     if (now) ctx.db.room.id.update({ ...r, phase: 'ready', nextTheme: '', currentTurnId: turns[0].id });
   }
