@@ -8,16 +8,19 @@ Five people who have never freestyled take MeNIN's first lesson, and we write do
 
 ## What you need
 
-- [ ] An iPhone with the latest MeNIN build from TestFlight, charged above 50%
+- [ ] An iPhone with **build 4** of MeNIN from TestFlight, charged above 50%. In TestFlight, MeNIN shows it as version 0.1.0, build 202610240956.
 - [ ] Wired EarPods, the same ones we use in the demo
 - [ ] A second phone with a stopwatch
 - [ ] This page, open or printed, and the score sheet below
-- [ ] **A dry run, 10 minutes before the first person.** Take lesson 1 yourself once and check three things:
-  - Homer speaks and the drum plays.
+- [ ] **A dry run, 10 minutes before the first person.** Check four things:
+  - **The build.** Open TestFlight, tap MeNIN, and check that it says 0.1.0 (202610240956). If it's older, update it before anything else.
+  - Take lesson 1 yourself once. Homer speaks and the drum plays.
   - After each try, the screen shows a **Beat** number from 1 to 10.
   - Your try gets feedback from Homer.
 
-  If any of these fails, message the leader before you start. Don't run the study in a different mode on your own. If lesson 1 isn't ready, the leader decides at 4 PM whether we use Practice mode instead, and you'll hear which one before 6 PM.
+  If any of these fails, message the leader before you start. Don't run the study on another build or in a different mode on your own.
+
+**Why build 4 matters:** it judges the beat more strictly than build 3. A hit has to land closer to the drum, and each drum beat counts one hit at most. So the same try can score lower on build 4 than on build 3. Every person in the study has to be on build 4, or their numbers can't be compared. If the build changes partway through, stop and message the leader.
 
 ## Who counts
 
@@ -116,6 +119,7 @@ About 5 minutes each.
 
 | | |
 | --- | --- |
+| Build (from TestFlight) | ___ |
 | People counted | ___ |
 | Average Beat, first try (add the first tries and divide by the number of people) | ___ |
 | Average Beat, last try | ___ |
