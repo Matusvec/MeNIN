@@ -22,7 +22,8 @@ struct AgentClient: Sendable {
     // MARK: endpoints
 
     func voiceToken(_ request: VoiceTokenRequest) async throws -> VoiceToken {
-        try await post("voice/token", request)
+        // Without a token the mic and Homer's voice never start: fail fast and try once more.
+        try JSONDecoder().decode(VoiceToken.self, from: try await postRaw("voice/token", request, timeout: 6, retries: 1))
     }
 
     func scan(_ request: ScanRequest) async throws -> VerseScan {
@@ -151,20 +152,30 @@ struct AgentClient: Sendable {
     /// Keeps strangers from spending our credits through the public URL (homer/API.md).
     static let appKey = (Bundle.main.object(forInfoDictionaryKey: "HomerAppKey") as? String) ?? ""
 
-    private func makeRequest<B: Encodable>(_ path: String, _ body: B) throws -> URLRequest {
+    private func makeRequest<B: Encodable>(_ path: String, _ body: B, timeout: TimeInterval = 20) throws -> URLRequest {
         var req = URLRequest(url: base.appending(path: path))
         if !Self.appKey.isEmpty { req.setValue(Self.appKey, forHTTPHeaderField: "X-Homer-Key") }
         req.httpMethod = "POST"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.httpBody = try JSONEncoder().encode(body)
-        req.timeoutInterval = 20
+        req.timeoutInterval = timeout
         return req
     }
 
-    private func postRaw<B: Encodable>(_ path: String, _ body: B) async throws -> Data {
-        let (data, response) = try await session.data(for: makeRequest(path, body))
-        try check(response, body: data)
-        return data
+    /// `timeout` is the longest silence allowed while sending or waiting; a stalled request
+    /// (seen on venue Wi-Fi: headers sent, body never arrived) is retried `retries` times.
+    private func postRaw<B: Encodable>(_ path: String, _ body: B, timeout: TimeInterval = 20, retries: Int = 0) async throws -> Data {
+        var attempt = 0
+        while true {
+            do {
+                let (data, response) = try await session.data(for: makeRequest(path, body, timeout: timeout))
+                try check(response, body: data)
+                return data
+            } catch let error as URLError where attempt < retries
+                        && [.timedOut, .networkConnectionLost, .cannotConnectToHost, .secureConnectionFailed].contains(error.code) {
+                attempt += 1
+            }
+        }
     }
 
     private func post<B: Encodable, R: Decodable>(_ path: String, _ body: B) async throws -> R {
