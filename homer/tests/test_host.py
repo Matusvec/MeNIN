@@ -42,8 +42,22 @@ def test_a_coined_epithet_that_misses_the_half_line_gives_way_to_one_that_fills_
     h = host({"name": "Ana", "epithet": "Lord of the Endless Respawn", "coined": True,
               "alternatives": ["Breaker of Controllers", "Respawn-Queen"]})
     assert run(h.name_poet("Ana", "")) == ("Ana", "Breaker of Controllers", True)
-    kept = host({"name": "Priya", "epithet": "Salt-Tongued", "coined": False, "alternatives": ["Breaker of Waves"]})
-    assert run(kept.name_poet("Priya", "Salt-Tongued")) == ("Priya", "Salt-Tongued", False)  # theirs stays, hits or not
+
+def test_a_fresh_epithet_never_repeats_one_they_have_worn():
+    h = host({"name": "Priya", "epithet": "the Salt-Tongued", "alternatives": ["Breaker of Waves", "Keeper of Tides"]})
+    assert run(h.name_poet("Priya", "Salt-Tongued", worn=["Salt-Tongued", "Breaker of Waves"],
+                           last_verse="the tide took my keys")) == ("Priya", "Keeper of Tides", True)
+    sent = h.client.calls[0]["messages"][0]["content"]
+    assert "Breaker of Waves" in sent and "the tide took my keys" in sent
+    stale = host({"name": "Priya", "epithet": "Salt-Tongued", "alternatives": []})
+    assert run(stale.name_poet("Priya", "Salt-Tongued", worn=["Salt-Tongued"])) == ("Priya", "Salt-Tongued", False)
+
+
+def test_a_coined_theme_keeps_to_six_fresh_words():
+    assert run(host({"theme": "the text you never sent.", "call": "Say it now"}).coin_theme()) == ("The text you never sent", "Say it now.")
+    assert run(host({"theme": "A ship that never came home", "call": "Go."}).coin_theme(["A ship that never came home"])) is None
+    assert run(host({"theme": "A very long theme that runs on past six words", "call": "Go."}).coin_theme()) is None
+    assert run(host({"theme": "Your mother's hands", "call": "Tell me about them now, poet, please."}).coin_theme()) == ("Your mother's hands", "")
 
 
 def test_name_poet_without_claude_keeps_what_was_typed():
@@ -216,6 +230,22 @@ def test_song_posts_turn_ids_and_lines_capped_for_demo():
     lines = run(a.song(1))
     reducer, (room, turn_ids, texts) = db.calls[0]
     assert reducer == "post_song" and room == 1 and len(texts) == 4 == len(turn_ids) == len(lines)
+
+
+def test_name_poet_seeds_a_fresh_epithet_with_the_poets_past_battles():
+    me = ["0x" + "ab" * 32]
+    players = (["id", "room_id", "identity", "name", "epithet", "named"],
+               [[40, 1, me, "Bo", "Breaker of Deadlines", False], [20, 1, me, "Bo", "Storm-Throated", True]])
+    a, db = arena({"name": "Bo", "epithet": "Breaker of Deadlines", "alternatives": ["Thief of the Last Word"]})
+    old = TABLES["player"]
+    TABLES["player"] = players
+    try:
+        assert run(a.name_poet(40)) == ("Bo", "Thief of the Last Word")
+    finally:
+        TABLES["player"] = old
+    sent = a.host.client.calls[0]["messages"][0]["content"]
+    assert "Storm-Throated" in sent and "Breaker of Deadlines" in sent  # both worn: the one brought and last battle's
+    assert BO.transcript.splitlines()[0] in sent  # their last verse (turn 2, player 20)
 
 
 def test_name_poet_reads_the_player_row():

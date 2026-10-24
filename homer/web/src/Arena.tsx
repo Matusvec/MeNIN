@@ -3,18 +3,44 @@
 // The battle itself runs in lib/arena.ts; this only shows it. Read from 2 m: the
 // styles (wired.css) are artist's; this sets the hooks they hang on.
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import QRCode from 'qrcode'
 import DiscusPanel from './Discus'
-import { Arena, STDB_DB, type ArenaView, type GameEvent } from './lib/arena'
+import { Arena, QUIET_SCENE, STDB_DB, type ArenaView, type GameEvent, type SceneFeed } from './lib/arena'
+import type { Grid } from './lib/stage'
 import { webJoinLink } from './lib/links'
+import SceneBackdrop from './scene/SceneBackdrop'
 import './wired.css'
 
-// Each rubric in score.axes order (homer/homer/events.py)
-const AXES: Record<string, string[]> = {
-  poetry: ['Beat', 'Craft', 'Image', 'Answer', 'Range'],
-  debate: ['Claim', 'Reason', 'Answer', 'Craft', 'Poise'],
+const FEED_MS = 50 // the phones send prosody at ~20 Hz
+
+/** artist's painted sea (src/scene/), behind the page. It reads the driver at prosody rate on its own,
+ *  so a speaker's voice moves the sea without re-rendering the arena. */
+function Backdrop({ feed }: { feed: () => SceneFeed }) {
+  const [scene, setScene] = useState(feed)
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      const next = feed()
+      setScene((was) =>
+        was.emotion === next.emotion && was.energy === next.energy && was.pitch === next.pitch && was.hits === next.hits && was.turnKey === next.turnKey
+          ? was
+          : next,
+      )
+    }, FEED_MS)
+    return () => window.clearInterval(id)
+  }, [feed])
+  return <SceneBackdrop {...scene} />
 }
+
+// Each rubric's bars in display order, as [label, index into score.axes]; score.axes keeps
+// homer/homer/events.py's order (poetry: beat, craft, image, answer, range). Beat reads as Flow.
+const AXES: Record<string, Array<[string, number]>> = {
+  poetry: [['Image', 2], ['Answer', 3], ['Craft', 1], ['Flow', 0], ['Range', 4]],
+  debate: [['Claim', 0], ['Reason', 1], ['Answer', 2], ['Craft', 3], ['Poise', 4]],
+}
+
+// One ink per seat, so a poet keeps their color all battle (ios/Homer/UI/Tokens.swift Palette.seats, Atelier).
+const SEAT_INKS = ['#2D5C66', '#B5832F', '#6E7A2E', '#C8452C', '#5B3F73']
 const GAMES: Array<[GameEvent, string]> = [
   ['poetry', 'Poetry battle'],
   ['debate', 'Socratic debate'],
@@ -54,7 +80,10 @@ function waitingFor(view: ArenaView | null): string {
   const host = room?.event === 'debate' ? 'Socrates' : 'Homer'
   if (view.warming) return `${host} is about to speak`
   if (!room) return ''
+  const speaker = view.turn ? view.poets.find((p) => p.id === view.turn!.playerId) : undefined
   switch (room.phase) {
+    case 'speaking':
+      return speaker && room.event !== 'discus' ? `${speaker.name} is speaking` : ''
     case 'lobby':
       return view.poets.length < 2 ? 'Waiting for poets — scan to join' : ''
     case 'dealing':
@@ -91,6 +120,14 @@ export default function ArenaPanel({
 }) {
   const [view, setView] = useState<ArenaView | null>(null)
   const arena = useRef<Arena | null>(null)
+  const goneSince = useRef(new Map<bigint, number>()) // poet id -> when we first saw them disconnected
+  const feed = useCallback(() => arena.current?.sceneFeed() ?? QUIET_SCENE, [])
+  const verseGrid = useCallback(() => arena.current?.verseGrid() ?? null, [])
+  useEffect(() => {
+    // Dev server only: read the backdrop's feed from the console (window.sceneFeed()).
+    if (import.meta.env.DEV) (window as unknown as { sceneFeed?: () => SceneFeed }).sceneFeed = feed
+  }, [feed])
+  const [, tick] = useState(0)
 
   useEffect(() => {
     const a = new Arena(setView)
@@ -105,6 +142,21 @@ export default function ArenaPanel({
   useEffect(() => {
     onSpeaking(Boolean(view?.speaking))
   }, [view?.speaking, onSpeaking])
+  // A poet's phone that drops for a moment shows nothing; "away" only after 3 s gone.
+  const anyGone = Boolean(view?.poets.some((p) => !p.connected))
+  useEffect(() => {
+    if (!anyGone) return
+    const id = window.setInterval(() => tick((n) => n + 1), 1000)
+    return () => window.clearInterval(id)
+  }, [anyGone])
+  const away = (id: bigint, connected: boolean): boolean => {
+    if (connected) {
+      goneSince.current.delete(id)
+      return false
+    }
+    if (!goneSince.current.has(id)) goneSince.current.set(id, Date.now())
+    return Date.now() - goneSince.current.get(id)! > 3000
+  }
   const status = waitingFor(view)
   useEffect(() => {
     onStatus(status)
@@ -117,11 +169,18 @@ export default function ArenaPanel({
     [view?.turn, view?.scores],
   )
 
+  // The sea is the first child of every screen that shows it, so React keeps one canvas from the
+  // opening screen into the battle. Poetry only for now; debate and discus keep the page's own scene.
+  const backdrop = <Backdrop feed={feed} />
+
   if (!view || view.status === 'connecting') {
     return (
-      <div className="arena" data-phase="none">
-        <Heading kicker="The hall" title="Opening the doors…" note="" />
-      </div>
+      <>
+        {backdrop}
+        <div className="arena" data-phase="none">
+          <Heading kicker="The hall" title="Opening the doors…" note="" />
+        </div>
+      </>
     )
   }
 
@@ -135,42 +194,45 @@ export default function ArenaPanel({
 
   if (!room) {
     return (
-      <div className="arena" data-phase="none">
-        <Heading kicker="Host a battle" title="Open the hall" note="This screen is the arena. Phones join with the MeNIN app." />
-        {view.status === 'offline' && <p className="wired-note">{view.error || 'Lost the hall. Reconnecting…'}</p>}
-        <div className="wired-actions open-choices">
-          {GAMES.map(([event, label], i) => (
-            <button
-              key={event}
-              className={i === 0 ? 'primary-action' : 'secondary-action'}
-              disabled={view.status !== 'connected'}
-              onClick={() => {
-                arena.current?.startSound()
-                arena.current?.createRoom(event)
-              }}
-            >
-              Open the hall: {label}
-            </button>
-          ))}
-          {view.resumable && (
-            <button
-              className="secondary-action"
-              onClick={() => {
-                arena.current?.startSound()
-                arena.current?.resume(view.resumable!)
-              }}
-            >
-              Resume {view.resumable.code}
-            </button>
-          )}
-          {view.status === 'offline' && view.error && (
-            <button className="secondary-action" onClick={() => arena.current?.retry()}>
-              Try again
-            </button>
-          )}
+      <>
+        {backdrop}
+        <div className="arena" data-phase="none">
+          <Heading kicker="Host a battle" title="Open the hall" note="This screen is the arena. Phones join with the MeNIN app." />
+          {view.status === 'offline' && <p className="wired-note">{view.error || 'Lost the hall. Reconnecting…'}</p>}
+          <div className="wired-actions open-choices">
+            {GAMES.map(([event, label], i) => (
+              <button
+                key={event}
+                className={i === 0 ? 'primary-action' : 'secondary-action'}
+                disabled={view.status !== 'connected'}
+                onClick={() => {
+                  arena.current?.startSound()
+                  arena.current?.createRoom(event)
+                }}
+              >
+                Open the hall: {label}
+              </button>
+            ))}
+            {view.resumable && (
+              <button
+                className="secondary-action"
+                onClick={() => {
+                  arena.current?.startSound()
+                  arena.current?.resume(view.resumable!)
+                }}
+              >
+                Resume {view.resumable.code}
+              </button>
+            )}
+            {view.status === 'offline' && view.error && (
+              <button className="secondary-action" onClick={() => arena.current?.retry()}>
+                Try again
+              </button>
+            )}
+          </div>
+          {STDB_DB !== 'homer-calhacks' && <p className="wired-note">Test hall: {STDB_DB}</p>}
         </div>
-        {STDB_DB !== 'homer-calhacks' && <p className="wired-note">Test hall: {STDB_DB}</p>}
-      </div>
+      </>
     )
   }
 
@@ -184,125 +246,178 @@ export default function ArenaPanel({
   const board = begun && !discus ? [...view.poets].sort((a, b) => b.total - a.total || a.seat - b.seat) : view.poets
 
   return (
-    <div className="arena" data-phase={room.phase}>
-      {begun && <span className="join-chip">Join · {room.code}</span>}
+    <>
+      {room.event === 'poetry' && backdrop}
+      <div className="arena" data-phase={room.phase}>
+        {begun && <span className="join-chip">Join · {room.code}</span>}
 
-      <Heading
-        kicker={room.phase === 'lobby' ? `Room ${room.code}` : `Room ${room.code} · Round ${room.roundNo} of ${room.rounds}`}
-        title={room.phase === 'lobby' ? 'Enter the hall' : view.round?.theme || PHASES[room.phase] || room.phase}
-        note={speaker && ['ready', 'speaking', 'judging'].includes(room.phase) ? `${speaker.name}: ${PHASES[room.phase]}` : PHASES[room.phase] ?? ''}
-      />
+        <Heading
+          kicker={room.phase === 'lobby' ? `Room ${room.code}` : `Room ${room.code} · Round ${room.roundNo} of ${room.rounds}`}
+          title={room.phase === 'lobby' ? 'Enter the hall' : view.round?.theme || PHASES[room.phase] || room.phase}
+          note={room.phase === 'lobby' ? PHASES.lobby : room.phase === 'ready' && speaker ? `${speaker.name} steps up` : ''}
+        />
 
-      {room.phase === 'lobby' && (
-        <div className="join-card">
-          <div className="join-qr" dangerouslySetInnerHTML={{ __html: qr }} aria-label={`QR code for room ${room.code}`} />
-          <div>
-            <strong className="join-code">{room.code}</strong>
-            <small>Scan with your phone's camera, or type the code in MeNIN.</small>
+        {room.phase === 'lobby' && (
+          <div className="join-card">
+            <div className="join-qr" dangerouslySetInnerHTML={{ __html: qr }} aria-label={`QR code for room ${room.code}`} />
+            <div>
+              <strong className="join-code">{room.code}</strong>
+              <small>Scan with your phone's camera, or type the code in MeNIN.</small>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="scoreboard">
-        {board.map((poet, i) => (
-          <div
-            key={poet.id.toString()}
-            className={[speaker?.id === poet.id ? 'up' : '', begun && !discus && i === 0 && poet.total > 0 ? 'lead' : ''].join(' ').trim()}
-          >
-            <span className="name">
-              {poet.name}
-              {poet.epithet && <small className="epithet">{poet.epithet}</small>}
-            </span>
-            <strong>{room.phase === 'lobby' ? (poet.entered ? '✓' : '…') : discus ? '' : poet.total}</strong>
-            <small className="status">{champion?.id === poet.id ? 'Champion' : poet.connected ? ' ' : 'Reconnecting'}</small>
-          </div>
-        ))}
-      </div>
-
-      {showVerse && (
-        <blockquote className="live-verse">
-          {view.turn!.transcript
-            .split('\n')
-            .filter((line) => line.trim())
-            .map((line, i) => (
-              <span key={i}>{withFormulas(line, view.turn!.played)}</span>
-            ))}
-        </blockquote>
-      )}
-
-      {discus && <DiscusPanel view={view} />}
-
-      {room.phase === 'scored' && score && !discus && (
-        <div className="score-panel five">
-          {(AXES[room.event] ?? AXES.poetry).map((label, i) => {
-            const value = score.axes[i] ?? 0
-            return (
-              <div key={label} className={value >= 8 ? 'high' : ''} style={{ '--v': value } as CSSProperties}>
-                <strong>{score.axes[i] ?? '–'}</strong>
-                <i className="bar" />
-                <span>{label}</span>
-              </div>
-            )
-          })}
-          <p>{score.verdict || 'Homer is silent on this one.'}</p>
-          {score.bestLine && <blockquote className="best-line">{score.bestLine}</blockquote>}
-        </div>
-      )}
-
-      {!discus && room.phase === 'finale' && view.song.length > 0 && (
-        <blockquote className="live-verse song">
-          {view.song.map((line, i) => (
-            <span key={i}>{line}</span>
+        <div className="scoreboard">
+          {board.map((poet, i) => (
+            <div
+              key={poet.id.toString()}
+              className={[speaker?.id === poet.id ? 'up' : '', begun && !discus && i === 0 && poet.total > 0 ? 'lead' : ''].join(' ').trim()}
+            >
+              <span className="name">
+                {poet.name}
+                {poet.epithet && <small className="epithet">{poet.epithet}</small>}
+              </span>
+              <strong>{room.phase === 'lobby' ? (poet.entered ? '✓' : '…') : discus ? '' : poet.total}</strong>
+              <small className="status">{champion?.id === poet.id ? 'Champion' : away(poet.id, poet.connected) ? 'away' : ' '}</small>
+            </div>
           ))}
-        </blockquote>
-      )}
-
-      {!discus && champion && room.phase === 'finished' && (
-        <div className="crown">
-          <span className="label">Champion of the Agon</span>
-          <strong className="name">{champion.name}</strong>
-          {champion.epithet && <em className="epithet">{champion.epithet}</em>}
-          <small className="points">{champion.total} points</small>
         </div>
-      )}
 
-      {!discus && ['round_end', 'finished'].includes(room.phase) && view.round?.bestLine && (
-        <div className="carved">
-          <span className="label">Carved</span>
-          <p className="carved-line">“{view.round.bestLine}”</p>
-          {view.carvedBy && (
-            <small className="by">
-              — {view.carvedBy}, round {room.roundNo}
-            </small>
+        {showVerse && (
+          <blockquote className="live-verse">
+            {view.turn!.transcript
+              .split('\n')
+              .filter((line) => line.trim())
+              .map((line, i) => (
+                <span key={i}>{withFormulas(line, view.turn!.played)}</span>
+              ))}
+          </blockquote>
+        )}
+
+        {room.event === 'poetry' && room.phase === 'speaking' && speaker && (
+          <VerseCue grid={verseGrid} ink={SEAT_INKS[speaker.seat % SEAT_INKS.length]} />
+        )}
+
+        {discus && <DiscusPanel view={view} />}
+
+        {room.phase === 'scored' && score && !discus && (
+          <div className="score-panel five">
+            {(AXES[room.event] ?? AXES.poetry).map(([label, i]) => {
+              const value = score.axes[i] ?? 0
+              return (
+                <div key={label} className={value >= 8 ? 'high' : ''} style={{ '--v': value } as CSSProperties}>
+                  <strong>{score.axes[i] ?? '–'}</strong>
+                  <i className="bar" />
+                  <span>{label}</span>
+                </div>
+              )
+            })}
+            {score.bestLine && <blockquote className="best-line">{score.bestLine}</blockquote>}
+          </div>
+        )}
+
+        {!discus && room.phase === 'finale' && view.song.length > 0 && (
+          <blockquote className="live-verse song">
+            {view.song.map((line, i) => (
+              <span key={i}>{line}</span>
+            ))}
+          </blockquote>
+        )}
+
+        {!discus && champion && room.phase === 'finished' && (
+          <div className="crown">
+            <span className="label">Champion of the Agon</span>
+            <strong className="name">{champion.name}</strong>
+            {champion.epithet && <em className="epithet">{champion.epithet}</em>}
+            <small className="points">{champion.total} points</small>
+          </div>
+        )}
+
+        {!discus && ['round_end', 'finished'].includes(room.phase) && view.round?.bestLine && (
+          <div className="carved">
+            <span className="label">Carved</span>
+            <p className="carved-line">“{view.round.bestLine}”</p>
+            {view.carvedBy && (
+              <small className="by">
+                — {view.carvedBy}, round {room.roundNo}
+              </small>
+            )}
+          </div>
+        )}
+
+        {view.error && <p className="wired-note">{view.error}</p>}
+
+        <div className="wired-actions">
+          {room.phase === 'lobby' && (
+            <button className="primary-action" disabled={view.poets.length < 2} onClick={() => arena.current?.startBattle()}>
+              {view.poets.length < 2 ? 'Waiting for two poets' : 'Begin'}
+            </button>
+          )}
+          {room.phase === 'finished' && (
+            <button className="primary-action" onClick={() => arena.current?.rematch()}>
+              Rematch
+            </button>
+          )}
+          {!['lobby', 'finished', 'speaking'].includes(room.phase) && (
+            <button className="secondary-action operator" onClick={() => arena.current?.advanceOnce()}>
+              Next
+            </button>
           )}
         </div>
-      )}
 
-      {view.error && <p className="wired-note">{view.error}</p>}
-
-      <div className="wired-actions">
-        {room.phase === 'lobby' && (
-          <button className="primary-action" disabled={view.poets.length < 2} onClick={() => arena.current?.startBattle()}>
-            {view.poets.length < 2 ? 'Waiting for two poets' : 'Begin'}
-          </button>
-        )}
-        {room.phase === 'finished' && (
-          <button className="primary-action" onClick={() => arena.current?.rematch()}>
-            Rematch
-          </button>
-        )}
-        {!['lobby', 'finished', 'speaking'].includes(room.phase) && (
-          <button className="secondary-action operator" onClick={() => arena.current?.advanceOnce()}>
-            Next
-          </button>
+        {/* Nothing is judged after the crown: the warning goes, the connection and sound notes stay. */}
+        {(room.phase !== 'finished' || view.status === 'offline' || !view.sound) && (
+          <p className="host-guard">
+            {room.phase !== 'finished' && `This screen hosts room ${room.code}. Don’t open ${room.code} on another arena, or every turn is judged twice.`}
+            {view.status === 'offline' && ' Reconnecting…'}
+            {!view.sound && ' Sound is off: reload and use Open the hall or Resume to start it.'}
+          </p>
         )}
       </div>
+    </>
+  )
+}
 
-      <p className="host-guard">
-        This screen hosts room {room.code}. Don’t open {room.code} on another arena, or every turn is judged twice.
-        {view.status === 'offline' && ' Reconnecting…'}
-        {!view.sound && ' Sound is off: reload and use Open the hall or Resume to start it.'}
-      </p>
+type Cue = { kind: 'count'; n: number; first: boolean } | { kind: 'speak'; line: number } | { kind: 'breathe' }
+
+/** What the poet does now, off the beat grid, exactly as the phone reads it (PlayerView.swift VerseStage.cue):
+ *  3-2-1 on the last beats before each line, SPEAK for the line's bar, Breathe for the rest of the rest bar. */
+function cueAt(grid: Grid, now: number): Cue | null {
+  const beatMs = 60000 / Math.max(grid.bpm, 1)
+  const barMs = beatMs * 4
+  const lineMs = barMs * Math.max(grid.barsPerLine, 1)
+  const elapsed = now - grid.beatAtLocalMs
+  if (elapsed < 0) {
+    const left = Math.ceil(-elapsed / beatMs)
+    return left <= 3 ? { kind: 'count', n: left, first: true } : null
+  }
+  const line = Math.floor(elapsed / lineMs)
+  if (line >= grid.lines) return null
+  const within = elapsed - line * lineMs
+  if (within < barMs) return { kind: 'speak', line }
+  if (line + 1 >= grid.lines) return null // the last rest bar: the verse is done
+  const left = Math.ceil((lineMs - within) / beatMs)
+  return left <= 3 ? { kind: 'count', n: left, first: false } : { kind: 'breathe' }
+}
+
+/** The big cue over the verse. It reads the grid on its own timer and re-renders only when the cue changes. */
+function VerseCue({ grid, ink }: { grid: () => Grid | null; ink: string }) {
+  const [cue, setCue] = useState<Cue | null>(null)
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      const g = grid()
+      const next = g ? cueAt(g, Date.now()) : null
+      setCue((was) => (JSON.stringify(was) === JSON.stringify(next) ? was : next))
+    }, 40)
+    return () => window.clearInterval(id)
+  }, [grid])
+  if (!cue) return null
+  const text = cue.kind === 'count' ? String(cue.n) : cue.kind === 'speak' ? 'SPEAK' : 'Breathe'
+  const note = cue.kind === 'speak' ? 'The mic is open' : cue.kind === 'count' && cue.first ? 'Speak on the drum' : 'Next line on the drum'
+  return (
+    <div className="verse-cue" data-cue={cue.kind} style={{ '--ink': ink } as CSSProperties}>
+      <strong key={cue.kind === 'speak' ? `speak ${cue.line}` : text}>{text}</strong>
+      <small>{note}</small>
     </div>
   )
 }

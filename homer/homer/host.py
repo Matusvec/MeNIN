@@ -9,7 +9,9 @@ fallback is built from the poets' own words, never a canned line.
 from __future__ import annotations
 
 import difflib
+import random
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
 
@@ -24,6 +26,11 @@ from .prompts import attr, block, host_system, quote_untrusted
 from .scanner import VerseScan, scan_verse, strong_hits
 
 NAME_MAX, EPITHET_MAX = 24, 32
+THEME_WORDS, CALL_WORDS = 6, 6
+VERSE_MAX = 400  # characters of a poet's last verse sent to seed an epithet
+# A nudge per epithet, so the same name doesn't always get the same title (Claude settles on one).
+ANGLES = ("a trade or a tool", "an animal", "a place", "a time of day", "the weather", "a sound", "food or drink",
+          "a game", "the sky", "a machine", "a small household thing", "a journey")
 SONG_MAX, DEMO_SONG_MAX = 16, 4
 SONG_MIN_HITS = 3  # a frozen fragment under this is never sung; a line a hit short, Homer completes
 CALL_MAX_WORDS = 12  # the round call, before the carved line: ~7 s together (docs/gtm/demo-script.md)
@@ -48,6 +55,12 @@ def _units(text: str, event: Event) -> list[str]:
 
 def _lines(text: str) -> list[str]:
     return [line.strip() for line in text.splitlines() if line.strip()]
+
+
+def _title_key(text: str) -> str:
+    """An epithet or theme for comparing: lowercase letters and spaces, no leading "the"."""
+    words = re.sub(r"[^a-z ]+", " ", text.lower()).split()
+    return " ".join(words[1:] if words[:1] == ["the"] else words)
 
 
 def _lead_in(text: str) -> str:
@@ -100,21 +113,56 @@ class Host:
 
     # ----- The entrance ------------------------------------------------------
 
-    async def name_poet(self, name: str, epithet: str = "", event: Event | None = None) -> tuple[str, str, bool]:
-        """A PG name and an epithet (coined if they brought none). Returns (name, epithet, coined)."""
+    async def name_poet(
+        self, name: str, brought: str = "", event: Event | None = None, worn: Iterable[str] = (), last_verse: str = ""
+    ) -> tuple[str, str, bool]:
+        """A PG name and a freshly coined epithet, never one in `worn` (the poet's recent ones).
+
+        Matus: the same epithet every battle is boring. Seeded with their last verse
+        when there is one. Without Claude, the poet keeps the epithet they `brought`.
+        Returns (name, epithet, coined).
+        """
         ev = event or self.event
-        schema = claude.obj({"name": STR, "epithet": STR, "coined": {"type": "boolean"},
-                             "alternatives": {"type": "array", "items": STR}})
-        data = await self._ask("poet", schema, block("name", name) + "\n\n" + block("epithet", epithet), event)
-        if data is None:  # keep what they typed; the arena announces the bare name
-            return name.strip()[:NAME_MAX] or "Nameless", epithet.strip()[:EPITHET_MAX], False
-        new_name = clean_verdict(str(data.get("name", ""))).strip(".!?")[:NAME_MAX] or name.strip()[:NAME_MAX]
+        worn = [w for w in dict.fromkeys(x.strip() for x in worn) if w]
+        schema = claude.obj({"name": STR, "epithet": STR, "alternatives": {"type": "array", "items": STR}})
+        user = "\n\n".join([block("name", name), block("worn", "\n".join(worn)), block("last_verse", last_verse[:VERSE_MAX]),
+                            block("angle", random.choice(ANGLES))])
+        data = await self._ask("poet", schema, user, event)
+        kept = name.strip()[:NAME_MAX] or "Nameless", brought.strip()[:EPITHET_MAX], False
+        if data is None:  # the arena announces them with what they brought
+            return kept
+        new_name = clean_verdict(str(data.get("name", ""))).strip(".!?")[:NAME_MAX] or kept[0]
+        seen = {_title_key(w) for w in worn}
         options = [clean_verdict(str(e)).strip(".!?")[:EPITHET_MAX] for e in [data.get("epithet", ""), *data.get("alternatives", [])]]
-        options = [e for e in options if e]
-        new_epithet = options[0] if options else ""
-        if data.get("coined") and ev.beat:  # a coined epithet must fill half a line: the first the scanner hears as two hits
-            new_epithet = next((e for e in options if strong_hits(e) == 2), new_epithet)
-        return new_name or "Nameless", new_epithet, bool(data.get("coined")) and new_epithet != epithet.strip()
+        options = [e for e in options if e and _title_key(e) not in seen]
+        if not options:
+            return new_name, kept[1], False
+        # It must fill half a line: the first the scanner hears as two hits.
+        pick = next((e for e in options if strong_hits(e) == 2), options[0]) if ev.beat else options[0]
+        return new_name, pick, True
+
+    # ----- The theme ---------------------------------------------------------
+
+    async def coin_theme(self, recent: Iterable[str] = ()) -> tuple[str, str] | None:
+        """A fresh round theme and the call that hands the floor over: ("The text you never sent", "Say it now.").
+
+        Never one of `recent`. None when Claude fails or breaks the rules; the
+        written themes are the fallback.
+        """
+        recent = [t for t in dict.fromkeys(x.strip() for x in recent) if t]
+        schema = claude.obj({"theme": STR, "call": STR})
+        data = await self._ask("theme", schema, block("recent", "\n".join(recent)))
+        if data is None:
+            return None
+        theme = " ".join(clean_verdict(str(data.get("theme", ""))).strip(" .!?;:\"'").split())
+        call = " ".join(clean_verdict(str(data.get("call", ""))).split())
+        if not theme or len(theme.split()) > THEME_WORDS or _title_key(theme) in {_title_key(t) for t in recent}:
+            return None
+        if not call or len(call.split()) > CALL_WORDS:
+            call = ""
+        elif call[-1] not in ".!":
+            call += "."
+        return theme[0].upper() + theme[1:], call
 
     # ----- The round verdict and the carved line ---------------------------
 

@@ -90,9 +90,12 @@ class Judgment:
     model: str = ""
     usage: dict[str, int] = field(default_factory=dict)
 
+    weights: dict[str, int] = field(default_factory=dict)  # by axis key; 1 when missing
+
     @property
     def total(self) -> int:
-        return sum(self.scores.values())
+        """Weighted like the module's post_score: a poetry verse is out of 100 (Image, Answer x3, Craft x2)."""
+        return sum(v * self.weights.get(k, 1) for k, v in self.scores.items())
 
 
 class EmptyVerse(ValueError):
@@ -260,7 +263,7 @@ class Judge:
     async def judge(self, turn: Turn, on_verdict: OnVerdict | None = None) -> Judgment:
         t0 = time.perf_counter()
         event = events.get(turn.event)
-        j = Judgment(scores={a.key: 0 for a in event.axes}, model=self.cfg.judge_model)
+        j = Judgment(scores={a.key: 0 for a in event.axes}, weights={a.key: a.weight for a in event.axes}, model=self.cfg.judge_model)
         if event.hand == "moves":  # debate: Poise from the delivery
             text = turn.transcript or " ".join(w.text for w in turn.words or [])
             if not text.strip():
@@ -276,7 +279,7 @@ class Judge:
             if not any(line.words for line in scan.lines):
                 raise EmptyVerse("nothing to judge")
             lines = [line.text for line in scan.lines]
-            j.scores["beat"] = scan.beat
+            j.scores["beat"] = scan.flow  # "Flow" on screen; the key stays beat
             j.scores["range"] = emotion.range_score(turn.emotion_history, lines)
             fallback = scan.best_line
             content = self.user_content(turn, scan)

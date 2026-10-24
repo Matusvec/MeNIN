@@ -123,8 +123,8 @@ def test_deal_reads_poets_from_sql_and_picks_a_theme():
     arena = Arena(Judge(client=FakeClient(reply()), cfg=cfg()), Stdb(cfg(), httpx2.AsyncClient(transport=httpx2.MockTransport(db.handler))))
     theme, hands = asyncio.run(arena.deal_round(1, 1, ""))
     assert theme
-    reducer, args, _ = db.calls[-1]
-    assert reducer == "deal_round" and args[:3] == [1, 1, theme]
+    reducer, args, _ = next(c for c in db.calls if c[0] == "deal_round")  # the next round's theme is coined after it
+    assert args[:3] == [1, 1, theme]
     assert [pid for pid, _ in args[3]] == [1, 2]  # seat order
     ada, bo = args[3][0][1], args[3][1][1]
     assert len(ada) == len(bo) == 8 and not set(ada) & set(bo)
@@ -132,6 +132,35 @@ def test_deal_reads_poets_from_sql_and_picks_a_theme():
     # Round two deals fresh cards and a fresh theme.
     theme2, hands2 = asyncio.run(arena.deal_round(1, 2, ""))
     assert theme2 != theme and not set(hands2[1]) & set(ada)
+
+
+def test_a_coined_theme_is_dealt_with_its_own_call_and_the_next_one_is_coined_meanwhile():
+    db = SqlDb()
+    client = FakeClient([{"theme": "the text you never sent", "call": "Say it now"},
+                         {"theme": "Last train out of the city", "call": "The platform is yours."}])
+    arena = Arena(Judge(client=client, cfg=cfg()), Stdb(cfg(), httpx2.AsyncClient(transport=httpx2.MockTransport(db.handler))))
+
+    async def battle():
+        arena.prefetch_theme(1)  # the lobby
+        first, _ = await arena.deal_round(1, 1, "")
+        await asyncio.sleep(0.05)  # round two's theme is coined while round one plays
+        second, _ = await arena.deal_round(1, 2, "")
+        return first, second
+
+    first, second = asyncio.run(battle())
+    assert first == "The text you never sent" and arena.call_for(first) == "Say it now."
+    assert second == "Last train out of the city" and arena.call_for(second) == "The platform is yours."
+    assert arena.call_for("The night before the deadline") == "The clock is yours."  # a written theme keeps its call
+    sent = client.calls[1]["messages"][0]["content"]
+    assert "The text you never sent" in sent  # never repeats a recent theme
+
+
+def test_a_failed_coin_deals_a_written_theme():
+    db = SqlDb()
+    arena = Arena(Judge(client=FakeClient("not json"), cfg=cfg()), Stdb(cfg(), httpx2.AsyncClient(transport=httpx2.MockTransport(db.handler))))
+    theme, _ = asyncio.run(arena.deal_round(1, 1, ""))
+    from homer.deal import themes
+    assert theme in themes()
 
 
 def test_a_database_that_is_down_is_a_stdb_error_not_a_crash():

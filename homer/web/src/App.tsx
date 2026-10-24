@@ -227,8 +227,7 @@ function ModePage({
       <div className="mode-scene" aria-hidden="true"><AegeanScene /></div>
       <header className="mode-topbar">
         <button className="mode-back" onClick={onBack}>‹ Main menu</button>
-        <div><span>Homer</span><strong>{info.label}</strong></div>
-        <span className="session-status">Session active</span>
+        <div><span>MeNIN</span><strong>{info.label}</strong></div>
       </header>
       <div className="mode-layout">
         <aside className="coach-stage" data-waiting={hallStatus ? 'true' : undefined}>

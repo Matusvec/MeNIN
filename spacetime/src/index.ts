@@ -303,10 +303,12 @@ const MAX_DISTANCE = 100; // metres
 // live in the app's event config; here we only need how many there are and
 // what kind of card the hand holds. Timing is in turnWindow. Discus has no
 // hand, no judge and no agent: see isDiscus.
-const EVENTS: Record<string, { axes: number; card: string }> = {
-  poetry: { axes: 5, card: 'formula' }, // beat, craft, image, answer, range
-  debate: { axes: 5, card: 'move' }, // claim, reason, answer, craft, poise
-  discus: { axes: 0, card: '' },
+// A verse's total is its axes weighted in rubric order: poetry leans on Image, Answer and
+// Craft, not on hitting the drum (out of 100); debate weighs every axis the same (out of 50).
+const EVENTS: Record<string, { axes: number; card: string; weights: number[] }> = {
+  poetry: { axes: 5, card: 'formula', weights: [1, 2, 3, 3, 1] }, // beat (flow), craft, image, answer, range
+  debate: { axes: 5, card: 'move', weights: [1, 1, 1, 1, 1] }, // claim, reason, answer, craft, poise
+  discus: { axes: 0, card: '', weights: [] },
 };
 
 // ---------------------------------------------------------------- helpers
@@ -1111,7 +1113,8 @@ export const postScore = spacetimedb.reducer(
     const want = EVENTS[r.event].axes;
     if (axes.length !== want) throw new SenderError(`${r.event} scores have ${want} axes`);
     if (axes.some(a => a > 10)) throw new SenderError('scores are 0 to 10');
-    const total = axes.reduce((a, b) => a + b, 0);
+    const weights = EVENTS[r.event].weights;
+    const total = axes.reduce((sum, a, i) => sum + a * (weights[i] ?? 1), 0);
 
     ctx.db.score.insert({
       turnId: tr.id,

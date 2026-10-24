@@ -16,6 +16,8 @@ follow the event.
 from __future__ import annotations
 
 import asyncio
+import logging
+import string
 import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
@@ -23,12 +25,17 @@ from typing import TypeVar
 
 from . import debate, events, moss_dealer
 from .emotion import EMOTIONS, Classifier
-from .deal import CANDIDATES, deal, pick_theme
+from .deal import CANDIDATES, call_for, deal, pick_theme
 from .host import Host, Verse
 from .judge import Judge, Judgment, Turn
-from .stdb import Refused, Stdb
+from .stdb import Refused, Stdb, StdbError
 
 T = TypeVar("T")
+log = logging.getLogger("homer")
+
+WORN = 5  # a poet's last epithets that a fresh one may not repeat
+RECENT_THEMES = 20  # themes a generated one may not repeat
+THEME_WAIT = 4.0  # seconds a deal waits for a theme still being coined, then takes a written one
 
 
 @dataclass
@@ -72,6 +79,8 @@ class Arena:
         self._inflight: dict[tuple, asyncio.Task] = {}
         self._live: dict[int, tuple[float, bool]] = {}  # turn_id -> (checked at, speaking or judging)
         self._verdicts: dict[int, tuple[str, int, str]] = {}  # round_id -> the call, worked out ahead of round_end
+        self._next_theme: dict[int, asyncio.Task] = {}  # room_id -> the next round's theme, being coined
+        self._calls: dict[str, str] = {}  # a coined theme (lowercase) -> the call that hands the floor over
 
     async def once(self, key: tuple, work: Callable[[], Awaitable[T]]) -> T:
         """Run `work` once per key at a time; a retry while it runs shares the result."""
@@ -156,7 +165,7 @@ class Arena:
                     moves = debate.deal(n=debate.CANDIDATES, exclude=self.dealt.get(p.player_id, []))
                     hands.append([p.player_id, [m.text for m in moves]])
             else:
-                t = theme.strip() or pick_theme(avoid=used)
+                t = theme.strip() or await self._theme_for(room_id, used)
                 ranked = await moss_dealer.ranked_formulas(t)  # None unless HOMER_DEALER=moss and Moss answers in time
                 offered: set[str] = set()  # poets in one round get different cards
                 for p in poets:
@@ -168,6 +177,8 @@ class Arena:
             for pid, texts in hands:
                 self.dealt.setdefault(pid, []).extend(texts)
             self.themes_used.setdefault(room_id, []).append(t)
+            if event.hand == "formulas":  # the next round's (or a rematch's) theme, coined while this one plays
+                self.prefetch_theme(room_id)
             return t, {pid: texts for pid, texts in hands}
 
         return await self.once(("deal", room_id, round_no), work)
@@ -212,15 +223,87 @@ class Arena:
             rows = await self.db.sql(f"SELECT * FROM player WHERE id = {int(player_id)}")
             if not rows:
                 raise NotFound(f"no player {player_id}")
-            n, e = rows[0]["name"], rows[0]["epithet"]
-            if rows[0].get("named"):
+            row = rows[0]
+            n, e = row["name"], row["epithet"]
+            if row.get("named"):
                 return n, e
-            event = await self.event_of(rows[0]["room_id"])
-            n, e, _ = await self.host.name_poet(n, e or "", event)
+            event = await self.event_of(row["room_id"])
+            worn, last = await self._past(row)
+            n, e, _ = await self.host.name_poet(n, e or "", event, worn=worn, last_verse=last)
             await self.db.call("name_poet", player_id, n, e)
+            if event.hand == "formulas":  # the lobby: get the first round's theme coming
+                self.prefetch_theme(row["room_id"])
             return n, e
 
         return await self.once(("poet", player_id), work)
+
+    async def _past(self, row: dict) -> tuple[list[str], str]:
+        """This poet's last epithets (newest first, the one they brought too) and their last verse.
+
+        Earlier battles are earlier player rows with the same identity (the phone's), then
+        the same name. The verse comes only from their own identity.
+        """
+        worn = [row.get("epithet") or ""]
+        ident = row.get("identity")
+        ident = ident[0] if isinstance(ident, list) and ident else ident
+        if not (isinstance(ident, str) and ident.startswith("0x") and all(c in string.hexdigits for c in ident[2:])):
+            return [w for w in worn if w], ""
+        try:
+            mine = await self.db.sql(f"SELECT * FROM player WHERE identity = {ident}")
+            before = sorted((p for p in mine if p["id"] != row["id"]), key=lambda p: p["id"], reverse=True)
+            worn += [p.get("epithet") or "" for p in before]
+            name = (row.get("name") or "").replace("'", "''")
+            if name:  # the same name on a new identity (a reinstall) still gets a fresh title
+                namesakes = await self.db.sql(f"SELECT * FROM player WHERE name = '{name}'")
+                worn += [p.get("epithet") or "" for p in sorted(namesakes, key=lambda p: p["id"], reverse=True) if p["id"] != row["id"]]
+            last = ""
+            for p in before[:3]:
+                said = [t for t in await self.db.sql(f"SELECT * FROM turn WHERE player_id = {int(p['id'])}") if (t.get("transcript") or "").strip()]
+                if said:
+                    last = max(said, key=lambda t: t["id"])["transcript"]
+                    break
+        except StdbError as exc:  # a fresh epithet still comes; it just can't see their past
+            log.warning("poet history: %s", exc)
+            last = ""
+        return [w for w in dict.fromkeys(worn) if w][:WORN], last
+
+    # ----- Themes ------------------------------------------------------------
+
+    def prefetch_theme(self, room_id: int) -> None:
+        """Coin the room's next theme in the background: from the lobby, then after every deal."""
+        task = self._next_theme.get(room_id)
+        if task is None or _failed(task) or (task.done() and task.result() is None):
+            self._next_theme[room_id] = asyncio.ensure_future(self._coin_theme(room_id))
+
+    async def _coin_theme(self, room_id: int) -> str | None:
+        try:
+            rounds = sorted(await self.db.sql("SELECT * FROM round"), key=lambda r: r["id"])
+            recent = [r.get("theme", "") for r in rounds[-RECENT_THEMES:]] + self.themes_used.get(room_id, [])
+            coined = await self.host.coin_theme(recent) or await self.host.coin_theme(recent)  # one retry: it's off the clock
+        except Exception as exc:  # the written themes still deal
+            log.warning("theme: %s", exc)
+            return None
+        if coined is None:
+            return None
+        theme, call = coined
+        if call:
+            self._calls[theme.lower()] = call
+        return theme
+
+    async def _theme_for(self, room_id: int, used: list[str]) -> str:
+        """The coined theme waiting for this room (or one coined now), else a written one."""
+        task = self._next_theme.pop(room_id, None)
+        if task is None or _failed(task):
+            task = asyncio.ensure_future(self._coin_theme(room_id))
+        try:
+            theme = await asyncio.wait_for(asyncio.shield(task), THEME_WAIT)
+        except asyncio.TimeoutError:
+            theme = None
+        return theme if theme and theme not in used else pick_theme(avoid=used)
+
+    def call_for(self, theme: str) -> str:
+        """The line that hands the floor over after the theme: a coined theme's own, else the written one."""
+        return self._calls.get(" ".join(theme.split()).lower()) or call_for(theme)
 
     async def _verses(self, room_id: int, where: str) -> list[Verse]:
         """Scored verses matching a SQL condition on `turn`, in battle order."""
@@ -303,3 +386,8 @@ class Arena:
             self.history.pop(t, None)
         for p in player_ids:
             self.dealt.pop(p, None)
+
+
+def _failed(task: asyncio.Task) -> bool:
+    """A finished task with nothing to give: cancelled (say, at shutdown) or raised."""
+    return task.done() and (task.cancelled() or task.exception() is not None)

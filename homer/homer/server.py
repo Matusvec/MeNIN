@@ -483,7 +483,7 @@ async def battle_deal(req: BattleDealRequest) -> dict[str, Any]:
     except StdbError as exc:
         raise HTTPException(502, str(exc)) from None
     debating = debate.question(theme) is not None
-    return {"theme": theme, "call": "" if debating else call_for(theme), "hands": {str(k): v for k, v in hands.items()}}
+    return {"theme": theme, "call": "" if debating else arena().call_for(theme), "hands": {str(k): v for k, v in hands.items()}}
 
 
 class BattleJudgeRequest(Model):

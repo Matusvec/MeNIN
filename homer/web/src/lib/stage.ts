@@ -1,6 +1,7 @@
 // The arena's drum in WebAudio, after ios/Homer/Battle/ArenaConductor.swift: the beat on
 // the turn's grid while a verse is live (softer in the speaking bars, so the poet carries
-// it), and a strike each time the speaker's hit count goes up. The beat is only for the
+// it), and one soft strike each time the speaker's hit count goes up. Nothing else: no
+// stingers or effects (Matus: "silence beats a weird sound"). The beat is only for the
 // room: the phones keep their own (beat_at plus their clock offset), so this drum's drift
 // never touches scoring.
 
@@ -83,8 +84,20 @@ export class Stage {
     this.beat = null
   }
 
-  /** One strike, for a hit the speaker's phone heard on the beat. */
+  /** One soft, clean strike for a hit the speaker's phone heard on the beat: a short sine, no noise. */
   strike(): void {
-    this.hit(this.ctx.currentTime + 0.01, 180, 0.6, 0.22)
+    const { ctx } = this
+    const when = ctx.currentTime + 0.01
+    const tone = ctx.createOscillator()
+    const gain = ctx.createGain()
+    tone.type = 'sine'
+    tone.frequency.setValueAtTime(220, when)
+    tone.frequency.exponentialRampToValueAtTime(165, when + 0.12)
+    gain.gain.setValueAtTime(0.0001, when)
+    gain.gain.exponentialRampToValueAtTime(0.18, when + 0.008)
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.14)
+    tone.connect(gain).connect(ctx.destination)
+    tone.start(when)
+    tone.stop(when + 0.16)
   }
 }

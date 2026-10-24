@@ -7,10 +7,10 @@
 // or hands get dealt and verses judged twice. All battle state lives in SpacetimeDB.
 
 import { DbConnection } from '../stdb'
-import type { DiscusThrow, Player, Prosody, Room, Round, Score, Turn } from '../stdb/types'
+import type { DiscusThrow, Player, Prosody, Room, Round, Scene as SceneRow, Score, Turn } from '../stdb/types'
 import { AGENT_URL } from './agent'
 import { conductDiscus } from './discus'
-import { Stage } from './stage'
+import { Stage, type Grid } from './stage'
 import { HomerVoice } from './voice'
 
 const STDB_URI = import.meta.env.VITE_STDB_URI || 'wss://maincloud.spacetimedb.com'
@@ -82,6 +82,21 @@ export type ArenaView = {
   carvedBy: string // the poet whose line the round carved
   sound: boolean // the hall was started with a click: voice and drum are on
 }
+
+export const EMOTIONS = ['anger', 'grief', 'joy', 'awe', 'tenderness', 'fear', 'defiance', 'longing'] as const
+export type Emotion = (typeof EMOTIONS)[number]
+
+/** What the painted sea behind the battle draws from (scene/SceneBackdrop's props). Units as in spacetime/CONTRACT.md. */
+export type SceneFeed = {
+  emotion: Record<Emotion, number> | null // the room's scene row, raw weights 0–1, ~every 1.5 s; null rests
+  energy: number // 0–1: the live speaker's loudness (~20 Hz, 100–200 ms behind), a breath while Homer talks
+  pitch: number | null // Hz while voiced
+  hits: number // stressed syllables on the beat this turn; each rise is a drum strike
+  turnKey: string // a new turn starts a new hit count
+}
+
+export const QUIET_SCENE: SceneFeed = { emotion: null, energy: 0, pitch: null, hits: 0, turnKey: '' }
+const HOMER_ENERGY = 0.15 // the sea breathes with Homer; he has no level of his own here
 
 /** Text only: hold each line long enough to read it, briskly. With the voice, the line's own length rules. */
 export function readingTime(text: string): number {
@@ -259,6 +274,8 @@ export class Arena {
   }
 
   private disposed = false
+  private sceneRow: SceneRow | null = null
+  private sceneWeights: Record<Emotion, number> | null = null
 
   disconnect(): void {
     this.disposed = true
@@ -406,7 +423,14 @@ export class Arena {
 
   private debate: { ask: string; id: string; sides: string[] }[] | null = null
   private debateAsked = false
-  private clockOffset = new Map<bigint, number>() // turn id -> this browser's offset from the server clock
+  private clockOffset = new Map<string, number>() // turn attempt -> this browser's offset from the server clock
+
+  /** This browser's offset from the server clock, estimated once as the turn goes live (the phones do the same). */
+  private offsetFor(turn: Turn): number {
+    const key = `${turn.id}-${turn.attempt}`
+    if (!this.clockOffset.has(key)) this.clockOffset.set(key, Date.now() - Number(turn.startedAt.toMillis()))
+    return this.clockOffset.get(key)!
+  }
 
   /** The side a debater argues: by turn order (DebateContent.swift side(for:turnNo:)). */
   private side(question: string, turnNo: number): string {
@@ -425,8 +449,7 @@ export class Arena {
   private debateClock(room: Room): void {
     const turn = this.currentTurn(room)
     if (!turn || turn.status !== 'speaking' || turn.endsAt.toMillis() === 0n) return
-    if (!this.clockOffset.has(turn.id)) this.clockOffset.set(turn.id, Date.now() - Number(turn.startedAt.toMillis()))
-    const endsLocal = Number(turn.endsAt.toMillis()) + (this.clockOffset.get(turn.id) ?? 0)
+    const endsLocal = Number(turn.endsAt.toMillis()) + this.offsetFor(turn)
     if (Date.now() >= endsLocal - 10000) this.say(`ten ${turn.id} ${turn.attempt}`, 'Ten seconds.')
   }
 
@@ -444,10 +467,8 @@ export class Arena {
     const key = `${turn.id}-${turn.attempt}`
     if (this.beatFor !== key) {
       this.beatFor = key
-      // This browser's offset from the server clock, estimated as the turn goes live.
-      const offset = Date.now() - Number(turn.startedAt.toMillis())
       this.stage.playBeat({
-        beatAtLocalMs: Number(turn.beatAt.toMillis()) + offset,
+        beatAtLocalMs: Number(turn.beatAt.toMillis()) + this.offsetFor(turn),
         bpm: room.bpm,
         barsPerLine: room.barsPerLine,
         lines: room.linesPerTurn,
@@ -464,6 +485,20 @@ export class Arena {
   }
 
   private singing = false
+
+  /** The live verse's grid on this browser's clock (the drum's), for the arena's 3-2-1 and SPEAK. Poetry only. */
+  verseGrid(): (Grid & { key: string }) | null {
+    const room = this.disposed ? null : this.room()
+    const turn = room && this.currentTurn(room)
+    if (!room || !turn || room.event !== 'poetry' || turn.status !== 'speaking' || turn.beatAt.toMillis() === 0n) return null
+    return {
+      key: `${turn.id}-${turn.attempt}`,
+      beatAtLocalMs: Number(turn.beatAt.toMillis()) + this.offsetFor(turn),
+      bpm: room.bpm,
+      barsPerLine: room.barsPerLine,
+      lines: room.linesPerTurn,
+    }
+  }
 
   /** The stitched song on the drum: a fresh grid, each line spoken as its line begins. */
   private async singOnBeat(room: Room, song: string[]): Promise<void> {
@@ -607,7 +642,7 @@ export class Arena {
                   side: this.side(this.currentRound(room)?.theme ?? '', turn.turnNo),
                   turnSeconds: room.turnSeconds,
                   // beat_at (Go) to now, the moment the turn reached judging, capped at the turn
-                  spokenSeconds: Math.min(room.turnSeconds, Math.max(0, (Date.now() - (this.clockOffset.get(turn.id) ?? 0) - Number(turn.beatAt.toMillis())) / 1000)),
+                  spokenSeconds: Math.min(room.turnSeconds, Math.max(0, (Date.now() - (this.clockOffset.get(`${turn.id}-${turn.attempt}`) ?? 0) - Number(turn.beatAt.toMillis())) / 1000)),
                 }
               : {}),
           }),
@@ -628,6 +663,9 @@ export class Arena {
     if (this.said.has(key) || !text) return
     this.said.add(key)
     this.queue = this.queue.then(async () => {
+      // Homer is silent while a verse is live: a line still queued when the count-in starts is dropped.
+      const now = this.room()
+      if (now?.event === 'poetry' && now.phase === 'speaking') return then?.()
       this.line = text
       this.speaking = true
       this.publish()
@@ -744,6 +782,30 @@ export class Arena {
   }
 
   // ----- the view ---------------------------------------------------------------
+
+  /** The backdrop's inputs, cheap enough to read 20 times a second: one prosody row and one scene row. */
+  sceneFeed(): SceneFeed {
+    const room = this.disposed ? null : this.room()
+    const breath = this.speaking ? HOMER_ENERGY : 0
+    // The lobby rests (light Aegean); Homer's entrances still breathe.
+    if (!room || room.phase === 'lobby') return breath ? { ...QUIET_SCENE, energy: breath } : QUIET_SCENE
+    const turn = this.currentTurn(room)
+    const p = turn ? [...this.conn!.db.prosody.iter()].find((r) => r.roomId === room.id && r.turnId === turn.id) : undefined
+    const live = room.phase === 'speaking' && p
+    // The weights stay on the row between turns, so a verse's colors hold through its verdict.
+    const s = [...this.conn!.db.scene.iter()].find((r) => r.roomId === room.id) ?? null
+    if (s !== this.sceneRow) {
+      this.sceneRow = s // the SDK hands a new row object per update: same object, same feeling
+      this.sceneWeights = s ? (Object.fromEntries(EMOTIONS.map((e) => [e, s[e]])) as Record<Emotion, number>) : null
+    }
+    return {
+      emotion: this.sceneWeights,
+      energy: live ? p.loudness : breath,
+      pitch: live && p.pitch > 0 ? p.pitch : null,
+      hits: p?.hits ?? 0,
+      turnKey: String(turn?.id ?? ''),
+    }
+  }
 
   private publish(): void {
     if (this.disposed) return

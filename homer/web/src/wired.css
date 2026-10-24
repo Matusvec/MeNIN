@@ -301,6 +301,13 @@
   max-height: calc(100svh - 6.5rem);
 }
 
+/* While the painted sea is on, the card is frosted rather than solid, so the
+   poem's colors read through it; the blur keeps every word legible. */
+body:has(.menin-scene.on) .mode-layout:has(.arena:not([data-phase='none'])) .workspace {
+  background: linear-gradient(145deg, rgb(255 255 255 / 84%), rgb(241 249 251 / 76%));
+  backdrop-filter: blur(1.4rem) saturate(1.1);
+}
+
 /* Lobby and battle: the main column and the standings beside it. */
 .arena:not([data-phase='none']) {
   display: grid;
@@ -316,6 +323,10 @@
 .arena:not([data-phase='none']) > .scoreboard {
   grid-column: 2;
   grid-row: 1 / span 8;
+}
+
+.arena:has(> .join-chip) > .scoreboard {
+  margin-top: 2.4rem;
 }
 
 /* Headings at distance: no hairline weights. */
@@ -603,20 +614,29 @@
 
 /* The operator's controls, out of the judges' way: a quiet corner.
    Hook: .operator on the Next button. */
+/* The workspace's backdrop-filter makes it the containing block for these,
+   so they sit in its bottom-right corner: one slim row, with room reserved
+   under the content so they never cover it. */
+.mode-layout:has(.arena:not([data-phase='none'])) .workspace {
+  padding-bottom: 4.6rem;
+}
+
 .arena .host-guard {
   position: fixed;
-  right: 1rem;
+  right: 6.6rem;
   bottom: 1rem;
   z-index: 20;
-  max-width: 22rem;
-  font-size: 0.72rem;
+  max-width: 17rem;
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.3;
   opacity: 0.7;
 }
 
 .arena .operator {
   position: fixed;
   right: 1rem;
-  bottom: 4.6rem;
+  bottom: 1rem;
   z-index: 20;
   width: auto;
   margin: 0;
@@ -709,6 +729,75 @@
   to { opacity: 1; transform: none; }
 }
 
+@media (max-height: 950px) {
+  /* After the verse, the theme steps back: it's been on screen all turn. */
+  .arena:is([data-phase='scored'], [data-phase='round_end'], [data-phase='finale'], [data-phase='finished']) .workspace-heading h2 {
+    font-size: clamp(1.6rem, 2.6vw, 2.3rem);
+  }
+
+  .arena .score-panel.five {
+    gap: 0.3rem;
+    margin-top: 0.6rem;
+  }
+
+  .arena .score-panel.five > div {
+    padding: 0.3rem 0.9rem;
+  }
+
+  .arena .score-panel.five > div > .bar {
+    height: 1rem;
+  }
+
+  .arena .score-panel.five > div > strong {
+    font-size: clamp(1.4rem, 2.2vw, 2rem);
+  }
+
+  .arena .score-panel p {
+    padding: 0.6rem 0.9rem;
+    font-size: clamp(1.05rem, 1.5vw, 1.25rem);
+  }
+
+  .arena .best-line {
+    font-size: clamp(1.2rem, 1.9vw, 1.6rem);
+  }
+
+  .arena .carved {
+    padding: clamp(1.1rem, 2.2vw, 1.8rem);
+  }
+
+  .arena .crown {
+    gap: 0.25rem;
+    padding: clamp(1.1rem, 2.2vw, 1.8rem);
+  }
+
+  .arena .crown::before {
+    width: 10rem;
+    height: 4.2rem;
+  }
+
+  .arena .crown .name {
+    font-size: clamp(2.6rem, 4.8vw, 4rem);
+  }
+
+  /* Under the crown, the carved line is a reminder, not the moment. */
+  .arena[data-phase='finished'] .carved {
+    margin-top: 0.6rem;
+    padding: 0.8rem 1.2rem;
+  }
+
+  .arena[data-phase='finished'] .carved-line {
+    margin-top: 0.3rem;
+    font-size: clamp(1.2rem, 2vw, 1.6rem);
+    animation: none;
+  }
+
+  .arena[data-phase='finished'] .carved .by {
+    margin-top: 0.3rem;
+    font-size: 0.95rem;
+    animation: none;
+  }
+}
+
 @media (max-width: 900px) {
   .mode-layout:has(.arena:not([data-phase='none'])) {
     grid-template-columns: 1fr;
@@ -733,5 +822,66 @@
 
   .arena .score-panel.five > div > .bar {
     --fill: var(--v, 0);
+  }
+}
+
+/* The painted sea behind the battle (artist): the iOS app's scene, answering
+   the voice. A canvas fixed to the viewport, under the layout (z 2) and the
+   top bar (z 5); HohHamNap's Aegean layer rests while it's on. */
+.menin-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}
+
+body:has(.menin-scene.on) .mode-scene {
+  display: none;
+}
+
+/* The verse cue on the arena (artist), matching the phone: 3 · 2 · 1 stamped on
+   the beats, then the stage flips to the poet's color with SPEAK, then Breathe.
+   Hook: div.verse-cue[data-cue='count'|'speak'|'breathe'] with style --ink (the
+   poet's seat color) > strong (3 / SPEAK / Breathe) + small (one line under it).
+   Key the strong on the count so each number re-stamps. */
+.arena .verse-cue {
+  grid-column: 1;
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  padding: clamp(1.2rem, 2.6vw, 2.2rem);
+  color: #fff;
+  text-align: center;
+  background: #334b5b;
+  border-radius: 1.4rem;
+  transition: background 0.12s ease-out;
+}
+
+.arena .verse-cue[data-cue='speak'] {
+  background: var(--ink, #328eaf);
+}
+
+.arena .verse-cue strong {
+  font: 800 clamp(4rem, 9vw, 7.5rem)/1 Georgia, serif;
+  letter-spacing: 0.02em;
+  animation: arena-stamp 0.32s ease-out both;
+}
+
+.arena .verse-cue[data-cue='breathe'] strong {
+  font-size: clamp(2.6rem, 5vw, 4.2rem);
+  font-weight: 600;
+}
+
+.arena .verse-cue small {
+  color: rgb(255 255 255 / 85%);
+  font: 600 clamp(1rem, 1.5vw, 1.3rem)/1.3 system-ui, sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arena .verse-cue strong {
+    animation: none;
   }
 }

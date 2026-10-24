@@ -18,6 +18,7 @@ class Axis:
     name: str
     measures: str
     source: str  # "scanner", "claude", or "emotion"
+    weight: int = 1  # in the verse total; the module's post_score uses the same (spacetime EVENTS)
 
 
 @dataclass(frozen=True)
@@ -51,7 +52,7 @@ POETRY = Event(
     persona="homer",
     judge_prompt="judge_poetry",
     axes=(
-        Axis("beat", "Beat", "Did the stresses land on the beat", "scanner"),
+        Axis("beat", "Flow", "A steady rhythm, about three to five stresses a line", "scanner"),
         Axis(
             "craft",
             "Craft",
@@ -59,6 +60,7 @@ POETRY = Event(
             "A formula dropped in whole with nothing around it is weak craft; one bent to the theme is strong. "
             "Lines that sound worked out in advance, or copied from a famous song or poem, are weak craft.",
             "claude",
+            2,
         ),
         Axis(
             "image",
@@ -66,6 +68,7 @@ POETRY = Event(
             "Strength of the imagery: concrete, surprising, seen and heard. Abstract words "
             "(love, pain, life) with nothing to see are weak; a single sharp picture is strong.",
             "claude",
+            3,
         ),
         Axis(
             "answer",
@@ -73,6 +76,7 @@ POETRY = Event(
             "How well the verse responds to the previous verse: takes up its image, turns it, tops it, "
             "or hits back at it. With no previous verse, how well it answers the theme.",
             "claude",
+            3,
         ),
         Axis("range", "Range", "How much emotional ground the verse covered", "emotion"),
     ),
@@ -80,6 +84,7 @@ POETRY = Event(
     beat=True,
     tasks=(
         ("poet", "poet"),
+        ("theme", "theme"),
         ("verdict", "verdict"),
         ("song", "song"),
         ("spar", "spar"),

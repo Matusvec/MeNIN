@@ -45,7 +45,8 @@ def test_scan_takes_timed_words_in_snake_or_camel_case(client):
 def test_judge_returns_a_scorecard(client):
     body = client.post("/judge", json={"transcript": VERSE, "theme": "the sea", "linesExpected": 2}).json()
     assert set(body["scores"]) == {"beat", "craft", "image", "answer", "range"}
-    assert body["total"] == sum(body["scores"].values())
+    w = {"beat": 1, "craft": 2, "image": 3, "answer": 3, "range": 1}  # Image and Answer decide it (out of 100)
+    assert body["total"] == sum(v * w[k] for k, v in body["scores"].items())
     assert body["verdict"] and body["bestLine"] == "the sea kept time and so did I"
     assert body["silent"] is False and body["declined"] is False
 

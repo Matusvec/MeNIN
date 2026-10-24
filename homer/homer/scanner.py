@@ -147,6 +147,7 @@ class VerseScan:
     timed: bool
     best_line: int | None  # index of the best-scanning line
     formulas: list[str] = field(default_factory=list)  # ids of the formulas spoken, in order
+    flow: int = 0  # the judge's Flow, 1 to 10: forgiving where `beat` is strict
 
 
 # ----- Words ---------------------------------------------------------------
@@ -567,7 +568,32 @@ def scan_verse(
         timed=timed,
         best_line=best,
         formulas=[f.formula.id for f in found],
+        flow=flow(lines, expected),
     )
+
+
+def flow(lines: list[LineScan], expected: int) -> int:
+    """The Flow axis (shown in place of Beat since Matus's playtest), 1 to 10.
+
+    Forgiving: a steady rhythm of roughly three to five stresses a line scores
+    well. Landing on the drum lifts a line a little and missing it costs little;
+    a missing line still counts against the verse.
+    """
+    def one(line: LineScan) -> float:
+        if not line.words:
+            return 0.0
+        s = 1.0 if 3 <= line.hits <= 5 else 0.6 if line.hits in (2, 6) else 0.25
+        if line.on_beat is not None:
+            s = 0.8 * s + 0.2 * min(1.0, line.on_beat / 3)
+        return s
+
+    if not lines:
+        return 1
+    mean = sum(one(line) for line in lines) / max(expected, 1)
+    hits = [line.hits for line in lines if line.words]
+    if len(hits) > 1:  # steady: lines within two stresses of each other
+        mean -= 0.05 * max(0, max(hits) - min(hits) - 2)
+    return max(1, min(10, round(1 + 9 * max(0.0, mean))))
 
 
 def beat_lane(scan: VerseScan, bpm: float, started_at: float = 0.0, beats_per_line: int = BEATS_PER_LINE, bars_per_line: int = 2) -> dict:
