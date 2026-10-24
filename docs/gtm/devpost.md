@@ -39,7 +39,7 @@ Other events show as locked tiles, because we only unlock what's solid.
 - Every turn you're dealt five formulas that fit the beat.
 - Homer drops a slow drum, and you feel it in your palm through haptics.
 - You speak two to four lines. Each stress that lands on the beat hits like a drum strike on the beat lane, and every formula you use flips onto the arena.
-- Freeze for a second and your hand glows while Homer whispers you a line that fits.
+- Freeze for a second and your hand comes forward with one card raised, while Homer whispers you a line that fits.
 - About three seconds after your last word, Homer delivers the verdict like a title-fight MC: five scores and your best line, quoted.
 - The best line of each round is carved in gold across the arena.
 - At the end, Homer becomes a rhapsode, a song-stitcher. He stitches every poet's lines into one song and performs it over the beat while the arena replays the battle's colors. Then he crowns the champion.

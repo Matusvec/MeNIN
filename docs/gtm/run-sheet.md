@@ -4,7 +4,7 @@ Logistics for judging day, Sunday Oct 25: what goes where, what gets charged, ho
 
 **Print it, and tape a copy behind the arena screen.**
 
-Items marked **(confirm)** are still unchecked.
+gtm checked the **(confirm)** items against the Hacker Guide and the Cal Hacks announcements on Fri Oct 23. Results are marked **(confirmed)** or **(not in the guide)**. Items marked **(needs iPad + iPhone C)** depend on the team having those devices. Matus is confirming.
 
 ## Sunday timeline
 
@@ -15,9 +15,10 @@ Items marked **(confirm)** are still unchecked.
 | Sun 7:00 | Pack, using the list at the bottom. | All |
 | 8:00 | At the venue. | All |
 | 8:45 | Devpost submitted, every track tagged. The hard deadline is 9:00. | Matus |
-| 9:00–10:00 | Hall check: ethernet live, sound at demo volume, noise test, two full warm-up runs. | All |
+| 9:00–9:20 | **Get our judging table number and move there.** The Hacker Guide: "Shortly after the 9:00 AM submission deadline, all projects will be assigned a table number. You will need to move to your assigned table by 10:30 AM." Watch #0-announcements and the app. The table may not be where we hacked. | Matus |
+| 9:20–10:00 | Hall check **at the assigned table**: find the nearest hardline switch (there's one every 3 tables, per the announcements), plug in ethernet, set sound at demo volume, run the noise test, and do two full warm-up runs. If no switch reaches, tell a director immediately. | All |
 | 10:15 | Table set. Demo config loaded, the main hall open, the backup hall open, the backup video cued. | Operator |
-| 10:30–12:30 | Judging. The whole team stays at the table. Reset with the rematch drill between judges. | All |
+| 10:30–12:30 | Judging. The whole team stays at the table. The guide: "If your entire team is not present while a judge comes, you will not be judged!" Take bathroom breaks one at a time, never two at once. Reset with the rematch drill between judges. | All |
 
 ## Device roles
 
@@ -26,12 +27,12 @@ Every device runs the same TestFlight build. Check under TestFlight, MeNIN, buil
 | Device | Held by | Role | Connection | Power |
 | --- | --- | --- | --- | --- |
 | **Arena Mac** | Operator | The arena, full screen, demo config on. Operator keys. The backup video sits paused in a second window. Latency HUD on. | Ethernet, through the USB-C adapter | On its charger the whole time |
-| **Big screen** | none | Shows the Mac's arena to the judges, over HDMI. Mirrored, so the operator sees the same thing. | HDMI from the Mac | Wall **(confirm the table has power and a screen)** |
+| **Big screen** | none | Shows the Mac's arena to the judges, over HDMI. Mirrored, so the operator sees the same thing. | HDMI from the Mac | **(not in the guide)** The guide says nothing about monitors at judging tables, only that each table is shared by 2-3 teams. **Bring our own screen**: a teammate's portable monitor, if anyone has one. Otherwise the Mac's own display is the arena, turned to face the judges, with the operator beside it. Power isn't guaranteed either: a hacker reported a dead outlet at their table on Friday, so bring the power strip and charge everything to 100%. |
 | **Wired speaker** | none | Homer's voice and the beat. Aimed at the judges, low and close. | 3.5 mm or USB from the Mac | Wall or charged |
 | **iPhone A** | The poet | Poet 1: mic and hand. | Venue Wi-Fi. Cellular as plan B | Charged; on a cable until the judge arrives |
 | **iPhone B** | Matus | Poet 2: mic and hand, and the staged freeze. | Same | Same |
-| **iPhone C** | Operator, handed to a judge | The judge's phone after 2:00, for discus or a rematch. Grippy case, plus a wrist strap if we have one. | Same | Same |
-| **iPad** | Operator | The backup arena, holding the backup hall open. A second copy of the backup video is saved on it. | Venue Wi-Fi. Cellular if it has it | Charged |
+| **iPhone C** **(needs iPad + iPhone C)** | Operator, handed to a judge | The judge's phone after 2:00, for discus or a rematch. Grippy case, plus a wrist strap if we have one. | Same | Same |
+| **iPad** **(needs iPad + iPhone C)** | Operator | The backup arena, holding the backup hall open. A second copy of the backup video is saved on it. | Venue Wi-Fi. Cellular if it has it | Charged |
 
 **On every device:**
 
@@ -103,10 +104,10 @@ Each one is decided in advance and has a line to say, so nobody improvises at th
 
 | What breaks | Trigger | Do this | Owner | Say |
 | --- | --- | --- | --- | --- |
-| **The hall wedges.** A turn won't advance, Rematch doesn't reset, or a phone can't rejoin. | Over 10 s stuck | **Backup hall.** The iPad holds a second hall, already open. Put it on the big screen (iPad to HDMI). The poets join it with the room code taped to the back of each phone, about 15 s. | Operator | Matus: "Let's move to the other stage." |
-| **One phone dies or freezes** | Any time | Hand the poet iPhone C. It joins the same hall with the room code. | Operator | Matus keeps talking through the how-it-works line. |
-| **The Mac dies** | Any time | The iPad becomes the arena, on the backup hall, plugged into the screen. | Operator | "Same game, smaller box." |
-| **Network is slow or down** | Turns lag past the stall line twice | The Mac stays on ethernet. Phones switch to cellular data. **The hotspot:** use one only if the venue allows it. gtm read the Hacker Guide as banning personal hotspots, so cellular data on each phone is the default plan B **(confirm)**. | Operator, poets | "One second, the Wi-Fi in here is a battle of its own." |
+| **The hall wedges.** A turn won't advance, Rematch doesn't reset, or a phone can't rejoin. | Over 10 s stuck | **Backup hall (needs iPad + iPhone C).** The iPad holds a second hall, already open. Put it on the big screen (iPad to HDMI). The poets join it with the room code taped to the back of each phone, about 15 s. | Operator | Matus: "Let's move to the other stage." |
+| **One phone dies or freezes** | Any time | **(needs iPad + iPhone C)** Hand the poet iPhone C. It joins the same hall with the room code. | Operator | Matus keeps talking through the how-it-works line. |
+| **The Mac dies** | Any time | **(needs iPad + iPhone C)** The iPad becomes the arena, on the backup hall, plugged into the screen. | Operator | "Same game, smaller box." |
+| **Network is slow or down** | Turns lag past the stall line twice | Decided by leader: ethernet into the Mac first, then cellular on the phones, and a hotspot only if the venue confirms it's allowed. The Mac stays on ethernet. Phones switch to cellular data. **No hotspot (confirmed banned).** The Cal Hacks announcement on Fri 10:16 PM said: "Personal hotspots, routers, or other broadcasting equipment are prohibited inside the venue and we have tools to find who has these." Each phone uses its own cellular data instead, which isn't broadcasting. The Mac can't tether, so it stays on ethernet. If ethernet dies, the iPad becomes the arena, on cellular if it has it. | Operator, poets | "One second, the Wi-Fi in here is a battle of its own." |
 | **Two failures in a row, or no network at all** | Any time | **Backup video**, 90 s, of the best Saturday-night run, from the Mac's second window or the iPad. Play it with sound. | Operator | Matus: "Here's last night's battle, start to finish." Then quiet. |
 | **No verdict after 4 s** | Automatic | The stall line plays, and Beat and Range show. Keep going. | Nobody | Keep talking. Don't apologize. |
 | **No verdict after 10 s** | Automatic | Beat and Range only. Move on. Never show a canned verdict. | Operator | "Homer's thinking. Let's hear the next one." |
@@ -119,7 +120,7 @@ Each one is decided in advance and has a line to say, so nobody improvises at th
 
 - [ ] Arena Mac and its charger
 - [ ] iPhones A, B and C, and the iPad
-- [ ] USB-C ethernet adapter, and the reserved ethernet cable
+- [ ] USB-C ethernet adapter (the MacBook Air has no ethernet port), and the reserved ethernet cable
 - [ ] HDMI cable, plus USB-C to HDMI adapters for both the Mac and the iPad
 - [ ] Wired speaker and its cable, charged
 - [ ] Two wired headsets with mics, plus a spare, plus any adapters

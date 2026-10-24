@@ -102,7 +102,7 @@ Approved by Matus (SPEC.md, "First open"). This runs on the first launch only: H
 
 #### F4 · The event menu · until choice
 
-- **Arena:** The event menu (section 7), with the poetry tile open on **Learn** (Bard), **Train** (Practice) and **Fight** (Battle). See open question 1 on whether Learn is the suggested pick.
+- **Arena:** The event menu (section 7), with the poetry tile open on **Learn** (Bard), **Train** (Practice) and **Fight** (Battle). **Learn** (Bard lesson 1) is the suggested pick, so "let me show you how I did it" pays off. Decided by leader; Matus can veto.
 - **Phone:** Same, stacked.
 - **Homer:** Silent. He just spoke.
 - **Next:** A tap. Closing the poetry tile shows the whole event menu.
@@ -745,7 +745,7 @@ This is the list of layouts to design. The states above describe what changes in
 
 ## Open questions for Matus
 
-1. First open: Homer's last line is "Now let me show you how I did it." Should the event menu then open with Learn (Bard lesson 1) as the suggested pick, so the line pays off? Or should it open plain?
+1. **Decided by leader (Matus can veto):** after first open, the poetry tile suggests Learn (Bard lesson 1), so "Now let me show you how I did it" pays off.
 2. Where does the rescue whisper play? From the arena, it can bleed into the speaker's mic during a speaking bar. From the speaker's phone, voice processing removes it, but the room doesn't hear it.
 3. The live drum strikes come from loudness and the Beat score comes from the scanner, so they can disagree. Is that acceptable? And should the Beat score also check timing against the drum?
 4. Demo mode: when a judge stays after 2:00 for a rematch, do they take a poet's seat (the poet's iPhone and headset), or does a third team iPhone join as a third poet?

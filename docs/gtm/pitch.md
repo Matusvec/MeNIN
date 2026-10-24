@@ -103,9 +103,9 @@ Open with the moment, not a title card. Captions burned in. Real footage, nothin
 
 | Time | Shot |
 | --- | --- |
-| 0:00–0:10 | Cold open: the poet, headset on, spits two lines. The arena scene floods with color, the beat lane fills, a card flips. No narration. |
+| 0:00–0:10 | Cold open: the poet, headset on, spits two lines. The arena scene moves with the voice and its color fields shift, the beat lane fills, a card flips. No narration. |
 | 0:10–0:15 | Title card: **μῆνιν · MeNIN**, with "Rage. The first word of Western literature." underneath, then the event menu: poetry battle lit, the other shipped events lit, the rest locked. |
-| 0:15–0:50 | The poetry battle on the arena, intercut with the phones: the private hand, the haptic beat (close-up), the freeze rescue glow and whisper. Homer's verdict lands with five scores. |
+| 0:15–0:50 | The poetry battle on the arena, intercut with the phones: the private hand, the haptic beat (close-up), the freeze rescue (the hand comes forward, one card is raised, and Homer whispers). Homer's verdict lands with five scores. |
 | 0:50–1:00 | The round verdict: the best line carved in gold. |
 | 1:00–1:15 | Bard lesson 1: a first-timer misses, gets one note from Homer, lands it. Show the before and after Beat number. |
 | 1:15–1:25 | *Only if shipped:* 5 s of Socrates hosting the debate (a different voice), then 5 s of a discus throw: a phone swing, the arena throw, Homer calls the distance. |
@@ -120,5 +120,5 @@ Thumbnail / Devpost cover: one arena frame with the carved gold line over matte 
 - **Discus is the hook** if it ships. Anyone can swing a phone, with no poetry nerves. "Throw the discus, then stay for the battle."
 - Battles at our table on our iPhones, plus the arena. Say "Two minutes, five phrases in your hand, you can't fail" and let the hand do the work.
 - **Karaoke** (Sat night) is a room full of people holding mics in a performing mood. Bring the arena and two phones.
-- Film 15-second clips (a discus throw, the scene flooding during a verse) and post them tagging the sponsors.
+- Film 15-second clips (a discus throw, the scene shifting color during a verse) and post them tagging the sponsors.
 - Never block the build for this. One person, one hour.
