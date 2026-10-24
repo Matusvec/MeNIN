@@ -152,11 +152,19 @@ final class BattleClient: SpacetimeClientDelegate {
         case .judging:
             guard let turn = currentTurn, turn.statusValue == .judging, let poet = player(turn.playerId) else { return }
             let previous = turns.filter { $0.roundId == turn.roundId && $0.turnNo + 1 == turn.turnNo }.first?.transcript ?? ""
-            let req = BattleJudgeRequest(
+            var req = BattleJudgeRequest(
                 turnId: turn.id, playerId: poet.id, transcript: turn.transcript, event: room.event, form: room.form,
                 theme: currentRound?.theme ?? "", played: turn.played, rescues: turn.rescues, previous: previous,
                 linesExpected: room.linesPerTurn, hoard: poet.hoard, demo: room.demo
             )
+            if room.event == "debate" {
+                DebateContent.shared.load(agent)
+                req.side = DebateContent.shared.side(for: currentRound?.theme ?? "", turnNo: turn.turnNo)
+                req.turnSeconds = Double(room.turnSeconds)
+                // Go (beat_at) to now, the moment the turn reached judging, capped at the turn.
+                let spoken = (Date().timeIntervalSince1970 * 1000 - turn.beatAt.epochMs) / 1000
+                req.spokenSeconds = min(Double(room.turnSeconds), max(0, spoken))
+            }
             once("judge \(turn.id) \(turn.attempt)") { try await agent.battleJudge(req) }
         default:
             break

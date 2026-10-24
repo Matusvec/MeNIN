@@ -67,6 +67,10 @@ struct PlayerScreen: View {
                     draft = ""
                 }
             },
+            playMove: { id in
+                // P17: a tap is a claim; the judge checks the move was really made.
+                if let turn = battle.currentTurn, battle.isMyTurn { battle.playCard(turn.id, card: id) }
+            },
             leave: {
                 if battle.me != nil { battle.leave() }
                 onLeave?()

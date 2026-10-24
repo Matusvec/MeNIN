@@ -33,15 +33,17 @@ final class CartesiaTTS: @unchecked Sendable {
     }
 
     /// Streams one line's audio. `speed` is Cartesia's 0.6...1.5 guidance.
-    func speak(_ text: String, speed: Double = 1) -> AsyncThrowingStream<[Float], Error> {
+    func speak(_ text: String, speed: Double = 1, host: String = "homer") -> AsyncThrowingStream<[Float], Error> {
         let contextId = UUID().uuidString
         let (stream, continuation) = AsyncThrowingStream.makeStream(of: [Float].self)
         lock.withLock { streams[contextId] = continuation }
-        let tts = token.tts ?? .init(model: "sonic-3.6", voiceId: "")
+        let tts = token.tts ?? .init(model: "sonic-3.6", voiceId: "", voices: nil)
+        // Socrates speaks in his own voice once one is picked; until then, Homer's.
+        let voiceId = tts.voices?[host].flatMap { $0.isEmpty ? nil : $0 } ?? tts.voiceId
         let request: [String: Any] = [
             "model_id": tts.model,
             "transcript": text,
-            "voice": ["mode": "id", "id": tts.voiceId],
+            "voice": ["mode": "id", "id": voiceId],
             "output_format": ["container": "raw", "encoding": "pcm_f32le", "sample_rate": sampleRate],
             "language": "en",
             "context_id": contextId,

@@ -132,6 +132,7 @@ final class TurnRecorder {
             return
         }
         haptics.prepare()
+        if battle.room?.event == "debate" { await prepareWhispers(for: turn) }
         phase = .ready
     }
 
@@ -140,11 +141,19 @@ final class TurnRecorder {
         guard phase == .ready, turn.id == turnId else { return }
         let nowMs = Date().timeIntervalSince1970 * 1000
         let offset = BeatClock.offset(localReceiveMs: nowMs, serverStartedAtMs: turn.startedAt.epochMs)
-        let clock = BeatClock(beatAtMs: turn.beatAt.epochMs + offset, bpm: Double(room.bpm),
-                              barsPerLine: Int(room.barsPerLine), lines: Int(room.linesPerTurn))
-        self.clock = clock
+        // The turn ends when the server says (poetry: the beat grid's end; debate: Go + 45 s).
+        let endMs = turn.endsAt.epochMs + offset
+        goAt = turn.beatAt.epochMs + offset
+        if room.event == "debate" {
+            clock = nil  // no beat, no lane, no haptic beat
+        } else {
+            let grid = BeatClock(beatAtMs: turn.beatAt.epochMs + offset, bpm: Double(room.bpm),
+                                 barsPerLine: Int(room.barsPerLine), lines: Int(room.linesPerTurn))
+            clock = grid
+            haptics.play(grid)
+        }
+        let clock = self.clock
         phase = .live
-        haptics.play(clock)
         lastVoiceMs = nowMs
 
         // Prosody to the arena: about 20 Hz, fire and forget.
@@ -161,11 +170,15 @@ final class TurnRecorder {
             while !Task.isCancelled {
                 guard let self, self.phase == .live else { return }
                 let now = Date().timeIntervalSince1970 * 1000
-                if now >= clock.endMs + 250 {
+                if now >= endMs + 250 {
                     await self.finish()
                     return
                 }
-                self.checkFreeze(now: now, clock: clock)
+                if let clock {
+                    self.checkFreeze(now: now, clock: clock)
+                } else {
+                    self.checkDebateFreeze(now: now, endMs: endMs)
+                }
                 try? await Task.sleep(for: .milliseconds(200))
             }
         })
@@ -242,6 +255,7 @@ final class TurnRecorder {
 
     /// The formula reveal: a card counts as played when its words appear in the final text.
     private func matchCards() {
+        guard battle.room?.event != "debate" else { return }  // debate moves are played by tapping (P17)
         battle.playCards(spokenIn: finals, turnId: turnId)
     }
 
@@ -258,6 +272,45 @@ final class TurnRecorder {
             rescueCard = rescue.formula
             battle.rescue(turnId, card: rescue.formula)
         }
+    }
+
+    // MARK: debate
+
+    @ObservationIgnored private var whispers: [String: String] = [:]
+    @ObservationIgnored private var goAt = 0.0
+    @ObservationIgnored private var lastRescueMs = 0.0
+    /// The question Socrates whispered with the raised move (debate freeze rescue).
+    private(set) var rescueWhisper: String?
+
+    /// Step-up (T1): one rescue question per move, so a freeze rescue is instant (about 3 s to prepare).
+    private func prepareWhispers(for turn: TurnRow) async {
+        guard let agent, let round = battle.currentRound else { return }
+        DebateContent.shared.load(agent)
+        let side = DebateContent.shared.side(for: round.theme, turnNo: turn.turnNo) ?? ""
+        let request = DebateWhispersRequest(question: round.theme, side: side, hand: battle.myHand, previous: previousTranscript(turn))
+        whispers = (try? await agent.debateWhispers(request)) ?? [:]
+    }
+
+    /// About 2 s of silence while talking: raise a move and its question. At most every 10 s.
+    private func checkDebateFreeze(now: Double, endMs: Double) {
+        guard talking, now - lastVoiceMs > 2000, now - lastRescueMs > 10_000, let agent,
+              let turn = battle.currentTurn else { return }
+        lastRescueMs = now
+        let request = DebateRescueRequest(
+            transcript: finals + partial, hand: battle.myHand, played: turn.played, previous: previousTranscript(turn),
+            elapsedS: max(0, (now - goAt) / 1000), turnSeconds: max(1, (endMs - goAt) / 1000), whispers: whispers
+        )
+        let turnId = turnId
+        Task {
+            guard let rescue = try? await agent.debateRescue(request) else { return }
+            rescueCard = rescue.card.id
+            rescueWhisper = rescue.whisper
+            battle.rescue(turnId, card: rescue.card.id)
+        }
+    }
+
+    private func previousTranscript(_ turn: TurnRow) -> String? {
+        battle.turns.first { $0.roundId == turn.roundId && $0.turnNo + 1 == turn.turnNo }?.transcript
     }
 
     // MARK: plumbing
@@ -293,6 +346,9 @@ final class TurnRecorder {
         hits = 0
         hitMarks = []
         rescueCard = nil
+        rescueWhisper = nil
+        whispers = [:]
+        lastRescueMs = 0
         rescuedLines.removeAll()
         pendingLineBreaks = 0
         clock = nil

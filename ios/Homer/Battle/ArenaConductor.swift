@@ -82,7 +82,15 @@ final class ArenaConductor {
             return
         }
         let key = "\(turn.id)-\(turn.attempt)"
-        if turn.statusValue == .speaking {
+        homer.host = room.event == "debate" ? "socrates" : "homer"
+        if turn.statusValue == .speaking, room.event == "debate" {
+            // No beat in debate. Socrates is silent but for the ten-second call.
+            // Device and server clocks are NTP-close; plenty for a ten-second call.
+            if !said.contains("ten \(key)"), turn.endsAt.isSet, Date().timeIntervalSince1970 * 1000 >= turn.endsAt.epochMs - 10_000 {
+                said.insert("ten \(key)")
+                homer.enqueue("Ten seconds.")
+            }
+        } else if turn.statusValue == .speaking {
             if beatFor != key, turn.beatAt.isSet {
                 beatFor = key
                 // This device's offset from the server clock, estimated as the turn goes live.

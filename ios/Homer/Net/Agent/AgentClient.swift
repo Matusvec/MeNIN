@@ -91,6 +91,26 @@ struct AgentClient: Sendable {
         try await post("lesson/feedback", request)
     }
 
+    func debateQuestions() async throws -> [DebateQuestion] {
+        struct Debate: Decodable { var questions: [DebateQuestion] }
+        var req = URLRequest(url: base.appending(path: "debate"))
+        if !Self.appKey.isEmpty { req.setValue(Self.appKey, forHTTPHeaderField: "X-Homer-Key") }
+        let (data, response) = try await session.data(for: req)
+        try check(response, body: data)
+        return try JSONDecoder().decode(Debate.self, from: data).questions
+    }
+
+    /// One rescue question per move in the hand, prepared at step-up (about 3 s).
+    func debateWhispers(_ request: DebateWhispersRequest) async throws -> [String: String] {
+        struct Whispers: Decodable { var whispers: [String: String] }
+        let response: Whispers = try await post("debate/whispers", request)
+        return response.whispers
+    }
+
+    func debateRescue(_ request: DebateRescueRequest) async throws -> DebateRescue {
+        try await post("rescue", request)
+    }
+
     func deal(_ request: DealRequest) async throws -> DealResponse {
         try await post("deal", request)
     }

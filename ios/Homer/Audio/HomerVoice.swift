@@ -32,6 +32,8 @@ final class HomerVoice {
     var isSpeaking: Bool { caption != nil }
 
     private static let log = Logger(subsystem: "com.matusvec.homer", category: "homer-voice")
+    /// Whose voice: "homer", or "socrates" in debate rooms.
+    @ObservationIgnored var host = "homer"
     @ObservationIgnored private let audio: StageAudio
     @ObservationIgnored private let agent: AgentClient?
     @ObservationIgnored private let role: VoiceTokenRequest.Role
@@ -102,7 +104,7 @@ final class HomerVoice {
         } else if let tts = await connectedTTS() {
             do {
                 var firstMs: Double?
-                for try await samples in tts.speak(line.speech ?? line.text, speed: line.whisper ? 0.9 : 1) {
+                for try await samples in tts.speak(line.speech ?? line.text, speed: line.whisper ? 0.9 : 1, host: host) {
                     firstMs = firstMs ?? Date().timeIntervalSince(start) * 1000
                     audio.enqueueVoice(samples)
                     played += Double(samples.count) / StageAudio.sampleRate

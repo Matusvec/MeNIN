@@ -19,7 +19,12 @@ struct VoiceTokenRequest: Encodable, Sendable {
 
 struct VoiceToken: Decodable, Equatable, Sendable {
     struct STT: Decodable, Equatable, Sendable { var model: String; var encoding: String; var sampleRate: Int }
-    struct TTS: Decodable, Equatable, Sendable { var model: String; var voiceId: String }
+    struct TTS: Decodable, Equatable, Sendable {
+        var model: String
+        var voiceId: String
+        /// Per host: {"homer": id, "socrates": id}; empty until a voice is picked.
+        var voices: [String: String]?
+    }
 
     var token: String
     var expiresAt: Double  // epoch ms
@@ -228,6 +233,37 @@ struct BattleEmotionRequest: Encodable, Sendable {
     var pitch: Double?
 }
 
+/// Socratic debate content from GET /debate (content/debate.md, read live).
+struct DebateQuestion: Decodable, Equatable, Sendable {
+    var id: String
+    var ask: String
+    var sides: [String]
+}
+
+struct DebateWhispersRequest: Encodable, Sendable {
+    var question: String
+    var side: String
+    var hand: [String]
+    var previous: String?
+}
+
+struct DebateRescueRequest: Encodable, Sendable {
+    var event = "debate"
+    var transcript: String
+    var hand: [String]
+    var played: [String]
+    var previous: String?
+    var elapsedS: Double
+    var turnSeconds: Double
+    var whispers: [String: String]
+}
+
+struct DebateRescue: Decodable, Equatable, Sendable {
+    struct Card: Decodable, Equatable, Sendable { var id: String; var text: String }
+    var whisper: String
+    var card: Card
+}
+
 struct BattleJudgeRequest: Encodable, Sendable {
     var turnId: UInt64
     var playerId: UInt64
@@ -241,4 +277,8 @@ struct BattleJudgeRequest: Encodable, Sendable {
     var linesExpected: UInt32
     var hoard: [String]
     var demo: Bool
+    // Debate only: the side dealt, the turn's length, and Go to the end of the turn.
+    var side: String? = nil
+    var turnSeconds: Double? = nil
+    var spokenSeconds: Double? = nil
 }

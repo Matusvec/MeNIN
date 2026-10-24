@@ -36,6 +36,21 @@ enum BattlePresenter {
         return battle.currentRound.map { AnswerPrompt(line: $0.theme, poet: nil) }
     }
 
+    static func event(_ room: RoomRow) -> EventKind { EventKind(rawValue: room.event) ?? .poetry }
+
+    /// Sides alternate by turn order: turn 0 argues the first side.
+    static func side(_ turn: TurnRow) -> DebateSide { turn.turnNo % 2 == 0 ? .affirm : .deny }
+
+    static func move(_ id: String, played: Bool) -> FormulaCard {
+        FormulaCard(id: id, text: id, kind: .move, used: played)
+    }
+
+    static func ruling(_ score: ScoreRow, event: EventKind) -> Ruling {
+        Ruling(event: event, values: score.axes.map(Int.init), verdict: score.verdict, bestLine: score.bestLine)
+    }
+
+    static func endsAt(_ turn: TurnRow) -> Date? { turn.endsAt.isSet ? turn.endsAt.date : nil }
+
     static func roman(_ n: Int) -> String {
         ["", "I", "II", "III", "IV", "V", "VI"][min(max(n, 0), 6)]
     }
@@ -59,6 +74,7 @@ enum BattlePresenter {
             liveId: nil,
             homer: homerLine(homer)
         )
+        model.event = event(room)
         let turn = battle.currentTurn
         let poet = turn.flatMap { battle.player($0.playerId) }.map(plate)
         let saying = conductor?.saying
@@ -79,6 +95,12 @@ enum BattlePresenter {
             } else {
                 model.moment = .roundTitle
             }
+        case .speaking where room.event == "debate":
+            guard let turn, let poet else { break }
+            model.liveId = poet.id
+            model.moment = .debating(poet: poet, side: side(turn), question: battle.currentRound?.theme ?? "",
+                                     transcript: lines(turn.transcript), played: turn.played.map { move($0, played: true) },
+                                     endsAt: endsAt(turn), seconds: Double(room.turnSeconds))
         case .speaking:
             guard let turn, let poet else { break }
             model.liveId = poet.id
@@ -94,7 +116,9 @@ enum BattlePresenter {
             model.moment = .judging(poet: poet, transcript: lines(turn.transcript))
         case .scored:
             guard let turn, let poet else { break }
-            if let score = battle.score(for: turn.id), let card = score.poetryScorecard {
+            if room.event == "debate", let score = battle.score(for: turn.id) {
+                model.moment = .ruling(poet: poet, ruling: ruling(score, event: .debate), reveal: reveal("verdict \(turn.id)"))
+            } else if let score = battle.score(for: turn.id), let card = score.poetryScorecard {
                 model.moment = .verdict(poet: poet, card: card, reveal: reveal("verdict \(turn.id)"),
                                         coined: score.coined.isEmpty ? nil : score.coined)
             } else {
@@ -145,6 +169,7 @@ enum BattlePresenter {
         }
         var model = PlayerModel(me: plate(me), code: room.code, round: Int(room.roundNo), rounds: Int(room.rounds),
                                 theme: battle.currentRound?.theme, homer: homerLine(homer))
+        model.event = event(room)
         if !me.entered {
             model.moment = .micCheck
             return model
@@ -169,6 +194,15 @@ enum BattlePresenter {
         switch turn.statusValue {
         case .waiting:
             model.moment = .onDeck(hand: hand, autoReady: room.autoReady)
+        case .speaking where room.event == "debate":
+            let live = recorder?.phase == .live || recorder?.phase == .finishing
+            model.moment = .debating(
+                side: side(turn), question: battle.currentRound?.theme ?? "",
+                transcript: live ? (recorder?.transcript ?? "") : turn.transcript,
+                moves: battle.myHand.map { move($0, played: turn.played.contains($0)) },
+                whisperedId: recorder?.rescueCard, talking: recorder?.talking ?? false,
+                level: recorder?.mic.prosody.energy ?? 0, endsAt: endsAt(turn), seconds: Double(room.turnSeconds)
+            )
         case .speaking:
             let clock = recorder?.clock
             model.moment = .speaking(
@@ -183,7 +217,9 @@ enum BattlePresenter {
         case .judging:
             model.moment = .weighing
         case .scored, .declined, .skipped:
-            if let score = battle.score(for: turn.id), let card = score.poetryScorecard {
+            if room.event == "debate", let score = battle.score(for: turn.id) {
+                model.moment = .ruling(ruling(score, event: .debate), reveal: 1)
+            } else if let score = battle.score(for: turn.id), let card = score.poetryScorecard {
                 model.moment = .result(card: card, reveal: 1, coined: score.coined.isEmpty ? nil : score.coined)
             } else {
                 model.moment = .weighing
