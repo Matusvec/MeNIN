@@ -184,7 +184,11 @@ The Actor was written by an AI coding agent (Claude Opus 5.5 in Claude Code) on 
 
 **Fetch.ai: Homer on Agentverse.** The whole battle turn works inside an ASI:One conversation. Ask Homer for a theme, and he deals you five stock phrases that fit it. Write your verse with them, and he judges it with the same scanner and Claude judge that run our live battles: five scores, your best line quoted and a one-line verdict.  It's an agent registered on Agentverse that speaks the Agent Chat Protocol, running inside our agent service behind a switch, so the battle never depends on it. Agent: `homer-bard` (`agent1qf8cydj43pd7tue06mk9avnp45avcc4ss9gjm98r4lkjczsw0gskzw97edc`). Try it: [ASI:One link].
 
-**Moss: dealing that fits the theme, in milliseconds.** When Homer announces a theme, every poet gets five stock phrases that fit it. With Moss, the dealer retrieves the formulas closest in meaning to the theme from our bank of [N], in [measured] ms, rather than matching keywords. So "[a real theme]" deals you "[a real formula from the bank that shares no word with it]". Voice games have to answer while the room is still listening, and Moss keeps the deal instant. It runs behind a switch, with our keyword dealer as the fallback.
+**Moss: dealing that fits the theme, in milliseconds.** When Homer announces a theme, every poet gets five stock phrases that fit it. Moss ranks our whole bank of 213 formulas by meaning against the theme, including the 55 our Apify Actor mined, and the dealer draws your hand from the closest matches. Before Moss, the dealer matched tags.
+- **Before and after:** "The war between two brothers" used to deal "breaker of horses". Now it deals "the battle-light" and "the battle-sweat". "My grandmother's kitchen" finds "in my mother's kitchen" and "the high-roofed hall", which shares no word with the theme.
+- **Measured on our production server** (a 2 GB DigitalOcean droplet, CPU only), over 60 queries across 20 themes: Moss retrieval p50 **13.7 ms**, p95 32.2 ms (1.4 ms p50 on a MacBook). The whole deal request takes p50 43 ms.
+
+Voice games have to answer while the room is still listening, and Moss keeps the deal instant. It runs behind a switch: if Moss is ever slower than 500 ms or errors, our old tag dealer deals instead, silently. We tested both failures live.
 
 ## Tracks to tag on Devpost
 
@@ -201,7 +205,7 @@ The Actor was written by an AI coding agent (Claude Opus 5.5 in Claude Code) on 
 - [ ] **Microsoft: Built for the Real World** and the Customer Impact Award ([opportunities.md](opportunities.md) #3)
 - [ ] MLH: Best Domain Name from GoDaddy Registry (only if we register one)
 - [ ] **Fetch.ai: Best Use of Fetch.ai** (only if Homer's judge is live on Agentverse and usable from ASI:One)
-- [ ] **Moss: Best Use of Moss** (only if theme-fitting dealing really ships behind its switch)
+- [ ] **Moss: Best Use of Moss.** Shipped: `HOMER_DEALER=moss` is live on the droplet, p50 13.7 ms, with a tested fallback. Tag it.
 - [ ] MLH: Best Use of DigitalOcean (the agent service runs there)
 - [ ] **Apify: Best use** and **Best Actor.** Ready to tag: the formulas are in the bank (55 of 213), and the Actor is live on the Store (https://apify.com/matusnator/epithet-miner).
 

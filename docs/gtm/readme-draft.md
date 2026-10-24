@@ -91,6 +91,10 @@ Voice is the whole game: you play by speaking, and Homer answers out loud.
 
 Part of the stock-phrase bank was mined by our Apify Actor, **Epithet Miner** ([`apify/`](apify/), on the Apify Store: [apify.com/matusnator/epithet-miner](https://apify.com/matusnator/epithet-miner)). It reads four public-domain Homer translations from Project Gutenberg and finds noun-epithet formulas with readable rules, no language model. Then it counts their beats with our scanner's rule and ranks them by how often they recur. It mined 150 candidates. A person kept 55, so the bank grew from 158 to 213. It runs at build time only, and the game never calls Apify. How it was built, honestly: [`apify/BUILD_LOG.md`](apify/BUILD_LOG.md).
 
+## Moss: dealing that fits the theme
+
+The dealer uses [Moss](https://moss.dev) to rank all 213 formulas by meaning against the theme, then deals your hand from the closest matches. So "My grandmother's kitchen" finds "the high-roofed hall" with no shared word. Measured on our production droplet (2 GB, CPU only): p50 13.7 ms, p95 32.2 ms. It runs behind `HOMER_DEALER=moss`, and if Moss is slow (over 500 ms) or errors, the tag dealer deals instead.
+
 ## Fetch.ai: Homer on Agentverse
 
 [Keep only if it's live.] Homer's dealer and judge also run as the agent **homer-bard** on Agentverse (`agent1qf8cydj43pd7tue06mk9avnp45avcc4ss9gjm98r4lkjczsw0gskzw97edc`), with the Agent Chat Protocol, so a whole battle turn works inside an ASI:One chat. Ask for a theme and get five formulas, then send a verse and get judged. It sits behind a switch, off the demo path. See [`homer/AGENTVERSE.md`](homer/AGENTVERSE.md). Try it: [ASI:One link].

@@ -42,7 +42,7 @@ Write down their answer, and tell gtm.
 | # | Opportunity | Pays | What it takes | Honest odds |
 | --- | --- | --- | --- | --- |
 | 5 | **Fetch.ai: Best use** (main track) | $1,250 / $750 / $500, plus 2 × $250 (Slack); Devpost lists $1,500 / $1,000 / $500 | Wrap Homer's judge as an **Agentverse agent** with the Agent Chat Protocol, discoverable and usable in ASI:One: "send Homer a verse, get his verdict". It lives inside the agent service, so it isn't a fourth deployable. | Medium-low. Agent projects crowd this field, but ours would be the only poet. **Built and running on the droplet (builder, Sat ~9:50 AM):** agent `homer-bard`, address `agent1qf8cydj43pd7tue06mk9avnp45avcc4ss9gjm98r4lkjczsw0gskzw97edc`. It publishes the Chat Protocol manifest and is registered on the Almanac. The two-step flow (deal, then judge) runs inside one ASI:One chat, and its README with both badges is homer/AGENTVERSE.md. **Waiting on Matus:** the one-time mailbox Connect and the handle (suggested: @homer-bard). Then builder sends the ASI:One link. No separate dealer agent, because it would be orchestration for show. |
-| 6 | **Moss** | **2 winners in total** (#spons-moss, Sat 9:27 AM): one for good use of Moss, one for best engagement. AirPods Pro or Max, plus interviews. | Their #1 example is "Voice AI: Voice agents that listen, respond, and act in real time". Use Moss retrieval to **deal formulas that fit the theme**, at retrieval speeds of a few milliseconds. Keep it behind a flag, with today's dealer as the fallback, so the demo path stays safe. Credits code `CALHACKS`. | Medium. Voice is their first example. **Built behind `HOMER_DEALER=moss`** (builder), with metadata flattened to strings. **Waiting on Matus:** a Moss portal account (code `CALHACKS`), with `MOSS_PROJECT_ID` and `MOSS_PROJECT_KEY` put straight into the droplet's `.env`, never pasted into chat. Then builder measures the latency. |
+| 6 | **Moss** | **2 winners in total** (#spons-moss, Sat 9:27 AM): one for good use of Moss, one for best engagement. AirPods Pro or Max, plus interviews. | Their #1 example is "Voice AI: Voice agents that listen, respond, and act in real time". Use Moss retrieval to **deal formulas that fit the theme**, at retrieval speeds of a few milliseconds. Keep it behind a flag, with today's dealer as the fallback, so the demo path stays safe. Credits code `CALHACKS`. | **Shipped (Sat ~10:45 AM, builder):** `HOMER_DEALER=moss` is live on the droplet. Moss ranks all 213 formulas, including the 55 Apify-mined, by meaning against the theme. Retrieval p50 13.7 ms and p95 32.2 ms on the 2 GB droplet; the whole deal p50 43 ms. A silent fallback to the tag dealer covers anything over 500 ms or an error, and both failures were tested live. The Devpost blurb is filled in. **Open:** leader's call on whether it stays on for the demo (see the Moss note below). |
 | 7 | **MLH: Best Domain Name from GoDaddy Registry** | Digital gift card | Register one cheap domain from a GoDaddy Registry TLD and point it where playmenin.tech points. Ask the MLH coach at 9:45 which TLDs count, and whether there's a free code. | High per minute; low value |
 
 ## Tier 3: only if we really use it
@@ -77,9 +77,10 @@ Write down their answer, and tell gtm.
 
 ### Moss: theme-fitting dealing (builder, after Fetch)
 - **No rubric or Moss-specific submission step is published.** Their first example is "Voice agents that listen, respond, and act in real time." Tag it on Devpost, which is unconfirmed but the likely route.
-- [ ] Moss retrieval really runs in the dealer (theme in, formulas out), behind its switch
-- [ ] Measure the latency and put the number in the Devpost blurb (their claim: sub-10 ms)
-- [ ] Matus creates the account at portal.usemoss.dev and enters code `CALHACKS` on the billing page
+- [x] Moss retrieval really runs in the dealer (theme in, formulas out), behind `HOMER_DEALER=moss`, with a tested silent fallback
+- [x] Latency measured on the production droplet: p50 13.7 ms, p95 32.2 ms over 60 queries (1.4 ms on a MacBook). It's in the blurb.
+- [x] Account and keys are set on the droplet
+- [ ] **Leader's call: does the switch stay on for judging?** It's on the demo path now, which changes the hands the poets rehearsed with. Either rehearse on Moss hands from now on, or flip to the tag dealer for the demo and keep Moss for the booth and Q&A.
 - [ ] *(Optional; Matus's call)* A social post for their engagement prize. Its rules are unconfirmed, and a hacker's question about it is unanswered.
 
 ## Already entered (for completeness)
