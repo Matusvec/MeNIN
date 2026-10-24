@@ -46,6 +46,10 @@ struct ScorecardView: View {
         }
     }
 
+    /// The server's fallback when the judge times out: a neutral 4/4/4 with this exact verdict.
+    static let neutralVerdict = "Homer is silent on this one."
+    private var isNeutral: Bool { ruling.verdict == Self.neutralVerdict }
+
     private var isDebate: Bool { ruling.axes.contains { ["claim", "poise"].contains($0.name.lowercased()) } }
 
     @Environment(\.stage) private var stage
@@ -64,6 +68,11 @@ struct ScorecardView: View {
                         .displayLeading(20 * k, 1.18)
                         .foregroundStyle(Palette.ink)
                         .fixedSize(horizontal: false, vertical: true)
+                    if isNeutral {
+                        Text("Neutral score: the judge timed out")
+                            .chip(10 * k, fill: Palette.paper2, color: Palette.ink2)
+                            .padding(.top, Metrics.s1 * k)
+                    }
                 }
                 Spacer(minLength: Metrics.s4 * k)
                 let totalShown = Int((Double(ruling.total) * min(1, max(0, step - count))).rounded())
@@ -90,7 +99,7 @@ struct ScorecardView: View {
                 ForEach(Array(ruling.axes.enumerated()), id: \.element.id) { i, axis in
                     let shown = Int((Double(axis.value) * min(1, max(0, step - Double(i)))).rounded())
                     AxisRow(name: axis.name, value: shown, landed: landed > i, k: k,
-                            hint: hints ? Self.hint(for: axis.name, debate: isDebate) : nil)
+                            hint: hints ? Self.hint(for: axis.name, debate: isDebate) : nil, muted: isNeutral)
                 }
             }
 
@@ -137,6 +146,8 @@ private struct AxisRow: View {
     var landed = false
     let k: CGFloat
     var hint: String? = nil
+    /// A neutral fallback score: grey bars, so it never reads as a judgment.
+    var muted = false
     @Environment(\.stage) private var stage
 
     var body: some View {
@@ -158,7 +169,7 @@ private struct AxisRow: View {
             HStack(spacing: 3 * k) {
                 ForEach(0..<10, id: \.self) { i in
                     RoundedRectangle(cornerRadius: 2 * k, style: .continuous)
-                        .fill(i < value ? (value >= 8 ? Palette.gold : Palette.accent) : Palette.paper2)
+                        .fill(i < value ? (muted ? Palette.ink3.opacity(0.55) : (value >= 8 ? Palette.gold : Palette.accent)) : Palette.paper2)
                         .frame(height: 12 * k)
                         .scaleEffect(y: i == value - 1 ? 1.25 : 1)
                 }
