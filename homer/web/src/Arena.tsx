@@ -303,10 +303,7 @@ export default function ArenaPanel({
 
         {room.phase === 'scored' && score && !discus && (
           // A judge that never answered posts SILENT_VERDICT and a neutral score: grey it and say so.
-          <div
-            className={`score-panel five${!score.verdict || score.verdict === SILENT_VERDICT ? ' neutral' : ''}`}
-            style={!score.verdict || score.verdict === SILENT_VERDICT ? { filter: 'grayscale(1)', opacity: 0.7 } : undefined}
-          >
+          <div className={`score-panel five${!score.verdict || score.verdict === SILENT_VERDICT ? ' neutral' : ''}`}>
             {(!score.verdict || score.verdict === SILENT_VERDICT) && (
               <small className="neutral-mark">Neutral score: the judge timed out</small>
             )}
