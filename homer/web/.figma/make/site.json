@@ -1,5 +1,6 @@
 {
-  "description": "Learn iambic pentameter, get thoughtful poem scansion and revision feedback, or compete in fair, themed poetry battles with an epic bard.",
+  "title": "MeNIN",
+  "description": "Party games for your voice. Homer, the legendary bard, deals you a theme, judges your verse, and calls the battle.",
   "robots": {
     "index": false
   },

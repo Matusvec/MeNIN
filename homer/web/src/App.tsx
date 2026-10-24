@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
+import GameStrip from './GameStrip'
+import ArenaPanel from './Arena'
 import Homer3D from './Homer3D'
+
+const TESTFLIGHT_URL = import.meta.env.VITE_TESTFLIGHT_URL || ''
 
 type HomerMode = 'bard' | 'judge' | 'battle'
 
@@ -11,24 +15,15 @@ const modes: Array<{
 }> = [
   {
     id: 'bard',
-    label: 'Bard Mode',
-    description: 'Learn iambic pentameter with Homer',
-    response:
-      'Ah, Bard Mode—the Muse approves! We shall train your ear, one measured foot at a time.',
-  },
-  {
-    id: 'judge',
-    label: 'Judge Mode',
-    description: 'Scan and strengthen your verse',
-    response:
-      'Judge Mode! Bring me your verse, and I shall weigh each beat with a fair and careful hand.',
+    label: 'Bard',
+    description: 'Learn the four-beat line from Homer',
+    response: 'Four hits a line. A breath in the middle. I’ll teach you the rest.',
   },
   {
     id: 'battle',
-    label: 'Battle Mode',
-    description: 'Compete with fellow poets',
-    response:
-      'Battle Mode! Gather your poets. I shall judge the contest without fear or favor.',
+    label: 'Host a battle',
+    description: 'This screen is the arena. Phones join with the app',
+    response: 'Open the hall. I’ll call the poets in.',
   },
 ]
 
@@ -154,19 +149,12 @@ function ModePage({
 }) {
   const info = modes.find((item) => item.id === mode)!
   const [isSpeaking, setIsSpeaking] = useState(false)
-  const [lessonStep, setLessonStep] = useState(1)
   const [answer, setAnswer] = useState<string | null>(null)
-  const [poem, setPoem] = useState('')
-  const [judged, setJudged] = useState(false)
-  const [players, setPlayers] = useState(2)
-  const [rounds, setRounds] = useState(2)
-  const [battleStarted, setBattleStarted] = useState(false)
+  const [heard, setHeard] = useState(false)
   const [coachLine, setCoachLine] = useState(
     mode === 'bard'
-      ? 'Listen first. An iamb rises from a light beat to a strong one: da-DUM.'
-      : mode === 'judge'
-        ? 'Set your verse before me. I shall weigh its stresses, not merely count its syllables.'
-        : 'Name the poets and the rounds. I shall keep the contest fair.',
+      ? 'Say it out loud. Hit the capitals.'
+      : 'Open the hall, and the poets come to me.',
   )
 
   const speak = (line: string) => {
@@ -178,22 +166,22 @@ function ModePage({
   const bardContent = (
     <>
       <div className="workspace-heading">
-        <span>Lesson {lessonStep} of 8</span>
-        <h2>The heartbeat of a line</h2>
-        <p>Tap the pattern that sounds like an iamb.</p>
+        <span>Lesson 1 of 6</span>
+        <h2>The four-beat line</h2>
+        <p>Say it out loud. How many hits?</p>
       </div>
-      <div className="meter-demo" aria-label="Meter exercise">
-        <span>the</span>
-        <strong>WIND</strong>
-        <span>will</span>
-        <strong>RISE</strong>
-        <span>be</span>
-        <strong>YOND</strong>
-        <span>the</span>
-        <strong>HILL</strong>
+      <div className="meter-demo drill-line" aria-label="Four-beat drill">
+        <strong>WINE</strong>
+        <span>-dark</span>
+        <strong>SEA</strong>
+        <span className="break">/</span>
+        <span>took my</span>
+        <strong>BROTH</strong>
+        <span>-er’s</span>
+        <strong>SHIP</strong>
       </div>
       <div className="choice-grid">
-        {['DUM-da', 'da-DUM', 'DUM-DUM'].map((choice) => (
+        {['Three', 'Four', 'Five'].map((choice) => (
           <button
             key={choice}
             className={answer === choice ? 'active' : ''}
@@ -207,118 +195,30 @@ function ModePage({
         className="primary-action"
         disabled={!answer}
         onClick={() => {
-          if (answer === 'da-DUM') {
-            speak('Well heard, swift-fingered student. That rising pair is an iamb.')
-            setLessonStep((step) => Math.min(8, step + 1))
+          if (answer === 'Four') {
+            speak('Four hits. A breath in the middle. That’s the line I sang the Iliad in.')
+            setHeard(true)
           } else {
-            speak('Nearly. Let the first beat fall lightly, then give the second its strength.')
+            speak('Say it louder. Count the capitals.')
           }
         }}
       >
         Check answer
       </button>
-    </>
-  )
-
-  const judgeContent = (
-    <>
-      <div className="workspace-heading">
-        <span>Scansion desk</span>
-        <h2>Bring me your verse</h2>
-        <p>Enter a line or stanza for a measured critique.</p>
-      </div>
-      <textarea
-        className="poem-input"
-        value={poem}
-        onChange={(event) => {
-          setPoem(event.target.value)
-          setJudged(false)
-        }}
-        placeholder="Shall I compare thee to a summer’s day?"
-        rows={5}
-      />
-      {judged && (
-        <div className="score-panel">
-          <div><strong>8.6</strong><span>Meter</span></div>
-          <div><strong>9.1</strong><span>Naturalness</span></div>
-          <div><strong>8.4</strong><span>Imagery</span></div>
-          <div><strong>8.7</strong><span>Craft</span></div>
-          <p><b>ˇ / | ˇ / | ˇ / | ˇ / | ˇ /</b><br />A confident line with a natural rising cadence.</p>
-        </div>
-      )}
-      <button
-        className="primary-action"
-        disabled={!poem.trim()}
-        onClick={() => {
-          setJudged(true)
-          speak('The line carries its rhythm well. Let us examine where speech and meter meet.')
-        }}
-      >
-        Scan my verse
-      </button>
-    </>
-  )
-
-  const battleContent = (
-    <>
-      <div className="workspace-heading">
-        <span>{battleStarted ? 'Round 1' : 'Battle setup'}</span>
-        <h2>{battleStarted ? 'The sea at dawn' : 'Prepare the poets'}</h2>
-        <p>
-          {battleStarted
-            ? 'Write four lines of pentameter. Include one trochaic opening.'
-            : 'Choose the company and length of your contest.'}
+      {heard && (
+        <p className="wired-note">
+          Lessons 2 to 6 use your voice, over the beat. They’re in the app.{' '}
+          {TESTFLIGHT_URL && (
+            <a className="testflight" href={TESTFLIGHT_URL} target="_blank" rel="noreferrer">
+              Get it on TestFlight
+            </a>
+          )}
         </p>
-      </div>
-      {!battleStarted ? (
-        <div className="battle-settings">
-          <label>
-            <span>Players</span>
-            <div className="stepper">
-              <button onClick={() => setPlayers((count) => Math.max(2, count - 1))}>−</button>
-              <strong>{players}</strong>
-              <button onClick={() => setPlayers((count) => Math.min(6, count + 1))}>+</button>
-            </div>
-          </label>
-          <label>
-            <span>Rounds</span>
-            <div className="stepper">
-              <button onClick={() => setRounds((count) => Math.max(1, count - 1))}>−</button>
-              <strong>{rounds}</strong>
-              <button onClick={() => setRounds((count) => Math.min(5, count + 1))}>+</button>
-            </div>
-          </label>
-          <button
-            className="primary-action"
-            onClick={() => {
-              setBattleStarted(true)
-              speak(`Let the contest begin: ${players} poets, ${rounds} rounds, and one impartial judge.`)
-            }}
-          >
-            Begin battle
-          </button>
-        </div>
-      ) : (
-        <>
-          <div className="scoreboard">
-            {Array.from({ length: players }, (_, index) => (
-              <div key={index}>
-                <span>Poet {index + 1}</span>
-                <strong>—</strong>
-                <small>Awaiting verse</small>
-              </div>
-            ))}
-          </div>
-          <button
-            className="primary-action"
-            onClick={() => speak('Submissions are open. Each poet shall be heard in turn.')}
-          >
-            Collect submissions
-          </button>
-        </>
       )}
     </>
   )
+
+  const battleContent = <ArenaPanel onLine={setCoachLine} onSpeaking={setIsSpeaking} />
 
   return (
     <main className={`mode-screen ${mode}`}>
@@ -337,7 +237,7 @@ function ModePage({
           </div>
         </aside>
         <section className="workspace">
-          {mode === 'bard' ? bardContent : mode === 'judge' ? judgeContent : battleContent}
+          {mode === 'bard' ? bardContent : battleContent}
         </section>
       </div>
     </main>
@@ -351,7 +251,7 @@ export default function App() {
   const selected = modes.find((mode) => mode.id === selectedMode)
   const fullMessage =
     selected?.response ??
-    'Welcome! I’m Homer. How would you like to explore poetry today?'
+    'I’m Homer. I made the Iliad up out loud. Your turn.'
   const [spokenMessage, setSpokenMessage] = useState('')
 
   useEffect(() => {
@@ -389,6 +289,8 @@ export default function App() {
           <Homer3D speaking={isSpeaking} mode={selectedMode} />
         </div>
       </div>
+
+      <GameStrip />
 
       <header className="nameplate" aria-label="Homer">
         <span>Homer</span>

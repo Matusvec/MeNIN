@@ -1,0 +1,481 @@
+// The browser as the arena (SPEC "The website"): it hosts the room and drives the
+// battle, as the Mac app's arena does. A port of ios/Homer/Net/Battle/BattleClient.swift
+// (the arena's duties: askAgentIfNeeded, autoStartIfNeeded, the generation, advanceOnce)
+// and ios/Homer/Battle/ArenaConductor.swift (speakIfDue: what Homer says, then advance).
+//
+// One driver per room: never let the Mac arena and a web arena watch the same room,
+// or hands get dealt and verses judged twice. All battle state lives in SpacetimeDB.
+
+import { DbConnection } from '../stdb'
+import type { Player, Room, Round, Score, Turn } from '../stdb/types'
+import { AGENT_URL } from './agent'
+
+const STDB_URI = import.meta.env.VITE_STDB_URI || 'wss://maincloud.spacetimedb.com'
+export const STDB_DB = import.meta.env.VITE_STDB_DB || 'homer-calhacks'
+
+/** create_room's demo preset (spacetime/CONTRACT.md; BattleReducers.swift demoMode). */
+export const DEMO_ROOM = {
+  event: 'poetry',
+  rounds: 1,
+  barsPerLine: 2,
+  linesPerTurn: 2,
+  bpm: 80,
+  form: 'four_beat',
+  autoReady: true,
+  themeChoice: false,
+  demo: true,
+}
+
+const TICK_MS = 300
+const STEP_UP_MS = 2000 // auto-ready: a short beat before each turn starts
+const COMEBACK_MS = 20000 // a poet reopening the app gets this long to come back
+const ADVANCE_AFTER_MS = 1500 // after Homer's line, before the next reveal
+
+export type ArenaView = {
+  status: 'connecting' | 'connected' | 'offline'
+  room: Room | null
+  poets: Player[]
+  round: Round | null
+  turn: Turn | null
+  scores: Score[]
+  song: string[]
+  line: string // what Homer is saying now
+  speaking: boolean
+  error: string
+  resumable: Room | null // an unfinished room this browser hosts, after a reload
+}
+
+type Speaker = (text: string) => Promise<void>
+
+/** W1, text only: hold each line long enough to read it. W2 swaps in the voice. */
+export function readingTime(text: string): number {
+  const words = text.split(/\s+/).filter(Boolean).length
+  return Math.min(7000, Math.max(2500, 1200 + words * 320))
+}
+
+function tokenKey(): string {
+  return `menin.stdb.token.${STDB_DB}`
+}
+
+function loadToken(): string | undefined {
+  try {
+    return localStorage.getItem(tokenKey()) ?? undefined
+  } catch {
+    return undefined
+  }
+}
+
+function saveToken(token: string): void {
+  try {
+    localStorage.setItem(tokenKey(), token)
+  } catch {
+    /* private window: a new identity next time, which only loses the resume */
+  }
+}
+
+async function postAgent(path: string, body: unknown): Promise<unknown> {
+  const res = await fetch(`${AGENT_URL}${path}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body, (_key, value) => (typeof value === 'bigint' ? Number(value) : value)),
+  })
+  if (!res.ok) {
+    const detail = await res.json().then((b) => b?.detail, () => '')
+    throw new Error(`${path}: ${detail || `HTTP ${res.status}`}`)
+  }
+  return res.json()
+}
+
+export class Arena {
+  private conn: DbConnection | null = null
+  private identityHex = ''
+  private roomId: bigint = 0n
+  private roomSub: { unsubscribe: () => void } | null = null
+  private awaitingCreated = false
+  private ticker = 0
+  // BattleClient's arena duties
+  private generation = 0
+  private lastPhaseSeen: string | null = null
+  private asked = new Set<string>()
+  private autoStarted = ''
+  private advancedFrom = new Set<string>()
+  // ArenaConductor
+  private said = new Set<string>()
+  private calls = new Map<number, string>() // round_no -> Homer's call-up, from /battle/deal
+  private queue: Promise<void> = Promise.resolve()
+  private line = ''
+  private speaking = false
+  private status: ArenaView['status'] = 'connecting'
+  private error = ''
+
+  constructor(
+    private onView: (view: ArenaView) => void,
+    private speakAloud: Speaker | null = null,
+  ) {}
+
+  // ----- connection -------------------------------------------------------------
+
+  connect(): void {
+    this.conn = DbConnection.builder()
+      .withUri(STDB_URI)
+      .withDatabaseName(STDB_DB)
+      .withToken(loadToken())
+      .onConnect((conn, identity, token) => {
+        saveToken(token)
+        this.identityHex = identity.toHexString()
+        this.status = 'connected'
+        // Rooms are found by host because reducers can't return values.
+        conn.subscriptionBuilder().subscribe(`SELECT * FROM room WHERE host = 0x${this.identityHex}`)
+        const db = conn.db
+        for (const table of [db.room, db.player, db.round, db.turn, db.score, db.songLine]) {
+          table.onInsert(() => this.changed())
+          table.onDelete(() => this.changed())
+          const updatable = table as unknown as { onUpdate?: (cb: () => void) => void }
+          updatable.onUpdate?.(() => this.changed())
+        }
+        this.publish()
+      })
+      .onConnectError((_ctx, error) => {
+        this.status = 'offline'
+        this.error = `Can't reach the hall: ${error.message}`
+        this.publish()
+      })
+      .onDisconnect(() => {
+        this.status = 'offline'
+        this.publish()
+      })
+      .build()
+    this.ticker = window.setInterval(() => this.tick(), TICK_MS)
+  }
+
+  disconnect(): void {
+    window.clearInterval(this.ticker)
+    this.roomSub?.unsubscribe()
+    this.conn?.disconnect()
+    this.conn = null
+  }
+
+  // ----- the arena's reducers ---------------------------------------------------
+
+  createRoom(): void {
+    if (!this.conn) return
+    this.awaitingCreated = true
+    this.call(() => this.conn!.reducers.createRoom(DEMO_ROOM))
+  }
+
+  resume(room: Room): void {
+    this.watch(room.id)
+  }
+
+  startBattle(): void {
+    this.call(() => this.conn!.reducers.startBattle({ roomId: this.roomId }))
+  }
+
+  rematch(): void {
+    this.generation += 1
+    this.lastPhaseSeen = null // already counted; don't count finished → dealing again
+    this.call(() => this.conn!.reducers.rematch({ roomId: this.roomId }))
+  }
+
+  /** The reveal on screen now. An advance is valid only from the reveal it was meant for. */
+  private revealKey(): string | null {
+    const room = this.room()
+    return room ? `${room.id}.${this.generation} ${room.phase} ${room.roundNo} ${room.currentTurnId}` : null
+  }
+
+  /** Advances once per reveal, however many callers ask. */
+  advanceOnce(from: string | null = null): void {
+    const key = this.revealKey()
+    const phase = this.room()?.phase
+    if (!key || (from !== null && from !== key) || this.advancedFrom.has(key) || phase === 'finished' || phase === 'lobby') return
+    this.advancedFrom.add(key)
+    this.call(() => this.conn!.reducers.advance({ roomId: this.roomId }))
+  }
+
+  private call(work: () => Promise<void>): void {
+    if (!this.conn) return
+    this.error = ''
+    work().catch((error: unknown) => {
+      this.error = error instanceof Error ? error.message : String(error)
+      this.publish()
+    })
+  }
+
+  private watch(id: bigint): void {
+    if (!this.conn || (id === this.roomId && this.roomSub)) return
+    this.roomSub?.unsubscribe()
+    this.roomId = id
+    const queries = [`SELECT * FROM room WHERE id = ${id}`].concat(
+      ['player', 'round', 'turn', 'score', 'scene', 'song_line', 'prosody'].map((t) => `SELECT * FROM ${t} WHERE room_id = ${id}`),
+    )
+    this.roomSub = this.conn.subscriptionBuilder().onApplied(() => this.changed()).subscribe(queries)
+  }
+
+  // ----- derived state ----------------------------------------------------------
+
+  private room(): Room | null {
+    if (!this.conn || !this.roomId) return null
+    return [...this.conn.db.room.iter()].find((r) => r.id === this.roomId) ?? null
+  }
+
+  private poets(): Player[] {
+    return [...this.conn!.db.player.iter()].filter((p) => p.roomId === this.roomId).sort((a, b) => a.seat - b.seat)
+  }
+
+  private currentRound(room: Room): Round | null {
+    return [...this.conn!.db.round.iter()].find((r) => r.roomId === this.roomId && r.roundNo === room.roundNo) ?? null
+  }
+
+  private turns(): Turn[] {
+    return [...this.conn!.db.turn.iter()].filter((t) => t.roomId === this.roomId)
+  }
+
+  private currentTurn(room: Room): Turn | null {
+    return room.currentTurnId ? this.turns().find((t) => t.id === room.currentTurnId) ?? null : null
+  }
+
+  private hostedRooms(): Room[] {
+    if (!this.conn || !this.identityHex) return []
+    return [...this.conn.db.room.iter()].filter((r) => r.host.toHexString() === this.identityHex && r.phase !== 'finished')
+  }
+
+  // ----- the loop ---------------------------------------------------------------
+
+  private changed(): void {
+    if (this.awaitingCreated) {
+      const newest = this.hostedRooms().sort((a, b) => (a.id < b.id ? 1 : -1))[0]
+      if (newest && newest.id > this.roomId) {
+        this.awaitingCreated = false
+        this.watch(newest.id)
+      }
+    }
+    this.publish()
+  }
+
+  private tick(): void {
+    const room = this.room()
+    if (!room) return
+    this.trackGeneration(room)
+    this.autoStartIfNeeded(room)
+    this.askAgentIfNeeded(room)
+    this.speakIfDue(room)
+  }
+
+  /** Bumped each time this room starts over, so per-battle work (deals, the song) is asked again. */
+  private trackGeneration(room: Room): void {
+    if (this.lastPhaseSeen === 'finished' && room.phase !== 'finished') this.generation += 1
+    this.lastPhaseSeen = room.phase
+  }
+
+  /** auto_ready rooms (always on in demo): start each turn after a short step-up beat. */
+  private autoStartIfNeeded(room: Room): void {
+    const turn = this.currentTurn(room)
+    if (!room.autoReady || room.phase !== 'ready' || !turn || turn.status !== 'waiting') return
+    const key = `${turn.id}-${turn.attempt}`
+    if (this.autoStarted === key) return
+    this.autoStarted = key
+    void (async () => {
+      await sleep(STEP_UP_MS)
+      // The count-in waits until Homer finishes his call (docs/ux-flow.md T1), so his voice never meets an open mic.
+      await this.queue
+      // A poet reopening the app gets up to 20 s (capped: a stale `connected = false` can't stall the battle).
+      for (let waited = 0; waited < COMEBACK_MS; waited += 500) {
+        if (this.poets().find((p) => p.id === turn.playerId)?.connected !== false) break
+        await sleep(500)
+      }
+      const now = this.room()
+      const current = now && this.currentTurn(now)
+      if (current?.id === turn.id && current.status === 'waiting') {
+        this.call(() => this.conn!.reducers.startTurn({ turnId: turn.id }))
+      }
+    })()
+  }
+
+  /** Battle work from the agent when the phase calls for it, once per step; results arrive by subscription. */
+  private askAgentIfNeeded(room: Room): void {
+    if (room.event === 'discus') return // discus has no Claude
+    const quietly = (key: string, work: () => Promise<unknown>) => {
+      if (this.asked.has(key)) return
+      this.asked.add(key)
+      work().catch(() => {})
+    }
+    const once = (key: string, work: () => Promise<unknown>) => {
+      if (this.asked.has(key)) return
+      this.asked.add(key)
+      work().catch(async (error: unknown) => {
+        this.error = error instanceof Error ? error.message : String(error)
+        this.publish()
+        await sleep(2000)
+        this.asked.delete(key) // then retry
+      })
+    }
+    for (const poet of this.poets().filter((p) => !p.named)) {
+      once(`poet ${poet.id}`, () => postAgent('/battle/poet', { playerId: poet.id }))
+    }
+    const battle = `${room.id}.${this.generation}`
+    switch (room.phase) {
+      case 'speaking': {
+        // The scene's color layer: about every 1.5 s while a verse is live.
+        const turn = this.currentTurn(room)
+        if (!turn || !turn.transcript) return
+        const prosody = [...this.conn!.db.prosody.iter()].find((p) => p.roomId === this.roomId && p.turnId === turn.id)
+        const tick = Math.floor(Date.now() / 1500)
+        quietly(`emotion ${turn.id} ${tick}`, () =>
+          postAgent('/battle/emotion', {
+            turnId: turn.id,
+            transcript: turn.transcript,
+            loudness: prosody?.loudness ?? null,
+            pitch: prosody && prosody.pitch > 0 ? prosody.pitch : null,
+          }),
+        )
+        return
+      }
+      case 'dealing':
+        once(`deal ${battle} ${room.roundNo}`, () => this.deal(room.id, room.roundNo, room.nextTheme))
+        return
+      case 'round_end': {
+        const round = this.currentRound(room)
+        if (round) once(`verdict ${round.id}`, () => postAgent('/battle/verdict', { roundId: round.id }))
+        // The song: pre-stitched after round 1, final after the last round.
+        if (room.roundNo === 1 || room.roundNo === room.rounds) {
+          once(`song ${battle} ${room.roundNo}`, () => postAgent('/battle/song', { roomId: room.id }))
+        }
+        // Deal the next round ahead, so the next turn is ready the moment the verdict ends.
+        if (room.roundNo < room.rounds && !room.themeChoice) {
+          once(`deal ${battle} ${room.roundNo + 1}`, () => this.deal(room.id, room.roundNo + 1, ''))
+        }
+        return
+      }
+      case 'judging': {
+        const turn = this.currentTurn(room)
+        const poet = turn && this.poets().find((p) => p.id === turn.playerId)
+        if (!turn || turn.status !== 'judging' || !poet) return
+        const previous = this.turns().find((t) => t.roundId === turn.roundId && t.turnNo + 1 === turn.turnNo)?.transcript ?? ''
+        once(`judge ${turn.id} ${turn.attempt}`, () =>
+          postAgent('/battle/judge', {
+            turnId: turn.id,
+            playerId: poet.id,
+            transcript: turn.transcript,
+            event: room.event,
+            form: room.form,
+            theme: this.currentRound(room)?.theme ?? '',
+            played: turn.played,
+            rescues: turn.rescues,
+            previous,
+            linesExpected: room.linesPerTurn,
+            hoard: poet.hoard,
+            demo: room.demo,
+          }),
+        )
+        return
+      }
+    }
+  }
+
+  private async deal(roomId: bigint, roundNo: number, theme: string): Promise<void> {
+    const dealt = (await postAgent('/battle/deal', { roomId, roundNo, theme })) as { call?: string }
+    if (dealt.call) this.calls.set(roundNo, dealt.call)
+  }
+
+  // ----- Homer (ArenaConductor.speakIfDue) -------------------------------------
+
+  private say(key: string, text: string, then?: () => void): void {
+    if (this.said.has(key) || !text) return
+    this.said.add(key)
+    this.queue = this.queue.then(async () => {
+      this.line = text
+      this.speaking = true
+      this.publish()
+      if (this.speakAloud) await this.speakAloud(text).catch(() => sleep(readingTime(text)))
+      else await sleep(readingTime(text))
+      this.speaking = false
+      this.publish()
+      then?.()
+    })
+  }
+
+  private speakIfDue(room: Room): void {
+    if (room.phase === 'speaking') return
+    const from = this.revealKey()
+    const advance = room.autoReady
+      ? () => {
+          window.setTimeout(() => this.advanceOnce(from), ADVANCE_AFTER_MS)
+        }
+      : undefined
+    const poets = this.poets()
+    for (const poet of poets.filter((p) => p.entered && p.named)) {
+      this.say(`enter ${poet.id}`, poet.epithet ? `Enter ${poet.name}, ${poet.epithet}!` : `Enter ${poet.name}!`)
+    }
+    const turn = this.currentTurn(room)
+    switch (room.phase) {
+      case 'ready': {
+        const round = this.currentRound(room)
+        const poet = turn && poets.find((p) => p.id === turn.playerId)
+        if (!round || !turn || !poet) return
+        // P21: the round's first poet gets the theme's call; every later poet answers the line before.
+        const first = turn.turnNo === Math.min(...this.turns().filter((t) => t.roundId === round.id).map((t) => t.turnNo))
+        const title = poet.epithet ? `${poet.name}, ${poet.epithet}.` : `${poet.name}.`
+        const call = first ? `${round.theme}. ${title} ${this.calls.get(room.roundNo) ?? 'The floor is yours.'}` : `${poet.name}. Answer that.`
+        this.say(`up ${turn.id} ${turn.attempt}`, call)
+        return
+      }
+      case 'scored': {
+        if (!turn) return
+        const score = [...this.conn!.db.score.iter()].find((s) => s.turnId === turn.id)
+        if (score) this.say(`verdict ${turn.id}`, score.verdict || 'Homer is silent on this one.', advance)
+        else if (turn.status === 'declined') this.say(`verdict ${turn.id}`, 'Not in my hall.', advance)
+        else if (turn.status === 'skipped') this.say(`verdict ${turn.id}`, 'The hall waited. No verse came.', advance)
+        return
+      }
+      case 'round_end': {
+        const round = this.currentRound(room)
+        if (round?.verdict) this.say(`round ${round.id}`, round.verdict, advance)
+        return
+      }
+      case 'finale': {
+        const song = this.songLines()
+        const key = `song ${room.id}.${this.generation} ${room.roundNo}`
+        if (!song.length || this.said.has(key)) return
+        this.said.add(key)
+        const champion = [...poets].sort((a, b) => b.total - a.total)[0]
+        song.forEach((text, i) => this.say(`${key} line ${i}`, text))
+        if (champion) {
+          const crown = `${champion.name}${champion.epithet ? `, ${champion.epithet}` : ''}. The hall is yours.`
+          this.say(`${key} crown`, crown, advance)
+        } else advance?.()
+        return
+      }
+    }
+  }
+
+  private songLines(): string[] {
+    return [...this.conn!.db.songLine.iter()]
+      .filter((l) => l.roomId === this.roomId)
+      .sort((a, b) => a.lineNo - b.lineNo)
+      .map((l) => l.text)
+  }
+
+  // ----- the view ---------------------------------------------------------------
+
+  private publish(): void {
+    const room = this.room()
+    const hosted = this.hostedRooms().sort((a, b) => (a.id < b.id ? 1 : -1))[0] ?? null
+    this.onView({
+      status: this.status,
+      room,
+      poets: room ? this.poets() : [],
+      round: room ? this.currentRound(room) : null,
+      turn: room ? this.currentTurn(room) : null,
+      scores: room ? [...this.conn!.db.score.iter()].filter((s) => s.roomId === this.roomId) : [],
+      song: room ? this.songLines() : [],
+      line: this.line,
+      speaking: this.speaking,
+      error: this.error,
+      resumable: !room && hosted ? hosted : null,
+    })
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, ms))
+}

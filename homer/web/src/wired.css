@@ -1,0 +1,217 @@
+/* The wired-up parts (Practice, Watch, the games strip, the four-beat drill).
+   Kept apart from index.css so the art stays HohHamNap's; the colors are his palette. */
+
+.score-panel.five {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.hand-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hand-cards li {
+  display: grid;
+  padding: 0.55rem 0.85rem;
+  background: #edf7f9;
+  border: 1px solid rgb(79 148 171 / 18%);
+  border-radius: 0.85rem;
+}
+
+.hand-cards strong {
+  color: #334b5b;
+  font-family: Georgia, serif;
+}
+
+.hand-cards small,
+.wired-note {
+  color: #78909c;
+  font-size: 0.72rem;
+}
+
+.wired-note {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+}
+
+.hit-line {
+  display: block;
+  font-family: Georgia, serif;
+  letter-spacing: 0.02em;
+}
+
+.wired-actions {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 0.6rem;
+  align-items: end;
+}
+
+.secondary-action {
+  margin-top: 0.75rem;
+  padding: 0.95rem 1rem;
+  color: #328eaf;
+  background: #fff;
+  border: 2px solid #9fcfe0;
+  border-radius: 99rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondary-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.room-code {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: end;
+  margin-top: 1.5rem;
+}
+
+.room-code input {
+  padding: 0.85rem 1rem;
+  color: #334b5b;
+  font: 600 1.6rem Georgia, serif;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  background: #f7fbfc;
+  border: 2px solid #9fcfe0;
+  border-radius: 1rem;
+}
+
+.room-code .primary-action {
+  width: auto;
+  padding-inline: 2rem;
+}
+
+.scoreboard > div.up {
+  border-color: #328eaf;
+  box-shadow: 0 0 0 2px rgb(50 142 175 / 25%);
+}
+
+.live-verse {
+  display: grid;
+  gap: 0.2rem;
+  margin: 1.25rem 0 0;
+  padding: 1rem 1.2rem;
+  color: #334b5b;
+  font: 1.05rem/1.5 Georgia, serif;
+  background: #f7fbfc;
+  border-left: 0.3rem solid #9fcfe0;
+  border-radius: 0.6rem;
+}
+
+.live-verse.song {
+  border-left-color: #d7b46a;
+}
+
+.wired-verdict {
+  margin: 1rem 0 0;
+  color: #577685;
+}
+
+.carved-line {
+  margin: 1rem 0 0;
+  color: #9b7a35;
+  font: italic 1.3rem/1.4 Georgia, serif;
+  text-align: center;
+}
+
+.drill-line .break {
+  color: #78909c;
+}
+
+.testflight {
+  display: inline-block;
+  margin-top: 1rem;
+  color: #328eaf;
+  font-weight: 600;
+}
+
+.game-strip {
+  position: absolute;
+  z-index: 4;
+  top: max(1.25rem, env(safe-area-inset-top));
+  right: clamp(1rem, 4vw, 3rem);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  max-width: min(46rem, 70vw);
+}
+
+.game-tile {
+  display: grid;
+  padding: 0.55rem 0.9rem;
+  color: #f4f1e8;
+  background: linear-gradient(135deg, rgb(36 52 65 / 84%), rgb(55 64 70 / 76%));
+  border: 0.2rem solid rgb(249 249 244 / 90%);
+  border-radius: 1rem;
+  backdrop-filter: blur(0.55rem);
+}
+
+.game-tile small {
+  opacity: 0.75;
+  font-size: 0.7rem;
+}
+
+@media (max-width: 720px) {
+  .score-panel.five {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .wired-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .game-strip {
+    left: 1rem;
+    right: 1rem;
+    max-width: none;
+    justify-content: center;
+  }
+}
+
+.join-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.25rem;
+  align-items: center;
+  margin-top: 1.25rem;
+  padding: 1rem;
+  background: #f7fbfc;
+  border: 1px solid rgb(79 148 171 / 18%);
+  border-radius: 1rem;
+}
+
+.join-qr {
+  width: 9rem;
+  height: 9rem;
+}
+
+.join-qr svg {
+  width: 100%;
+  height: 100%;
+}
+
+.join-card > div:last-child {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.join-code {
+  color: #334b5b;
+  font: 600 3rem/1 Georgia, serif;
+  letter-spacing: 0.25em;
+}
+
+.join-card small {
+  color: #78909c;
+}
