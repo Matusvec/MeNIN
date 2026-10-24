@@ -73,6 +73,9 @@ final class SceneMotion {
     private var pitchDev: Float = 0
     private var lastOnset: Float = 0
     private var ripples: [SIMD4<Float>] = [] // x, y, age, strength
+    /// A drum strike's kick: jumps on a strike, settles in about a third of a second.
+    private var punch: Float = 0
+    private var burstCursor = 0
 
     private var flow: Float = 0
     private var drift = SIMD2<Float>.zero
@@ -123,6 +126,20 @@ final class SceneMotion {
         rawPitch = p.pitch.map(Float.init)
     }
 
+    /// A drum strike: a stressed syllable landed on the beat. The sea takes the hit:
+    /// a big ring from the strike point, the layers jump and settle, and a burst of
+    /// flecks scatters from it. Matte: motion and paper, never light.
+    func strike(_ strength: Float = 1) {
+        let s = min(1.5, max(0.2, strength))
+        let origin: SIMD2<Float> = [rand(-0.18...0.18) * aspect, rand(-0.22...(-0.04))]
+        ripples.append([origin.x, origin.y, 0, (reducedMotion ? 0.8 : 2.2) * s])
+        if ripples.count > rippleCount { ripples.removeFirst() }
+        // The loudness rise of the same syllable would send a second, smaller ring.
+        lastOnset = clock
+        punch = min(1.6, punch + s)
+        if !reducedMotion { burst(at: origin, count: Int(40 * s)) }
+    }
+
     func step(dt rawDt: Float, resolution: SIMD2<Float>) {
         let calm: Float = reducedMotion ? 0.35 : 1
         let dt = min(rawDt, 0.1)
@@ -148,6 +165,7 @@ final class SceneMotion {
             ripples.append([rand(-0.3...0.3) * aspect, rand(-0.3...0.05), 0, min(1, rise * 4)])
             if ripples.count > rippleCount { ripples.removeFirst() }
         }
+        punch = ease(punch, 0, 0.32, dt)
         for i in ripples.indices { ripples[i].z += dt }
         ripples.removeAll { $0.z >= 3 }
         var rip = [SIMD4<Float>](repeating: .zero, count: rippleCount)
@@ -177,8 +195,9 @@ final class SceneMotion {
             F.amp += k * f.amp
         }
         let en = energy
-        flow += F.speed * (1 + 1.1 * en) * calm * dt
-        drift += F.drift * (1 + 0.8 * en) * calm * dt
+        // Loudness drives the motion: a full voice runs the sea at more than twice its resting pace.
+        flow += F.speed * (1 + 1.6 * en + 2.5 * punch) * calm * dt
+        drift += F.drift * (1 + 1.0 * en) * calm * dt
 
         // When the leading feeling changes, sweep its ink across the frame.
         var lead = 0
@@ -198,10 +217,10 @@ final class SceneMotion {
         uniforms.a = [resolution.x, resolution.y, clock, flow]
         uniforms.b = [drift.x, drift.y, F.turb + 0.4 * en, F.jag]
         uniforms.c = [min(1, F.detail + 0.25 * en), F.scale, reducedMotion ? 0 : F.tremble * (0.5 + en), F.lightY + 0.12 * pitchDev]
-        uniforms.d = [F.lightAmt, F.soft, F.lift + 0.12 * en + 0.04 * pitchDev, wash]
+        uniforms.d = [F.lightAmt, F.soft, F.lift + 0.12 * en + 0.04 * pitchDev + 0.07 * punch * calm, wash]
         uniforms.rip = (rip[0], rip[1], rip[2], rip[3], rip[4], rip[5])
         uniforms.w = ([w[0], w[1], w[2], w[3]], [w[4], w[5], w[6], w[7]], [w[8], 0, 0, 0])
-        uniforms.e = [F.tilt, F.amp + 0.2 * en, 0, 0]
+        uniforms.e = [F.tilt, F.amp + 0.35 * en + 0.1 * punch * calm, 0, 0]
 
         stepFlecks(dt * calm)
     }
@@ -257,8 +276,31 @@ final class SceneMotion {
         flecks[i].p.z = rand(f.size)
     }
 
+    /// Wakes `count` flecks at a point and throws them outward in the leading mood's ink.
+    private func burst(at origin: SIMD2<Float>, count: Int) {
+        let style = Mood.styles[dominant]
+        let f = style.flecks
+        for _ in 0..<count {
+            let i = burstCursor
+            burstCursor = (burstCursor + 1) % fleckCount
+            let a = rand(0...(2 * .pi))
+            let dir = SIMD2<Float>(cos(a), sin(a) * 0.8 + 0.25)
+            pos[i] = origin + dir * rand(0...0.02)
+            vel[i] = dir * rand(0.28...0.7)
+            age[i] = 0
+            life[i] = rand(0.9...1.7)
+            mood[i] = dominant
+            phase[i] = rand(0...(2 * .pi))
+            spin[i] = rand(-5...5)
+            baseAlpha[i] = max(f.alpha, 0.8)
+            let ink = style.ink(f.ink) * rand(0.92...1.06)
+            flecks[i].c = [min(1, ink.x), min(1, ink.y), min(1, ink.z), f.shape.rawValue]
+            flecks[i].p.z = rand(f.size) * 1.2
+        }
+    }
+
     private func stepFlecks(_ dt: Float) {
-        let pace = 0.55 + 1.3 * energy
+        let pace = 0.55 + 1.3 * energy + 0.8 * punch
         let halfW = aspect / 2
         for i in 0..<fleckCount {
             age[i] += dt

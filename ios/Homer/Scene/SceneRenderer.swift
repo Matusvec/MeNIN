@@ -11,6 +11,7 @@ final class SceneRenderer: NSObject, MTKViewDelegate {
     var driver: SceneDriver
     private let motion = SceneMotion()
     private var lastEmotion: EmotionWeights?
+    private var seenStrikes = 0
 
     private let device: MTLDevice
     private let queue: MTLCommandQueue
@@ -31,6 +32,7 @@ final class SceneRenderer: NSObject, MTKViewDelegate {
 
     init?(view: MTKView, driver: SceneDriver) {
         self.driver = driver
+        seenStrikes = driver.strikes
         guard let device = view.device ?? MTLCreateSystemDefaultDevice(),
               let queue = device.makeCommandQueue(),
               let library = try? device.makeDefaultLibrary(bundle: .main)
@@ -103,6 +105,10 @@ final class SceneRenderer: NSObject, MTKViewDelegate {
             motion.setEmotion(emotion)
         }
         motion.setProsody(driver.prosody)
+        if driver.strikes != seenStrikes {
+            seenStrikes = driver.strikes
+            motion.strike(Float(driver.strikeStrength))
+        }
         motion.aspect = Float(size.width / size.height)
         motion.step(dt: Float(dt), resolution: [Float(fieldTexture.width), Float(fieldTexture.height)])
         var uniforms = motion.uniforms

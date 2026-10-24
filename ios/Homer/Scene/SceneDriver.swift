@@ -9,6 +9,17 @@ final class SceneDriver: @unchecked Sendable {
     }
     var prosody: Prosody
 
+    /// A drum strike: a stressed syllable landed on the beat. Call it with the
+    /// strike sound; the scene answers with a ring, a jump and a burst of flecks.
+    func strike(_ strength: Double = 1) {
+        strikes += 1
+        strikeStrength = strength
+    }
+
+    /// Read by the renderer: it fires one strike per increment.
+    private(set) var strikes = 0
+    private(set) var strikeStrength = 1.0
+
     init(emotion: EmotionWeights = EmotionWeights(), prosody: Prosody = .silent) {
         self.emotion = emotion
         self.prosody = prosody

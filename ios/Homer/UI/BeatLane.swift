@@ -33,6 +33,9 @@ struct BeatLaneView: View {
             case .pulse: pulse(clock)
             }
         }
+        // Every hit lands with the drum strike: the lane takes a gold wash and a small jolt.
+        .modifier(StrikeFlash(trigger: lane.words.filter { $0.stressed && $0.onBeat }.count,
+                              radius: Metrics.radiusL * stage.scale))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Beat lane")
     }
@@ -176,6 +179,8 @@ private struct BeatPad: View {
     let pulse: Double
     let size: CGFloat
 
+    @State private var strikes = 0
+
     var body: some View {
         ZStack {
             switch state {
@@ -190,8 +195,69 @@ private struct BeatPad: View {
             }
         }
         .frame(width: size, height: size)
+        // The strike: a gold ring thrown off the pad as it turns gold.
+        .overlay {
+            Circle().strokeBorder(Palette.gold, lineWidth: max(1.5, size * 0.1))
+                .keyframeAnimator(initialValue: Ring(), trigger: strikes) { ring, v in
+                    ring.scaleEffect(v.scale).opacity(v.opacity)
+                } keyframes: { _ in
+                    KeyframeTrack(\.scale) {
+                        MoveKeyframe(1)
+                        CubicKeyframe(2.9, duration: 0.5)
+                    }
+                    KeyframeTrack(\.opacity) {
+                        MoveKeyframe(0.95)
+                        LinearKeyframe(0, duration: 0.5)
+                    }
+                }
+        }
         .scaleEffect(1 + 0.45 * pulse)
+        .keyframeAnimator(initialValue: 1.0, trigger: strikes) { pad, s in
+            pad.scaleEffect(s)
+        } keyframes: { _ in
+            MoveKeyframe(1.0)
+            SpringKeyframe(1.55, duration: 0.08, spring: .snappy)
+            SpringKeyframe(1.0, duration: 0.35, spring: .bouncy)
+        }
         .animation(Motion.stamp, value: state)
+        .onChange(of: state) { _, new in
+            if new == .hit { strikes += 1 }
+        }
+    }
+
+    private struct Ring {
+        var scale = 1.0
+        var opacity = 0.0
+    }
+}
+
+/// A flat gold wash over a card and a small jolt, once per `trigger` increase.
+/// The beat lane's half of the drum strike. Matte: a flat tint, no glow.
+private struct StrikeFlash: ViewModifier {
+    let trigger: Int
+    let radius: CGFloat
+
+    func body(content: Content) -> some View {
+        content
+            .overlay {
+                RoundedRectangle(cornerRadius: radius, style: .continuous)
+                    .fill(Palette.gold)
+                    .allowsHitTesting(false)
+                    .keyframeAnimator(initialValue: 0.0, trigger: trigger) { wash, o in
+                        wash.opacity(o)
+                    } keyframes: { _ in
+                        MoveKeyframe(0.0)
+                        LinearKeyframe(0.24, duration: 0.04)
+                        CubicKeyframe(0, duration: 0.38)
+                    }
+            }
+            .keyframeAnimator(initialValue: 0.0, trigger: trigger) { card, y in
+                card.offset(y: y)
+            } keyframes: { _ in
+                MoveKeyframe(0.0)
+                SpringKeyframe(4, duration: 0.05, spring: .snappy)
+                SpringKeyframe(0, duration: 0.3, spring: .bouncy)
+            }
     }
 }
 
