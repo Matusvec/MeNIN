@@ -23,6 +23,8 @@ The Python service in `homer/`. This file is the contract between the service an
 | `POST /battle/emotion` | arena | live |
 | `POST /battle/verdict` | arena | live |
 | `POST /battle/song` | arena | live |
+| `GET /debate` | app (debate) | live |
+| `POST /debate/whispers` | phone (debate, at step-up) | live |
 
 ## Conventions
 
@@ -321,3 +323,49 @@ Stitches every scored verse so far into one poem and calls `post_song`. Call it 
 
 - Demo rooms (`room.demo`) get at most 4 lines; others get at most 16.
 - Song lines keep the poets' own words and cite their turn. If Claude fails, the song is each verse's best line, in order.
+
+## Socratic debate
+
+Debate runs on the same endpoints as poetry, with `event: "debate"`. Its host is Socrates, the rubric is `[claim, reason, answer, craft, poise]` (the order of `post_score`'s axes), the hand holds moves, and there is no beat. The content comes from `content/debate.md` and `content/moves.json`, read at runtime. The flow is in `docs/ux-flow.md`, section 8.
+
+**What changes per endpoint:**
+
+| Endpoint | With `event: "debate"` |
+| --- | --- |
+| `POST /judge`, `POST /battle/judge` | Also send `side` (the side dealt), `turnSeconds`, and `spokenSeconds` (Go to the end of the turn). `played` is the moves tapped (P17). The result's `scores` are the five debate axes. `scan` is `null`, and there are three extras: `delivery` (what Poise was measured from), `made` (move ids the judge heard made, tapped or not) and `tappedUnmade` (tapped but not made, so they earn no Craft). `coined` is always `""`. |
+| `POST /battle/deal` | The room's `event` is read from SQL. `theme` may be a question's id or words; when it's empty, the agent picks a question the room hasn't had. Each debater gets 8 move candidates with every role among the first four. `round.theme` is the question, exactly as Socrates asks it. |
+| `POST /deal` | Returns `{"theme": question, "question": Question, "hand": [MoveCard]}`. |
+| `POST /rescue` | Send `hand`, `played`, `previous` (the turn being answered), `elapsedS`, `turnSeconds` and `whispers` (from `/debate/whispers`). Returns `{"whisper": "What do you mean by fair?", "card": MoveCard}`: a move whose role fits the moment (open early, attack once there's a turn to answer, close in the last ~12 s), and its prepared whisper or, failing that, its filled template. Asking the whisper plays that move. |
+| `POST /spar` | `{event, theme, side, lines, answerTo}` returns `{"theme", "side", "lines"}`: Socrates' turn, mostly questions. |
+| `POST /battle/verdict` | Socrates' lead-in, then the carved sentence. |
+| `POST /battle/song` | The finale is Socrates' last question: `post_song` gets two lines, the night's strongest point quoted, then the question nobody answered. Both cite the quoted turn. If Claude fails, the top turn's best line stands alone. |
+| `POST /battle/poet` | Socrates names the debater (the epithet carries over between events). |
+
+**Poise** is measured, never scored by Claude, the way Beat comes from the scanner. It counts fillers ("um", "uh", "you know", and ", like,"), checks the pace stays within 120–180 words a minute, counts dead air (silences of 2 s or more, plus each freeze rescue), and checks the debater kept the floor (at least a word a second of the turn). Pace uses word timings when there are any, else `spokenSeconds`, else `turnSeconds`.
+
+**MoveCard** is `FormulaCard` with `kind: "move"`, plus `role` (`open`, `attack`, `defend` or `close`) and `template`, how the move sounds as a question:
+
+```json
+{"id": "counterexample", "text": "counterexample", "kind": "move", "used": false, "beats": 0, "hoard": false,
+ "role": "attack", "template": "What about {case}?"}
+```
+
+**Question:** `{"id": "invisible", "ask": "If you could turn invisible, would you stay honest?", "sides": ["Yes", "No"], "kind": "classic"}`. Sides alternate by turn order: turn 0 argues `sides[0]`, turn 1 `sides[1]`, and so on.
+
+### `GET /debate`
+
+`{"questions": [Question], "moves": [MoveCard], "lines": {"shared": {…}, "training": {…}, "battle": {…}}}` from `content/debate.md`. Lines are keyed by the "When" column. Repeated rows (the verdict samples) become `"Verdict, a sample 2"`, `"… 3"`.
+
+### `POST /debate/whispers`
+
+At step-up (ux-flow T1): one rescue question per move in the hand, so the freeze rescue plays instantly.
+
+```json
+{"question": "If you could turn invisible, would you stay honest?", "side": "No",
+ "hand": ["counterexample", "ask for proof", "…"], "previous": "the turn this debater answers, if any"}
+```
+
+Returns `{"whispers": {"counterexample": "What about people who lie once nobody's watching?", …}}`. Each is a single question under ten words, in the debater's own voice. Every move gets its filled template first, and Claude's version replaces it only if it passes. It takes about 3 s, so call it at step-up, not at the freeze.
+
+**Voices:** `/voice/token`'s `tts.voices` is `{"homer": "…", "socrates": "…"}`. Socrates' voice is empty until Matus picks one.
+
