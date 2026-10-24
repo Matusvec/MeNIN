@@ -251,9 +251,29 @@ def test_a_landed_try_needs_no_help():
     assert f.landed and f.help is None
 
 
+LESSON_ONE = "the road was long, the night was cold\nI walked alone, I walked in the rain"
+
+
+def pulses(line, count, shift=0.0, bpm=80):
+    """`count` stressed peaks on line `line`'s speaking bar (two bars a line)."""
+    beat = 60000 / bpm
+    return [(8 * line + k) * beat + shift for k in range(count)]
+
+
 def test_onsets_hear_rushing_without_word_timings():
-    lines = "the road was long, the night was cold\nI walked alone, I walked in the rain"
-    early = [k * 750 - 150 for k in range(8)]
-    on = [k * 750 + 10 for k in range(8)]
-    assert say("beat", lines, bpm=80, onsets_ms=early).miss == "Ahead of the drum"
-    assert say("beat", lines, bpm=80, onsets_ms=on).landed
+    early = pulses(0, 4, -100) + pulses(1, 4, -100)
+    on = pulses(0, 4, 10) + pulses(1, 4, 10)
+    assert say("beat", LESSON_ONE, bpm=80, onsets_ms=early).miss == "Ahead of the drum"
+    assert say("beat", LESSON_ONE, bpm=80, onsets_ms=on).landed
+
+
+def test_onsets_must_back_up_the_text_count():
+    short = say("beat", LESSON_ONE, bpm=80, onsets_ms=pulses(0, 4) + pulses(1, 2))
+    assert (short.miss, short.line) == ("Three hits or fewer", "Two hits. I need four. Add a word with weight.")
+    assert say("beat", LESSON_ONE, bpm=80, onsets_ms=pulses(0, 4) + pulses(1, 3)).landed  # 3 heard is enough
+    assert say("beat", LESSON_ONE, bpm=80, onsets_ms=pulses(0, 4) + pulses(1, 4, shift=300)).miss == "Three hits or fewer"
+
+
+def test_a_line_of_small_words_is_no_line():
+    f = say("beat", "you've you, I, me.\nI like computers and I do.")
+    assert f.miss == "Three hits or fewer" and f.line.startswith("Zero hits.")

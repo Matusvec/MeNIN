@@ -665,6 +665,7 @@ class LessonFeedbackRequest(Model):
     prompt: str = ""  # lesson 5: the line Homer threw (one of the exercise's lines)
     try_no: int = 0  # this try's number in the lesson, 1-based: P10's help comes after the 3rd and 5th
     onsets_ms: list[float] | None = None  # lesson 1, with no word timings: the phone's stressed peaks, ms from beat 1
+    bars_per_line: int = 2  # with onsets: a speaking bar plus a rest bar per line
 
 
 @app.post("/lesson/feedback")
@@ -674,7 +675,7 @@ async def lesson_feedback_endpoint(req: LessonFeedbackRequest) -> dict[str, Any]
         raise HTTPException(404, f"no lesson {req.lesson}")
     attempt = Attempt(
         req.lesson, req.transcript, _words(req), req.bpm, req.hand, req.rescue, req.name, req.lines_expected, req.prompt,
-        try_no=req.try_no, onsets_ms=req.onsets_ms,
+        try_no=req.try_no, onsets_ms=req.onsets_ms, bars_per_line=req.bars_per_line,
     )
     try:
         f = await lesson_feedback(attempt, checks=LessonChecks())

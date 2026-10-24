@@ -372,20 +372,28 @@ def _scan_line(
             absorbed[half] = 1
         else:
             extras.append(x)
+    # A small word carries a promoted hit only beside real stresses ("the SEA kept TIME / and SO did I"):
+    # the line needs half its beats on strong syllables, and at most that many small words count.
+    half = max(1, beats_per_line // 2)
+    light_room = half if sum(1 for s in syls if s.weight == STRONG) >= half else 0
+    heard_beats: set[int] = set()
+    for x in beats:
+        s = syls[x]
+        if s.weight == STRONG or (s.weight == SECONDARY and not s.tail):
+            heard_beats.add(x)
+        elif s.weight == LIGHT and light_room and not (x + 1 < len(syls) and syls[x + 1].weight == STRONG):
+            heard_beats.add(x)
+            light_room -= 1
+
     def heard(x: int) -> bool:
         """Whether a beat lands on a syllable a listener hears as a hit.
 
         A compound's second part never is (one hit per compound). A small
-        word is, unless it leans into the stressed word after it ("my SHIP").
+        word is only when it doesn't lean into the stressed word after it
+        ("my SHIP"), and only beside real stresses: "you've you, I, me" is no
+        line at all.
         """
-        s = syls[x]
-        if s.weight == STRONG:
-            return True
-        if s.weight == SECONDARY:
-            return not s.tail
-        if s.weight == LIGHT:
-            return not (x + 1 < len(syls) and syls[x + 1].weight == STRONG)
-        return False
+        return x in heard_beats
 
     weak = [x for x in beats if syls[x].weight == WEAK]
     hits = sum(1 for x in beats if heard(x)) + len(extras)

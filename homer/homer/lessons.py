@@ -159,6 +159,7 @@ class Attempt:
     prompt: str = ""  # lesson 5: the line Homer threw (notation or plain)
     try_no: int = 0  # this try's number within the lesson, 1-based (P10: help after 3 and 5 misses)
     onsets_ms: list[float] | None = None  # lesson 1: the phone's stressed peaks, ms from beat 1 (no word timings)
+    bars_per_line: int = 2  # a speaking bar and a rest bar per line (SPEC)
     facts: dict = field(default_factory=dict)  # filled before the detectors run (lessons 4 to 6)
 
 
@@ -198,8 +199,37 @@ def _rushing(s: VerseScan, a: Attempt) -> bool:
     return off is not None and off < -RUSH_MS
 
 
+ONSET_MIN = 3  # stressed peaks on a line's pulses before the timing backs up the text's count
+
+
+def onset_hits(onsets_ms: list[float], bpm: float, lines: int, bars_per_line: int = 2, beats: int = 4) -> list[int]:
+    """Per line, how many of its speaking bar's pulses had a stressed peak within ON_BEAT_MS (each pulse once)."""
+    from .scanner import ON_BEAT_MS
+
+    beat = 60000.0 / bpm
+    line_ms = bars_per_line * beats * beat
+    out = []
+    for n in range(lines):
+        pulses = [n * line_ms + k * beat for k in range(beats)]
+        used: set[int] = set()
+        for o in onsets_ms:
+            k = next((k for k, p in enumerate(pulses) if k not in used and abs(o - p) <= ON_BEAT_MS), None)
+            if k is not None:
+                used.add(k)
+        out.append(len(used))
+    return out
+
+
+def heard_hits(i: int, line: LineScan, a: Attempt) -> int:
+    """A line's hits: the text's count, unless the phone heard fewer than ONSET_MIN of them land on the beat."""
+    timed = a.facts.get("onset_hits")
+    if timed is None or i >= len(timed) or timed[i] >= ONSET_MIN:
+        return line.hits
+    return min(line.hits, timed[i])
+
+
 BEAT: list[Detector] = [
-    lambda s, a: {"hits": spell(x.hits)} if (x := _first(s, lambda l: l.hits <= 3)) else None,
+    lambda s, a: next(({"hits": spell(h)} for i, l in enumerate(s.lines) if (h := heard_hits(i, l, a)) <= 3), None),
     lambda s, a: {"hits": spell(x.hits)} if (x := _first(s, lambda l: l.hits >= 5)) else None,
     lambda s, a: {} if _first(s, lambda l: l.break_source is None) else None,
     lambda s, a: {"word": x.weak_beats[0]} if (x := _first(s, lambda l: bool(l.weak_beats))) else None,
@@ -373,6 +403,7 @@ async def _facts(a: Attempt, scan: VerseScan, checks: Checks | None) -> bool:
     lines = [line.text for line in scan.lines]
     if a.lesson == "beat" and a.onsets_ms and a.bpm and not a.words:
         a.facts["onset_offset_ms"] = onset_offset(a.onsets_ms, a.bpm)
+        a.facts["onset_hits"] = onset_hits(a.onsets_ms, a.bpm, len(scan.lines), a.bars_per_line)
     if a.lesson == "turn":
         weights = await checks.emotions(lines[:4]) if checks else [None] * len(lines[:4])
         weights = [w or emotion.lexicon_weights(text) for w, text in zip(weights, lines[:4])]
