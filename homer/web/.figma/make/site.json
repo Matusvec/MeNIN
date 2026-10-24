@@ -1,0 +1,10 @@
+{
+  "description": "Learn iambic pentameter, get thoughtful poem scansion and revision feedback, or compete in fair, themed poetry battles with an epic bard.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
