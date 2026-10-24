@@ -1,3 +1,11 @@
+{
+	servers {
+		# No HTTP/3: QUIC on UDP 443 stalls on venue and hotel Wi-Fi (headers arrive, the
+		# body doesn't), and UFW only opens 443/tcp anyway. h1 and h2 over TCP only.
+		protocols h1 h2
+	}
+}
+
 # The agent service over HTTPS, for the caddy profile in docker-compose.yml.
 # HOMER_HOST is the public name, for example 203.0.113.7.sslip.io. Caddy gets
 # and renews its Let's Encrypt certificate by itself (ports 80 and 443 must be open).
