@@ -5,7 +5,7 @@ Five people who have never freestyled take MeNIN's first lesson, and we write do
 - **Who runs it:** the poet (`docs/gtm/README.md`, step 8). One person can run it alone.
 - **When:** Saturday, 6 to 8 PM. It takes about 45 minutes for five people, including finding them.
 - **Where:** anywhere at the venue with a little less noise. It doesn't need to be quiet.
-- **The study build:** **build 5, which TestFlight shows as 0.1.0 (202610241256).** If build 5 isn't in TestFlight yet at 5:30, use build 4, 0.1.0 (202610240956). It scores lesson 1 exactly the same.
+- **The study build:** **build 11, which TestFlight shows as 0.1.0 (202610241510).** If build 11 isn't in TestFlight yet at 5:30, use build 4, 0.1.0 (202610240956). It scores lesson 1 exactly the same, but Homer's voice needs a strong connection and can sound choppy, and the app can crash if something interrupts its audio. Count those as tech fails (see "Rules while it runs").
 - **Finish by 8 PM.** The poet is Poet 1 in the Sat 8 PM poetry runs (`docs/ux-flow.md`, "Sat 8 PM runs"), which start around 8:30 after debate and discus.
 
 **Before 6 PM**
@@ -17,6 +17,7 @@ Five people who have never freestyled take MeNIN's first lesson, and we write do
 ## What you need
 
 - [ ] An iPhone with the study build of MeNIN from TestFlight, charged above 50%.
+- [ ] Do Not Disturb on, and no other app playing sound. A call or another app taking the audio can stop Homer mid-lesson.
 - [ ] Wired EarPods, the same ones we use in the demo
 - [ ] A second phone with a stopwatch
 - [ ] This page, open or printed, and the score sheet below
@@ -28,7 +29,7 @@ Five people who have never freestyled take MeNIN's first lesson, and we write do
 
   If any of these fails, message the leader before you start. Don't run the study on another build or in a different mode on your own.
 
-**Why the build matters:** since build 4, the beat is judged more strictly than in build 3. A hit has to land closer to the drum, and each drum beat counts one hit at most. Every person in the study has to be on the same build, or their numbers can't be compared. It should also be the build the judges will see. Builds 4 and 5 score lesson 1 exactly the same (swift confirmed), so if the phone moves from one to the other partway through, keep going and write it in Notes. Any other build change: stop and message the leader.
+**Why the build matters:** since build 4, the beat is judged more strictly than in build 3. A hit has to land closer to the drum, and each drum beat counts one hit at most. Every person in the study has to be on the same build, or their numbers can't be compared. It should also be the build the judges will see. Builds 4 and 11 score lesson 1 exactly the same (swift confirmed), so if the phone moves from build 4 to build 11 partway through, keep going and write it in Notes. Any other build change: stop and message the leader.
 
 ## Who counts
 
