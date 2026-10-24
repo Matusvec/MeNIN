@@ -115,7 +115,7 @@ class Arena:
                 played=list(live.get("played") or []),
                 rescues=int(live.get("rescues") or 0),
                 previous=bt.previous,
-                lines_expected=bt.lines_expected,
+                lines_expected=None if event.hand == "formulas" else bt.lines_expected,  # free verse: as many lines as breaths
                 emotion_history=self.history.get(bt.turn_id, []),
                 hoard=bt.hoard,
                 demo=bt.demo,

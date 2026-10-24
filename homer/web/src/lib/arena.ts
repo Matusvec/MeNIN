@@ -8,15 +8,16 @@
 
 import { DbConnection } from '../stdb'
 import type { DiscusThrow, Player, Prosody, Room, Round, Scene as SceneRow, Score, Turn } from '../stdb/types'
-import { AGENT_URL } from './agent'
+import { AGENT_URL, voiceStatus } from './agent'
 import { conductDiscus } from './discus'
-import { Stage, type Grid } from './stage'
+import { Stage } from './stage'
 import { HomerVoice } from './voice'
 
 const STDB_URI = import.meta.env.VITE_STDB_URI || 'wss://maincloud.spacetimedb.com'
 export const STDB_DB = import.meta.env.VITE_STDB_DB || 'homer-calhacks'
 
 /** create_room's demo preset (spacetime/CONTRACT.md; BattleReducers.swift demoMode). */
+// Poetry turns are free verse: the module sets the window (20 s in demo) and bpm/bars no longer time them.
 export const DEMO_ROOM = {
   event: 'poetry',
   rounds: 1,
@@ -81,6 +82,7 @@ export type ArenaView = {
   warming: boolean // Homer's next line is on its way from the voice, not yet heard
   carvedBy: string // the poet whose line the round carved
   sound: boolean // the hall was started with a click: voice and drum are on
+  voiceNote: string // the operator corner: why Homer is on text ("Voice credits out", "Voice offline"), or ''
 }
 
 export const EMOTIONS = ['anger', 'grief', 'joy', 'awe', 'tenderness', 'fear', 'defiance', 'longing'] as const
@@ -91,12 +93,17 @@ export type SceneFeed = {
   emotion: Record<Emotion, number> | null // the room's scene row, raw weights 0–1, ~every 1.5 s; null rests
   energy: number // 0–1: the live speaker's loudness (~20 Hz, 100–200 ms behind), a breath while Homer talks
   pitch: number | null // Hz while voiced
-  hits: number // stressed syllables on the beat this turn; each rise is a drum strike
+  hits: number // poetry: voice onsets this turn (no beat in battles); each rise flashes a strike
   turnKey: string // a new turn starts a new hit count
 }
 
 export const QUIET_SCENE: SceneFeed = { emotion: null, energy: 0, pitch: null, hits: 0, turnKey: '' }
 const HOMER_ENERGY = 0.15 // the sea breathes with Homer; he has no level of his own here
+// A voice onset, for the sea's strike flash: the speaker's loudness rises past HIGH after dipping under LOW.
+const ONSET_HIGH = 0.35
+const ONSET_LOW = 0.2
+const VOICE_REST_MS = 10000 // after the voice fails, Homer stays on text this long before trying again
+const CREDITS_REST_MS = 60000 // ... and this long when Cartesia says the credits are out
 
 /** Text only: hold each line long enough to read it, briskly. With the voice, the line's own length rules. */
 export function readingTime(text: string): number {
@@ -162,8 +169,9 @@ export class Arena {
   // W2: Homer's voice and the drum, once a click has unlocked audio
   private voice: HomerVoice | null = null
   private stage: Stage | null = null
-  private beatFor = ''
-  private lastHits = { turn: 0n, hits: 0 }
+  private voiceDownUntil = 0 // Homer is on text until then
+  private voiceNote = ''
+  private onsets = { turn: 0n, count: 0, armed: true } // the live verse's voice onsets
 
   constructor(private onView: (view: ArenaView) => void) {}
 
@@ -235,7 +243,8 @@ export class Arena {
         // Rooms are found by host because reducers can't return values.
         conn.subscriptionBuilder().subscribe(`SELECT * FROM room WHERE host = 0x${this.identityHex}`)
         const db = conn.db
-        db.prosody.onUpdate(() => {
+        db.prosody.onUpdate((_ctx, _old, row) => {
+          this.countOnset(row)
           if (this.room()?.event === 'discus') this.publish()
         })
         for (const table of [db.room, db.player, db.round, db.turn, db.score, db.songLine, db.discusThrow]) {
@@ -397,7 +406,6 @@ export class Arena {
     if (room.event === 'discus') conductDiscus(this.conductor(room))
     else this.speakIfDue(room)
     if (room.event === 'debate') this.debateClock(room)
-    this.drum(room)
   }
 
   private conductor(room: Room): Conductor {
@@ -453,50 +461,28 @@ export class Arena {
     if (Date.now() >= endsLocal - 10000) this.say(`ten ${turn.id} ${turn.attempt}`, 'Ten seconds.')
   }
 
-  /** The beat on the turn's grid while a verse is live, and a strike per hit (ArenaConductor.tick). */
-  private drum(room: Room): void {
-    if (!this.stage) return
-    const turn = this.currentTurn(room)
-    if (room.event !== 'poetry' || !turn || turn.status !== 'speaking' || turn.beatAt.toMillis() === 0n) {
-      if (this.beatFor && !this.singing) {
-        this.beatFor = ''
-        this.stage.stopBeat()
-      }
-      return
-    }
-    const key = `${turn.id}-${turn.attempt}`
-    if (this.beatFor !== key) {
-      this.beatFor = key
-      this.stage.playBeat({
-        beatAtLocalMs: Number(turn.beatAt.toMillis()) + this.offsetFor(turn),
-        bpm: room.bpm,
-        barsPerLine: room.barsPerLine,
-        lines: room.linesPerTurn,
-      })
-    }
-    const prosody = [...this.conn!.db.prosody.iter()].find((p) => p.roomId === this.roomId && p.turnId === turn.id)
-    if (prosody) {
-      if (this.lastHits.turn !== turn.id) this.lastHits = { turn: turn.id, hits: 0 }
-      if (prosody.hits > this.lastHits.hits) {
-        this.stage.strike()
-        this.lastHits.hits = prosody.hits
-      }
-    }
+  /** A voice onset in the live verse (the sea's strike flash, now that battles have no beat to hit). */
+  private countOnset(p: Prosody): void {
+    if (p.roomId !== this.roomId || p.turnId === 0n) return
+    if (this.onsets.turn !== p.turnId) this.onsets = { turn: p.turnId, count: 0, armed: true }
+    if (this.onsets.armed && p.loudness > ONSET_HIGH) {
+      this.onsets.count += 1
+      this.onsets.armed = false
+    } else if (p.loudness < ONSET_LOW) this.onsets.armed = true
   }
 
-  private singing = false
-
-  /** The live verse's grid on this browser's clock (the drum's), for the arena's 3-2-1 and SPEAK. Poetry only. */
-  verseGrid(): (Grid & { key: string }) | null {
+  /** The live verse's window on this browser's clock, for the arena's 3-2-1, SPEAK and clock. Poetry only:
+   *  SPEAK at beat_at, Time at ends_at; "I'm done" on the phone ends the turn (and this) early. */
+  verseWindow(): { key: string; startMs: number; endMs: number } | null {
     const room = this.disposed ? null : this.room()
     const turn = room && this.currentTurn(room)
-    if (!room || !turn || room.event !== 'poetry' || turn.status !== 'speaking' || turn.beatAt.toMillis() === 0n) return null
+    if (!room || !turn || room.event !== 'poetry' || turn.status !== 'speaking') return null
+    if (turn.beatAt.toMillis() === 0n || turn.endsAt.toMillis() === 0n) return null
+    const offset = this.offsetFor(turn)
     return {
       key: `${turn.id}-${turn.attempt}`,
-      beatAtLocalMs: Number(turn.beatAt.toMillis()) + this.offsetFor(turn),
-      bpm: room.bpm,
-      barsPerLine: room.barsPerLine,
-      lines: room.linesPerTurn,
+      startMs: Number(turn.beatAt.toMillis()) + offset,
+      endMs: Number(turn.endsAt.toMillis()) + offset,
     }
   }
 
@@ -506,19 +492,17 @@ export class Arena {
     const beatMs = 60000 / Math.max(room.bpm, 1)
     const lineMs = beatMs * 4 // one line a bar: the rest bar is for poets drawing breath, not for Homer
     const beatAt = Date.now() + 300 + beatMs * 4 // after a count-in bar
-    this.singing = true
     this.stage.playBeat({ beatAtLocalMs: beatAt, bpm: room.bpm, barsPerLine: 1, lines: song.length })
     try {
       for (const [i, text] of song.entries()) {
         await sleep(Math.max(0, beatAt + lineMs * i - 250 - Date.now()))
         this.line = text
         this.publish()
-        await this.voice.speak(text).catch(() => sleep(readingTime(text)))
+        await this.voiced(text).catch(() => sleep(Math.min(readingTime(text), lineMs - 250))) // text keeps to the bar
       }
       await sleep(Math.max(0, beatAt + lineMs * song.length - Date.now()))
     } finally {
       this.stage.stopBeat()
-      this.singing = false
     }
   }
 
@@ -671,7 +655,7 @@ export class Arena {
       this.publish()
       // The voice never holds a reveal hostage: at most the read time plus 4 s, then the battle moves on.
       const host = this.room()?.event === 'debate' ? 'socrates' : 'homer'
-      if (this.voice) {
+      if (this.voice && this.voiceUp()) {
         this.warming = true
         this.publish()
         const heard = () => {
@@ -682,12 +666,42 @@ export class Arena {
           heard() // no voice coming: the line is up as text, nothing is "about to speak"
           return sleep(readingTime(text))
         }
-        await Promise.race([this.voice.speak(text, heard, host).catch(fallback), sleep(readingTime(text) + 4000)])
+        await Promise.race([this.voiced(text, heard, host).catch(fallback), sleep(readingTime(text) + 4000)])
         this.warming = false
       } else await sleep(readingTime(text))
       this.speaking = false
       this.publish()
       then?.()
+    })
+  }
+
+  /** Homer's voice, or a throw while it rests. A failure asks the agent why (credits out?) and rests it a while,
+   *  so a spent account costs each line nothing: the callers fall back to text and the battle moves on. */
+  private async voiced(text: string, onStart?: () => void, host: 'homer' | 'socrates' = 'homer'): Promise<void> {
+    if (!this.voice || !this.voiceUp()) throw new Error('voice resting')
+    try {
+      await this.voice.speak(text, onStart, host)
+    } catch (error) {
+      if (!(error instanceof Error && error.message === 'one generation at a time')) this.voiceFailed()
+      throw error
+    }
+    if (this.voiceNote) {
+      this.voiceNote = ''
+      this.publish()
+    }
+  }
+
+  private voiceUp(): boolean {
+    return Date.now() >= this.voiceDownUntil
+  }
+
+  private voiceFailed(): void {
+    if (!this.voiceUp()) return // resting already, and already asked why
+    this.voiceDownUntil = Date.now() + VOICE_REST_MS
+    void voiceStatus().then((s) => {
+      this.voiceNote = s.voice === 'out' ? 'Voice credits out' : s.voice === 'ok' ? '' : 'Voice offline'
+      if (s.voice === 'out') this.voiceDownUntil = Date.now() + CREDITS_REST_MS
+      this.publish()
     })
   }
 
@@ -802,7 +816,7 @@ export class Arena {
       emotion: this.sceneWeights,
       energy: live ? p.loudness : breath,
       pitch: live && p.pitch > 0 ? p.pitch : null,
-      hits: p?.hits ?? 0,
+      hits: room.event === 'poetry' ? (turn && this.onsets.turn === turn.id ? this.onsets.count : 0) : (p?.hits ?? 0),
       turnKey: String(turn?.id ?? ''),
     }
   }
@@ -828,6 +842,7 @@ export class Arena {
       warming: this.warming,
       carvedBy: room ? this.carvedBy(room) : '',
       sound: Boolean(this.stage),
+      voiceNote: this.voiceNote,
     })
   }
 }

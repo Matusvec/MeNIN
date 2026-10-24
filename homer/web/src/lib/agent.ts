@@ -19,6 +19,19 @@ export class AgentError extends Error {
   }
 }
 
+export type VoiceStatus = { voice: 'ok' | 'out' | 'down'; message: string }
+
+/** Why the voice failed: credits out, Cartesia down, or fine (the agent checks Cartesia at most once a minute). */
+export async function voiceStatus(): Promise<VoiceStatus> {
+  try {
+    const res = await fetch(`${AGENT_URL}/voice/status`)
+    if (!res.ok) return { voice: 'down', message: `voice status: HTTP ${res.status}` }
+    return (await res.json()) as VoiceStatus
+  } catch {
+    return { voice: 'down', message: 'agent unreachable' }
+  }
+}
+
 /** A text-to-speech token for Homer's voice on the arena (W2). */
 export async function voiceToken(): Promise<VoiceToken> {
   const res = await fetch(`${AGENT_URL}/voice/token`, {

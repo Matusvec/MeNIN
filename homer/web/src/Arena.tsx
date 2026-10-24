@@ -7,7 +7,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, 
 import QRCode from 'qrcode'
 import DiscusPanel from './Discus'
 import { Arena, QUIET_SCENE, STDB_DB, type ArenaView, type GameEvent, type SceneFeed } from './lib/arena'
-import type { Grid } from './lib/stage'
 import { webJoinLink } from './lib/links'
 import SceneBackdrop from './scene/SceneBackdrop'
 import './wired.css'
@@ -122,7 +121,7 @@ export default function ArenaPanel({
   const arena = useRef<Arena | null>(null)
   const goneSince = useRef(new Map<bigint, number>()) // poet id -> when we first saw them disconnected
   const feed = useCallback(() => arena.current?.sceneFeed() ?? QUIET_SCENE, [])
-  const verseGrid = useCallback(() => arena.current?.verseGrid() ?? null, [])
+  const verseWindow = useCallback(() => arena.current?.verseWindow() ?? null, [])
   useEffect(() => {
     // Dev server only: read the backdrop's feed from the console (window.sceneFeed()).
     if (import.meta.env.DEV) (window as unknown as { sceneFeed?: () => SceneFeed }).sceneFeed = feed
@@ -295,7 +294,7 @@ export default function ArenaPanel({
         )}
 
         {room.event === 'poetry' && room.phase === 'speaking' && speaker && (
-          <VerseCue grid={verseGrid} ink={SEAT_INKS[speaker.seat % SEAT_INKS.length]} />
+          <VerseCue window={verseWindow} ink={SEAT_INKS[speaker.seat % SEAT_INKS.length]} />
         )}
 
         {discus && <DiscusPanel view={view} />}
@@ -366,8 +365,10 @@ export default function ArenaPanel({
         </div>
 
         {/* Nothing is judged after the crown: the warning goes, the connection and sound notes stay. */}
-        {(room.phase !== 'finished' || view.status === 'offline' || !view.sound) && (
+        {(room.phase !== 'finished' || view.status === 'offline' || !view.sound || view.voiceNote) && (
           <p className="host-guard">
+            {view.voiceNote && <strong className="voice-note">{view.voiceNote}</strong>}
+            {view.voiceNote && room.phase !== 'finished' && ' '}
             {room.phase !== 'finished' && `This screen hosts room ${room.code}. Don’t open ${room.code} on another arena, or every turn is judged twice.`}
             {view.status === 'offline' && ' Reconnecting…'}
             {!view.sound && ' Sound is off: reload and use Open the hall or Resume to start it.'}
@@ -378,46 +379,61 @@ export default function ArenaPanel({
   )
 }
 
-type Cue = { kind: 'count'; n: number; first: boolean } | { kind: 'speak'; line: number } | { kind: 'breathe' }
+type VerseWindow = { key: string; startMs: number; endMs: number }
+type Cue = { kind: 'count'; n: number } | { kind: 'speak'; left: number; total: number } | { kind: 'done' }
 
-/** What the poet does now, off the beat grid, exactly as the phone reads it (PlayerView.swift VerseStage.cue):
- *  3-2-1 on the last beats before each line, SPEAK for the line's bar, Breathe for the rest of the rest bar. */
-function cueAt(grid: Grid, now: number): Cue | null {
-  const beatMs = 60000 / Math.max(grid.bpm, 1)
-  const barMs = beatMs * 4
-  const lineMs = barMs * Math.max(grid.barsPerLine, 1)
-  const elapsed = now - grid.beatAtLocalMs
-  if (elapsed < 0) {
-    const left = Math.ceil(-elapsed / beatMs)
-    return left <= 3 ? { kind: 'count', n: left, first: true } : null
+const COUNT_STEP_MS = 750 // the phone's count-in (build 13): 3, 2, 1 at fixed 0.75 s steps before SPEAK
+const CLOCK_STEP_S = 0.25 // the clock moves four times a second
+
+/** What the poet does now, as the phone reads it: 3-2-1 before beat_at, one SPEAK with the clock until
+ *  ends_at (free verse, no metronome), then Time until the turn closes. */
+function cueAt(w: VerseWindow, now: number): Cue | null {
+  const toStart = w.startMs - now
+  if (toStart > 0) {
+    const n = Math.ceil(toStart / COUNT_STEP_MS)
+    return n <= 3 ? { kind: 'count', n } : null
   }
-  const line = Math.floor(elapsed / lineMs)
-  if (line >= grid.lines) return null
-  const within = elapsed - line * lineMs
-  if (within < barMs) return { kind: 'speak', line }
-  if (line + 1 >= grid.lines) return null // the last rest bar: the verse is done
-  const left = Math.ceil((lineMs - within) / beatMs)
-  return left <= 3 ? { kind: 'count', n: left, first: false } : { kind: 'breathe' }
+  const total = Math.max(1, (w.endMs - w.startMs) / 1000)
+  const left = Math.ceil((w.endMs - now) / 1000 / CLOCK_STEP_S) * CLOCK_STEP_S
+  return left > 0 ? { kind: 'speak', left, total } : { kind: 'done' }
 }
 
-/** The big cue over the verse. It reads the grid on its own timer and re-renders only when the cue changes. */
-function VerseCue({ grid, ink }: { grid: () => Grid | null; ink: string }) {
+/** The big cue over the verse. It reads the window on its own timer and re-renders only when the cue changes. */
+function VerseCue({ window: verse, ink }: { window: () => VerseWindow | null; ink: string }) {
   const [cue, setCue] = useState<Cue | null>(null)
   useEffect(() => {
     const id = window.setInterval(() => {
-      const g = grid()
-      const next = g ? cueAt(g, Date.now()) : null
+      const w = verse()
+      const next = w ? cueAt(w, Date.now()) : null
       setCue((was) => (JSON.stringify(was) === JSON.stringify(next) ? was : next))
-    }, 40)
+    }, 50)
     return () => window.clearInterval(id)
-  }, [grid])
+  }, [verse])
   if (!cue) return null
-  const text = cue.kind === 'count' ? String(cue.n) : cue.kind === 'speak' ? 'SPEAK' : 'Breathe'
-  const note = cue.kind === 'speak' ? 'The mic is open' : cue.kind === 'count' && cue.first ? 'Speak on the drum' : 'Next line on the drum'
+  const style = { '--ink': ink } as CSSProperties
+  if (cue.kind === 'count') {
+    return (
+      <div className="verse-cue" data-cue="count" style={style}>
+        <strong key={cue.n}>{cue.n}</strong>
+        <small>Get ready</small>
+      </div>
+    )
+  }
+  if (cue.kind === 'speak') {
+    return (
+      <div className="verse-cue" data-cue="speak" style={style}>
+        <strong>SPEAK</strong>
+        <span className="clock-wrap">
+          <span className={`clock${cue.left <= 5 ? ' last' : ''}`} style={{ '--p': cue.left / cue.total } as CSSProperties} />
+          <b>{Math.ceil(cue.left)}</b>
+        </span>
+        <small>The mic is open. Just go.</small>
+      </div>
+    )
+  }
   return (
-    <div className="verse-cue" data-cue={cue.kind} style={{ '--ink': ink } as CSSProperties}>
-      <strong key={cue.kind === 'speak' ? `speak ${cue.line}` : text}>{text}</strong>
-      <small>{note}</small>
+    <div className="verse-cue" data-cue="done" style={style}>
+      <strong>Time</strong>
     </div>
   )
 }

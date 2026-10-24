@@ -1,9 +1,7 @@
-// The arena's drum in WebAudio, after ios/Homer/Battle/ArenaConductor.swift: the beat on
-// the turn's grid while a verse is live (softer in the speaking bars, so the poet carries
-// it), and one soft strike each time the speaker's hit count goes up. Nothing else: no
-// stingers or effects (Matus: "silence beats a weird sound"). The beat is only for the
-// room: the phones keep their own (beat_at plus their clock offset), so this drum's drift
-// never touches scoring.
+// The arena's drum in WebAudio: the beat under Homer's stitched song in the finale, and
+// nothing else. Battles are free verse with no metronome (SPEC "The turn", Matus: "I just
+// want to spit poetry without the metronome"), so the arena is silent while a poet speaks,
+// and there are no stingers or effects (Matus: "silence beats a weird sound").
 
 const BEATS_PER_BAR = 4
 
@@ -82,22 +80,5 @@ export class Stage {
   stopBeat(): void {
     this.beat?.stop()
     this.beat = null
-  }
-
-  /** One soft, clean strike for a hit the speaker's phone heard on the beat: a short sine, no noise. */
-  strike(): void {
-    const { ctx } = this
-    const when = ctx.currentTime + 0.01
-    const tone = ctx.createOscillator()
-    const gain = ctx.createGain()
-    tone.type = 'sine'
-    tone.frequency.setValueAtTime(220, when)
-    tone.frequency.exponentialRampToValueAtTime(165, when + 0.12)
-    gain.gain.setValueAtTime(0.0001, when)
-    gain.gain.exponentialRampToValueAtTime(0.18, when + 0.008)
-    gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.14)
-    tone.connect(gain).connect(ctx.destination)
-    tone.start(when)
-    tone.stop(when + 0.16)
   }
 }
