@@ -375,22 +375,13 @@ struct WeighingMark: View {
 
     var body: some View {
         let k = stage.scale
-        TimelineView(.animation) { context in
-            let t = context.date.timeIntervalSinceReferenceDate
-            HStack(spacing: Metrics.s3 * k) {
-                Text("Homer is weighing it").tracked(12 * k, color: Palette.ink2)
-                HStack(spacing: 5 * k) {
-                    ForEach(0..<3, id: \.self) { i in
-                        Circle().fill(Palette.accent)
-                            .frame(width: 7 * k, height: 7 * k)
-                            .offset(y: -4 * k * max(0, sin(t * 4 - Double(i) * 0.7)))
-                    }
-                }
-            }
-            .padding(.horizontal, Metrics.s5 * k)
-            .padding(.vertical, Metrics.s3 * k)
-            .paper(Palette.paper, radius: 100)
+        HStack(spacing: Metrics.s3 * k) {
+            Text("Homer is weighing it").tracked(12 * k, color: Palette.ink2)
+            LoadingMark(size: 7)
         }
+        .padding(.horizontal, Metrics.s5 * k)
+        .padding(.vertical, Metrics.s3 * k)
+        .paper(Palette.paper, radius: 100)
     }
 }
 

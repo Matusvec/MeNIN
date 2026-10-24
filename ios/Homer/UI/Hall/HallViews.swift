@@ -754,13 +754,15 @@ struct PhoneHomeView: View {
     /// The Bard row's second line, e.g. "Continue: Lesson 2 · The formula".
     var lessonLine: String? = nil
     var joinError: String? = nil
+    /// .findingRoom while a join is in flight, .reconnecting, .openingHall.
+    var wait: WaitState? = nil
     var actions = PhoneHomeActions()
 
     @State private var code = ""
     @FocusState private var typing: Bool
 
     var body: some View {
-        PhoneScaffold(eyebrow: name.map { "Welcome, \($0)" } ?? "Welcome", title: "Battle, or train?") {
+        PhoneScaffold(eyebrow: name.map { "Welcome, \($0)" } ?? "Welcome", title: "Battle, or train?", wait: wait) {
             WordmarkView(size: 20)
         } middle: {
             VStack(alignment: .leading, spacing: Metrics.s4) {
@@ -778,7 +780,7 @@ struct PhoneHomeView: View {
         } action: {
             Button(action: join) { ArrowLabel(title: "Join the battle") }
                 .buttonStyle(.homer(wide: true))
-                .disabled(code.count != 4 || actions.join == nil)
+                .disabled(code.count != 4 || actions.join == nil || wait != nil)
         }
     }
 

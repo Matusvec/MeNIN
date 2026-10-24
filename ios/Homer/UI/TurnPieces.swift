@@ -248,3 +248,160 @@ struct HoldToTalkView: View {
     .padding()
     .background(Palette.sea)
 }
+
+// MARK: - Waiting
+
+/// What the app is waiting for, in plain words. Every wait longer than about
+/// 300 ms shows one of these, so a screen never looks frozen (SPEC).
+enum WaitState: Equatable, Sendable {
+    case openingHall
+    case findingRoom(String)
+    /// The connection dropped: shown as a strip over the last screen, which stays put.
+    case reconnecting
+    case dealing
+    case choosingTopic
+    /// Someone else's verse is live: their name, with their words as `WaitLine.detail`.
+    case speaking(String)
+    case weighing
+    /// A lesson try going back to Homer.
+    case listeningBack
+    case settingLesson
+    /// Homer's voice is warming up.
+    case warmingUp
+    case custom(String)
+
+    func text(host: String = "Homer") -> String {
+        switch self {
+        case .openingHall: "Opening the hall…"
+        case .findingRoom(let code): "Finding room \(code)…"
+        case .reconnecting: "Reconnecting…"
+        case .dealing: "\(host) is dealing your hand…"
+        case .choosingTopic: "\(host) is choosing the topic…"
+        case .speaking(let name): "\(name) is speaking"
+        case .weighing: host == "Socrates" ? "Socrates is weighing your argument…" : "\(host) is weighing your verse…"
+        case .listeningBack: "\(host) is listening back…"
+        case .settingLesson: "\(host) is setting the lesson…"
+        case .warmingUp: "\(host) is about to speak"
+        case .custom(let text): text
+        }
+    }
+
+    /// A live turn, not a load: the mark is the live dot.
+    var isLive: Bool {
+        if case .speaking = self { return true }
+        return false
+    }
+}
+
+/// The wait made visible, matte: three beats lighting in turn on the drum's
+/// tempo (the beat pads' language), or the lyre breathing on it. Never a
+/// system spinner. Holds still under Reduce Motion.
+struct LoadingMark: View {
+    enum Style { case beat, lyre }
+
+    var style: Style = .beat
+    var bpm: Double = 80
+    var tint: Color = Palette.accent
+    /// The dot (or a tenth of the lyre's height), before stage scaling.
+    var size: CGFloat = 9
+
+    @Environment(\.stage) private var stage
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let s = size * stage.scale
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion)) { context in
+            let beats = context.date.timeIntervalSinceReferenceDate * bpm / 60
+            let into = beats - beats.rounded(.down)   // 0...1 through the current beat
+            let strike = exp(-into * 5)                // the drum's attack and decay
+            switch style {
+            case .beat:
+                HStack(spacing: s * 0.7) {
+                    ForEach(0..<3, id: \.self) { i in
+                        let lit = Int(beats) % 3 == i
+                        Circle()
+                            .fill(lit ? tint : Palette.ink3.opacity(0.35))
+                            .frame(width: s, height: s)
+                            .scaleEffect(lit && !reduceMotion ? 1 + 0.35 * strike : 1)
+                    }
+                }
+            case .lyre:
+                LyreShape()
+                    .stroke(tint, style: StrokeStyle(lineWidth: s * 0.7, lineCap: .round, lineJoin: .round))
+                    .frame(width: s * 8.4, height: s * 10)
+                    .scaleEffect(reduceMotion ? 1 : 1 + 0.06 * strike)
+                    .opacity(reduceMotion ? 1 : 0.7 + 0.3 * strike)
+            }
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+/// One wait in plain words with its mark: a card in the middle of a screen,
+/// or a slim strip (`compact`) over a screen that stays as it was.
+struct WaitLine: View {
+    let state: WaitState
+    var host: String = "Homer"
+    /// A second line: the live words for `.speaking`, or "Still trying" on a long reconnect.
+    var detail: String? = nil
+    var compact: Bool = false
+
+    @Environment(\.stage) private var stage
+
+    var body: some View {
+        let k = stage.scale
+        HStack(alignment: .center, spacing: Metrics.s3 * k) {
+            if state.isLive {
+                LiveDot(size: 10 * k)
+            } else {
+                LoadingMark(size: compact ? 7 : 9)
+            }
+            VStack(alignment: .leading, spacing: 2 * k) {
+                Text(state.text(host: host))
+                    .font(compact ? Typeface.text(14 * k, weight: 600) : Typeface.display(20, on: stage))
+                    .foregroundStyle(Palette.ink)
+                    .lineLimit(2)
+                if let detail, !detail.isEmpty {
+                    Text(detail)
+                        .font(Typeface.display(compact ? 15 : 18, on: stage, italic: true))
+                        .foregroundStyle(Palette.ink2)
+                        .lineLimit(2)
+                }
+            }
+            .frame(maxWidth: compact ? nil : .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, (compact ? Metrics.s4 : Metrics.s5) * k)
+        .padding(.vertical, (compact ? Metrics.s2 : Metrics.s4) * k)
+        .paper(Palette.paper, radius: (compact ? 100 : Metrics.radiusL) * k, lifted: !compact)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(state.text(host: host) + (detail.map { ". \($0)" } ?? ""))
+    }
+}
+
+/// Launch, and any wait with nothing else to show: the wordmark, the lyre on
+/// the beat, and what's happening.
+struct LoadingScreen: View {
+    var state: WaitState = .openingHall
+    var host: String = "Homer"
+
+    var body: some View {
+        VStack(spacing: Metrics.s5) {
+            WordmarkView(size: 30)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .paper(Palette.paper, radius: 100, lifted: false)
+            LoadingMark(style: .lyre, size: 7)
+                .padding(Metrics.s5)
+                .background(Palette.paper, in: Circle())
+            Text(state.text(host: host))
+                .font(Typeface.display(22))
+                .foregroundStyle(Palette.ink)
+                .padding(.horizontal, Metrics.s4)
+                .padding(.vertical, Metrics.s2)
+                .paper(Palette.paper, radius: 100, lifted: false)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .sceneBehind()
+        .accessibilityElement(children: .combine)
+    }
+}

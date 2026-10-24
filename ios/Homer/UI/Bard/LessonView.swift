@@ -33,6 +33,8 @@ struct LessonModel: Equatable {
     var homer: HomerLine?
     /// When voice is unavailable: the typed fallback's text.
     var typed: String?
+    /// A wait over the lesson (Homer warming up, reconnecting).
+    var wait: WaitState? = nil
 }
 
 struct LessonActions {
@@ -74,7 +76,7 @@ struct LessonView: View {
     private var phoneBody: some View {
         PhoneScaffold(eyebrow: "Bard · Lesson \(model.number)" + (model.tryNo > 0 ? " · Try \(model.tryNo)" : ""),
                       title: model.phase == .title ? nil : model.title, onBack: actions.back,
-                      homer: model.homer.flatMap { $0.whisper ? nil : $0 }) {
+                      homer: model.homer.flatMap { $0.whisper ? nil : $0 }, wait: model.wait) {
             ZStack {
                 phoneMiddle
                     .id(phaseKey)
@@ -91,7 +93,7 @@ struct LessonView: View {
     private var phoneMiddle: some View {
         switch model.phase {
         case .loading:
-            WeighingMarkLabel(text: "Homer is setting the lesson").frame(maxHeight: .infinity)
+            WaitLine(state: .settingLesson).frame(maxHeight: .infinity)
 
         case .failed(let why):
             Text(why).font(Typeface.text(16)).foregroundStyle(Palette.ink2).multilineTextAlignment(.center)
@@ -154,7 +156,7 @@ struct LessonView: View {
         case .weighing(let transcript):
             VStack(spacing: Metrics.s4) {
                 if !transcript.isEmpty { TranscriptView(lines: transcript, maxLines: 3) }
-                WeighingMark()
+                WaitLine(state: .listeningBack)
                 Spacer(minLength: 0)
             }
 

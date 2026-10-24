@@ -73,11 +73,11 @@ struct PlayerView: View {
     private var screen: some View {
         switch model.moment {
         case .joining(let error):
-            JoinScreen(prefill: model.code, error: error, join: actions.join, onBack: actions.leave)
+            JoinScreen(prefill: model.code, error: error, join: actions.join, onBack: actions.leave, wait: model.wait)
 
         case .micCheck:
             PhoneScaffold(eyebrow: eyebrow("Mic check"), title: "Homer wants to hear you", onBack: actions.leave,
-                          homer: homerStrip, host: model.event.host.name) {
+                          homer: homerStrip, host: model.event.host.name, wait: model.wait) {
                 VStack(spacing: Metrics.s5) {
                     if let me = model.me { MyPlate(poet: me, waitingForEpithet: me.epithet.isEmpty) }
                     Text("Say your name out loud. Tap when you're in the hall.")
@@ -97,13 +97,15 @@ struct PlayerView: View {
 
         case .waiting(let watching, let transcript):
             PhoneScaffold(eyebrow: eyebrow(), title: watching.map { "\($0.name) has the floor" } ?? "In the hall",
-                          onBack: actions.leave, homer: homerStrip, host: model.event.host.name) {
+                          onBack: actions.leave, homer: homerStrip, host: model.event.host.name, wait: model.wait) {
                 codeChip
             } middle: {
                 VStack(spacing: Metrics.s4) {
                     if let me = model.me { MyPlate(poet: me, waitingForEpithet: false) }
-                    if watching != nil {
-                        if !transcript.isEmpty { TranscriptView(lines: transcript, maxLines: 3) }
+                    if let watching {
+                        // Someone else's verse, live: never a dead phone.
+                        WaitLine(state: .speaking(watching.name), detail: transcript.last)
+                        if transcript.count > 1 { TranscriptView(lines: Array(transcript.suffix(3)), maxLines: 3) }
                     } else {
                         Text("The battle begins soon.")
                             .font(Typeface.display(22, italic: true))
@@ -120,15 +122,19 @@ struct PlayerView: View {
 
         case .onDeck(let hand, let autoReady):
             PhoneScaffold(eyebrow: eyebrow("You're up next"), title: topicTitle, onBack: actions.leave,
-                          homer: homerStrip, host: model.event.host.name) {
+                          homer: homerStrip, host: model.event.host.name, wait: model.wait) {
                 codeChip
             } middle: {
                 VStack(alignment: .leading, spacing: Metrics.s3) {
-                    Text("Your hand").tracked(10, color: Palette.onPage2)
-                    // The slips if they fit, else the same hand as chips. Never a scroll.
-                    ViewThatFits(in: .vertical) {
-                        FormulaHandView(cards: hand, forward: true)
-                        FormulaHandView(cards: hand, forward: true, style: .compact)
+                    if hand.isEmpty {
+                        WaitLine(state: .dealing, host: model.event.host.name)
+                    } else {
+                        Text("Your hand").tracked(10, color: Palette.onPage2)
+                        // The slips if they fit, else the same hand as chips. Never a scroll.
+                        ViewThatFits(in: .vertical) {
+                            FormulaHandView(cards: hand, forward: true)
+                            FormulaHandView(cards: hand, forward: true, style: .compact)
+                        }
                     }
                     Spacer(minLength: 0)
                 }
@@ -147,7 +153,7 @@ struct PlayerView: View {
             // The rescue card first, then what's still unplayed.
             let open = hand.filter { $0.id == rescueId } + hand.filter { !$0.used && $0.id != rescueId }
             PhoneScaffold(eyebrow: eyebrow("Your verse"), title: topicTitle, onBack: actions.leave,
-                          homer: homerStrip, host: model.event.host.name) {
+                          homer: homerStrip, host: model.event.host.name, wait: model.wait) {
                 ViewThatFits(in: .vertical) {
                     VStack(spacing: Metrics.s4) {
                         BeatLaneView(lane: lane, style: .pulse, barsPerLine: 2)
@@ -183,15 +189,15 @@ struct PlayerView: View {
 
         case .weighing:
             PhoneScaffold(eyebrow: eyebrow(), title: "Homer is weighing it", onBack: actions.leave,
-                          homer: homerStrip, host: model.event.host.name) {
-                WeighingMark().frame(maxHeight: .infinity)
+                          homer: homerStrip, host: model.event.host.name, wait: model.wait) {
+                WaitLine(state: .weighing, host: model.event.host.name).frame(maxHeight: .infinity)
             } action: {
                 EmptyView()
             }
 
         case .closing(let transcript):
             PhoneScaffold(eyebrow: eyebrow(), title: "The Muse is timing you.", onBack: actions.leave,
-                          homer: homerStrip, host: model.event.host.name) {
+                          homer: homerStrip, host: model.event.host.name, wait: model.wait) {
                 VStack(spacing: Metrics.s4) {
                     if !transcript.isEmpty { TranscriptView(lines: transcript, maxLines: 3) }
                     Text("Your turn closes with what you already said.")
@@ -201,7 +207,7 @@ struct PlayerView: View {
                         .padding(Metrics.s4)
                         .frame(maxWidth: .infinity)
                         .paper()
-                    WeighingMark()
+                    LoadingMark()
                     Spacer(minLength: 0)
                 }
             } action: {
@@ -210,7 +216,7 @@ struct PlayerView: View {
 
         case .result(let card, let reveal, let coined):
             PhoneScaffold(eyebrow: eyebrow("Your scores"), onBack: actions.leave,
-                          homer: homerStrip, host: model.event.host.name) {
+                          homer: homerStrip, host: model.event.host.name, wait: model.wait) {
                 ViewThatFits(in: .vertical) {
                     scores(ScorecardView(card: card, reveal: reveal, poet: model.me?.fullName, hints: true), coined: reveal >= 1 ? coined : nil)
                     ScrollView { scores(ScorecardView(card: card, reveal: reveal, poet: model.me?.fullName, hints: true), coined: reveal >= 1 ? coined : nil) }
@@ -223,7 +229,7 @@ struct PlayerView: View {
 
         case .final(let place, let of, let champion):
             PhoneScaffold(eyebrow: eyebrow("The Agon is over"), onBack: actions.leave,
-                          homer: homerStrip, host: model.event.host.name) {
+                          homer: homerStrip, host: model.event.host.name, wait: model.wait) {
                 VStack(spacing: Metrics.s5) {
                     VStack(spacing: Metrics.s2) {
                         Text("You placed").tracked(11, color: Palette.onHero2)
@@ -250,7 +256,7 @@ struct PlayerView: View {
         case .debating(let side, let question, let transcript, let moves, let whisperedId, let talking, let level, let endsAt, let seconds):
             let lines = transcript.split(separator: "\n").map(String.init)
             PhoneScaffold(eyebrow: eyebrow(side.title), title: question, titleLines: 3, onBack: actions.leave,
-                          homer: homerStrip, host: model.event.host.name) {
+                          homer: homerStrip, host: model.event.host.name, wait: model.wait) {
                 TurnClockView(endsAt: endsAt, seconds: seconds, size: 56)
             } middle: {
                 ViewThatFits(in: .vertical) {
@@ -280,7 +286,7 @@ struct PlayerView: View {
 
         case .ruling(let ruling, let reveal):
             PhoneScaffold(eyebrow: eyebrow("Socrates rules"), onBack: actions.leave,
-                          homer: homerStrip, host: model.event.host.name) {
+                          homer: homerStrip, host: model.event.host.name, wait: model.wait) {
                 ViewThatFits(in: .vertical) {
                     ScorecardView(ruling: ruling, reveal: reveal, poet: model.me?.fullName, hints: true)
                     ScrollView { ScorecardView(ruling: ruling, reveal: reveal, poet: model.me?.fullName, hints: true) }.scrollIndicators(.hidden)
@@ -437,6 +443,8 @@ private struct JoinScreen: View {
     var error: String?
     var join: ((String, String) -> Void)?
     var onBack: (() -> Void)?
+    /// .findingRoom while the join is in flight.
+    var wait: WaitState? = nil
 
     @State private var code = ""
     @State private var name = ""
@@ -446,7 +454,7 @@ private struct JoinScreen: View {
     private enum Field { case code, name }
 
     var body: some View {
-        PhoneScaffold(eyebrow: "Battle", title: "Join the Agon", onBack: onBack) {
+        PhoneScaffold(eyebrow: "Battle", title: "Join the Agon", onBack: onBack, wait: wait) {
             VStack(alignment: .leading, spacing: Metrics.s3) {
                 VStack(alignment: .leading, spacing: Metrics.s2) {
                     Text("Room code").tracked(10)
@@ -492,7 +500,7 @@ private struct JoinScreen: View {
         }
     }
 
-    private var ready: Bool { code.count == 4 && !name.trimmingCharacters(in: .whitespaces).isEmpty && join != nil }
+    private var ready: Bool { code.count == 4 && !name.trimmingCharacters(in: .whitespaces).isEmpty && join != nil && wait == nil }
 
     private func submit() {
         guard ready else { return }

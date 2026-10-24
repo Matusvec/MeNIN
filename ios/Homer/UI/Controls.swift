@@ -107,6 +107,9 @@ struct PhoneScaffold<Trailing: View, Middle: View, Action: View>: View {
     /// The host's latest line, as a strip under the top band (not while you speak).
     var homer: HomerLine? = nil
     var host: String = "Homer"
+    /// A wait over this screen (reconnecting, finding a room, Homer warming up):
+    /// a strip under the top band, while the screen stays as it was.
+    var wait: WaitState? = nil
     @ViewBuilder var trailing: () -> Trailing
     @ViewBuilder var middle: () -> Middle
     @ViewBuilder var action: () -> Action
@@ -115,6 +118,10 @@ struct PhoneScaffold<Trailing: View, Middle: View, Action: View>: View {
         VStack(spacing: Metrics.s4) {
             VStack(spacing: Metrics.s2) {
                 topBand
+                if let wait {
+                    WaitLine(state: wait, host: host, compact: true)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
                 if let homer {
                     HomerStrip(line: homer, host: host)
                         .transition(.move(edge: .top).combined(with: .opacity))
@@ -132,6 +139,7 @@ struct PhoneScaffold<Trailing: View, Middle: View, Action: View>: View {
         .frame(maxWidth: 620)
         .frame(maxWidth: .infinity)
         .animation(Motion.slide, value: homer?.text)
+        .animation(Motion.slide, value: wait)
         .sceneBehind()
     }
 
@@ -162,8 +170,9 @@ struct PhoneScaffold<Trailing: View, Middle: View, Action: View>: View {
 
 extension PhoneScaffold where Trailing == EmptyView {
     init(eyebrow: String, title: String? = nil, titleLines: Int = 2, onBack: (() -> Void)? = nil, homer: HomerLine? = nil,
-         host: String = "Homer", @ViewBuilder middle: @escaping () -> Middle, @ViewBuilder action: @escaping () -> Action) {
-        self.init(eyebrow: eyebrow, title: title, titleLines: titleLines, onBack: onBack, homer: homer, host: host,
+         host: String = "Homer", wait: WaitState? = nil,
+         @ViewBuilder middle: @escaping () -> Middle, @ViewBuilder action: @escaping () -> Action) {
+        self.init(eyebrow: eyebrow, title: title, titleLines: titleLines, onBack: onBack, homer: homer, host: host, wait: wait,
                   trailing: { EmptyView() }, middle: middle, action: action)
     }
 }

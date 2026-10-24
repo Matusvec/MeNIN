@@ -31,6 +31,8 @@ struct PracticeModel: Equatable {
     var homer: HomerLine?
     /// When voice is unavailable: the typed fallback's text.
     var typed: String?
+    /// A wait over the screen (Homer warming up, reconnecting).
+    var wait: WaitState? = nil
 }
 
 struct PracticeActions {
@@ -65,7 +67,7 @@ struct PracticeView: View {
 
     var body: some View {
         PhoneScaffold(eyebrow: "Practice · Spar with Homer", title: model.theme.isEmpty ? "Choose a theme" : model.theme,
-                      onBack: actions.back, homer: model.homer.flatMap { $0.whisper ? nil : $0 }) {
+                      onBack: actions.back, homer: model.homer.flatMap { $0.whisper ? nil : $0 }, wait: model.wait) {
             ZStack {
                 middle
                     .id(phaseKey)
@@ -104,7 +106,7 @@ struct PracticeView: View {
             }
 
         case .dealing:
-            WeighingMark().frame(maxHeight: .infinity)
+            WaitLine(state: .dealing).frame(maxHeight: .infinity)
 
         case .ready:
             VStack(alignment: .leading, spacing: Metrics.s3) {
@@ -164,7 +166,7 @@ struct PracticeView: View {
         case .judging:
             VStack(spacing: Metrics.s4) {
                 if !model.transcript.isEmpty { TranscriptView(lines: model.transcript, maxLines: 4) }
-                WeighingMark()
+                WaitLine(state: .weighing)
                 Spacer(minLength: 0)
             }
 

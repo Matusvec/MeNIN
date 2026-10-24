@@ -133,6 +133,9 @@ struct PlayerModel: Equatable {
     /// The mic opens by itself when your turn goes live and stays open for the
     /// verse: the phone shows what to do now instead of a hold pad.
     var handsFree: Bool = false
+    /// A wait over the current screen: .findingRoom while joining, .reconnecting,
+    /// .warmingUp while Homer's voice loads. Nil when nothing is pending.
+    var wait: WaitState? = nil
 }
 
 enum PlayerMoment: Equatable {
