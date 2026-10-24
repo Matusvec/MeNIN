@@ -141,7 +141,7 @@ struct DiscusArenaView: View {
                 VStack(alignment: .leading, spacing: Metrics.s4 * k) {
                     HStack(spacing: Metrics.s3 * k) {
                         if let thrower = model.thrower {
-                            Text(thrower.name).font(Typeface.display(26, on: stage, weight: 700)).foregroundStyle(Palette.cream)
+                            Text(Typeface.kerned(thrower.name, size: 26 * k)).font(Typeface.display(26, on: stage, weight: 700)).foregroundStyle(Palette.cream).sturdy(26)
                                 .padding(.horizontal, Metrics.s4 * k).padding(.vertical, Metrics.s2 * k)
                                 .paper(thrower.ink, radius: Metrics.radiusM * k)
                         }
@@ -184,7 +184,7 @@ struct DiscusArenaView: View {
             ForEach(Array(ranked.enumerated()), id: \.element.id) { place, mark in
                 HStack(spacing: Metrics.s3 * k) {
                     Capsule().fill(mark.poet.ink).frame(width: 4 * k, height: 22 * k)
-                    Text(mark.poet.name).font(Typeface.display(19, on: stage, weight: 600)).foregroundStyle(Palette.onHero)
+                    Text(mark.poet.name).font(Typeface.display(19, on: stage, weight: 600)).foregroundStyle(Palette.onHero).sturdy(19)
                     Spacer()
                     Text(mark.best.map { String(format: "%.1f m", $0) } ?? "—")
                         .font(Typeface.numeral(15 * k))
@@ -212,9 +212,10 @@ private struct DiscusChampion: View {
         let k = stage.scale
         VStack(spacing: Metrics.s2 * k) {
             Text("The discus goes to").chip(12 * k, fill: Palette.cream, color: Palette.ink)
-            Text(poet.name)
+            Text(Typeface.kerned(poet.name, size: 80 * k))
                 .font(Typeface.display(80, on: stage, weight: 900))
                 .foregroundStyle(Palette.cream)
+                .sturdy(80)
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
             if let best {
@@ -258,10 +259,15 @@ private struct PowerGauge: View {
 struct DiscusPhoneView<Pad: View>: View {
     let model: DiscusPhoneModel
     var onSafetyAck: (() -> Void)?
+    /// The back chevron: out of the throw.
+    var onBack: (() -> Void)? = nil
     @ViewBuilder var holdPad: () -> Pad
 
     var body: some View {
         VStack(spacing: Metrics.s4) {
+            if let onBack {
+                HStack { BackButton(action: onBack); Spacer() }
+            }
             if model.phase == .safety {
                 safety
             } else {

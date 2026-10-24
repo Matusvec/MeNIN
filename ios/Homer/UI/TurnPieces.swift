@@ -205,16 +205,20 @@ struct HoldToTalkView: View {
     @Binding var isHeld: Bool
     var level: Double = 0
     var enabled: Bool = true
+    /// The phone's thumb zone: the meter and the one line, no small print.
+    var compact: Bool = false
 
     var body: some View {
-        VStack(spacing: Metrics.s4) {
+        VStack(spacing: compact ? Metrics.s2 : Metrics.s4) {
             MicLevelView(level: isHeld ? level : 0, tint: isHeld ? Palette.onHero : Palette.accent)
             Text(isHeld ? "Speaking" : "Hold to speak")
-                .font(Typeface.display(32))
+                .font(Typeface.display(compact ? 28 : 32))
                 .foregroundStyle(isHeld ? Palette.onHero : Palette.ink)
-            Text(isHeld ? "Let go when the line is done" : "Homer hears you only while you hold")
-                .font(Typeface.text(14, weight: 500))
-                .foregroundStyle(isHeld ? Palette.onHero2 : Palette.ink2)
+            if !compact {
+                Text(isHeld ? "Let go when the line is done" : "Homer hears you only while you hold")
+                    .font(Typeface.text(14, weight: 500))
+                    .foregroundStyle(isHeld ? Palette.onHero2 : Palette.ink2)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .paper(isHeld ? Palette.hero : Palette.paper, radius: Metrics.radiusL)

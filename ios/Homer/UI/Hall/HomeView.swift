@@ -30,6 +30,8 @@ struct HomeView: View {
     var onMode: ((Mode) -> Void)? = nil
     var onCollection: (() -> Void)? = nil
     var onProfile: (() -> Void)? = nil
+    /// The back chevron: out to the hall.
+    var onBack: (() -> Void)? = nil
 
     var body: some View {
         ScrollView {
@@ -51,8 +53,13 @@ struct HomeView: View {
 
     // Figma 46:386: wordmark left, avatar right; 58 tall.
     private var navigation: some View {
-        HStack {
-            WordmarkView()
+        HStack(spacing: Metrics.s2) {
+            if let onBack { BackButton(action: onBack) }
+            // On paper, like every word over the scene.
+            WordmarkView(size: 24)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .paper(Palette.paper, radius: 100, lifted: false)
             Spacer()
             Button { onProfile?() } label: {
                 Text(initial ?? String(name.prefix(1)))
@@ -84,25 +91,20 @@ struct HomeView: View {
             Image("homer-portrait")
                 .resizable()
                 .scaledToFill()
-                .frame(width: 105, height: 112)
-                .clipped()
+                .frame(width: 96, height: 104)
+                .clipShape(RoundedRectangle(cornerRadius: Metrics.radiusS, style: .continuous))
                 .accessibilityLabel("Homer")
         }
-        .padding(.leading, Metrics.margin)
-        .padding(.trailing, 18)
-        .padding(.top, 10)
-        .padding(.bottom, 4)
-        .frame(minHeight: 126)
+        .padding(Metrics.s4)
+        .paper(radius: Metrics.radiusL)
+        .padding(.horizontal, Metrics.margin)
+        .padding(.top, 6)
     }
 
     // Figma 46:412: heading, then rows 68 tall, 8 apart.
     private var modeList: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Choose your mode").font(Typeface.display(23)).foregroundStyle(Palette.onPage)
-                Spacer()
-                Text("\(modes.count) ways to practise").font(Typeface.text(11)).foregroundStyle(Palette.onPage2)
-            }
+            Text("Choose your mode").chip(11)
             VStack(spacing: 8) {
                 ForEach(modes) { mode in
                     Button { onMode?(mode) } label: { ModeRowView(mode: mode) }
@@ -130,8 +132,9 @@ struct HomeView: View {
                     .foregroundStyle(Palette.brand)
                     .frame(width: 44, height: 44, alignment: .trailing)
             }
-            .padding(.top, 14)
-            .overlay(alignment: .top) { Rectangle().fill(Palette.onPage2.opacity(0.3)).frame(height: 1) }
+            .padding(.horizontal, Metrics.s3)
+            .padding(.vertical, Metrics.s2)
+            .paper(radius: Metrics.radiusM)
         }
         .buttonStyle(RowPress())
     }

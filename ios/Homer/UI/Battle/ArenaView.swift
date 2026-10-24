@@ -243,14 +243,14 @@ private struct ArenaCanvas: View {
                     VStack(alignment: .leading, spacing: Metrics.s4 * k) {
                         HStack(spacing: Metrics.s3 * k) {
                             poetTag(poet, live: true)
-                            SideChip(side: side)
+                            SideStamp(side: side, onImpact: slam).id("\(poet.id)-\(side.rawValue)")
                         }
                         TranscriptView(lines: transcript, listening: true, maxLines: 4, listener: model.event.host.name)
                         Spacer(minLength: 0)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     VStack(alignment: .trailing, spacing: Metrics.s4 * k) {
-                        TurnClockView(endsAt: endsAt, seconds: seconds, size: 120)
+                        TurnClockView(endsAt: endsAt, seconds: seconds, size: 140)
                         if let move = played.last {
                             RevealedCardView(card: move, poet: poet.name, onLand: { actions.cue?(.flip) }).id(move.id)
                         }
@@ -314,29 +314,38 @@ private struct ArenaCanvas: View {
             }
             .padding(Metrics.s3 * k)
             .paper(Palette.paper, radius: Metrics.radiusM * k)
-            ScrollView(.horizontal) {
-                HStack(spacing: Metrics.s2 * k) {
-                    ForEach(model.poets) { poet in
-                        HStack(spacing: Metrics.s2 * k) {
-                            Text(poet.name).font(Typeface.display(19, on: stage, weight: 600)).sturdy(19)
-                            if !poet.epithet.isEmpty {
-                                Text(poet.epithet).font(Typeface.display(14, on: stage, italic: true)).sturdy(14).opacity(0.85)
-                            }
-                        }
-                        .foregroundStyle(Palette.cream)
-                        .padding(.horizontal, Metrics.s4 * k)
-                        .padding(.vertical, Metrics.s2 * k)
-                        .paper(poet.ink, radius: 100, lifted: false)
-                        .transition(.scale.combined(with: .opacity))
-                    }
-                    if model.poets.isEmpty {
-                        Text("Waiting for poets").chip(11 * k)
-                    }
-                }
+            // Never cut a plate off on a screen nobody touches: drop the epithets, then shrink, before scrolling.
+            ViewThatFits(in: .horizontal) {
+                poetPlates(epithets: true, scale: 1)
+                poetPlates(epithets: false, scale: 1)
+                poetPlates(epithets: false, scale: 0.8)
+                ScrollView(.horizontal) { poetPlates(epithets: false, scale: 0.8) }.scrollIndicators(.hidden)
             }
-            .scrollIndicators(.hidden)
         }
         .animation(Motion.slide, value: model.poets.map(\.id))
+    }
+
+    private func poetPlates(epithets: Bool, scale: CGFloat) -> some View {
+        let k = stage.scale
+        return HStack(spacing: Metrics.s2 * k) {
+            ForEach(model.poets) { poet in
+                HStack(spacing: Metrics.s2 * k) {
+                    Text(poet.name).font(Typeface.display(19 * scale, on: stage, weight: 600)).sturdy(19 * scale)
+                    if epithets && !poet.epithet.isEmpty {
+                        Text(poet.epithet).font(Typeface.display(14, on: stage, italic: true)).sturdy(14).opacity(0.85)
+                    }
+                }
+                .foregroundStyle(Palette.cream)
+                .padding(.horizontal, Metrics.s4 * k * scale)
+                .padding(.vertical, Metrics.s2 * k)
+                .paper(poet.ink, radius: 100, lifted: false)
+                .fixedSize()
+                .transition(.scale.combined(with: .opacity))
+            }
+            if model.poets.isEmpty {
+                Text("Waiting for poets").chip(11 * k)
+            }
+        }
     }
 
     private var isHall: Bool {

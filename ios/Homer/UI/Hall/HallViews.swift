@@ -217,56 +217,128 @@ struct EventMenuView: View {
     var showsHeader: Bool = true
 
     @Environment(\.stage) private var stage
+    @State private var shown = false
 
     var body: some View {
+        if stage.isArena {
+            menu
+        } else {
+            // A phone: margins, the safe areas, and a scroll only if a small screen needs it.
+            ScrollView {
+                menu
+                    .padding(.horizontal, Metrics.s4)
+                    .padding(.top, Metrics.s3)
+                    .padding(.bottom, Metrics.s6)
+            }
+            .scrollBounceBehavior(.basedOnSize)
+            .scrollIndicators(.hidden)
+            .sceneBehind()
+        }
+    }
+
+    private var menu: some View {
         let k = stage.scale
-        VStack(alignment: .leading, spacing: Metrics.s5 * k) {
+        return VStack(alignment: .leading, spacing: Metrics.s5 * k) {
             if showsHeader {
-                HStack(alignment: .bottom) {
-                    WordmarkView(size: 31 * k)
+                HStack(alignment: .center) {
+                    WordmarkView(size: (stage.isArena ? 31 : 26) * k)
+                        .padding(.horizontal, stage.isArena ? 0 : 12)
+                        .padding(.vertical, stage.isArena ? 0 : 6)
+                        .background { if !stage.isArena { Capsule(style: .continuous).fill(Palette.paper) } }
                     Spacer()
                     if let hallNote { Text(hallNote).chip(11 * k) }
                 }
             }
-            Text("Choose your event").chip(11 * k)
+            Text("Choose your event").chip((stage.isArena ? 13 : 11) * k)
             if stage.isArena { arenaLayout } else { phoneLayout }
         }
     }
 
-    /// Phone: a two-column grid of every tile.
+    /// Phone: the live events as color slabs, one column, the future as one locked row.
     private var phoneLayout: some View {
+        let live = events.filter { !$0.locked }
+        let soon = events.filter(\.locked)
+        return VStack(alignment: .leading, spacing: Metrics.s3) {
+            ForEach(Array(live.enumerated()), id: \.element.id) { i, event in
+                tile(event).modifier(StampIn(delay: 0.08 + Double(i) * 0.07, shown: shown))
+            }
+            if !soon.isEmpty { soonRow(soon).modifier(StampIn(delay: 0.08 + Double(live.count) * 0.07, shown: shown)) }
+        }
+        .onAppear { shown = true }
+    }
+
+    /// The events still to come, locked, in one quiet row.
+    private func soonRow(_ soon: [EventTile]) -> some View {
         let k = stage.scale
-        let columns = [GridItem(.adaptive(minimum: 150 * k, maximum: 300 * k), spacing: Metrics.s4 * k)]
-        return LazyVGrid(columns: columns, spacing: Metrics.s4 * k) {
-            ForEach(events) { tile($0) }
+        return ViewThatFits(in: .horizontal) {
+            soonChips(soon, label: true)
+            soonChips(soon, label: false)
+            Text("\(soon.count) more events soon").chip(11 * k, fill: Palette.paper2, color: Palette.ink3)
         }
     }
 
-    /// Arena: the live events as big equal tiles, the future as a quiet row of "soon".
+    private func soonChips(_ soon: [EventTile], label: Bool) -> some View {
+        let k = stage.scale
+        let size: CGFloat = stage.isArena ? 12 : 10
+        return HStack(spacing: Metrics.s2 * k) {
+            if label { Text("Soon").tracked(size * k, color: Palette.ink2) }
+            ForEach(soon) { event in
+                HStack(spacing: Metrics.s1 * k) {
+                    Image(systemName: "lock.fill").font(.system(size: (size - 2) * k, weight: .semibold))
+                    Text(event.title).tracked(size * k, color: Palette.ink3)
+                }
+                .foregroundStyle(Palette.ink3)
+                .padding(.horizontal, size * k)
+                .padding(.vertical, size * 0.6 * k)
+                .background(Palette.paper2, in: Capsule(style: .continuous))
+                .fixedSize()
+            }
+        }
+        .padding(.horizontal, Metrics.s3 * k)
+        .padding(.vertical, Metrics.s2 * k)
+        .paper(Palette.paper, radius: 100, lifted: false)
+    }
+
+    /// Arena: the live events as big equal slabs that stamp in one by one (the
+    /// first thing a judge sees, read from 2 m), the future as a quiet locked row.
     private var arenaLayout: some View {
         let k = stage.scale
         let live = events.filter { !$0.locked }
         let soon = events.filter(\.locked)
         return VStack(alignment: .leading, spacing: Metrics.s4 * k) {
             HStack(alignment: .top, spacing: Metrics.s4 * k) {
-                ForEach(live) { tile($0).frame(maxWidth: .infinity) }
+                ForEach(Array(live.enumerated()), id: \.element.id) { i, event in
+                    tile(event)
+                        .frame(maxWidth: .infinity)
+                        .modifier(StampIn(delay: 0.12 + Double(i) * 0.09, shown: shown))
+                }
             }
             if !soon.isEmpty {
-                HStack(spacing: Metrics.s2 * k) {
-                    Text("Soon").tracked(10 * k, color: Palette.ink2)
-                    ForEach(soon) { Text($0.title).chip(10 * k, fill: Palette.paper2, color: Palette.ink3) }
-                }
-                .padding(.horizontal, Metrics.s3 * k)
-                .padding(.vertical, Metrics.s2 * k)
-                .paper(Palette.paper, radius: 100, lifted: false)
+                soonRow(soon).modifier(StampIn(delay: 0.12 + Double(live.count) * 0.09, shown: shown))
             }
         }
+        .onAppear { shown = true }
     }
 
     private func tile(_ event: EventTile) -> some View {
-        Button { onPick?(event) } label: { EventTileView(event: event) }
+        Button { onPick?(event) } label: { EventTileView(event: event, slab: !event.locked) }
             .buttonStyle(TilePress())
             .disabled(event.locked || onPick == nil)
+    }
+}
+
+/// Lands a tile like a stamp, once, after `delay`.
+private struct StampIn: ViewModifier {
+    let delay: Double
+    let shown: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(shown || reduceMotion ? 1 : 0.9)
+            .offset(y: shown || reduceMotion ? 0 : 40)
+            .opacity(shown || reduceMotion ? 1 : 0)
+            .animation(.spring(response: 0.34, dampingFraction: 0.62).delay(delay), value: shown)
     }
 }
 
@@ -280,11 +352,52 @@ private struct TilePress: ButtonStyle {
 
 struct EventTileView: View {
     let event: EventTile
+    /// The slab look (the menus); false is the art-over-caption card.
+    var slab: Bool = false
     @Environment(\.stage) private var stage
 
     var body: some View {
+        if slab && !event.locked { slabView } else { card }
+    }
+
+    /// One slab of the event's color, the title big in cream, the emblem large.
+    /// On the arena it's built to read from the judges' table.
+    private var slabView: some View {
         let k = stage.scale
-        VStack(alignment: .leading, spacing: 0) {
+        let height = (stage.isArena ? 168 : 124) * k
+        return ZStack(alignment: .bottomLeading) {
+            Rectangle().fill(field)
+            EventArtView(art: event.art, ink: artInk, accent: accent)
+                .frame(width: height * 0.62, height: height * 0.62)
+                .padding(Metrics.s4 * k)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+            VStack(alignment: .leading, spacing: Metrics.s1 * k) {
+                Text(event.title)
+                    .font(Typeface.display(stage.isArena ? 30 : 26, on: stage, weight: stage.isArena ? 800 : 700))
+                    .displayLeading((stage.isArena ? 30 : 26) * k, 1.0)
+                    .foregroundStyle(Palette.cream)
+                    .sturdy(30)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.7)
+                if let host = event.host {
+                    Text("Hosted by \(host.name)")
+                        .font(Typeface.text(14 * k, weight: 600))
+                        .foregroundStyle(Palette.cream.opacity(0.82))
+                }
+            }
+            .padding(Metrics.s5 * k)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: height)
+        .paper(field, radius: Metrics.radiusL * k)
+        .clipShape(RoundedRectangle(cornerRadius: Metrics.radiusL * k, style: .continuous))
+        .accessibilityElement(children: .combine)
+        .accessibilityHint(event.blurb)
+    }
+
+    private var card: some View {
+        let k = stage.scale
+        return VStack(alignment: .leading, spacing: 0) {
             ZStack {
                 Rectangle().fill(field)
                 EventArtView(art: event.art, ink: artInk, accent: accent)
@@ -433,5 +546,155 @@ struct DiscusShape: View {
             }
             .padding()
         }
+    }
+}
+
+// MARK: - Event entry (phone)
+
+struct EventEntryActions {
+    /// The solo way in: Practice (poetry), train with Socrates (debate), throw alone (discus). Nil shows it as soon.
+    var solo: (() -> Void)?
+    /// The battle: host or join (BattleEntryView).
+    var fight: (() -> Void)?
+    var back: (() -> Void)?
+
+    init(solo: (() -> Void)? = nil, fight: (() -> Void)? = nil, back: (() -> Void)? = nil) {
+        self.solo = solo
+        self.fight = fight
+        self.back = back
+    }
+}
+
+/// E1 · An event's front door on the phone: its slab, the ways in, and Fight
+/// pinned in the thumb zone. Replaces the shell's placeholder list.
+struct EventEntryView: View {
+    let event: EventKind
+    var actions = EventEntryActions()
+
+    var body: some View {
+        let tile = EventTile.all.first { $0.id == event.rawValue }
+        PhoneScaffold(eyebrow: "The hall", title: event.title, onBack: actions.back) {
+            VStack(spacing: Metrics.s3) {
+                if let tile {
+                    EventTileView(event: tile, slab: true)
+                    Text(tile.blurb)
+                        .font(Typeface.text(15))
+                        .foregroundStyle(Palette.ink2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(Metrics.s4)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .paper(Palette.paper, lifted: false)
+                }
+                EntryRow(title: soloTitle.title, subtitle: actions.solo == nil ? "Soon" : soloTitle.subtitle,
+                         locked: actions.solo == nil, action: actions.solo)
+                Spacer(minLength: 0)
+            }
+        } action: {
+            if let fight = actions.fight {
+                Button(action: fight) { ArrowLabel(title: "Fight") }.buttonStyle(.homer(wide: true))
+            }
+        }
+    }
+
+    private var soloTitle: (title: String, subtitle: String) {
+        switch event {
+        case .poetry: ("Practice", "Spar with Homer, full judge breakdown")
+        case .debate: ("Train with Socrates", "One on one, best of three")
+        case .discus: ("Throw", "On your own, no second phone")
+        }
+    }
+}
+
+/// A way in: a paper row with a title, a line under it, and a chevron.
+struct EntryRow: View {
+    let title: String
+    var subtitle: String? = nil
+    var locked: Bool = false
+    var action: (() -> Void)? = nil
+
+    var body: some View {
+        Button { action?() } label: {
+            HStack(spacing: Metrics.s3) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title).font(Typeface.display(21)).foregroundStyle(locked ? Palette.ink2 : Palette.ink)
+                    if let subtitle { Text(subtitle).font(Typeface.text(13)).foregroundStyle(Palette.ink2) }
+                }
+                Spacer(minLength: 0)
+                Image(systemName: locked ? "lock.fill" : "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Palette.ink3)
+            }
+            .padding(.horizontal, Metrics.s4)
+            .frame(minHeight: 64)
+            .paper(Palette.paper, radius: Metrics.radiusM, lifted: !locked)
+            .opacity(locked ? 0.9 : 1)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        // Not .disabled: that dims the row past reading. A locked row just doesn't take taps.
+        .allowsHitTesting(!locked && action != nil)
+    }
+}
+
+// MARK: - Battle entry (phone)
+
+struct BattleEntryActions {
+    /// Host the arena on this device (a Mac or an iPad; a phone in landscape as a backup).
+    var host: (() -> Void)?
+    /// Join with a four-letter room code.
+    var join: ((String) -> Void)?
+    var back: (() -> Void)?
+
+    init(host: (() -> Void)? = nil, join: ((String) -> Void)? = nil, back: (() -> Void)? = nil) {
+        self.host = host
+        self.join = join
+        self.back = back
+    }
+}
+
+/// "Fight": join a battle with the code on the arena (the primary action on a
+/// phone), or host the arena here. Replaces the shell's placeholder list.
+struct BattleEntryView: View {
+    let event: EventKind
+    var actions = BattleEntryActions()
+
+    @State private var code = ""
+    @FocusState private var typing: Bool
+
+    var body: some View {
+        PhoneScaffold(eyebrow: event.title, title: "Fight", onBack: actions.back) {
+            VStack(spacing: Metrics.s3) {
+                VStack(alignment: .leading, spacing: Metrics.s2) {
+                    Text("Join a battle").tracked(10)
+                    TextField("WKRD", text: $code)
+                        .font(Typeface.display(40, weight: 500))
+                        .tracking(10)
+                        .foregroundStyle(Palette.ink)
+                        .textInputAutocapitalization(.characters)
+                        .autocorrectionDisabled()
+                        .submitLabel(.join)
+                        .focused($typing)
+                        .onChange(of: code) { code = String(code.uppercased().filter(\.isLetter).prefix(4)) }
+                        .onSubmit(join)
+                    Text("The code is on the arena screen.").font(Typeface.text(13)).foregroundStyle(Palette.ink2)
+                }
+                .padding(Metrics.s5)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .paper()
+                if let host = actions.host {
+                    EntryRow(title: "Host the arena here", subtitle: "A Mac or an iPad. A phone in landscape as a backup.", action: host)
+                }
+                Spacer(minLength: 0)
+            }
+        } action: {
+            Button(action: join) { ArrowLabel(title: "Join") }
+                .buttonStyle(.homer(wide: true))
+                .disabled(code.count != 4 || actions.join == nil)
+        }
+    }
+
+    private func join() {
+        guard code.count == 4 else { return }
+        actions.join?(code)
     }
 }

@@ -17,8 +17,11 @@ struct DiscusThrowView: View {
     var fieldLength: Double = 80
     /// The flight area's height before stage scaling.
     var fieldHeight: CGFloat = 300
+    /// Fired once, on the frame the discus lands: the thump.
+    var onLand: (() -> Void)? = nil
 
     @Environment(\.stage) private var stage
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         let k = stage.scale
@@ -32,11 +35,17 @@ struct DiscusThrowView: View {
                 let apex = min(ground * 0.85, (land.x - start.x) * 0.75)
                 let p = min(1, max(0, progress))
 
+                let landed = p >= 1
                 ZStack(alignment: .topLeading) {
-                    // The field: a band of ink with distance marks.
+                    // The field: a band of ink with distance marks. It takes the landing like a hit.
                     Rectangle().fill(Palette.ink)
                         .frame(width: w, height: h - ground)
                         .offset(y: ground)
+                        .keyframeAnimator(initialValue: 0.0, trigger: landed) { band, y in band.offset(y: y) } keyframes: { _ in
+                            MoveKeyframe(0.0)
+                            SpringKeyframe(landed && !foul ? 5 * k : 0, duration: 0.05, spring: .snappy)
+                            SpringKeyframe(0, duration: 0.3, spring: .bouncy)
+                        }
                     ForEach(Array(stride(from: 10, through: Int(fieldLength), by: 10)), id: \.self) { m in
                         let mx = x(for: Double(m), w)
                         Rectangle().fill(Palette.paper.opacity(0.35)).frame(width: 1.5 * k, height: 14 * k)
@@ -45,8 +54,12 @@ struct DiscusThrowView: View {
                             .position(x: mx, y: ground + 28 * k)
                     }
                     if let legend {
-                        Flag(label: legend.label, color: Palette.paper, k: k)
-                            .position(x: x(for: legend.metres, w) + 18 * k, y: ground - 22 * k)
+                        // The legend's flag turns gold the moment the throw passes it.
+                        let passed = !foul && distance * p > legend.metres
+                        Flag(label: passed ? "Past \(legend.label)" : legend.label, color: passed ? Palette.gold : Palette.paper, k: k)
+                            .scaleEffect(passed ? 1.15 : 1, anchor: .bottomLeading)
+                            .animation(Motion.stamp, value: passed)
+                            .position(x: x(for: legend.metres, w) + (passed ? 40 : 18) * k, y: ground - 22 * k)
                     }
                     if let record {
                         Flag(label: String(format: "%.1f", record), color: Palette.gold, k: k)
@@ -54,15 +67,34 @@ struct DiscusThrowView: View {
                     }
 
                     // The arc so far, dashed like a thrown line drawn in chalk.
+                    // An ink shadow under the chalk, cut-paper style, so the arc holds over any scene.
                     ArcPath(start: start, end: land, apex: apex)
                         .trim(from: 0, to: p)
-                        .stroke(Palette.paper.opacity(0.75), style: StrokeStyle(lineWidth: 3 * k, lineCap: .round, dash: [2 * k, 9 * k]))
+                        .stroke(Palette.ink.opacity(0.5), style: StrokeStyle(lineWidth: 4.5 * k, lineCap: .round, dash: [3 * k, 9 * k]))
+                        .offset(y: 2 * k)
+                    ArcPath(start: start, end: land, apex: apex)
+                        .trim(from: 0, to: p)
+                        .stroke(Palette.paper, style: StrokeStyle(lineWidth: 4.5 * k, lineCap: .round, dash: [3 * k, 9 * k]))
 
+                    // Afterimages: flat paper discs left behind along the arc, fading.
+                    if p > 0 && p < 1 && !reduceMotion {
+                        ForEach(1..<4, id: \.self) { i in
+                            let t = max(0, p - Double(i) * 0.035)
+                            Ellipse().fill(Palette.paper.opacity(0.32 - Double(i) * 0.08))
+                                .frame(width: 46 * k, height: 18 * k)
+                                .position(ArcPath.point(start: start, end: land, apex: apex, t: t))
+                        }
+                    }
                     let at = ArcPath.point(start: start, end: land, apex: apex, t: p)
+                    // It spins as it flies: a flat disc turning over, then lying still once it lands.
                     DiscusShape(ink: Palette.paper, accent: Palette.gold)
-                        .frame(width: 54 * k, height: 54 * k)
-                        .rotationEffect(.degrees(-18 + 30 * p))
-                        .position(at)
+                        .frame(width: 58 * k, height: 58 * k)
+                        .scaleEffect(x: 1, y: landed ? 0.42 : 0.5 + 0.5 * abs(cos(p * 9 * .pi)))
+                        .rotationEffect(.degrees(landed ? 0 : -18 + 40 * p))
+                        .position(landed ? CGPoint(x: at.x, y: ground - 8 * k) : at)
+                    // The landing kicks up dust: cut-paper flecks off the turf.
+                    ShardBurst(inks: [Palette.paper, Palette.gold, Palette.ink3], trigger: landed && !foul, k: k * 0.7)
+                        .position(x: land.x, y: ground - 4 * k)
 
                     if p >= 1 {
                         Rectangle().fill(foul ? Palette.ink3 : Palette.vermilion).frame(width: 3 * k, height: 26 * k)
@@ -82,10 +114,15 @@ struct DiscusThrowView: View {
                 // The distance counts up as the discus flies, and lands heavy.
                 let shown = distance * min(1, max(0, progress))
                 Text(progress > 0 ? String(format: "%.1f", shown) : "0.0")
-                    .font(Typeface.display(64, on: stage, weight: progress >= 1 ? 900 : 500))
+                    .font(Typeface.display(80, on: stage, weight: progress >= 1 ? 900 : 600))
                     .strikethrough(foul && progress >= 1, color: Palette.vermilion)
                     .foregroundStyle(progress > 0 && !(foul && progress >= 1) ? Palette.ink : Palette.ink3)
                     .contentTransition(.numericText(value: shown))
+                    .keyframeAnimator(initialValue: 1.0, trigger: progress >= 1) { n, s in n.scaleEffect(s, anchor: .bottomTrailing) } keyframes: { _ in
+                        MoveKeyframe(1.0)
+                        SpringKeyframe(progress >= 1 ? 1.35 : 1, duration: 0.07, spring: .snappy)
+                        SpringKeyframe(1.0, duration: 0.4, spring: .bouncy)
+                    }
                 Text("m").font(Typeface.display(26, on: stage, weight: 700)).foregroundStyle(Palette.ink2)
             }
             .padding(.horizontal, Metrics.s5 * k)
@@ -93,6 +130,9 @@ struct DiscusThrowView: View {
             .paper(radius: Metrics.radiusL * k)
         }
         .animation(Motion.stamp, value: progress >= 1)
+        .onChange(of: progress >= 1) { was, now in
+            if !was && now { onLand?() }
+        }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(progress >= 1 ? (foul ? "Foul, into the crowd" : String(format: "%.1f metres", distance)) : "Discus in flight")
     }

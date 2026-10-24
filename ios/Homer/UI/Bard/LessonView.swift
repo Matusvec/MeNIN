@@ -42,9 +42,13 @@ struct LessonActions {
     var next: (() -> Void)?
     var spar: (() -> Void)?
     var type: ((String) -> Void)?
+    /// The back chevron: out of the lesson.
+    var back: (() -> Void)?
 
     init(done: (() -> Void)? = nil, again: (() -> Void)? = nil, retry: (() -> Void)? = nil,
-         next: (() -> Void)? = nil, spar: (() -> Void)? = nil, type: ((String) -> Void)? = nil) {
+         next: (() -> Void)? = nil, spar: (() -> Void)? = nil, type: ((String) -> Void)? = nil,
+         back: (() -> Void)? = nil) {
+        self.back = back
         self.done = done
         self.again = again
         self.retry = retry
@@ -61,8 +65,183 @@ struct LessonView: View {
     @Environment(\.stage) private var stage
 
     var body: some View {
+        if stage.isArena { arenaBody } else { phoneBody }
+    }
+
+    // MARK: Phone
+
+    /// A PhoneScaffold: the lesson on top, the work in the middle, the next step in the thumb zone.
+    private var phoneBody: some View {
+        PhoneScaffold(eyebrow: "Bard · Lesson \(model.number)" + (model.tryNo > 0 ? " · Try \(model.tryNo)" : ""),
+                      title: model.phase == .title ? nil : model.title, onBack: actions.back,
+                      homer: model.homer.flatMap { $0.whisper ? nil : $0 }) {
+            ZStack {
+                phoneMiddle
+                    .id(phaseKey)
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+            }
+            .frame(maxHeight: .infinity, alignment: .top)
+            .animation(Motion.slide, value: phaseKey)
+        } action: {
+            phoneAction
+        }
+    }
+
+    @ViewBuilder
+    private var phoneMiddle: some View {
+        switch model.phase {
+        case .loading:
+            WeighingMarkLabel(text: "Homer is setting the lesson").frame(maxHeight: .infinity)
+
+        case .failed(let why):
+            Text(why).font(Typeface.text(16)).foregroundStyle(Palette.ink2).multilineTextAlignment(.center)
+                .padding(Metrics.s5).frame(maxWidth: .infinity).paper().frame(maxHeight: .infinity)
+
+        case .title:
+            VStack(spacing: Metrics.s3) {
+                Text("Lesson").tracked(12, color: Palette.onHero2)
+                Text(roman(model.number)).font(Typeface.display(96, weight: 500)).foregroundStyle(Palette.onHero)
+                    .minimumScaleFactor(0.6)
+                Text(model.title).font(Typeface.display(30)).foregroundStyle(Palette.onHero)
+                    .multilineTextAlignment(.center).minimumScaleFactor(0.8)
+                Text(model.move).font(Typeface.display(18, italic: true)).foregroundStyle(Palette.onHero2)
+                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.vertical, Metrics.s6)
+            .padding(.horizontal, Metrics.s5)
+            .frame(maxWidth: .infinity)
+            .paper(Palette.hero, radius: Metrics.radiusL)
+            .frame(maxHeight: .infinity)
+
+        case .demo(let lane, let verse), .naming(let lane, let verse):
+            let running = { if case .demo = model.phase { return true } else { return false } }()
+            let title = running ? "Homer shows it" : "The model"
+            // The full lane teaches the move when there's room; else the pulse; else just the verse.
+            ViewThatFits(in: .vertical) {
+                VStack(spacing: Metrics.s4) {
+                    if let lane { BeatLaneView(lane: lane, barsPerLine: 2, running: running) }
+                    VerseCard(title: title, lines: verse)
+                }
+                VStack(spacing: Metrics.s4) {
+                    if let lane { BeatLaneView(lane: lane, style: .pulse, barsPerLine: 2, running: running) }
+                    VerseCard(title: title, lines: verse)
+                }
+                VerseCard(title: title, lines: verse)
+            }
+
+        case .trying(let lane, let transcript, let listening, _, _, let helpHalf, let hand, let rescueId):
+            ViewThatFits(in: .vertical) {
+                VStack(spacing: Metrics.s4) {
+                    if let lane { BeatLaneView(lane: lane, style: .pulse, barsPerLine: 2) }
+                    if let helpHalf { VerseCard(title: "Homer starts it. You finish", lines: [helpHalf + " …"]) }
+                    tryWords(transcript, listening: listening, max: 2)
+                    if !hand.isEmpty {
+                        FormulaHandView(cards: hand, raisedId: rescueId, forward: true, style: .compact)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+                VStack(spacing: Metrics.s3) {
+                    if let lane { BeatLaneView(lane: lane, style: .pulse, barsPerLine: 2) }
+                    if let helpHalf { VerseCard(title: "Homer starts it. You finish", lines: [helpHalf + " …"]) }
+                    tryWords(transcript, listening: listening, max: 1)
+                }
+                VStack(spacing: Metrics.s3) {
+                    if let lane { BeatLaneView(lane: lane, style: .pulse, barsPerLine: 2) }
+                    tryWords(transcript, listening: listening, max: 1)
+                }
+            }
+
+        case .weighing(let transcript):
+            VStack(spacing: Metrics.s4) {
+                if !transcript.isEmpty { TranscriptView(lines: transcript, maxLines: 3) }
+                WeighingMark()
+                Spacer(minLength: 0)
+            }
+
+        case .note(let transcript, let note, let beatScore):
+            ViewThatFits(in: .vertical) {
+                VStack(spacing: Metrics.s4) {
+                    if !transcript.isEmpty { TranscriptView(lines: transcript, maxLines: 3) }
+                    NoteCard(note: note, beatScore: beatScore)
+                }
+                NoteCard(note: note, beatScore: beatScore)
+            }
+
+        case .landed(let transcript, let note, let beatScore):
+            ViewThatFits(in: .vertical) {
+                VStack(spacing: Metrics.s4) {
+                    LandedSeal()
+                    if let best = transcript.last, !best.isEmpty { VerseCard(title: "Your landing line", lines: [best]) }
+                    if note != nil || beatScore != nil { NoteCard(note: note, beatScore: beatScore) }
+                }
+                VStack(spacing: Metrics.s4) {
+                    LandedSeal()
+                    if let best = transcript.last, !best.isEmpty { VerseCard(title: "Your landing line", lines: [best]) }
+                }
+                LandedSeal()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func tryWords(_ transcript: [String], listening: Bool, max: Int) -> some View {
+        if !transcript.isEmpty {
+            TranscriptView(lines: Array(transcript.suffix(max)), listening: listening, maxLines: max)
+        } else if listening {
+            Text("Your turn. Speak on the beat").chip(11, fill: Palette.hero, color: Palette.onHero)
+        }
+    }
+
+    @ViewBuilder
+    private var phoneAction: some View {
+        switch model.phase {
+        case .failed:
+            if let retry = actions.retry {
+                Button(action: retry) { ArrowLabel(title: "Try again") }.buttonStyle(.homer(wide: true))
+            }
+        case .trying(_, _, _, let level, _, _, _, _):
+            VStack(spacing: Metrics.s2) {
+                if let typed = model.typed, let type = actions.type {
+                    TextField("Your lines, one per row", text: Binding(get: { typed }, set: { type($0) }), axis: .vertical)
+                        .font(Typeface.display(20))
+                        .lineLimit(2...3)
+                        .padding(Metrics.s4)
+                        .paper()
+                }
+                HStack(spacing: Metrics.s3) {
+                    if model.typed == nil {
+                        LiveDot(size: 10)
+                        MicLevelView(level: level)
+                    }
+                    Spacer(minLength: 0)
+                    if let done = actions.done { Button("I'm done", action: done).buttonStyle(.homer) }
+                }
+                .padding(Metrics.s3)
+                .frame(maxWidth: .infinity)
+                .paper()
+            }
+        case .landed:
+            VStack(spacing: Metrics.s2) {
+                if actions.again != nil || actions.spar != nil {
+                    HStack(spacing: Metrics.s2) {
+                        if let again = actions.again { Button("Again", action: again).buttonStyle(.homer(.secondary, wide: true)) }
+                        if let spar = actions.spar { Button("Spar", action: spar).buttonStyle(.homer(.secondary, wide: true)) }
+                    }
+                }
+                if let next = actions.next {
+                    Button(action: next) { ArrowLabel(title: "Next lesson") }.buttonStyle(.homer(wide: true))
+                }
+            }
+        default:
+            EmptyView()
+        }
+    }
+
+    // MARK: Arena (a Mac or an iPad seated for a study)
+
+    private var arenaBody: some View {
         let k = stage.scale
-        VStack(spacing: Metrics.s4 * k) {
+        return VStack(spacing: Metrics.s4 * k) {
             if model.phase != .title { header }
             ScrollView {
                 content
