@@ -28,7 +28,7 @@ Five people who have never freestyled take MeNIN's first lesson, and we write do
 
   If any of these fails, message the leader before you start. Don't run the study on another build or in a different mode on your own.
 
-**Why the build matters:** since build 4, the beat is judged more strictly than in build 3. A hit has to land closer to the drum, and each drum beat counts one hit at most. Every person in the study has to be on the same build, or their numbers can't be compared. It should also be the build the judges will see. If the build changes partway through, stop and message the leader.
+**Why the build matters:** since build 4, the beat is judged more strictly than in build 3. A hit has to land closer to the drum, and each drum beat counts one hit at most. Every person in the study has to be on the same build, or their numbers can't be compared. It should also be the build the judges will see. Builds 4 and 5 score lesson 1 exactly the same (swift confirmed), so if the phone moves from one to the other partway through, keep going and write it in Notes. Any other build change: stop and message the leader.
 
 ## Who counts
 

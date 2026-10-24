@@ -1,0 +1,183 @@
+/*
+ * MeNIN · Atelier design tokens for the web.
+ *
+ * The same tokens as the iOS app (ios/Homer/UI/Tokens.swift, Atelier direction),
+ * named after their Swift counterparts so the site and the app stay in step:
+ *   Palette.page        -> --palette-page
+ *   Metrics.radiusL     -> --metrics-radius-l
+ *   Typeface.display    -> --typeface-display
+ * When a value changes in Tokens.swift, change it here too.
+ *
+ * The look (SPEC "Platform"): cream cards with Bodoni display type and Inter UI,
+ * wine and gold accents, over a full-screen scene of matte, painted color. Open
+ * and simple, lots of negative space. Matte: flat fills and hairlines. No glow,
+ * no neon, no gradients on surfaces, no glossy highlights.
+ *
+ * Fonts (both on Google Fonts, both variable):
+ *   <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Inter:opsz,wght@14..32,400..700&display=swap" rel="stylesheet">
+ */
+
+:root {
+  /* ── Palette ─────────────────────────────────────────────── */
+
+  /* The page and its paper. */
+  --palette-page: #F7F3EC;
+  --palette-paper: #FFFCF7;
+  --palette-paper2: #F2ECE2;
+  --palette-paper3: #E4DCD2;
+  /* Hairlines on paper (1px). */
+  --palette-line: #E4DCD2;
+
+  /* Ink. */
+  --palette-ink: #302A29;
+  --palette-ink2: #82756E;
+  --palette-ink3: #A69A92;
+
+  /* The hero surface: the poet's words, the carved line, a chosen card. */
+  --palette-hero: #682C3E;
+  --palette-on-hero: #FFF8ED;
+  --palette-on-hero2: #DDC3C5;
+  /* Light text on any dark or colored slab (seat plates, the scoreboard). */
+  --palette-cream: #FFF8ED;
+  /* Text set straight on the page. */
+  --palette-on-page: #302A29;
+  --palette-on-page2: #82756E;
+  /* The wordmark and other brand marks; the accent on paper. */
+  --palette-brand: #682C3E;
+  --palette-accent: #682C3E;
+
+  /* Supporting inks, each with one job. */
+  --palette-wine: #682C3E;
+  --palette-gold: #C99A3E;      /* hits, best lines, the hoard */
+  --palette-gold-deep: #9A7128; /* gold text on paper */
+  --palette-vermilion: #C8452C; /* live: the mic, the clock, a miss */
+  --palette-sea: #2D5C66;       /* Homer's voice */
+  --palette-olive: #6E7A2E;     /* Socrates */
+  --palette-lilac: #8A72C4;     /* debate moves */
+
+  /* One ink per poet seat; a poet keeps their color all battle. Wine is the hero, so no seat wears it. */
+  --palette-seat0: #2D5C66;
+  --palette-seat1: #B5832F;
+  --palette-seat2: #6E7A2E;
+  --palette-seat3: #C8452C;
+  --palette-seat4: #5B3F73;
+
+  /* ── Type ────────────────────────────────────────────────── */
+
+  /* Display: the voice of the legend (verse, names, titles). Regular for calm screens, 800–900 for the Agon. */
+  --typeface-display: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
+  /* Text: everything that works (UI, labels, numbers). */
+  --typeface-text: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Display line height: 1.12 for titles, 1.05 for big plates, 1.18 for italic verdicts. */
+  --typeface-display-leading: 1.12;
+  /* Labels: Inter 600, uppercase, tracked 0.08em ("BARD / LESSON 04", "THE BEAT"). */
+  --typeface-label-weight: 600;
+  --typeface-label-tracking: 0.08em;
+
+  /* ── Metrics ─────────────────────────────────────────────── */
+
+  /* Spacing scale. */
+  --metrics-s1: 4px;
+  --metrics-s2: 8px;
+  --metrics-s3: 12px;
+  --metrics-s4: 16px;
+  --metrics-s5: 24px;
+  --metrics-s6: 32px;
+  --metrics-s7: 48px;
+  --metrics-s8: 72px;
+  /* The page's side margin. */
+  --metrics-margin: 24px;
+
+  /* Radii: buttons, rows, hero cards. Chips are capsules. */
+  --metrics-radius-s: 12px;
+  --metrics-radius-m: 14px;
+  --metrics-radius-l: 18px;
+  --metrics-radius-chip: 999px;
+
+  /* ── Paper ───────────────────────────────────────────────── */
+
+  /* A card floating over the scene: a hairline and one soft, low shadow. Never a glow. */
+  --paper-border: 1px solid var(--palette-line);
+  --paper-shadow: 0 10px 20px rgba(48, 42, 41, 0.10);
+
+  /* ── Motion ──────────────────────────────────────────────── */
+
+  /* Motion.stamp: things that land (a hit, a score, a card) land like a rubber stamp. */
+  --motion-stamp: 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Motion.slide: panels and plates arriving. */
+  --motion-slide: 450ms cubic-bezier(0.22, 1, 0.36, 1);
+  /* Motion.fade. */
+  --motion-fade: 220ms ease-out;
+}
+
+/* ── Helpers: the app's most common surfaces ─────────────────── */
+
+/* Paper card over the scene. */
+.menin-paper {
+  background: var(--palette-paper);
+  border: var(--paper-border);
+  border-radius: var(--metrics-radius-l);
+  box-shadow: var(--paper-shadow);
+}
+
+/* The hero slab (wine), e.g. the poet's words or the carved line. */
+.menin-hero {
+  background: var(--palette-hero);
+  color: var(--palette-on-hero);
+  border-radius: var(--metrics-radius-l);
+  box-shadow: var(--paper-shadow);
+}
+
+/* Display type. Optical size follows the point size, as in the app and Figma. */
+.menin-display {
+  font-family: var(--typeface-display);
+  font-optical-sizing: auto;
+  line-height: var(--typeface-display-leading);
+  color: var(--palette-ink);
+}
+
+/* A small uppercase label. */
+.menin-label {
+  font-family: var(--typeface-text);
+  font-weight: var(--typeface-label-weight);
+  font-size: 10px;
+  letter-spacing: var(--typeface-label-tracking);
+  text-transform: uppercase;
+  color: var(--palette-ink2);
+}
+
+/* A label on a paper capsule with a hairline: legible on any scene. */
+.menin-chip {
+  font-family: var(--typeface-text);
+  font-weight: var(--typeface-label-weight);
+  font-size: 11px;
+  letter-spacing: var(--typeface-label-tracking);
+  text-transform: uppercase;
+  color: var(--palette-ink2);
+  background: var(--palette-paper);
+  border: var(--paper-border);
+  border-radius: var(--metrics-radius-chip);
+  padding: 0.6em 1.1em;
+}
+
+/* The primary button (HomerButtonStyle .primary): wine, cream text, Inter 600 15px, 44px tall. */
+.menin-button {
+  font-family: var(--typeface-text);
+  font-weight: 600;
+  font-size: 15px;
+  min-height: 44px;
+  background: var(--palette-hero);
+  color: var(--palette-on-hero);
+  border: 0;
+  border-radius: var(--metrics-radius-s);
+  padding: 0 18px;
+  transition: transform var(--motion-stamp);
+}
+/* .secondary: paper with ink text and a hairline. */
+.menin-button.secondary {
+  background: var(--palette-paper);
+  color: var(--palette-ink);
+  border: var(--paper-border);
+}
+.menin-button:active { transform: scale(0.97); }
