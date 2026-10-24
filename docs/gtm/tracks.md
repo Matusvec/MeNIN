@@ -194,9 +194,9 @@ Hacker Guide and Hive add: "One thing done well and usable on Monday beats a bro
 | Prize | Item | What it takes | Do it? |
 | --- | --- | --- | --- |
 | Best Use of Gen AI | Assorted | Uses a public GenAI API (Anthropic counts). Tag it. | **Yes**, it's free |
-| Best .Tech Domain Name | **Desktop microphone** and a .tech domain for 10 years | Register a .tech domain and use it. Redirect it to the TestFlight link and video. Domain: **`playmenin.tech`** for the site, with **`api.playmenin.tech`** for the agent service. `menin.tech` is reserved by the .tech registry. Available fallbacks: `meninthegame.tech`, `meningames.tech`. Pending Matus registering it. | **Yes**, 10 minutes |
+| Best .Tech Domain Name | **Desktop microphone** and a .tech domain for 10 years | Register a .tech domain and use it. Redirect it to the TestFlight link and video. Domain: **`playmenin.tech`**, used only for this prize (the agent service runs at an `sslip.io` address on DigitalOcean and needs no domain). `menin.tech` is reserved by the .tech registry. Available fallbacks: `meninthegame.tech`, `meningames.tech`. Pending Matus registering it. | **Yes**, 10 minutes |
 | Commit Fellowship | Interview for a 3-week founder sprint, plus *The Lean Startup* | "working prototype with a team, demonstrate a real problem worth solving, opt into the Commit Fellowship Prize Category" | **Yes**, if the team might continue after Sunday |
-| Best Use of Vultr | M5Stack Tab5 | Host the Python agent service on Vultr | **Only if** that's where we'd host it anyway |
+| Best Use of DigitalOcean | Retro wireless mouse, "for you and each of your teammates" | The Python agent service runs on DigitalOcean (Matus's pick). Credits come through the MLH coach: "reach out to your MLH Coach for credits". | **Yes**, it's free since we host there anyway. Name DigitalOcean in the Devpost and README. |
 | GoDaddy Registry domain | Digital gift card | Register a GoDaddy Registry domain | Skip; one domain is enough |
 
 ---

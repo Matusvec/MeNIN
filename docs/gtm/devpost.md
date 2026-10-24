@@ -73,7 +73,7 @@ Other events show as locked tiles, because we only unlock what's solid.
   - The judge gets your hand, the verse you're answering and the scanner's stress count, and returns scores, the best line and a one-line verdict as strict JSON in about [1.5] s.
   - Claude also writes Homer's lessons, his sparring verses and the stitched song.
 - **The stress scanner** (Python, CMU Pronouncing Dictionary) counts the beat deterministically. The **Beat** score never comes from the model's opinion.
-- **Python + FastAPI** service for the Claude calls, the scanner and the formula bank, served at `api.playmenin.tech`.
+- **Python + FastAPI** service for the Claude calls, the scanner and the formula bank, running on **DigitalOcean**.
 - **Figma** [only once true: designs, palettes, and the Figma-to-SwiftUI handoff; stage log linked below].
 - Built by one designer and a team of Claude Code sessions (leader, product, art, multiplayer, iOS, go-to-market) working from one spec.
 
@@ -126,7 +126,7 @@ Other events show as locked tiles, because we only unlock what's solid.
 
 ## Built with
 
-swift · swiftui · metal · avfoundation · core-haptics · [core-motion] · spacetimedb · typescript · python · fastapi · anthropic · claude · cartesia · cmu-pronouncing-dictionary · figma · xcodegen · [vultr] · [apify]
+swift · swiftui · metal · avfoundation · core-haptics · [core-motion] · spacetimedb · typescript · python · fastapi · anthropic · claude · cartesia · cmu-pronouncing-dictionary · figma · xcodegen · digitalocean · [apify]
 
 ---
 
@@ -140,7 +140,7 @@ swift · swiftui · metal · avfoundation · core-haptics · [core-motion] · sp
 - [ ] MLH: Best Use of Gen AI
 - [ ] MLH: Best .Tech Domain Name (if registered)
 - [ ] MLH: Commit Fellowship (if we want it)
-- [ ] MLH: Best Use of Vultr (only if the service runs on Vultr)
+- [ ] MLH: Best Use of DigitalOcean (the agent service runs there)
 - [ ] Apify plus Best Actor (only if the Actor builds the bank)
 
 Main prizes are automatic.
