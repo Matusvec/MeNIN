@@ -102,6 +102,14 @@ final class TurnRecorder {
     @ObservationIgnored private var speakingSeenMs: [String: Double] = [:]
     @ObservationIgnored private var cachedToken: VoiceToken?
     @ObservationIgnored private var loggedFirstWords = false
+    @ObservationIgnored private var attemptPrepared: UInt32 = 0
+    private var isUnavailable: Bool { if case .unavailable = phase { true } else { false } }
+    @ObservationIgnored private var lastPrepareFailMs = 0.0
+    /// Diagnostics for the Dev overlay (read about once a second).
+    @ObservationIgnored private(set) var sttEvents = 0
+    @ObservationIgnored private(set) var partialsHeard = 0
+    @ObservationIgnored private(set) var updatesSent = 0
+    @ObservationIgnored private(set) var lastSTTNote = ""
     /// Words heard before speech-to-text failed mid-verse; the typed fallback starts from them.
     private(set) var draftFromVoice = ""
 
@@ -138,6 +146,12 @@ final class TurnRecorder {
             if phase == .ready || phase == .preparing { cancel() }
             return
         }
+        // A new turn (or a new room joined from this same screen): whatever ended the last one
+        // (closing, done, unavailable) must not carry over, or the phone sits silent through the verse.
+        if turn.id != turnId, phase == .closing || phase == .done || isUnavailable {
+            Self.log.info("new turn \(turn.id): leaving \(String(describing: self.phase), privacy: .public)")
+            phase = .idle
+        }
         let attemptKey = "\(turn.id)-\(turn.attempt)"
         if turn.statusValue == .speaking, speakingSeenMs[attemptKey] == nil {
             speakingSeenMs[attemptKey] = Date().timeIntervalSince1970 * 1000
@@ -146,11 +160,16 @@ final class TurnRecorder {
         switch (turn.statusValue, phase) {
         case (.waiting, .idle), (.waiting, .done):
             await prepare(turn: turn)
-        case (.speaking, .idle), (.speaking, .done) where turn.id != turnId:
-            // Reopened mid-turn (crash, force-quit). Demo-safe: stay quiet and let the server's
-            // timer judge what was sent. `goLive(lateJoin:)` is the fuller path, kept for later.
-            turnId = turn.id
-            phase = .closing
+        case (.waiting, .unavailable) where Date().timeIntervalSince1970 * 1000 - lastPrepareFailMs > 3000:
+            // A failed prepare isn't final: try again for the next attempt (credits back, network back).
+            phase = .idle
+        case (.speaking, .idle), (.speaking, .done) where !(turn.id == turnId && turn.attempt == attemptPrepared):
+            // The turn was already live when this phone saw it: an arena that starts turns at once
+            // (the website) skips `waiting`, and a reopened app lands mid-turn. Prepare now and go
+            // live late; the window still has most of its time (WMCN, 15:44: staying quiet here lost
+            // every word on two phones).
+            Self.log.info("turn \(turn.id) already speaking when seen; preparing late")
+            await prepare(turn: turn)
         case (.scored, .closing), (.judging, .closing), (.skipped, .closing), (.declined, .closing):
             phase = .done
         case (.speaking, .ready):
@@ -170,6 +189,7 @@ final class TurnRecorder {
         guard phase == .idle || phase == .done else { return }
         reset()
         turnId = turn.id
+        attemptPrepared = turn.attempt
         phase = .preparing
         guard let agent else {
             phase = .unavailable("No agent service on this server yet")
@@ -177,6 +197,7 @@ final class TurnRecorder {
         }
         let prepStart = Date()
         guard let token = await voiceToken() else {
+            lastPrepareFailMs = Date().timeIntervalSince1970 * 1000
             phase = .unavailable("Voice is offline")
             return
         }
@@ -217,7 +238,8 @@ final class TurnRecorder {
         let arrival = BeatClock.offset(localReceiveMs: seen, serverStartedAtMs: turn.startedAt.epochMs)
         let offset = lateJoin || abs(arrival) < 3000 ? 0 : arrival
         Self.log.info("go live \(Int(nowMs - turn.startedAt.epochMs)) ms after start (row arrived +\(Int(arrival)) ms), offset \(Int(offset))")
-        if lateJoin, !turn.transcript.isEmpty {
+        if (lateJoin || finals.isEmpty), !turn.transcript.isEmpty {
+            // Words already sent this attempt (a reopened app): keep them, add to them.
             finals = turn.transcript.hasSuffix("\n") ? turn.transcript : turn.transcript + "\n"
         }
         // The turn ends when the server says (poetry: the beat grid's end; debate: Go + 45 s).
@@ -279,6 +301,7 @@ final class TurnRecorder {
                 if text != self.sentTranscript {
                     self.sentTranscript = text
                     self.battle.updateTranscript(self.turnId, text)
+                    self.updatesSent += 1
                 }
                 try? await Task.sleep(for: .milliseconds(200))
             }
@@ -355,6 +378,10 @@ final class TurnRecorder {
     // MARK: events
 
     private func handle(_ event: CartesiaSTT.Event) {
+        sttEvents += 1
+        if case .partial = event { partialsHeard += 1 }
+        if case .final = event { partialsHeard += 1 }
+        if case .error(let m) = event { lastSTTNote = "error: \(m)" }
         Self.log.info("stt \(String(describing: event), privacy: .public)")
         switch event {
         case .partial(let text):
@@ -396,7 +423,9 @@ final class TurnRecorder {
                 }
             }
         case .closed:
-            break
+            lastSTTNote = "closed"
+            // The socket closed before the verse: drop it and prepare afresh (sync re-prepares).
+            if phase == .ready { teardown(); phase = .idle }
         }
         // Written by the live loop (5 Hz) while live, so partials reach the arena without flooding it.
     }

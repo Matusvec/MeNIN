@@ -24,6 +24,9 @@ struct PlayerScreen: View {
                 DiscusPhoneRoot(battle: battle, onBack: { if midBattle { confirmLeave = true } else { leave() } })  // no mic in discus
             } else {
                 PlayerView(model: model, actions: actions)
+                    .overlay(alignment: .topLeading) {
+                        if UserDefaults.standard.bool(forKey: "voiceDiagnostics"), let recorder { VoiceDiagnostics(recorder: recorder) }
+                    }
                     .confirmationDialog("Leave the battle?", isPresented: $confirmLeave, titleVisibility: .visible) {
                         Button("Leave", role: .destructive) { leave() }
                     } message: {
@@ -171,5 +174,23 @@ enum LastBattle {
               let name = d["name"] as? String, let at = d["at"] as? Double,
               Date().timeIntervalSince1970 - at < freshFor else { return nil }
         return (code, name)
+    }
+}
+
+/// Dev → Server → "Voice diagnostics": where a verse's words stop, on the poet's own screen.
+private struct VoiceDiagnostics: View {
+    let recorder: TurnRecorder
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { _ in
+            Text("voice \(String(describing: recorder.phase)) · stt \(recorder.sttEvents) · words \(recorder.partialsHeard) · sent \(recorder.updatesSent)\(recorder.lastSTTNote.isEmpty ? "" : " · " + recorder.lastSTTNote)")
+                .font(.caption2.monospaced())
+                .padding(6)
+                .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 6))
+                .foregroundStyle(.white)
+                .padding(.top, 50)
+                .padding(.leading, 8)
+                .allowsHitTesting(false)
+        }
     }
 }

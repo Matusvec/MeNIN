@@ -99,7 +99,8 @@ struct RootView: View {
         case .arena(let event):
             Routed(app: app, title: "Arena") { ArenaScreen(event: event, scene: app.scene) }
         case .player(let code):
-            Routed(app: app, title: "Poet") { PlayerScreen(initialCode: code, onLeave: { app.route = .home }) }
+            // A new code is a new screen: no recorder or connection state carries over between rooms.
+            Routed(app: app, title: "Poet") { PlayerScreen(initialCode: code, onLeave: { app.route = .home }).id(code) }
         case .bard:
             // TODO(spec): the lesson path (2 and 3 next); lesson 1 ships for the 6 PM study.
             Routed(app: app, title: "Bard") { BardScreen(app: app) }
@@ -212,6 +213,7 @@ private struct DevMenu: View {
 struct DevSettingsView: View {
     @State private var preset = ServerConfig.preset
     @State private var echoCancel = MicEngine.echoCancelSolo
+    @State private var voiceDiag = UserDefaults.standard.bool(forKey: "voiceDiagnostics")
 
     var body: some View {
         Form {
@@ -224,6 +226,8 @@ struct DevSettingsView: View {
                 LabeledContent("URL", value: ServerConfig.spacetime.absoluteString)
                 LabeledContent("Database", value: ServerConfig.database)
                 LabeledContent("Agent", value: ServerConfig.agent?.absoluteString ?? "not deployed")
+                Toggle("Voice diagnostics on the poet's screen", isOn: $voiceDiag)
+                    .onChange(of: voiceDiag) { _, on in UserDefaults.standard.set(on, forKey: "voiceDiagnostics") }
                 Toggle("Echo cancel in lessons and practice", isOn: $echoCancel)
                     .onChange(of: echoCancel) { _, on in UserDefaults.standard.set(on, forKey: "echoCancelSolo") }
             } footer: {

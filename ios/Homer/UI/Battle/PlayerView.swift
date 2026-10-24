@@ -731,7 +731,7 @@ private struct JoinScreen: View {
                         }
                         .onSubmit { focus = .name }
                     Text("Your name").tracked(10).padding(.top, Metrics.s2)
-                    TextField("Matus", text: $name)
+                    TextField("Your name", text: $name)
                         .font(Typeface.display(26))
                         .textContentType(.givenName)
                         .submitLabel(.join)
@@ -741,7 +741,7 @@ private struct JoinScreen: View {
                 .foregroundStyle(Palette.ink)
                 .padding(Metrics.s5)
                 .paper(Palette.paper)
-                if let error {
+                if let error = isHostName ? "That's the host's name. Pick yours." : error {
                     Text(error).font(Typeface.text(14, weight: 500)).foregroundStyle(Palette.cream)
                         .padding(.horizontal, Metrics.s3).padding(.vertical, Metrics.s2)
                         .paper(Palette.vermilion, radius: Metrics.radiusS, lifted: false)
@@ -754,13 +754,23 @@ private struct JoinScreen: View {
                 .disabled(!ready)
         }
         .onAppear {
-            if name.isEmpty { name = savedName }
+            // Never prefill a host's name: "Enter Homer!" is the host, not a poet.
+            if name.isEmpty, !Self.isHost(savedName) { name = savedName }
             if code.isEmpty { code = String(prefill.uppercased().prefix(4)) }
             focus = code.count == 4 ? .name : .code
         }
     }
 
-    private var ready: Bool { code.count == 4 && !name.trimmingCharacters(in: .whitespaces).isEmpty && join != nil && wait == nil }
+    private var ready: Bool {
+        code.count == 4 && !name.trimmingCharacters(in: .whitespaces).isEmpty && !isHostName && join != nil && wait == nil
+    }
+
+    private var isHostName: Bool { Self.isHost(name) }
+
+    /// The hosts' names are taken: a poet called Homer makes "Enter Homer!" mean nothing.
+    static func isHost(_ name: String) -> Bool {
+        ["homer", "socrates"].contains(name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())
+    }
 
     private func submit() {
         guard ready else { return }
