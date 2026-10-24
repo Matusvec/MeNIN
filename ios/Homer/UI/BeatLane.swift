@@ -77,10 +77,19 @@ struct BeatLaneView: View {
 
                     ForEach(words.indices, id: \.self) { i in
                         let word = words[i]
-                        Capsule()
-                            .fill(word.stressed ? (word.onBeat ? Palette.gold : Palette.ink) : Palette.ink3)
-                            .frame(width: 2.5 * k, height: (word.stressed ? 22 : 10) * k)
-                            .position(x: (c.beatPosition(word) + 0.5) * cell, y: mid)
+                        let x = (c.beatPosition(word) + 0.5) * cell
+                        if word.stressed && !word.onBeat {
+                            // A stress that missed the beat: a hollow vermilion mark, so a miss reads as a miss.
+                            Capsule()
+                                .strokeBorder(Palette.vermilion, lineWidth: 1.5 * k)
+                                .frame(width: 7 * k, height: 22 * k)
+                                .position(x: x, y: mid)
+                        } else {
+                            Capsule()
+                                .fill(word.stressed ? Palette.gold : Palette.ink3)
+                                .frame(width: 2.5 * k, height: (word.stressed ? 22 : 10) * k)
+                                .position(x: x, y: mid)
+                        }
                     }
 
                     ForEach(0..<lane.beatsPerLine, id: \.self) { beat in
@@ -110,8 +119,11 @@ struct BeatLaneView: View {
     private func lineText(_ words: [BeatWord]) -> AttributedString {
         var out = AttributedString()
         for (i, word) in words.enumerated() {
-            var a = AttributedString((i == 0 ? "" : " ") + word.text)
-            a.foregroundColor = word.stressed && word.onBeat ? Palette.goldDeep : (word.stressed ? Palette.ink : Palette.ink2)
+            if i > 0 { out += AttributedString(" ") }
+            var a = AttributedString(word.text)
+            // Hits are gold; a stress that missed the beat is vermilion and underlined.
+            a.foregroundColor = word.stressed ? (word.onBeat ? Palette.goldDeep : Palette.vermilion) : Palette.ink2
+            if word.stressed && !word.onBeat { a.underlineStyle = .single }
             out += a
         }
         return out

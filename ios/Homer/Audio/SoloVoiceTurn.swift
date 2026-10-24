@@ -42,6 +42,7 @@ final class SoloVoiceTurn {
     @ObservationIgnored private var flushWaiters: [CheckedContinuation<Void, Never>] = []
     @ObservationIgnored private var pendingLineBreaks = 0
     @ObservationIgnored private var started = false
+    @ObservationIgnored private var gate = StressGate()
 
     init(agent: AgentClient?, scene: SceneDriver, bpm: Double = 80, barsPerLine: Int = 2) {
         self.agent = agent
@@ -91,6 +92,11 @@ final class SoloVoiceTurn {
         return clock
     }
 
+    /// Homer's pre-rendered, beat-aligned demo on the same clock as the beat.
+    func playVoice(_ samples: [Float], atMs: Double) {
+        stage.scheduleVoice(samples, atMs: atMs)
+    }
+
     /// Count-in, the beat, and the open mic for `lines` lines. Returns the transcript (one line
     /// per row) once the last rest bar ends or `finishNow()` is called.
     func record(lines: Int, keyterms: [String]) async -> String {
@@ -100,6 +106,7 @@ final class SoloVoiceTurn {
         hits = 0
         hitMarks = []
         onsetsMs = []
+        gate.reset()
         pendingLineBreaks = 0
         await openSTT(keyterms: keyterms)
 
@@ -191,11 +198,18 @@ final class SoloVoiceTurn {
 
     private func handle(_ onset: MicEngine.Onset) {
         guard listening, let clock else { return }
-        onsetsMs.append(onset.epochMs - clock.beatAtMs)
-        if clock.hit(atMs: onset.epochMs) != nil {
+        let t = onset.epochMs - StressGate.heardLatencyMs - clock.beatAtMs  // as heard, on the beat's timeline
+        switch gate.judge(onset, on: clock) {
+        case .unstressed:
+            break
+        case .hit:
+            onsetsMs.append(t)
             hits += 1
-            hitMarks.append(BeatWord(text: "", t: onset.epochMs - clock.beatAtMs, stressed: true, onBeat: true))
+            hitMarks.append(BeatWord(text: "", t: t, stressed: true, onBeat: true))
             haptics.hit()
+        case .offBeat:
+            onsetsMs.append(t)
+            hitMarks.append(BeatWord(text: "", t: t, stressed: true, onBeat: false))
         }
     }
 

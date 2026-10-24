@@ -90,6 +90,15 @@ final class StageAudio: @unchecked Sendable {
         voice.scheduleBuffer(buffer, at: nil)
     }
 
+    /// Pre-rendered voice placed on the clock (a lesson's beat-aligned demo), sample-accurate.
+    func scheduleVoice(_ samples: [Float], atMs epochMs: Double) {
+        guard !samples.isEmpty,
+              let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(samples.count)) else { return }
+        buffer.frameLength = AVAudioFrameCount(samples.count)
+        samples.withUnsafeBufferPointer { buffer.floatChannelData![0].update(from: $0.baseAddress!, count: samples.count) }
+        voice.scheduleBuffer(buffer, at: Self.time(atMs: epochMs))
+    }
+
     func stopVoice() {
         voice.stop()
         voice.play()

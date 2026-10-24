@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import os
 
 /// One Bard lesson, start to finish (docs/ux-flow.md section 2):
 ///   L0 title → L1 Homer performs the demo over the beat → L2 he names the move and sets the
@@ -15,8 +16,13 @@ final class BardLessonSession {
     }
 
     static let bpm = 80
+    /// Baked demos (Resources/Voice/lesson-<id>-demo.caf) start this long before beat 1.
+    static let demoPrerollMs = 1000.0
 
-    private(set) var phase = Phase.loading
+    private(set) var phase = Phase.loading {
+        didSet { if phase != oldValue { Self.log.notice("bard phase \(String(describing: self.phase), privacy: .public) try \(self.tryNo)") } }
+    }
+    private static let log = Logger(subsystem: "com.matusvec.homer", category: "bard")
     private(set) var lesson: Lesson?
     private(set) var tryNo = 0
     /// Homer's one note after a try, and the try's Beat score (P20), shown small beside it.
@@ -101,10 +107,21 @@ final class BardLessonSession {
             lane.startedAt = clock.beatAtMs
             demoLane = lane
         }
-        for (n, line) in lines.enumerated() {
-            await waitUntil(clock.beatAtMs + clock.lineMs * Double(n))
-            guard !Task.isCancelled else { return }
-            turn.homer.enqueue(line)
+        if let demo = HomerVoice.bundled("lesson-\(lesson.id)-demo") {
+            // Baked so every stressed syllable sits on its pulse; the file starts 1 s before beat 1.
+            turn.playVoice(demo, atMs: clock.beatAtMs - Self.demoPrerollMs)
+            for (n, line) in lines.enumerated() {
+                await waitUntil(clock.beatAtMs + clock.lineMs * Double(n) - 300)
+                guard !Task.isCancelled else { return }
+                Task { await turn.homer.showLine(line, seconds: clock.barMs / 1000 + 0.6) }
+            }
+        } else {
+            // No baked demo: live TTS per line, on the downbeat (stresses won't sit exactly on the pulses).
+            for (n, line) in lines.enumerated() {
+                await waitUntil(clock.beatAtMs + clock.lineMs * Double(n))
+                guard !Task.isCancelled else { return }
+                turn.homer.enqueue(line)
+            }
         }
         await waitUntil(clock.endMs)
 
@@ -143,6 +160,7 @@ final class BardLessonSession {
                 try? await Task.sleep(for: .seconds(2))
                 continue
             }
+            Self.log.notice("bard feedback try \(self.tryNo): landed \(feedback.landed) miss \(feedback.miss ?? "-", privacy: .public) beat \(feedback.scan?.beat ?? -1) help \(feedback.help?.kind ?? "-", privacy: .public) line \(feedback.line, privacy: .public) | transcript \(self.lastTry.replacingOccurrences(of: "\n", with: " / "), privacy: .public) | onsets \(self.turn.onsetsMs.count)")
             beatScore = feedback.scan?.beat
             note = feedback.line.isEmpty ? (feedback.miss == "Homer is silent" ? "Homer is silent on this one." : nil) : feedback.line
             phase = .note

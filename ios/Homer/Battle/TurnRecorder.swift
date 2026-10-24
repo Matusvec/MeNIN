@@ -52,6 +52,7 @@ final class TurnRecorder {
     @ObservationIgnored private var pendingLineBreaks = 0
     @ObservationIgnored private var lastVoiceMs = 0.0
     @ObservationIgnored private var rescuedLines = Set<Int>()
+    @ObservationIgnored private var gate = StressGate()
 
     init(battle: BattleClient, agent: AgentClient?) {
         self.battle = battle
@@ -257,10 +258,17 @@ final class TurnRecorder {
     private func handle(_ onset: MicEngine.Onset) {
         guard phase == .live, talking else { return }
         lastVoiceMs = onset.epochMs
-        if let clock, clock.hit(atMs: onset.epochMs) != nil {
+        guard let clock else { return }
+        let t = onset.epochMs - StressGate.heardLatencyMs - clock.beatAtMs  // as heard, on the beat's timeline
+        switch gate.judge(onset, on: clock) {
+        case .unstressed:
+            break
+        case .hit:
             hits += 1
-            hitMarks.append(BeatWord(text: "", t: onset.epochMs - clock.beatAtMs, stressed: true, onBeat: true))
+            hitMarks.append(BeatWord(text: "", t: t, stressed: true, onBeat: true))
             haptics.hit()
+        case .offBeat:
+            hitMarks.append(BeatWord(text: "", t: t, stressed: true, onBeat: false))
         }
     }
 
@@ -356,6 +364,7 @@ final class TurnRecorder {
         partial = ""
         hits = 0
         hitMarks = []
+        gate.reset()
         rescueCard = nil
         rescueWhisper = nil
         whispers = [:]

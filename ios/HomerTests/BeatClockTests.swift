@@ -16,7 +16,8 @@ final class BeatClockTests: XCTestCase {
 
     func testHitsOnlyOnSpeakingBeatsWithinWindow() {
         XCTAssertEqual(clock.hit(atMs: 10_050)?.index, 0)
-        XCTAssertEqual(clock.hit(atMs: 9_900)?.index, 0)  // just early on beat 1
+        XCTAssertEqual(clock.hit(atMs: 9_920)?.index, 0)  // just early on beat 1
+        XCTAssertNil(clock.hit(atMs: 9_840))  // outside the ±140 ms window
         XCTAssertEqual(clock.hit(atMs: 12_200)?.index, 3)
         XCTAssertNil(clock.hit(atMs: 10_375))  // between beats
         XCTAssertNil(clock.hit(atMs: 13_000))  // rest bar

@@ -60,6 +60,7 @@ final class AppModel {
         case "dev", "diagnostics": route = .dev
         case "home": route = .home
         case "practice": route = .practice
+        case "bard": route = .bard
         case "first": route = .firstOpen
         default: break
         }

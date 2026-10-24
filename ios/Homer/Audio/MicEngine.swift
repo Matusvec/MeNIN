@@ -173,8 +173,8 @@ struct OnsetDetector {
     private var hopsSeen = 0
     private var anchorEpochMs: Double?
 
-    static let riseDB: Float = 9
-    static let floorEnergy = 0.2
+    static let riseDB: Float = 7
+    static let floorEnergy = 0.15
     static let refractoryMs = 120.0
     static let historyHops = 15
 

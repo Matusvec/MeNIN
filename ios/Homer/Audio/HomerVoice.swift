@@ -63,6 +63,20 @@ final class HomerVoice {
         }
     }
 
+    /// A caption with no audio of its own (the words are in a pre-rendered track), its
+    /// karaoke progress running over `seconds`.
+    func showLine(_ text: String, seconds: Double) async {
+        caption = Line(text: text)
+        spoken = 0
+        let start = Date()
+        while !Task.isCancelled, Date().timeIntervalSince(start) < seconds {
+            spoken = min(1, Date().timeIntervalSince(start) / seconds)
+            try? await Task.sleep(for: .milliseconds(50))
+        }
+        spoken = 1
+        caption = nil
+    }
+
     /// Fire and forget.
     func enqueue(_ text: String) {
         queue.append((Line(text: text), nil))

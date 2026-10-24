@@ -71,6 +71,7 @@ final class PracticeSession {
     @ObservationIgnored private var lastVoiceMs = 0.0
     @ObservationIgnored private var rescuedLines = Set<Int>()
     @ObservationIgnored private var rescues = 0
+    @ObservationIgnored private var gate = StressGate()
 
     init(agent: AgentClient?, scene: SceneDriver, hoard: [String], onCoin: @escaping (String) -> Void) {
         self.agent = agent
@@ -236,10 +237,16 @@ final class PracticeSession {
     private func handle(_ onset: MicEngine.Onset) {
         guard phase == .live, let clock else { return }
         lastVoiceMs = onset.epochMs
-        if clock.hit(atMs: onset.epochMs) != nil {
+        let t = onset.epochMs - StressGate.heardLatencyMs - clock.beatAtMs  // as heard, on the beat's timeline
+        switch gate.judge(onset, on: clock) {
+        case .unstressed:
+            break
+        case .hit:
             hits += 1
-            hitMarks.append(BeatWord(text: "", t: onset.epochMs - clock.beatAtMs, stressed: true, onBeat: true))
+            hitMarks.append(BeatWord(text: "", t: t, stressed: true, onBeat: true))
             haptics.hit()
+        case .offBeat:
+            hitMarks.append(BeatWord(text: "", t: t, stressed: true, onBeat: false))
         }
     }
 
@@ -355,6 +362,7 @@ final class PracticeSession {
         emotionHistory.removeAll()
         rescuedLines.removeAll()
         rescues = 0
+        gate.reset()
         pendingLineBreaks = 0
         for i in hand.indices { hand[i].used = false }
     }

@@ -10,8 +10,9 @@ struct BeatClock: Equatable, Sendable {
     var lines: Int
 
     static let beatsPerBar = 4
-    /// An onset this close to a speaking beat counts as a hit.
-    static let hitWindowMs = 120.0
+    /// An onset this close to a speaking beat counts as a hit. Generous for first-timers on a
+    /// laptop or phone mic; one hit per pulse (StressGate) keeps it from being gamed.
+    static let hitWindowMs = 140.0
 
     var beatMs: Double { 60_000 / bpm }
     var barMs: Double { beatMs * Double(Self.beatsPerBar) }
