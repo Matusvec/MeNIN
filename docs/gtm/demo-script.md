@@ -10,11 +10,11 @@ Setup: iPhones plus a Mac arena, at a shared table with 3 judges in a noisy hall
 | --- | --- | --- |
 | **Poet** | Poet 1. Opens the battle and tells the community story. | iPhone with a wired headset mic |
 | **Matus** | Host and Poet 2. Does the freeze-rescue moment and the how-it-works line. | iPhone with a wired headset mic |
-| **Operator** (MechE) | Runs the arena Mac, resets between judges, keeps the backup video one click away, watches the latency HUD. Says nothing. | Mac (arena) |
+| **Operator** (MechE) | Runs the arena Mac from beside it, resets between judges, keeps the backup video one click away, watches the latency HUD. Holds iPhone C, the spare. Says nothing. | Mac (arena), plus iPhone C |
 
 ## Before a judge reaches the table (not part of the 2 minutes)
 
-- The arena Mac runs Homer in arena mode, full screen, mirrored to the largest screen we have. The lobby is open: the room code is showing and both poets have joined under their epithets.
+- The arena Mac runs MeNIN in arena mode, full screen, **with its display turned to face the judges** (we have no external screen). The lobby is open: the room code is showing and both poets have joined under their epithets. A backup room is already created on the Mac, and its code is taped to the back of each phone.
 - **Demo config is loaded.** It's the same live engine with a shorter battle, nothing mocked:
   - 1 round, 2 poets, 2 lines per turn
   - The step-up wait is skipped, so the poet is ready automatically
@@ -24,8 +24,8 @@ Setup: iPhones plus a Mac arena, at a shared table with 3 judges in a noisy hall
   - The stitched song is capped at 4 lines
   - The crown is one line with no compliments
 - Three theme cards are on screen for the judge to pick from. The poets have rehearsed all three: "A ship that never came home", "The night before the deadline", "A city that never sleeps".
-- Headsets are on, and push-to-talk is checked on both phones. Captions are on for everything Homer says, because judges in that hall won't hear every word.
-- Ethernet is plugged into the Mac and the wired speaker is on. The backup video is open in a second window. Phones are on charge until the judge arrives.
+- Wired EarPods are in, and push-to-talk is checked on both phones. Captions are on for everything Homer says, because judges in that hall won't hear every word.
+- Ethernet is plugged into the Mac (through the USB-C adapter), and the speaker is wired into the Mac's headphone jack. The backup video is open in a second window and saved on all three phones. Phones are on power banks until the judge arrives. Full logistics are in [run-sheet.md](run-sheet.md).
 - Native iOS needs no audio-unlock tap, so the browser autoplay constraint from ux-flow doesn't apply.
 
 ## The script
@@ -80,7 +80,8 @@ Swap the 1:10–1:26 line for theirs. Same length, same spot.
 
 | What breaks | Do this | Don't |
 | --- | --- | --- |
-| A phone won't join, or SpacetimeDB wedges | Switch to **Practice Spar** on one device: the poet against Homer. The turn, verdict and scene are the same. | Debug at the table |
+| A phone won't join, or SpacetimeDB wedges | **Switch the Mac to the backup room**, and the poets rejoin with the taped code (about 15 s). If that fails too, switch to **Practice Spar** on one device: the poet against Homer, with the same turn, verdict and scene. | Debug at the table |
+| The Mac dies | **iPhone C becomes the arena**, in arena mode and landscape, propped facing the judges. Small, but it's live. | Apologize for the screen size more than once |
 | STT is garbage (noise) | Push-to-talk, headset closer to the mouth, one retry. If it fails again, play the backup video. | Retry three times |
 | No verdict at 4 s | Homer's pre-recorded stall line plays ("The Muse is still counting.") and Beat and Range show. Keep talking. | Fill silence with apologies |
 | No verdict at 10 s | Beat and Range only, then move on. Never show a canned verdict; that would be a mocked response. | Fake it |

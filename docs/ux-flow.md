@@ -173,7 +173,7 @@ Lesson 1 is used as the example. A lesson runs 2 to 5 minutes, which fits about 
 - **Arena:** A one-bar count-in, then the beat, the live lane, the transcript, and the scene moving with your voice. Homer's model line sits faded beside yours for comparison. From lesson 2 on, your hand is visible.
 - **Phone:** The lane, the transcript and your hand. The model line is collapsed.
 - **Homer:** Silent, apart from a freeze rescue. In lesson 2 the freeze is the point: Homer's prompt is meant to stop you, and the rescue is the lesson.
-- **Next:** The required lines are done. With the beat, each line gets a speaking bar and a rest bar.
+- **Next:** The required lines are done. Each line gets a speaking bar, then a rest bar (spec).
 
 #### L4 · One note · ~3–4 s
 
@@ -494,6 +494,7 @@ Demo mode is in SPEC.md. Rows marked P14 are extras, approved by leader.
 | Rounds | 3 | 1 | spec |
 | Poets | 2 to 5 | 2 team poets. Judges pick the theme and watch | spec, demo script |
 | Lines per turn | 4 | 2 | spec |
+| Rest bars | One after every line | Kept, but droppable if we run long | spec |
 | Ready and mic check | Ready tap, mic check on join | Auto-ready, no mic check | spec |
 | Verdict and scores | Verdict, then scores | Scores count up while Homer speaks the verdict | spec |
 | Best-line re-read and hoard step | Every turn | Off. The best line is carved once, at round end | spec |
