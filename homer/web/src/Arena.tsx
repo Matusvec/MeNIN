@@ -153,6 +153,31 @@ export default function ArenaPanel({
     if (import.meta.env.DEV) (window as unknown as { sceneFeed?: () => SceneFeed }).sceneFeed = feed
   }, [feed])
   const [, tick] = useState(0)
+  // GPU watch: Homer's 3D view and the sea are two WebGL canvases. A lost context (GPU pressure) is reported
+  // in the operator corner; three.js restores Homer's itself, and the sea yields (stops) rather than compete.
+  // Context events don't bubble, so listen in the capture phase.
+  const [glNote, setGlNote] = useState('')
+  useEffect(() => {
+    let clear = 0
+    const who = (e: Event) => ((e.target as Element | null)?.classList?.contains('menin-scene') ? 'The sea' : "Homer's 3D view")
+    const lost = (e: Event) => {
+      console.warn('MeNIN GPU: context lost:', who(e))
+      window.clearTimeout(clear)
+      setGlNote(`${who(e)} lost the GPU`)
+    }
+    const restored = (e: Event) => {
+      console.warn('MeNIN GPU: context restored:', who(e))
+      setGlNote(`${who(e)} is back`)
+      clear = window.setTimeout(() => setGlNote(''), 5000)
+    }
+    window.addEventListener('webglcontextlost', lost, true)
+    window.addEventListener('webglcontextrestored', restored, true)
+    return () => {
+      window.clearTimeout(clear)
+      window.removeEventListener('webglcontextlost', lost, true)
+      window.removeEventListener('webglcontextrestored', restored, true)
+    }
+  }, [])
 
   useEffect(() => {
     const a = new Arena(setView)
@@ -420,8 +445,10 @@ export default function ArenaPanel({
         </div>
 
         {/* Nothing is judged after the crown: the warning goes, the connection and sound notes stay. */}
-        {(room.phase !== 'finished' || view.status === 'offline' || !view.sound || view.voiceNote) && (
+        {(room.phase !== 'finished' || view.status === 'offline' || !view.sound || view.voiceNote || glNote) && (
           <p className="host-guard">
+            {glNote && <strong className="voice-note">{glNote}</strong>}
+            {glNote && ' '}
             {view.voiceNote && <strong className="voice-note">{view.voiceNote}</strong>}
             {view.voiceNote && room.phase !== 'finished' && ' '}
             {room.phase !== 'finished' && `This screen hosts room ${room.code}. Don’t open ${room.code} on another arena, or every turn is judged twice.`}
