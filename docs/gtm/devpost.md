@@ -67,7 +67,7 @@ Other events show as locked tiles, because we only unlock what's solid.
   - Each phone streams loudness and pitch at about 20 Hz into a table the arena subscribes to, so the arena's scene moves with whoever is speaking.
   - [Swift client: name the SDK used.]
 - **Cartesia** is the ears and the voice.
-  - Streaming speech-to-text (**ink-2**, over WebSocket) writes the live transcript. We send the poet's hand of formulas as **keyterms**, so it hears "the wine-dark sea" through the drum. With the drum at full volume (0 dB), word error rate is **3% with keyterms and 20% without**. The final transcript arrives about **75 ms** after the poet stops.
+  - Streaming speech-to-text (**ink-2**, over WebSocket) writes the live transcript. We send the poet's hand of formulas as **keyterms**, so it hears "the wine-dark sea" through the drum. With the drum at full volume (0 dB) in our tests, word error rate is **3% with keyterms and 20% without**. Those tests used recorded verse with the drum mixed in digitally. [Replace with the real-iPhone-mic numbers if swift's rerun differs.] The final transcript arrives about **75 ms** after the poet stops.
   - Cartesia TTS is Homer (**sonic-3.6**, the voice Carl, "Steady Storyteller"), with first audio in about **100 ms**: lessons, entrances, verdicts, the freeze whisper and the stitched song.
 - **Claude (Anthropic)** is the judge, the coach and the MC.
   - The judge gets your hand, the verse you're answering and the scanner's stress count, and returns scores, the best line and a one-line verdict as strict JSON in about [1.5] s.
@@ -90,7 +90,7 @@ Other events show as locked tiles, because we only unlock what's solid.
 ## Challenges we ran into
 
 - **One room, many mics.** The drum and Homer's voice bleed into every phone's mic. We put the beat in your palm through haptics and duck the arena drum while you speak.
-- **Hearing "rose-fingered Dawn" through a drum.** Recognizers mangle exactly the rare phrases the game runs on. We feed your hand to the recognizer as keyterms, and with the drum at full volume the word error rate fell from 20% to 3%.
+- **Hearing "rose-fingered Dawn" through a drum.** Recognizers mangle exactly the rare phrases the game runs on. We feed your hand to the recognizer as keyterms, and with the drum at full volume in our tests the word error rate fell from 20% to 3%.
 - **A verdict that lands in three seconds.** [What we measured, and what we cut to get there.]
 - [The platform switch from web to iOS mid-build, and what carried over.]
 - [Honest additions on Sunday morning.]
@@ -99,7 +99,7 @@ Other events show as locked tiles, because we only unlock what's solid.
 
 - [N] first-timers went through lesson one at Cal Hacks. Their Beat score went from **[X] to [Y]** in about four minutes.
 - A live battle on iPhones with a spoken verdict about [3] s after the last word.
-- 3% word error rate with the drum at full volume, down from 20%, by feeding each poet's hand to the recognizer.
+- 3% word error rate with the drum at full volume in our tests, down from 20%, by feeding each poet's hand to the recognizer.
 - The stitched song: the room leaves with one poem it made together.
 
 ## What we learned
@@ -116,7 +116,7 @@ Other events show as locked tiles, because we only unlock what's solid.
 
 ## Where it can go wrong (and what we do about it)
 
-- **Speech recognition misses in noisy rooms.** Keyterms from your hand cut word errors from 20% to 3% under the drum, but a loud hall is harder than our test mix. The live transcript is always on screen, so you see what Homer heard, and push-to-talk keeps the mic closed until you choose.
+- **Speech recognition misses in noisy rooms.** Keyterms from your hand cut word errors from 20% to 3% with the drum at full volume in our tests, but those were recorded test mixes, and a loud hall with a real phone mic is harder. The live transcript is always on screen, so you see what Homer heard, and push-to-talk keeps the mic closed until you choose.
 - **Taste is contestable.** Every verdict shows five scores and the quoted line, so you can see why you lost.
 - **Emotion reading is approximate.** The scene is art, not a diagnosis, and Homer never names your emotion.
 - **English stress has edge cases** with names, slang and loanwords. The scanner flags uncertain syllables instead of marking them wrong.

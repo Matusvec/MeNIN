@@ -92,7 +92,7 @@ Criteria: Workflow Design, Adoptability ("a measurable before and after"), Outpu
 | Second Overall | Nintendo Switch 2 | |
 | Third Overall | Google Intelligent Eyewear | |
 | **Most Creative Hack** | Instax camera plus film | Our strongest main-track bet. Nothing like it is in the field. |
-| **Most Technically Complex** | NuPhy Air60 HE | Real-time multiplayer on SpacetimeDB, streaming STT biased by the poet's hand (3% word error under a full-volume drum, 20% without), on-device onset detection for the beat lane, TTS, Metal shaders driven by live audio, a deterministic stress scanner, a Claude judge under 3 s |
+| **Most Technically Complex** | NuPhy Air60 HE | Real-time multiplayer on SpacetimeDB, streaming STT biased by the poet's hand (3% word error with the drum at full volume in our tests, 20% without), on-device onset detection for the beat lane, TTS, Metal shaders driven by live audio, a deterministic stress scanner, a Claude judge under 3 s |
 | **Best People-First Hack** | Apple Watch SE 3 | Practicing to speak in front of people, with friends |
 | **Hacker's Choice** | Logitech MX Master 4 | Discus as the hook (if shipped), then the battle. Hackers play on our phones Saturday night, at the table and at karaoke. |
 
@@ -115,7 +115,7 @@ Criteria: Workflow Design, Adoptability ("a measurable before and after"), Outpu
 Their own idea list includes "**Multi-speaker agent**: tutor, debate partner... with distinct voices" and "**Live coach**: low-latency back-and-forth where voice quality matters." That's us, and literally so if the Socratic debate ships. Then Homer and Socrates are two distinct Cartesia voices, and Socrates is a debate host. Homer is Carl, "Steady Storyteller" (older, calm, measured), so pick Socrates' voice to contrast: quicker, wry and conversational. Name both voice choices in the README.
 
 **Our measured numbers (from swift; quote them as they are):**
-- **STT:** ink-2, with the poet's hand of formulas sent as keyterms, gets a **3% word error rate even with the drum at full volume (0 dB)**. Without keyterms it's **20%**. The line: "We feed your hand to the recognizer, so it hears the wine-dark sea through the drum."
+- **STT:** ink-2, with the poet's hand of formulas sent as keyterms, gets a **3% word error rate even with the drum at full volume (0 dB)**. Without keyterms it's **20%**. These come from test recordings (a four-line verse with the drum mixed in digitally), not a real iPhone mic. Say "with the drum at full volume in our tests". Asked how we measured: "On test recordings with our drum mixed in at full volume. The real-mic test in the hall is Saturday night." swift reruns on a real iPhone mic once the agent is public, and those numbers replace these if they differ. The line: "We feed your hand to the recognizer, so it hears the wine-dark sea through the drum."
 - **The final transcript** arrives about **75 ms** after the poet stops.
 - **Homer's voice** (Carl, sonic-3.6): first audio in about **100 ms**.
 - **The beat lane is not Cartesia.** Its timing comes from onsets detected on the phone, not STT timestamps. Never credit STT for the lane.
@@ -124,7 +124,7 @@ These hit "Voice clear, responsive, and natural?" directly. The keyterm trick is
 
 **What to submit:**
 - [ ] A 2-minute, **demo-first** presentation: "one complete user flow, then a brief problem + how you built it". This is our video and our table script.
-- [ ] A README section covering **setup** (XcodeGen, signing, `.env`), **the Cartesia features used** (ink-2 streaming STT over WebSocket with the hand as keyterms, plus the 3%-vs-20% number; sonic-3.6 TTS as Carl for Homer's voice, the whisper and the stitched song), and **known limitations** (noise, accents, names)
+- [ ] A README section covering **setup** (XcodeGen, signing, `.env`), **the Cartesia features used** (ink-2 streaming STT over WebSocket with the hand as keyterms, plus the 3%-vs-20% number and how it was measured; sonic-3.6 TTS as Carl for Homer's voice, the whisper and the stitched song), and **known limitations** (noise, accents, names)
 - [ ] Source access, with no keys in the repo
 
 **Impact and responsibility is our weak quarter. Fix it with true statements:**
@@ -177,7 +177,7 @@ Hacker Guide and Hive add: "One thing done well and usable on Monday beats a bro
    - Functioning: Claude is the judge (with scanner output, the hand and the previous verse), the coach (lesson feedback, the freeze whisper), the MC, and the stitcher.
    - Development: the app is built by a team of Claude Code sessions: leader, pm, artist, multiplayer, iOS and gtm.
 5. **Failure modes** (state them in the Devpost):
-   - STT misses in noise. Keyterms from the hand cut word errors from 20% to 3% under the drum, and the transcript is always shown
+   - STT misses in noise. Keyterms from the hand cut word errors from 20% to 3% with the drum at full volume in our tests, and the transcript is always shown
    - Taste is contestable, so we show five axes and the quoted line
    - Emotion reading is approximate, so the scene is art, not a diagnosis, and never names your emotion
    - English stress has edge cases with names and slang, so the scanner flags uncertain syllables instead of marking them wrong
