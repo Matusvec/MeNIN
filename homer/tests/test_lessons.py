@@ -14,8 +14,10 @@ ROWS = {
                 "Title not used in the line", "The line around it is off"],
     "turn": ["No turn", "Turned at line 1 or 2", "Turned at line 4", "Said the feeling instead of showing it",
              "The turn cost a hit"],
-    "answer": ["Ignored the line", "Agreed with it", "Denied it", "Only one line", "Good answer, but a hit short"],
-    "boast": ["Ended on a weak word", "Kept going after the hit", "Hedged", "Didn't close the setup", "A hit short"],
+    "answer": ["Ignored the line", "Agreed with it", "Denied it", "Only one line", "Good answer, but a hit short",
+               "Answer below 7"],
+    "boast": ["Ended on a weak word", "Kept going after the hit", "Hedged", "Didn't close the setup", "A hit short",
+              "Image below 7"],
 }
 
 
@@ -23,7 +25,7 @@ def test_the_six_lessons_parse():
     ls = lessons()
     assert [l.id for l in ls.values()] == ["beat", "formula", "epithet", "turn", "answer", "boast"]
     for l in ls.values():
-        assert l.move and l.success and len(l.demo) == 4 and len(l.misses) == 5
+        assert l.move and l.success and len(l.demo) == 4 and len(l.misses) == len(ROWS[l.id])
         assert all(sum(hit for _, hit in line) == 4 for line in demo_words(l))
     assert common()["No speech heard"] == "I heard nothing. Again, and louder."
 
@@ -190,6 +192,8 @@ def test_lesson_five_the_answer(answer, verse, miss):
     assert checks.seen == ["you speak like a sparrow lost in a storm"]  # notation stripped for Homer's reading
     if miss == "Homer is silent":
         assert f.line == ""
+    if miss == "Answer below 7":
+        assert f.line == "Clean lines, but it barely stung. Take my sharpest word and turn it on me."
 
 
 CLOSING = "and I walk through the gate as the hall goes still"
@@ -213,3 +217,5 @@ def test_lesson_six_the_boast(boast, verse, miss, fill):
     assert checks.seen[0][2] == "and now you stand at the gate of the hall"  # Homer's setup, from lessons.md
     if fill:
         assert f.line == f"You ended on {fill}. End on the word that hits hardest."
+    if miss == "Image below 7":
+        assert f.line == "Clean, but I can't see it. Put one thing in that line I could paint."

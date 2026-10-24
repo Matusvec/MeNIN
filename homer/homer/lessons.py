@@ -276,6 +276,7 @@ ANSWER: list[Detector | None] = [
     lambda s, a: {} if a.facts["stance"] == "denied" else None,
     lambda s, a: {} if len(s.lines) < 2 else None,  # only one line
     lambda s, a: {} if any(line.hits < 4 for line in s.lines[:2]) else None,
+    lambda s, a: {} if a.facts["answer"] < GOOD_ANSWER else None,  # clean, but under the bar
 ]
 
 # Lesson 6: a boast that hedges isn't one.
@@ -296,6 +297,7 @@ BOAST: list[Detector | None] = [
     lambda s, a: {} if HEDGE_RE.search(s.lines[0].text) else None,
     lambda s, a: {} if not a.facts["closes_setup"] else None,
     lambda s, a: {} if s.lines[0].hits < 4 else None,
+    lambda s, a: {} if a.facts["image"] < GOOD_IMAGE else None,  # clean, but nothing to see
 ]
 
 DETECTORS: dict[str, list[Detector | None]] = {
@@ -400,12 +402,6 @@ async def feedback(a: Attempt, craft: CraftCheck | None = None, checks: Checks |
 
     if len(scan.lines) < expected:
         return Feedback(False, _fill(common()[short], {"lines": spell(expected).lower()}), short, scan)
-    # TODO(spec): lessons.md has no line for a clean try that the judge rates below the bar
-    # (Answer under 7, Image under 7); Homer says the shared "Again." line.
-    if a.lesson == "answer" and a.facts.get("answer", 0) < GOOD_ANSWER:
-        return Feedback(False, common().get("After feedback, before the next try", "Again."), "Answer below 7", scan)
-    if a.lesson == "boast" and a.facts.get("image", 0) < GOOD_IMAGE:
-        return Feedback(False, common().get("After feedback, before the next try", "Again."), "Image below 7", scan)
     title = title_of(a, scan) if a.lesson == "epithet" else ""
     return Feedback(True, _fill(lesson.success, {"title": title}), None, scan, title=title)
 

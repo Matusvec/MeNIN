@@ -205,6 +205,7 @@ you CAME to the HALL / with an EMPty HAND
 | Denied it | "Don't deny it. Own it, then turn it." |
 | Only one line | "Strong start. I asked for two. Finish it." |
 | Good answer, but a hit short | "That landed. Line two is a hit short. Tighten it." |
+| Answer below 7 | "Clean lines, but it barely stung. Take my sharpest word and turn it on me." |
 
 **Success:** "That stung. Good. That's an answer."
 
@@ -246,5 +247,6 @@ and NOW you STAND / at the GATE of the HALL
 | Hedged | "No maybe in a boast. Say it like it already happened." |
 | Didn't close the setup | "Close my verse, not a new one. Pay off the gate." |
 | A hit short | "The idea's there. Four hits, and save the heaviest for last." |
+| Image below 7 | "Clean, but I can't see it. Put one thing in that line I could paint." |
 
 **Success:** "That's how you leave a stage. Nobody speaks after that."

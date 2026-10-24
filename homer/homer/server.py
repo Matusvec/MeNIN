@@ -34,7 +34,9 @@ from .lessons import Attempt, demo_lane, feedback as lesson_feedback, lessons, s
 from .judge import EmptyVerse, Judge, Judgment, Turn
 from .scanner import TimedWord, VerseScan, beat_lane, scan_verse
 from .stdb import Refused, Stdb, StdbError
-from .voice import RateLimit, VoiceConfig, VoiceError, mint
+from .claude import budget
+from .guard import APP_KEY_HEADER, KEYED, AppKey, Guard, client_ip
+from .voice import VoiceConfig, VoiceError, mint
 
 log = logging.getLogger("homer")
 if not log.handlers:  # one compact line per timed call, next to uvicorn's own log
@@ -117,6 +119,22 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="Homer agent service", lifespan=lifespan)
+
+
+_guard = Guard()
+
+
+@app.middleware("http")
+async def protect(request: Request, call_next):
+    """The app key on the endpoints that spend credits, then a per-IP rate limit on every path."""
+    path = request.url.path
+    if path in KEYED and not AppKey.from_env().ok(request.headers.get(APP_KEY_HEADER)):
+        return JSONResponse({"detail": "missing or wrong app key"}, status_code=401)
+    ip = client_ip(request.headers, request.client.host if request.client else "?")
+    if not _guard.allow(path, ip):
+        log.warning("rate limited %s %s", path, ip)
+        return JSONResponse({"detail": "too many requests; slow down"}, status_code=429)
+    return await call_next(request)
 
 
 @app.middleware("http")
@@ -231,6 +249,7 @@ async def health() -> dict[str, Any]:
         "stdb": status["stdb"],  # off | claimed | failed | unreachable
         "stdbDb": cfg.stdb_db,
         "events": list(events.EVENTS),
+        "budget": {k: f"{n}/{budget().caps[k]}" for k, n in budget().used().items()},  # calls in the last hour / cap
     }
 
 
@@ -496,7 +515,6 @@ class VoiceTokenRequest(Model):
 
 
 _voice_http: httpx2.AsyncClient | None = None
-_voice_limit = RateLimit(limit=30, window=60.0)
 ROOM_CODE_RE = re.compile(r"^[A-Za-z]{4}$")
 
 
@@ -504,9 +522,6 @@ ROOM_CODE_RE = re.compile(r"^[A-Za-z]{4}$")
 async def voice_token(req: VoiceTokenRequest, request: Request) -> dict[str, Any]:
     """A short-lived Cartesia token: phone gets stt, arena gets tts, solo gets both."""
     global _voice_http
-    ip = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "?")
-    if not _voice_limit.allow(ip):
-        raise HTTPException(429, "too many voice tokens; wait a minute")
     cfg = settings()
     if req.room_code and cfg.stdb_token:
         if not ROOM_CODE_RE.match(req.room_code):

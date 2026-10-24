@@ -44,6 +44,17 @@ VERSE = "the wine dark sea took my brother's ship\nI stand on the shore with sal
 results: list[tuple[str, str, str]] = []  # (PASS | WARN | FAIL, check, detail)
 
 
+def app_key() -> str:
+    """The X-Homer-Key the service may require: HOMER_APP_KEY, else homer/.env (never committed)."""
+    key = os.environ.get("HOMER_APP_KEY", "").strip()
+    env = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env")
+    if not key and os.path.isfile(env):
+        for line in open(env, encoding="utf-8"):
+            if line.startswith("HOMER_APP_KEY="):
+                key = line.split("=", 1)[1].strip().strip("'\"")
+    return key
+
+
 def note(level: str, check: str, detail: str) -> None:
     results.append((level, check, detail))
     print(f"{level:4}  {check:14} {detail}", flush=True)
@@ -51,9 +62,10 @@ def note(level: str, check: str, detail: str) -> None:
 
 def request(base: str, path: str, body: dict | None = None, accept: str = "application/json", timeout: float = 20):
     data = json.dumps(body).encode() if body is not None else None
-    req = urllib.request.Request(
-        base + path, data=data, headers={"Content-Type": "application/json", "Accept": accept}, method="POST" if body is not None else "GET"
-    )
+    headers = {"Content-Type": "application/json", "Accept": accept}
+    if app_key():
+        headers["X-Homer-Key"] = app_key()
+    req = urllib.request.Request(base + path, data=data, headers=headers, method="POST" if body is not None else "GET")
     return urllib.request.urlopen(req, timeout=timeout)
 
 

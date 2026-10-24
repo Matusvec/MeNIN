@@ -302,7 +302,7 @@ Lessons 4 to 6:
 | 6, the boast | The closing line must end on a hit (else "You ended on {last_word}"), be one line, not hedge ("maybe", "I think"), close Homer's setup (Claude), and have four hits. Lands at Image 7 or more. The setup is that lesson's `exercise` lines. | about 1.5 s |
 
 - If a Claude reading doesn't come back, the result is `{"landed": false, "line": "", "miss": "Homer is silent"}`: show "Homer is silent on this one", never a canned line.
-- `miss` can also be `"Answer below 7"` or `"Image below 7"`: a clean try that the reading scores under the bar. lessons.md has no line for it yet, so Homer says the shared "Again." (a TODO(spec) for pm).
+- `miss` can also be `"Answer below 7"` or `"Image below 7"`: a clean try that the reading scores under the bar, with its own line from lessons.md.
 - `GET /lessons` also returns each lesson's `exercise` lines (notation) and `feedback: true` for all six.
 
 ### `POST /battle/poet`

@@ -15,6 +15,8 @@ from typing import Any
 
 import anthropic
 
+from .guard import Budget, BudgetExceeded, budget_from_env, kind_of
+
 log = logging.getLogger("homer")
 
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
@@ -26,6 +28,19 @@ FALLBACK_MODELS = ("claude-opus-5-5", "claude-opus-5", "claude-fable-5-1", "clau
 FAST_MODELS = ("claude-opus-5-5", "claude-opus-5", "claude-opus-4-8")
 
 OnText = Callable[[str], Awaitable[None] | None]
+
+_budget: Budget | None = None
+
+
+def budget() -> Budget:
+    """The global hourly cap on model calls (homer/guard.py), read from env once."""
+    global _budget
+    if _budget is None:
+        from .config import settings
+
+        settings()  # loads homer/.env
+        _budget = budget_from_env()
+    return _budget
 
 
 def thinking_for(model: str, mode: str) -> dict[str, str] | None:
@@ -84,7 +99,12 @@ def obj(props: dict[str, Any]) -> dict[str, Any]:
 
 
 async def complete(client: Any, kwargs: dict[str, Any], on_text: OnText | None = None) -> tuple[str, Any]:
-    """Stream one reply. Returns the text and the final message."""
+    """Stream one reply. Returns the text and the final message.
+
+    Raises BudgetExceeded when the hourly cap is spent; callers treat that
+    like a call that timed out.
+    """
+    budget().spend(kind_of(kwargs["model"]))
     if kwargs.get("speed") == "fast":
         fast = client.with_options(max_retries=0) if hasattr(client, "with_options") else client
         try:
@@ -118,7 +138,7 @@ async def ask(client: Any, kwargs: dict[str, Any], timeout: float) -> dict[str, 
     """One strict-JSON reply, or None if Claude refused, failed, ran late or broke the JSON."""
     try:
         text, final = await asyncio.wait_for(complete(client, kwargs), timeout)
-    except (asyncio.TimeoutError, anthropic.APIError) as exc:
+    except (asyncio.TimeoutError, anthropic.APIError, BudgetExceeded) as exc:
         log.warning("claude call failed: %s", type(exc).__name__)
         return None
     if final.stop_reason == "refusal":

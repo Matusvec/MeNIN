@@ -9,10 +9,11 @@ from __future__ import annotations
 
 import os
 import time
-from collections import deque
 from dataclasses import dataclass
 
 import httpx2
+
+from .guard import BudgetExceeded, RateLimit  # noqa: F401  (RateLimit kept importable from here)
 
 TOKEN_URL = "https://api.cartesia.ai/access-token"
 
@@ -52,30 +53,18 @@ class VoiceConfig:
         )
 
 
-class RateLimit:
-    """At most `limit` calls per `window` seconds per key (an IP)."""
-
-    def __init__(self, limit: int = 30, window: float = 60.0) -> None:
-        self.limit, self.window = limit, window
-        self.hits: dict[str, deque[float]] = {}
-
-    def allow(self, key: str, now: float | None = None) -> bool:
-        now = time.monotonic() if now is None else now
-        q = self.hits.setdefault(key, deque())
-        while q and now - q[0] > self.window:
-            q.popleft()
-        if len(q) >= self.limit:
-            return False
-        q.append(now)
-        return True
-
-
 async def mint(cfg: VoiceConfig, role: str, http: httpx2.AsyncClient) -> dict:
     """A token for `role`, plus the models and voice the app should use."""
     if role not in GRANTS:
         raise ValueError(f"unknown role: {role}")
     if not cfg.api_key:
         raise VoiceError("CARTESIA_API_KEY is not set")
+    from .claude import budget
+
+    try:
+        budget().spend("cartesia")
+    except BudgetExceeded as exc:
+        raise VoiceError(str(exc)) from None
     res = await http.post(
         TOKEN_URL,
         headers={"Authorization": f"Bearer {cfg.api_key}", "Cartesia-Version": cfg.version},

@@ -36,6 +36,7 @@ from .events import Event
 from .formulas import Formula
 from .prompts import block, judge_system, quote_untrusted
 from .debate import Delivery
+from .guard import BudgetExceeded
 from .scanner import TimedWord, VerseScan, scan_verse, strong_hits
 
 log = logging.getLogger("homer")
@@ -270,7 +271,7 @@ class Judge:
             text, final = await asyncio.wait_for(
                 self._call(self.request(turn, event, content), j, t0, on_verdict), self.cfg.judge_timeout
             )
-        except (asyncio.TimeoutError, anthropic.APIError) as exc:
+        except (asyncio.TimeoutError, anthropic.APIError, BudgetExceeded) as exc:
             j.silent, j.error = True, type(exc).__name__
             j.best_line = lines[fallback] if fallback is not None else ""
             if event.hand == "moves":
