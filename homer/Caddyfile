@@ -1,0 +1,9 @@
+# The agent service over HTTPS, for the caddy profile in docker-compose.yml.
+# HOMER_HOST is the public name, for example 203.0.113.7.sslip.io. Caddy gets
+# and renews its Let's Encrypt certificate by itself (ports 80 and 443 must be open).
+{$HOMER_HOST} {
+	reverse_proxy homer:8000 {
+		# /judge streams the verdict as server-sent events: pass each event through at once.
+		flush_interval -1
+	}
+}

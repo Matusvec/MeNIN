@@ -35,8 +35,15 @@ class Stdb:
     def _auth(self) -> dict[str, str]:
         return {"Authorization": f"Bearer {self.cfg.stdb_token}"} if self.cfg.stdb_token else {}
 
+    async def _post(self, url: str, **kw: Any) -> httpx2.Response:
+        """POST, with network failures raised as StdbError: a database that's down never crashes the service."""
+        try:
+            return await self.http.post(url, **kw)
+        except httpx2.HTTPError as exc:
+            raise StdbError(f"can't reach {self.cfg.stdb_url}: {type(exc).__name__}") from exc
+
     async def call(self, reducer: str, *args: Any) -> None:
-        res = await self.http.post(f"{self.base}/call/{reducer}", json=list(args), headers=self._auth())
+        res = await self._post(f"{self.base}/call/{reducer}", json=list(args), headers=self._auth())
         if res.status_code == 530:
             raise Refused(f"{reducer}: {res.text}")
         if res.status_code >= 300:
@@ -44,7 +51,7 @@ class Stdb:
 
     async def sql(self, query: str) -> list[dict[str, Any]]:
         """One statement; rows as dicts keyed by column name."""
-        res = await self.http.post(f"{self.base}/sql", content=query, headers=self._auth())
+        res = await self._post(f"{self.base}/sql", content=query, headers=self._auth())
         if res.status_code >= 300:
             raise StdbError(f"sql: HTTP {res.status_code} {res.text}")
         out = []
@@ -55,8 +62,9 @@ class Stdb:
 
     async def new_identity(self) -> tuple[str, str]:
         """A fresh identity and its token (first run only; keep the token in .env)."""
-        res = await self.http.post(f"{self.cfg.stdb_url}/v1/identity")
-        res.raise_for_status()
+        res = await self._post(f"{self.cfg.stdb_url}/v1/identity")
+        if res.status_code >= 300:
+            raise StdbError(f"identity: HTTP {res.status_code} {res.text}")
         body = res.json()
         return body["identity"], body["token"]
 

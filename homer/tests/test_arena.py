@@ -125,3 +125,31 @@ def test_deal_reads_poets_from_sql_and_picks_a_theme():
     # Round two deals fresh cards and a fresh theme.
     theme2, hands2 = asyncio.run(arena.deal_round(1, 2, ""))
     assert theme2 != theme and not set(hands2[1]) & set(ada)
+
+
+def test_a_database_that_is_down_is_a_stdb_error_not_a_crash():
+    from homer.stdb import StdbError
+
+    def down(request):
+        raise httpx2.ConnectError("All connection attempts failed", request=request)
+
+    db = Stdb(cfg(), httpx2.AsyncClient(transport=httpx2.MockTransport(down)))
+    for work in (db.call("set_scene", 0), db.sql("SELECT * FROM room"), db.is_service()):
+        with pytest.raises(StdbError, match="can't reach"):
+            asyncio.run(work)
+
+
+def test_the_service_starts_when_spacetimedb_is_down(monkeypatch):
+    monkeypatch.setenv("HOMER_WARM", "0")
+
+    def down(request):
+        raise httpx2.ConnectError("All connection attempts failed", request=request)
+
+    arena = Arena(Judge(client=FakeClient(reply()), cfg=cfg()), Stdb(cfg(), httpx2.AsyncClient(transport=httpx2.MockTransport(down))))
+    server._judge, server._arena = arena.judge, arena
+    monkeypatch.setattr(server, "settings", lambda: cfg())
+    try:
+        with TestClient(server.app) as c:
+            assert c.get("/health").json()["stdb"] == "unreachable"
+    finally:
+        server._judge = server._arena = None

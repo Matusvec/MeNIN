@@ -1,14 +1,12 @@
-# Production: the agent service behind a Cloudflare Tunnel.
+# Production: the agent service, served one of two ways. See DEPLOY.md.
 #
-# No ports are published; the tunnel is the only way in. In the Cloudflare
-# dashboard, give the tunnel a public hostname api.<domain> -> http://homer:8000.
-# Secrets come only from homer/.env (gitignored): see .env.example.
-#
-#   docker compose up -d --build
+#   docker compose --profile caddy up -d --build     # https://<ip>.sslip.io, Let's Encrypt via Caddy (no domain needed)
+#   docker compose --profile tunnel up -d --build    # Cloudflare Tunnel to api.<domain> (no open ports)
 #   docker compose logs -f homer
 #
+# Secrets come only from homer/.env (gitignored): see .env.example.
 # Run one replica only: dealt hands, emotion samples and in-flight judging live in memory.
-# Never run this tunnel on the laptop and the VPS at once; they fight over the token.
+# Never run the same tunnel on the laptop and the VPS at once; they fight over the token.
 
 services:
   homer:
@@ -19,12 +17,36 @@ services:
     env_file: .env
     restart: unless-stopped
 
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    command: tunnel --no-autoupdate run
+  # Path A, no domain: Caddy on 80/443 gets a Let's Encrypt certificate for HOMER_HOST
+  # (for example 203.0.113.7.sslip.io, which resolves to that IP by its name).
+  caddy:
+    profiles: [caddy]
+    image: caddy:2
+    ports: ["80:80", "443:443"]
     environment:
-      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?set CLOUDFLARE_TUNNEL_TOKEN in homer/.env}
+      HOMER_HOST: ${HOMER_HOST:-}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data  # the certificate survives restarts, so Let's Encrypt isn't asked again
+      - caddy_config:/config
     depends_on:
       homer:
         condition: service_healthy
     restart: unless-stopped
+
+  # Path B, a domain on Cloudflare: the tunnel is the only way in, no open ports.
+  # Public hostname in the Cloudflare dashboard: api.<domain> -> http://homer:8000
+  cloudflared:
+    profiles: [tunnel]
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      homer:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

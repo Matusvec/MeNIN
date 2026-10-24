@@ -10,19 +10,26 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]  # the homer/ service folder
 
 
+def read_env(path: Path) -> dict[str, str]:
+    """KEY=VALUE lines from an env file, skipping blanks and comments."""
+    out = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            k, v = line.split("=", 1)
+            out[k.strip()] = v.strip().strip("'\"")
+    return out
+
+
 def load_env(path: Path = ROOT / ".env") -> None:
-    """Read KEY=VALUE lines into os.environ without overriding what's set.
+    """Read homer/.env into os.environ without overriding what's set.
 
     HOMER_DOTENV=0 skips the file (the tests set it).
     """
     if os.environ.get("HOMER_DOTENV") == "0" or not path.is_file():
         return
-    for line in path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        k, v = line.split("=", 1)
-        os.environ.setdefault(k.strip(), v.strip().strip("'\""))
+    for k, v in read_env(path).items():
+        os.environ.setdefault(k, v)
 
 
 def _env(name: str, default: str = "") -> str:
