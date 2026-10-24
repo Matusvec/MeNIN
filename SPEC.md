@@ -39,7 +39,7 @@ MeNIN is ancient Greek Wii Sports: party games from the Greek *agon* (contest), 
 
 ## First open
 
-The first time someone opens MeNIN, Homer speaks before any menu: "The first word of Western literature is mēnin. Rage. Give me one line." You say anything, the scene answers your voice, and Homer says: "Good. Now let me show you how I did it." Then the event menu. Every later launch opens straight on the menu. The TTS must say mēnin as "MAY-nin"; spell it phonetically in the TTS input and check it on a real speaker.
+The first time someone opens MeNIN, Homer speaks before any menu: "The first word of Western literature is mēnin. Rage. Give me one line." You say anything, the scene answers your voice, and Homer says: "Good. Now let me show you how I did it." Then the event menu. Every later launch opens straight on the menu. The TTS must say mēnin as "MAY-nin": write it as "may-nin" (lowercase, hyphenated) in the TTS input, since capitals get spelled out. The caption still shows mēnin.
 
 ## The three modes
 
