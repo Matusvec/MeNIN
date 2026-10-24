@@ -80,6 +80,10 @@ final class BattleClient: SpacetimeClientDelegate {
     @ObservationIgnored private var arenaTicker: Task<Void, Never>?
     @ObservationIgnored private var autoStarted: String?
     @ObservationIgnored private var agentAsked = Set<String>()
+    /// Bumped each time this room starts over (Rematch, a new event, or a finished battle
+    /// restarting from elsewhere), so per-round work like dealing and the song is asked again.
+    @ObservationIgnored private(set) var generation = 0
+    @ObservationIgnored private var lastPhaseSeen: RoomPhase?
     /// Set when the agent service is configured; nil leaves dealing and judging to whatever
     /// else serves the database (multiplayer's dev-agent, behind its own dev flag).
     @ObservationIgnored var agent: AgentClient?
@@ -90,11 +94,18 @@ final class BattleClient: SpacetimeClientDelegate {
         arenaTicker?.cancel()
         arenaTicker = Task { [weak self] in
             while !Task.isCancelled {
+                self?.trackGeneration()
                 self?.autoStartIfNeeded()
                 self?.askAgentIfNeeded()
                 try? await Task.sleep(for: .milliseconds(300))
             }
         }
+    }
+
+    private func trackGeneration() {
+        let phase = room?.phaseValue
+        if lastPhaseSeen == .finished, let phase, phase != .finished { generation += 1 }
+        lastPhaseSeen = phase
     }
 
     /// The arena asks the agent for battle work when the phase calls for it, once per step.
@@ -135,19 +146,19 @@ final class BattleClient: SpacetimeClientDelegate {
             quietly("emotion \(turn.id) \(tick)") { try await agent.battleEmotion(req) }
         case .dealing:
             let req = BattleDealRequest(roomId: room.id, roundNo: room.roundNo, theme: room.nextTheme)
-            once("deal \(room.id) \(room.roundNo)") { try await agent.battleDeal(req) }
+            once("deal \(room.id).\(generation) \(room.roundNo)") { try await agent.battleDeal(req) }
         case .roundEnd:
             if let round = currentRound {
                 once("verdict \(round.id)") { try await agent.battleVerdict(.init(roundId: round.id)) }
             }
             // The song: pre-stitched after round 1, final after the last round.
             if room.roundNo == 1 || room.roundNo == room.rounds {
-                once("song \(room.id) \(room.roundNo)") { try await agent.battleSong(.init(roomId: room.id)) }
+                once("song \(room.id).\(generation) \(room.roundNo)") { try await agent.battleSong(.init(roomId: room.id)) }
             }
             // Deal the next round ahead so the next turn is ready the moment the verdict ends.
             if room.roundNo < room.rounds && !room.themeChoice {
                 let req = BattleDealRequest(roomId: room.id, roundNo: room.roundNo + 1, theme: "")
-                once("deal \(room.id) \(room.roundNo + 1)") { try await agent.battleDeal(req) }
+                once("deal \(room.id).\(generation) \(room.roundNo + 1)") { try await agent.battleDeal(req) }
             }
         case .judging:
             guard let turn = currentTurn, turn.statusValue == .judging, let poet = player(turn.playerId) else { return }
@@ -274,7 +285,8 @@ final class BattleClient: SpacetimeClientDelegate {
     @ObservationIgnored private var advancedFrom = Set<String>()
 
     /// Identifies the reveal on screen now; an advance is only valid from the reveal it was meant for.
-    var revealKey: String? { room.map { "\($0.id) \($0.phase) \($0.roundNo) \($0.currentTurnId)" } }
+    /// Includes the generation: after a Rematch, round 1's round end is a new reveal.
+    var revealKey: String? { room.map { "\($0.id).\(generation) \($0.phase) \($0.roundNo) \($0.currentTurnId)" } }
 
     /// Advances once per reveal, however many callers (conductor, operator key, dev autopilot) ask.
     /// Pass `from` when the advance was scheduled earlier, so a late one can't skip the next reveal.
@@ -285,9 +297,17 @@ final class BattleClient: SpacetimeClientDelegate {
         advance()
     }
     func skipTurn(_ turnId: UInt64) { call("skip_turn", Reducer.TurnId(turnId: turnId)) }
-    func rematch() { call("rematch", Reducer.RoomId(roomId: roomId)) }
+    func rematch() {
+        generation += 1
+        lastPhaseSeen = nil  // already counted; don't count the finished → dealing step again
+        call("rematch", Reducer.RoomId(roomId: roomId))
+    }
     /// The hall stays open (P16): switch events without a new room; poets and seats stay.
-    func setEvent(_ event: String, rounds: UInt32) { call("set_event", Reducer.SetEvent(roomId: roomId, event: event, rounds: rounds)) }
+    func setEvent(_ event: String, rounds: UInt32) {
+        generation += 1
+        lastPhaseSeen = nil
+        call("set_event", Reducer.SetEvent(roomId: roomId, event: event, rounds: rounds))
+    }
 
     // Both
 

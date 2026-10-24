@@ -5,6 +5,8 @@ import SwiftUI
 /// start panel before that. Sound, Homer and auto-advance live in ArenaConductor.
 struct ArenaScreen: View {
     var event = "poetry"
+    /// The app's always-on scene: the conductor paints the poet's voice and the room's feeling on it.
+    var scene: SceneDriver?
     @State private var battle = BattleClient(role: .arena)
     @State private var autopilot: DevAutopilot?
     @State private var conductor: ArenaConductor?
@@ -30,11 +32,17 @@ struct ArenaScreen: View {
         .task {
             battle.agent = AgentClient.configured
             battle.connect(to: ServerConfig.spacetime, database: ServerConfig.database)
-            let conductor = ArenaConductor(battle: battle, agent: AgentClient.configured)
+            let conductor = ArenaConductor(battle: battle, agent: AgentClient.configured, scene: scene)
             conductor.start()
             self.conductor = conductor
+            #if DEBUG
+            if UserDefaults.standard.bool(forKey: "songTest") { conductor.rehearseSong() }
+            #endif
             autopilot = DevAutopilot(battle: battle)
             autopilot?.start()
+        }
+        .onChange(of: inHall) { _, hall in
+            if hall { conductor?.restScene() }
         }
         .onDisappear {
             conductor?.stop()

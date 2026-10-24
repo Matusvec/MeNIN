@@ -11,6 +11,14 @@ final class CartesiaTTS: @unchecked Sendable {
     private let sampleRate: Int
     private let lock = NSLock()
     private var streams: [String: AsyncThrowingStream<[Float], Error>.Continuation] = [:]
+    private var wordTimes: [String: [Word]] = [:]
+
+    /// A word and where it sits in the rendered audio, in seconds.
+    struct Word: Sendable, Equatable {
+        var text: String
+        var start: Double
+        var end: Double
+    }
 
     init(token: VoiceToken, sampleRate: Int = 48_000, session: URLSession = .shared) {
         self.token = token
@@ -34,13 +42,26 @@ final class CartesiaTTS: @unchecked Sendable {
 
     /// Streams one line's audio. `speed` is Cartesia's 0.6...1.5 guidance.
     func speak(_ text: String, speed: Double = 1, host: String = "homer") -> AsyncThrowingStream<[Float], Error> {
+        start(text, speed: speed, host: host, timestamps: false).stream
+    }
+
+    /// One whole line with its word timings, for placing the words on the beat.
+    func render(_ text: String, speed: Double = 1, host: String = "homer") async throws -> (samples: [Float], words: [Word]) {
+        let (id, stream) = start(text, speed: speed, host: host, timestamps: true)
+        var samples: [Float] = []
+        for try await chunk in stream { samples += chunk }
+        let words = lock.withLock { wordTimes.removeValue(forKey: id) } ?? []
+        return (samples, words)
+    }
+
+    private func start(_ text: String, speed: Double, host: String, timestamps: Bool) -> (id: String, stream: AsyncThrowingStream<[Float], Error>) {
         let contextId = UUID().uuidString
         let (stream, continuation) = AsyncThrowingStream.makeStream(of: [Float].self)
         lock.withLock { streams[contextId] = continuation }
         let tts = token.tts ?? .init(model: "sonic-3.6", voiceId: "", voices: nil)
         // Socrates speaks in his own voice once one is picked; until then, Homer's.
         let voiceId = tts.voices?[host].flatMap { $0.isEmpty ? nil : $0 } ?? tts.voiceId
-        let request: [String: Any] = [
+        var request: [String: Any] = [
             "model_id": tts.model,
             "transcript": text,
             "voice": ["mode": "id", "id": voiceId],
@@ -50,12 +71,13 @@ final class CartesiaTTS: @unchecked Sendable {
             "continue": false,
             "generation_config": ["speed": speed],
         ]
+        if timestamps { request["add_timestamps"] = true }
         let data = try! JSONSerialization.data(withJSONObject: request)
         task.send(.string(String(decoding: data, as: UTF8.self))) { [weak self] error in
             if let error { self?.finish(contextId, error: error) }
         }
         continuation.onTermination = { [weak self] _ in self?.lock.withLock { _ = self?.streams.removeValue(forKey: contextId) } }
-        return stream
+        return (contextId, stream)
     }
 
     private func finish(_ contextId: String, error: Error? = nil) {
@@ -93,6 +115,12 @@ final class CartesiaTTS: @unchecked Sendable {
             var data: String?
             var done: Bool?
             var message: String?
+            var word_timestamps: Stamps?
+            struct Stamps: Decodable {
+                var words: [String]
+                var start: [Double]
+                var end: [Double]
+            }
         }
         guard let m = try? JSONDecoder().decode(Message.self, from: data), let id = m.context_id else { return }
         switch m.type {
@@ -100,6 +128,12 @@ final class CartesiaTTS: @unchecked Sendable {
             if let b64 = m.data, let bytes = Data(base64Encoded: b64) {
                 let samples = bytes.withUnsafeBytes { Array($0.bindMemory(to: Float.self)) }
                 _ = lock.withLock { streams[id]?.yield(samples) }
+            }
+            if m.done == true { finish(id) }
+        case "timestamps":
+            if let w = m.word_timestamps {
+                let words = zip(w.words, zip(w.start, w.end)).map { Word(text: $0, start: $1.0, end: $1.1) }
+                lock.withLock { wordTimes[id, default: []] += words }
             }
             if m.done == true { finish(id) }
         case "done":

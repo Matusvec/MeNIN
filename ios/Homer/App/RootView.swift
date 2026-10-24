@@ -66,7 +66,7 @@ struct RootView: View {
         case .battle(let event):
             Routed(app: app, title: "Fight") { BattleChoiceView(app: app, event: event) }
         case .arena(let event):
-            Routed(app: app, title: "Arena") { ArenaScreen(event: event) }
+            Routed(app: app, title: "Arena") { ArenaScreen(event: event, scene: app.scene) }
         case .player(let code):
             Routed(app: app, title: "Poet") { PlayerScreen(initialCode: code, onLeave: { app.route = .home }) }
         case .bard:

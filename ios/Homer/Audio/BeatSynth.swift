@@ -58,6 +58,61 @@ enum BeatSynth {
         return buffer(mix, sampleRate: sampleRate)
     }
 
+    /// The arena's reveal sounds (ArenaCue), procedural until the composer's files land.
+    static func cue(_ cue: ArenaCue, sampleRate sr: Double) -> AVAudioPCMBuffer {
+        var mix: [Float]
+        switch cue {
+        case .slam:  // the entrance slab: a deep thump with a dusty edge
+            mix = thump(sr, from: 95, to: 32, seconds: 0.55, decay: 0.22, gain: 1.1)
+            add(rim(sr, gain: 0.35), into: &mix, at: 0)
+        case .flip:  // a card snapping face up
+            mix = noiseTick(sr, seconds: 0.03, decay: 0.006, tone: 2_400, gain: 0.45)
+        case .knock(let axis):  // wood, a step higher per axis
+            mix = woodKnock(sr, hz: 520 * pow(1.12, Double(axis)), gain: 0.55)
+        case .total:  // the heavy knock
+            mix = woodKnock(sr, hz: 300, gain: 0.7)
+            add(thump(sr, from: 120, to: 50, seconds: 0.3, decay: 0.09, gain: 0.7), into: &mix, at: 0)
+        case .carve:  // three chisel taps on stone
+            mix = [Float](repeating: 0, count: Int(0.3 * sr))
+            for (k, gain) in [Float(0.4), 0.3, 0.35].enumerated() {
+                add(noiseTick(sr, seconds: 0.04, decay: 0.008, tone: 3_100 - Double(k) * 250, gain: gain), into: &mix, at: Int(Double(k) * 0.09 * sr))
+            }
+        case .crown:  // the laurel lands: thump and the drum strike together
+            mix = thump(sr, from: 110, to: 38, seconds: 0.7, decay: 0.28, gain: 1)
+            add(kick(sr, gain: 0.8), into: &mix, at: 0)
+            add(rim(sr, gain: 0.6), into: &mix, at: 0)
+        }
+        return buffer(mix, sampleRate: sr)
+    }
+
+    private static func thump(_ sr: Double, from f0: Double, to f1: Double, seconds: Double, decay: Double, gain: Float) -> [Float] {
+        var phase = 0.0
+        return (0..<Int(seconds * sr)).map { i in
+            let t = Double(i) / sr
+            phase += 2 * .pi * (f1 + (f0 - f1) * exp(-t / 0.04)) / sr
+            return gain * Float(sin(phase) * exp(-t / decay))
+        }
+    }
+
+    private static func woodKnock(_ sr: Double, hz: Double, gain: Float) -> [Float] {
+        (0..<Int(0.12 * sr)).map { i in
+            let t = Double(i) / sr
+            let body = sin(2 * .pi * hz * t) + 0.4 * sin(2 * .pi * hz * 2.7 * t) * exp(-t / 0.01)
+            return gain * Float(body * exp(-t / 0.028))
+        }
+    }
+
+    private static func noiseTick(_ sr: Double, seconds: Double, decay: Double, tone: Double, gain: Float) -> [Float] {
+        var rng = SplitMix(seed: UInt64(tone))
+        var lowpassed: Float = 0
+        return (0..<Int(seconds * sr)).map { i in
+            let t = Double(i) / sr
+            let noise = Float.random(in: -1...1, using: &rng)
+            lowpassed += 0.5 * (noise - lowpassed)
+            return gain * ((noise - lowpassed) + 0.3 * Float(sin(2 * .pi * tone * t))) * Float(exp(-t / decay))
+        }
+    }
+
     // MARK: voices
 
     /// The composer's recorded hits (docs/audio.md): dry, mono, 48 kHz. When a file is bundled it

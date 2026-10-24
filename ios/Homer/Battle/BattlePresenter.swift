@@ -174,7 +174,8 @@ enum BattlePresenter {
                 battle.setEvent(kind.rawValue, rounds: Reducer.CreateRoom.preset(event: kind.rawValue, demo: room.demo).rounds)
                 inHall?.wrappedValue = false
             } : nil,
-            backToHall: room.phaseValue == .finished && inHall != nil ? { inHall?.wrappedValue = true } : nil
+            backToHall: room.phaseValue == .finished && inHall != nil ? { inHall?.wrappedValue = true } : nil,
+            cue: { conductor?.play($0) }
         )
     }
 
@@ -187,6 +188,7 @@ enum BattlePresenter {
         var model = PlayerModel(me: plate(me), code: room.code, round: Int(room.roundNo), rounds: Int(room.rounds),
                                 theme: battle.currentRound?.theme, homer: homerLine(homer))
         model.event = event(room)
+        model.announced = me.entered && me.named
         if !me.entered {
             model.moment = .micCheck
             return model

@@ -77,6 +77,18 @@ final class HomerVoice {
         caption = nil
     }
 
+    /// One line rendered whole with its word timings, to place on the beat; nil when the voice is offline.
+    func render(_ text: String) async -> (samples: [Float], words: [CartesiaTTS.Word])? {
+        guard let tts = await connectedTTS() else { return nil }
+        do {
+            return try await tts.render(text, host: host)
+        } catch {
+            Self.log.info("tts render failed: \(error.localizedDescription, privacy: .public)")
+            self.tts = nil
+            return nil
+        }
+    }
+
     /// Fire and forget.
     func enqueue(_ text: String) {
         queue.append((Line(text: text), nil))

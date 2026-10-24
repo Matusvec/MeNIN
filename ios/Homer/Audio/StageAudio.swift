@@ -12,6 +12,9 @@ final class StageAudio: @unchecked Sendable {
     private let beat = AVAudioPlayerNode()
     private let strike = AVAudioPlayerNode()
     private let voice = AVAudioPlayerNode()
+    /// Reveal sounds, round-robin so a knock never waits behind a slam.
+    private let sfx = (0..<3).map { _ in AVAudioPlayerNode() }
+    private var nextSfx = 0
     private let format = BeatSynth.format(sampleRate: StageAudio.sampleRate)
     private lazy var strikeBuffer = BeatSynth.strike(sampleRate: Self.sampleRate)
     private let voiceLevel = OSAllocatedUnfairLock(initialState: Float(0))
@@ -20,7 +23,7 @@ final class StageAudio: @unchecked Sendable {
     init(engine: AVAudioEngine? = nil) {
         self.engine = engine ?? AVAudioEngine()
         ownsEngine = engine == nil
-        for node in [beat, strike, voice] {
+        for node in [beat, strike, voice] + sfx {
             self.engine.attach(node)
             self.engine.connect(node, to: self.engine.mainMixerNode, format: format)
         }
@@ -47,11 +50,11 @@ final class StageAudio: @unchecked Sendable {
             engine.prepare()
             try engine.start()
         }
-        [beat, strike, voice].forEach { $0.play() }
+        ([beat, strike, voice] + sfx).forEach { $0.play() }
     }
 
     func stop() {
-        [beat, strike, voice].forEach { $0.stop() }
+        ([beat, strike, voice] + sfx).forEach { $0.stop() }
         if ownsEngine { engine.stop() }
     }
 
@@ -77,6 +80,13 @@ final class StageAudio: @unchecked Sendable {
     /// A stressed syllable hit the beat (cosmetic on the arena; may lag 100–200 ms).
     func playStrike() {
         strike.scheduleBuffer(strikeBuffer, at: nil)
+    }
+
+    /// A one-shot reveal sound, now.
+    func playSound(_ buffer: AVAudioPCMBuffer) {
+        let node = sfx[nextSfx]
+        nextSfx = (nextSfx + 1) % sfx.count
+        node.scheduleBuffer(buffer, at: nil, options: .interrupts)
     }
 
     // MARK: Homer's voice

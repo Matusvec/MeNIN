@@ -51,6 +51,9 @@ final class TurnRecorder {
     @ObservationIgnored private var flushWaiters: [CheckedContinuation<Void, Never>] = []
     @ObservationIgnored private var pendingLineBreaks = 0
     @ObservationIgnored private var lastVoiceMs = 0.0
+    /// When STT last heard new words. In a loud hall noise keeps the mic's onsets coming, so a
+    /// freeze is silence by either signal: no onset, or no new words.
+    @ObservationIgnored private var lastWordsMs = 0.0
     @ObservationIgnored private var rescuedLines = Set<Int>()
     @ObservationIgnored private var gate = StressGate()
 
@@ -167,6 +170,7 @@ final class TurnRecorder {
         let clock = self.clock
         phase = .live
         lastVoiceMs = nowMs
+        lastWordsMs = nowMs
 
         // Prosody to the arena: about 20 Hz, fire and forget.
         tasks.append(Task { [weak self] in
@@ -202,6 +206,7 @@ final class TurnRecorder {
         mic.engine.muted = !on
         if on {
             lastVoiceMs = Date().timeIntervalSince1970 * 1000
+            lastWordsMs = lastVoiceMs
         } else {
             // One press is one line: flush it, then break the line once its text is final.
             pendingLineBreaks += 1
@@ -235,8 +240,10 @@ final class TurnRecorder {
         Self.log.info("stt \(String(describing: event), privacy: .public)")
         switch event {
         case .partial(let text):
+            if text != partial { lastWordsMs = Date().timeIntervalSince1970 * 1000 }
             partial = text
         case .final(let text, _):
+            if !text.trimmingCharacters(in: .whitespaces).isEmpty { lastWordsMs = Date().timeIntervalSince1970 * 1000 }
             finals += text
             partial = ""
             matchCards()
@@ -279,7 +286,8 @@ final class TurnRecorder {
     }
 
     private func checkFreeze(now: Double, clock: BeatClock) {
-        guard talking, clock.isSpeakingBar(atMs: now), now - lastVoiceMs > 1000 else { return }
+        // STT words trail the voice by a few hundred ms, so its silence gets a little longer.
+        guard talking, clock.isSpeakingBar(atMs: now), now - lastVoiceMs > 1000 || now - lastWordsMs > 1300 else { return }
         let line = clock.line(atMs: now)
         guard !rescuedLines.contains(line), let agent, let round = battle.currentRound else { return }
         rescuedLines.insert(line)
@@ -312,7 +320,7 @@ final class TurnRecorder {
 
     /// About 2 s of silence while talking: raise a move and its question. At most every 10 s.
     private func checkDebateFreeze(now: Double, endMs: Double) {
-        guard talking, now - lastVoiceMs > 2000, now - lastRescueMs > 10_000, let agent,
+        guard talking, now - lastVoiceMs > 2000 || now - lastWordsMs > 2300, now - lastRescueMs > 10_000, let agent,
               let turn = battle.currentTurn else { return }
         lastRescueMs = now
         let request = DebateRescueRequest(

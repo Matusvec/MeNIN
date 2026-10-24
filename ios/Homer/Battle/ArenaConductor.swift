@@ -1,5 +1,6 @@
-import Foundation
+import AVFoundation
 import Observation
+import os
 
 /// The arena's sound, driven by battle state: the beat on the turn's grid while a verse is
 /// live (ducked in speaking bars), a drum strike each time the speaker's hit count goes up,
@@ -12,6 +13,7 @@ final class ArenaConductor {
     /// For the scene: Homer's loudness while he speaks.
     var homerLevel: Double { audio.homerLevel }
 
+    private static let log = Logger(subsystem: "com.matusvec.homer", category: "arena")
     @ObservationIgnored private let battle: BattleClient
     @ObservationIgnored private let audio = StageAudio()
     @ObservationIgnored private var ticker: Task<Void, Never>?
@@ -21,6 +23,9 @@ final class ArenaConductor {
     @ObservationIgnored private var lastPhase: String?
     @ObservationIgnored private let music = MusicDirector.shared
     @ObservationIgnored private let agent: AgentClient?
+    @ObservationIgnored private let scene: SceneDriver?
+    @ObservationIgnored private var lastWeights: EmotionWeights?
+    @ObservationIgnored private var cueBuffers: [String: AVAudioPCMBuffer] = [:]
     let homer: HomerVoice
 
     /// What Homer is saying now, keyed like "enter 12", "verdict 40", "round 7", "song 2": the
@@ -33,9 +38,10 @@ final class ArenaConductor {
     /// Three theme cards for rooms with theme choice (from the agent's /themes).
     private(set) var themeCards: [String] = []
 
-    init(battle: BattleClient, agent: AgentClient?) {
+    init(battle: BattleClient, agent: AgentClient?, scene: SceneDriver? = nil) {
         self.battle = battle
         self.agent = agent
+        self.scene = scene
         homer = HomerVoice(audio: audio, agent: agent, role: .arena)
     }
 
@@ -67,6 +73,47 @@ final class ArenaConductor {
         music.setMicOpen(false)
         homer.silence()
         audio.stop()
+        restScene()
+    }
+
+    /// A reveal landed on screen (ArenaView fires each cue once, on its frame): play its sound now.
+    func play(_ cue: ArenaCue) {
+        let key = "\(cue)"
+        let buffer = cueBuffers[key] ?? BeatSynth.cue(cue, sampleRate: StageAudio.sampleRate)
+        cueBuffers[key] = buffer
+        audio.playSound(buffer)
+        if cue == .crown { scene?.strike(1.4) }
+    }
+
+    /// Back to the resting scene (lobby, the hall, leaving the arena).
+    func restScene() {
+        guard let scene else { return }
+        scene.emotion = EmotionWeights()
+        scene.prosody = .silent
+        lastWeights = nil
+    }
+
+    /// "The room paints your voice": the poem's feeling while it lasts (kept through judging and
+    /// the verdict; the next turn's scene row replaces it), the speaker's voice while their verse
+    /// is live, Homer's while he talks. SceneMotion does the smoothing.
+    private func paintScene(_ room: RoomRow) {
+        guard let scene else { return }
+        if room.phaseValue == .lobby {
+            if lastWeights != nil { restScene() }
+            return
+        }
+        // Emotion only when it changes: every set is recorded for the P11 color replay.
+        if let w = battle.scene?.weights, w != lastWeights {
+            scene.emotion = w
+            lastWeights = w
+        }
+        if room.phaseValue == .speaking, let turn = battle.currentTurn, let p = battle.prosody, p.turnId == turn.id {
+            scene.prosody = p.prosody
+        } else if homerLevel > 0.02 {
+            scene.prosody = Prosody(energy: min(1, homerLevel * 0.7), pitch: nil)
+        } else {
+            scene.prosody = .silent
+        }
     }
 
     private func tick() {
@@ -77,6 +124,7 @@ final class ArenaConductor {
         }
         cueMusic(room)
         speakIfDue(room)
+        paintScene(room)
         guard let turn = battle.currentTurn else {
             stopBeatIfPlaying()
             return
@@ -103,6 +151,7 @@ final class ArenaConductor {
                 if lastHits.turn != turn.id { lastHits = (turn.id, 0) }
                 if p.hits > lastHits.hits {
                     audio.playStrike()
+                    scene?.strike()
                     lastHits.hits = p.hits
                 }
             }
@@ -130,8 +179,9 @@ final class ArenaConductor {
             }
         } : nil
 
-        if room.phaseValue == .theme, themeCards.isEmpty, let agent, !said.contains("themes \(room.id) \(room.roundNo)") {
-            said.insert("themes \(room.id) \(room.roundNo)")
+        let battleKey = "\(room.id).\(battle.generation)"
+        if room.phaseValue == .theme, themeCards.isEmpty, let agent, !said.contains("themes \(battleKey) \(room.roundNo)") {
+            said.insert("themes \(battleKey) \(room.roundNo)")
             Task { themeCards = (try? await agent.themes(n: 3, demo: room.demo)) ?? [] }
         }
         if room.phaseValue != .theme, !themeCards.isEmpty { themeCards = [] }
@@ -159,14 +209,16 @@ final class ArenaConductor {
             guard !song.isEmpty else { return }
             let champion = battle.players.max { $0.total < $1.total }
             let crown = champion.map { "\($0.name)\($0.epithet.isEmpty ? "" : ", \($0.epithet)"). The hall is yours." } ?? ""
-            let key = "song \(room.id) \(room.roundNo)"
+            let key = "song \(battleKey) \(room.roundNo)"
             guard !said.contains(key) else { return }
             said.insert(key)
             Task {
-                // Line by line, so the arena can show which line is being performed.
-                for (i, line) in song.enumerated() {
-                    songLine = i
-                    await speak("song \(i)", line)
+                if await !singOnBeat(song, bpm: Double(room.bpm)) {
+                    // Line by line, so the arena can show which line is being performed.
+                    for (i, line) in song.enumerated() {
+                        songLine = i
+                        await speak("song \(i)", line)
+                    }
                 }
                 await speak("crown", crown)
                 advance?()
@@ -206,6 +258,80 @@ final class ArenaConductor {
 
     func toggleMusicMute() {
         music.muted.toggle()
+    }
+
+    /// The stitched song on the drum: every line scanned and rendered first, then the beat starts
+    /// and each line is placed so its stresses land on the pulses (a speaking bar, then a rest
+    /// bar, like a turn). False, with nothing played, if the lines can't be placed.
+    private func singOnBeat(_ song: [String], bpm: Double) async -> Bool {
+        guard let agent, bpm > 0 else {
+            Self.log.info("song: no agent, plain reading")
+            return false
+        }
+        let started = Date()
+        let beat = 60 / bpm
+        async let scan = try? agent.scan(.init(transcript: song.joined(separator: "\n"), bpm: bpm, linesExpected: song.count))
+        // One line at a time: the Cartesia plan allows 2 concurrent generations, and Homer may need the other.
+        var renders: [(samples: [Float], words: [CartesiaTTS.Word])?] = []
+        for line in song { renders.append(await homer.render(line)) }
+        let scanned = await scan
+        guard let lines = scanned?.lines, lines.count == song.count else {
+            let got = scanned?.lines.count ?? -1
+            Self.log.info("song: scan unusable (\(got) lines for \(song.count)), plain reading")
+            return false
+        }
+        var placed: [BeatAligner.Placed] = []
+        for (i, r) in renders.enumerated() {
+            guard let r, !r.words.isEmpty else {
+                Self.log.info("song: line \(i) rendered \(r?.samples.count ?? -1) samples, \(r?.words.count ?? -1) words; plain reading")
+                return false
+            }
+            let stresses = BeatAligner.stresses(scanned: lines[i].words ?? [], spoken: r.words)
+            guard stresses.count >= 2,
+                  let p = BeatAligner.place(r.samples, sampleRate: StageAudio.sampleRate, words: r.words, stresses: stresses, beatSeconds: beat)
+            else {
+                Self.log.info("song: line \(i) has \(stresses.count) placeable stresses (scan words \(lines[i].words?.count ?? 0), spoken \(r.words.map(\.text).joined(separator: " "), privacy: .public)); plain reading")
+                return false
+            }
+            placed.append(p)
+        }
+        Self.log.info("song: \(song.count) lines ready in \(Date().timeIntervalSince(started), format: .fixed(precision: 2)) s, worst stress +\(Int((placed.map(\.worstLate).max() ?? 0) * 1000)) ms")
+        // Count-in bar, then line n on bar 2n.
+        let lead = (placed.map(\.leadSeconds).max() ?? 0) * 1000
+        let barMs = beat * 4 * 1000
+        let clock = BeatClock(beatAtMs: Date().timeIntervalSince1970 * 1000 + 300 + max(barMs, lead), bpm: bpm, barsPerLine: 2, lines: song.count)
+        music.setHostSpeaking(true)
+        defer { music.setHostSpeaking(false) }
+        audio.playBeat(clock)
+        for (n, p) in placed.enumerated() {
+            audio.scheduleVoice(p.samples, atMs: clock.beatAtMs + clock.lineMs * Double(n) - p.leadSeconds * 1000)
+        }
+        for n in placed.indices {
+            await sleep(until: clock.beatAtMs + clock.lineMs * Double(n) - 300)
+            guard !Task.isCancelled else { return true }
+            songLine = n
+            saying = "song \(n)"
+        }
+        await sleep(until: clock.endMs - clock.barMs + 400)  // the last rest bar isn't needed
+        saying = nil
+        audio.stopBeat()
+        return true
+    }
+
+    #if DEBUG
+    /// Dev: `-songTest YES` sings two fixed lines on the beat when the arena opens.
+    func rehearseSong() {
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            let ok = await singOnBeat(["The wine-dark sea took my brother's ship", "and grey-eyed Athena would not hear his cry"], bpm: 80)
+            Self.log.info("song: rehearsal \(ok ? "on the beat" : "fell back", privacy: .public)")
+        }
+    }
+    #endif
+
+    private func sleep(until epochMs: Double) async {
+        let wait = epochMs - Date().timeIntervalSince1970 * 1000
+        if wait > 0 { try? await Task.sleep(for: .milliseconds(Int(wait))) }
     }
 
     private func speak(_ key: String, _ text: String) async {

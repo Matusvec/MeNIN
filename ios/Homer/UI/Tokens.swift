@@ -142,6 +142,18 @@ enum Typeface {
         display(base * stage.scale, weight: weight, italic: italic, opticalSize: stage.isArena ? base * 0.45 : nil)
     }
 
+    /// Bodoni leaves a hole after a "y" (and "v", "w") at display sizes, so "Sunya"
+    /// reads "Suny a". Closes it with a kern of 6% of the type size after those letters.
+    static func kerned(_ text: String, size: CGFloat) -> AttributedString {
+        var out = AttributedString()
+        for ch in text {
+            var piece = AttributedString(String(ch))
+            if "yvw".contains(ch) { piece.swiftUI.kern = -0.06 * size }
+            out += piece
+        }
+        return out
+    }
+
     /// Body and interface text.
     static func text(_ size: CGFloat, weight: CGFloat = 400) -> Font {
         let key = "t\(size)-\(weight)"

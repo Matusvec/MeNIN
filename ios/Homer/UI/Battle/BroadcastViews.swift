@@ -44,7 +44,7 @@ struct EntranceView: View {
         VStack(alignment: .leading, spacing: Metrics.s3 * k) {
             Text(label).tracked(13 * k, color: Palette.cream.opacity(0.85))
                 .opacity(hit ? 1 : 0)
-            Text(poet.name)
+            Text(Typeface.kerned(poet.name, size: 84 * k))
                 .font(Typeface.display(84, on: stage, weight: 800))
                 .foregroundStyle(Palette.cream)
                 .sturdy(84)
@@ -256,7 +256,7 @@ struct ScoreboardView: View {
                     Rectangle().fill(poet.ink).frame(width: 6 * k)
                     VStack(alignment: .leading, spacing: 0) {
                         HStack(spacing: Metrics.s2 * k) {
-                            Text(poet.name).font(Typeface.display(23, on: stage, weight: 700)).foregroundStyle(Palette.cream).sturdy(23)
+                            Text(Typeface.kerned(poet.name, size: 23 * k)).font(Typeface.display(23, on: stage, weight: 700)).foregroundStyle(Palette.cream).sturdy(23)
                             if poet.id == liveId { LiveDot(size: 8 * k) }
                         }
                         if !poet.epithet.isEmpty {
@@ -383,7 +383,7 @@ struct ChampionView: View {
                     .opacity(crowned ? 1 : 0)
                     .background { ShardBurst(inks: [Palette.gold, Palette.cream, poet.ink], trigger: crowned, k: k) }
                 Text("Champion of the Agon").chip(12 * k, fill: Palette.cream, color: Palette.ink)
-                Text(poet.name)
+                Text(Typeface.kerned(poet.name, size: 96 * k))
                     .font(Typeface.display(96, on: stage, weight: 800))
                     .foregroundStyle(Palette.cream)
                     .sturdy(96)
