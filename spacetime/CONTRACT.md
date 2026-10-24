@@ -215,7 +215,7 @@ Every `set_scene` also appends `id, room_id, turn_id, ms` (milliseconds since `s
 
 | Reducer | Args | When | Effect |
 | --- | --- | --- | --- |
-| `join_room` | code, name, epithet (may be `''`), hoard [String] | J1 Enter | Joins in the lobby. Calling it again from the same identity is a reconnect. A new identity with the **same name as a disconnected poet** takes over that seat (a phone that died rejoins and keeps its scores). Errors: `no such room`, `the hall is full`, `that name is taken`, `the battle has already begun`. |
+| `join_room` | code, name, epithet (may be `''`), hoard [String] | J1 Enter | Joins in the lobby. Calling it again from the same identity is a reconnect, in any phase but `finished` (the app's auto-rejoin after a force-quit); seat, total, hand and turns are kept. In the lobby a rejoin may also rename, and `''` and `[]` keep the current epithet and hoard. A new identity with the **same name as a disconnected poet** takes over that seat (a phone that died rejoins and keeps its scores). Errors: `no such room`, `the hall is full`, `that name is taken`, `the battle has already begun`. |
 | `leave_room` | room_id | Leave | Lobby: removes the poet. Later: marks them disconnected. |
 | `enter` | room_id | The mic check heard you | `entered` = true; the arena announces the entrance |
 | `start_turn` | turn_id | Ready tap in `ready` | `speaking`. Sets started_at, beat_at and ends_at, and schedules the timer. |
@@ -324,7 +324,7 @@ cd spacetime && npm install
 npm run typecheck
 npm run publish:local                    # keeps data; publish:local:reset wipes it
 npm run publish:test                     # the isolated test database `homer-test` (no dev-agent, no shared key)
-npm run smoke                            # poetry, discus, set_event and debate over HTTP against homer-test, 95 checks (~90 s)
+npm run smoke                            # poetry, discus, set_event and debate over HTTP against homer-test, 98 checks (~90 s)
 npm run logs
 ```
 

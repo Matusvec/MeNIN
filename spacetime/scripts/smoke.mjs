@@ -82,6 +82,10 @@ check(A.identity[0] === `0x${ada.hex}`, 'Ada has her seat back');
 check(await fails(ada, 'name_poet', A.id, 'Ada', 'Iron-Hearted'), 'a phone cannot call agent reducers');
 await call(agent, 'name_poet', A.id, 'Ada', 'Iron-Hearted');
 check((await sql(null, `SELECT * FROM player WHERE id = ${A.id}`))[0].named, 'agent named Ada');
+// The app's auto-rejoin after a force-quit knows only the code and the name.
+await call(ada, 'join_room', R.code, 'ada', '', []);
+let ada1 = (await sql(null, `SELECT * FROM player WHERE id = ${A.id}`))[0];
+check(ada1.named && ada1.name === 'Ada' && ada1.epithet === 'Iron-Hearted', 'a lobby rejoin keeps the coined epithet');
 
 check(await fails(ada, 'start_battle', R.id), 'only the arena starts the battle');
 await call(arena, 'start_battle', R.id);
@@ -127,6 +131,11 @@ await call(agent, 'set_scene', T.id, 0.1, 0.6, 0, 0.2, 0, 0, 0.1, 0.3);
 const sc = (await sql(null, `SELECT * FROM scene WHERE room_id = ${R.id}`))[0];
 check(sc.turn_id === T.id && Math.abs(sc.grief - 0.6) < 1e-6, 'scene shows the speaker\'s emotion');
 
+// Force-quit mid-turn and reopen: the same identity rejoins while its own turn is live.
+check(!(await fails(ada, 'join_room', R.code, 'Ada', '', [])), 'a same-device rejoin mid-turn is a reconnect');
+T = await turn(T.id);
+const handBack = (await sql(ada, 'SELECT * FROM hand')).find(h => h.player_id === A.id);
+check(T.status === 'speaking' && T.played.length === 1 && handBack.cards.length === 4, 'the turn, played card and hand survive it');
 await call(ada, 'end_turn', T.id, 'wine-dark sea / took my brother\'s ship');
 T = await turn(T.id);
 check(T.status === 'judging' && T.played.length === 1 && T.rescues === 1, 'Ada\'s verse goes to the judge');

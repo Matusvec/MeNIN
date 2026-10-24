@@ -774,16 +774,18 @@ export const joinRoom = spacetimedb.reducer(
     const players = playersOf(ctx, r.id);
     const lobby = r.phase === 'lobby';
 
-    // Back on the same device.
+    // Back on the same device: a reconnect, in any phase. In the lobby it may also
+    // rename; '' and [] keep the current epithet and hoard, so a rejoin that only
+    // knows the name doesn't wipe an epithet the agent coined.
     const mine = players.find(p => p.identity.isEqual(ctx.sender));
     if (mine) {
-      const changed = lobby && (mine.name !== name || mine.epithet !== epithet);
-      ctx.db.player.id.update({
-        ...mine,
-        connected: true,
-        ...(lobby ? { name, epithet, hoard } : {}),
-        ...(changed ? { named: false } : {}),
-      });
+      const next = {
+        name: lobby && name.toLowerCase() !== mine.name.toLowerCase() ? name : mine.name,
+        epithet: lobby && epithet !== '' ? epithet : mine.epithet,
+        hoard: lobby && hoard.length > 0 ? hoard : mine.hoard,
+      };
+      const changed = next.name !== mine.name || next.epithet !== mine.epithet;
+      ctx.db.player.id.update({ ...mine, ...next, connected: true, ...(changed ? { named: false } : {}) });
       return;
     }
 
