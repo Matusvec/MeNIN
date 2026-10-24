@@ -188,6 +188,19 @@ def arena(*replies):
     return Arena(Judge(client=client, cfg=CFG), stdb, Host(client=client, cfg=CFG)), db
 
 
+def test_the_round_verdict_is_worked_out_early_and_posted_at_round_end():
+    a, db = arena({"verdict": "Bo takes it.", "best_turn": 2, "best_line": BO.best_line})
+    cols, rows = TABLES["room"]
+    TABLES["room"] = (cols, [[1, True, "scored"]])  # the last turn's verdict is on screen
+    try:
+        early = run(a.round_verdict(5))
+    finally:
+        TABLES["room"] = (cols, rows)
+    assert db.calls == [] and early[1] == 2  # worked out, not posted: the module takes it only in round_end
+    assert run(a.round_verdict(5)) == early and db.calls == [("post_verdict", [5, *early])]
+    assert len(a.host.client.calls) == 1  # one Claude call for both
+
+
 def test_round_verdict_reads_the_round_and_posts_the_carved_line():
     a, db = arena({"verdict": "Bo takes it.", "best_turn": 2, "best_line": BO.best_line})
     spoken = f"Bo takes it: {BO.best_line}"

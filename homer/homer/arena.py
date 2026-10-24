@@ -71,6 +71,7 @@ class Arena:
         self.themes_used: dict[int, list[str]] = {}  # room_id -> themes dealt, so a rematch gets fresh ones
         self._inflight: dict[tuple, asyncio.Task] = {}
         self._live: dict[int, tuple[float, bool]] = {}  # turn_id -> (checked at, speaking or judging)
+        self._verdicts: dict[int, tuple[str, int, str]] = {}  # round_id -> the call, worked out ahead of round_end
 
     async def once(self, key: tuple, work: Callable[[], Awaitable[T]]) -> T:
         """Run `work` once per key at a time; a retry while it runs shares the result."""
@@ -237,25 +238,40 @@ class Arena:
         return out
 
     async def round_verdict(self, round_id: int) -> tuple[str, int, str]:
-        """Call the round and carve its best line: post_verdict."""
+        """Call the round and carve its best line: post_verdict.
+
+        Also ahead of time: once the round's last turn is scored, the arena asks
+        during that verdict's reveal, and the call is worked out and kept. The
+        module takes post_verdict only in round_end, so it's posted when the arena
+        asks again there, with no wait on Claude.
+        """
+        rows = await self.db.sql(f"SELECT * FROM round WHERE id = {int(round_id)}")
+        if not rows:
+            raise NotFound(f"no round {round_id}")
+        rnd = rows[0]
+        if rnd.get("verdict"):  # called already: say it again, don't pay for it again
+            return rnd["verdict"], int(rnd.get("best_turn_id") or 0), rnd.get("best_line", "")
+        room = await self.room(rnd["room_id"])
+        phase = room.get("phase")
+        if phase != "round_end" and not (phase == "scored" and await self._round_done(round_id)):
+            raise Refused(f"round {round_id}'s room is in {phase}, not round_end")
 
         async def work() -> tuple[str, int, str]:
-            rows = await self.db.sql(f"SELECT * FROM round WHERE id = {int(round_id)}")
-            if not rows:
-                raise NotFound(f"no round {round_id}")
-            rnd = rows[0]
-            if rnd.get("verdict"):  # called already: say it again, don't pay for it again
-                return rnd["verdict"], int(rnd.get("best_turn_id") or 0), rnd.get("best_line", "")
-            room = await self.room(rnd["room_id"])
-            if room.get("phase") != "round_end":
-                raise Refused(f"round {round_id}'s room is in {room.get('phase')}, not round_end")
             event = events.get(room.get("event") or "poetry")
             verses = await self._verses(rnd["room_id"], f"round_id = {int(round_id)}")
-            verdict, best_turn, line = await self.host.round_verdict(rnd.get("theme", ""), verses, event)
-            await self.db.call("post_verdict", round_id, verdict, best_turn, line)
-            return verdict, best_turn, line
+            call = await self.host.round_verdict(rnd.get("theme", ""), verses, event)
+            self._verdicts[round_id] = call
+            return call
 
-        return await self.once(("verdict", round_id), work)
+        call = self._verdicts.get(round_id) or await self.once(("verdict", round_id), work)
+        if phase == "round_end":
+            await self.db.call("post_verdict", round_id, *call)
+        return call
+
+    async def _round_done(self, round_id: int) -> bool:
+        """Every turn of the round is over (scored, skipped or declined)."""
+        turns = await self.db.sql(f"SELECT * FROM turn WHERE round_id = {int(round_id)}")
+        return bool(turns) and all(t.get("status") in ("scored", "skipped", "declined") for t in turns)
 
     async def song(self, room_id: int) -> list[tuple[int, str]]:
         """The finale, written with post_song.
