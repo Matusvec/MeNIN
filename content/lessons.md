@@ -6,7 +6,7 @@ The six lesson scripts for Bard mode. The flow they run in is in `docs/ux-flow.m
 
 - **Everything in double quotes is spoken by TTS, exactly as written.** No markdown, no notation.
 - **Demo verses are notation, not speech.** CAPS mark the four hits, and ` / ` marks the break. Before TTS, lowercase the CAPS and drop the ` / `. Use the marks for the beat lane and for timing each hit to the drum.
-- **Placeholders** like `{word}` are filled in by the app or the agent before TTS: `{word}` is a word from the poet's line, `{formula}` is a card from their hand, `{title}` is the epithet they coined, `{last_word}` is the last word of their line, `{hits}` is the number of hits the scanner counted, spelled out ("Three"), and `{n}` is the lesson number.
+- **Placeholders** like `{word}` are filled in by the app or the agent before TTS: `{word}` is a word from the poet's line, `{formula}` is a card from their hand, `{title}` is the epithet they coined, `{last_word}` is the last word of their line, `{hits}` is the number of hits the scanner counted, spelled out ("Three"), `{lines}` is the number of lines the exercise asks for, spelled out ("four"), and `{n}` is the lesson number.
 - **Feedback:** on each try, Homer says exactly one line: the first miss in the table that applies. If no miss applies, the lesson lands.
 - **Nothing is locked.** "Unlocks" says what the poet walks away with and where Homer points them next.
 - **The voice:** a pro coach. Calm authority, precise, one fix at a time, never more than two sentences. He never names the poet's emotion.
@@ -21,6 +21,7 @@ The six lesson scripts for Bard mode. The flow they run in is in `docs/ux-flow.m
 | The mic drops out | "I lost you. Check your mic, then go." |
 | An inappropriate line | "Not in my hall. Give me another." |
 | Returning to an unfinished lesson | "Back again. We were on {title}." |
+| Fewer lines than the exercise asks for | "You stopped short. I asked for {lines} lines. Finish it." |
 
 ---
 
