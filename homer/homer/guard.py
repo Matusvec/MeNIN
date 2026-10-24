@@ -83,13 +83,31 @@ class AppKey:
     def from_env(cls) -> AppKey:
         return cls(os.environ.get("HOMER_APP_KEY", "").strip(), os.environ.get("HOMER_APP_KEY_REQUIRED", "0") in ("1", "true"))
 
-    def ok(self, sent: str | None) -> bool:
-        """No key configured: open. Required: must match. Optional: only a wrong key is refused."""
+    def ok(self, sent: str | None, from_web: bool = False) -> bool:
+        """No key configured: open. Required: must match. Optional: only a wrong key is refused.
+
+        The website sends no key (one shipped to a browser is public anyway), so a
+        keyless call from one of its origins passes. That is not a lock: anyone can
+        set Origin. The per-IP limits and the hourly budget are the guard.
+        """
         if not self.key:
             return True
         if sent is None or sent == "":
-            return not self.required
+            return from_web or not self.required
         return hmac.compare_digest(sent.encode(), self.key.encode())
+
+
+def web_origins() -> frozenset[str]:
+    """The website's origins (HOMER_WEB_ORIGINS, comma-separated), the only ones given CORS headers."""
+    return frozenset(o.strip().rstrip("/") for o in os.environ.get("HOMER_WEB_ORIGINS", "").split(",") if o.strip())
+
+
+def cors_headers(origin: str, preflight: bool = False) -> dict[str, str]:
+    headers = {"Access-Control-Allow-Origin": origin, "Vary": "Origin"}
+    if preflight:
+        headers |= {"Access-Control-Allow-Methods": "GET, POST", "Access-Control-Allow-Headers": f"content-type, {APP_KEY_HEADER}",
+                    "Access-Control-Max-Age": "600"}
+    return headers
 
 
 class BudgetExceeded(RuntimeError):

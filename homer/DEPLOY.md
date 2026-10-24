@@ -110,6 +110,23 @@ rsync … (as in phase 3) && ssh matus@<ip> 'cd ~/menin/homer && docker compose 
 
 Caddy keeps its certificate in a volume, so restarts don't ask Let's Encrypt again. In-memory state (dealt hands, emotion samples) resets on restart: don't redeploy mid-battle.
 
+## The website
+
+SPEC "The website": static files on the droplet, at their own HTTPS name. Caddy serves `/srv/menin-web` at `WEB_HOST` (for example `play.<ip>.sslip.io`) with its own Let's Encrypt certificate, and unknown paths fall back to `index.html` for client-side routes.
+
+```bash
+homer/scripts/web_deploy.sh matus@<ip>                 # from the repo root: build web/, publish it
+homer/scripts/web_deploy.sh matus@<ip> --placeholder   # the "hall opens soon" page
+```
+
+`web/` with a `package.json` is built with `npm ci && npm run build`, and its `dist/`, `build/` or `out/` is published; a plain `web/` with an `index.html` is published as is. The files are swapped in place (`rsync --delay-updates`), with nothing restarted, so it's safe at any time.
+
+The agent gives CORS headers only to the origins in `HOMER_WEB_ORIGINS` (comma-separated, in `.env`). A keyless call from one of them passes even when `HOMER_APP_KEY_REQUIRED=1`. That isn't a lock, since anyone can send that Origin; the per-IP limits and the hourly budget are the guard. The website never ships the app key. For a new domain, add it to both `WEB_HOST` (a second site block, or replace the name) and `HOMER_WEB_ORIGINS`.
+
+First-time setup on the droplet: `sudo mkdir -p /srv/menin-web && sudo chown matus:matus /srv/menin-web`, then `docker compose --profile caddy up -d --no-deps caddy`.
+
+**Changing the Caddyfile:** it is bind-mounted as a single file, so copy it with `rsync --inplace` and run `docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile`. Without `--inplace`, rsync swaps the file for a new one, and the container keeps reading the old one until it is recreated.
+
 ## Side quests (off unless switched on)
 
 Both are sponsor integrations behind switches (SPEC "Not building"). The demo never depends on them, and switching either off restores today's behaviour.

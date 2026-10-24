@@ -21,7 +21,7 @@ from typing import Any, Literal
 
 import httpx2
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, Response, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
@@ -35,7 +35,7 @@ from .judge import EmptyVerse, Judge, Judgment, Turn
 from .scanner import TimedWord, VerseScan, beat_lane, scan_verse
 from .stdb import Refused, Stdb, StdbError
 from .claude import budget
-from .guard import APP_KEY_HEADER, KEYED, AppKey, Guard, client_ip
+from .guard import APP_KEY_HEADER, KEYED, AppKey, Guard, client_ip, cors_headers, web_origins
 from .voice import VoiceConfig, VoiceError, mint
 
 log = logging.getLogger("homer")
@@ -130,7 +130,8 @@ _guard = Guard()
 async def protect(request: Request, call_next):
     """The app key on the endpoints that spend credits, then a per-IP rate limit on every path."""
     path = request.url.path
-    if path in KEYED and not AppKey.from_env().ok(request.headers.get(APP_KEY_HEADER)):
+    from_web = request.headers.get("origin", "") in web_origins()
+    if path in KEYED and not AppKey.from_env().ok(request.headers.get(APP_KEY_HEADER), from_web):
         return JSONResponse({"detail": "missing or wrong app key"}, status_code=401)
     ip = client_ip(request.headers, request.client.host if request.client else "?")
     if not _guard.allow(path, ip):
@@ -150,6 +151,23 @@ async def timing(request: Request, call_next):
         slow = ms > limit
         log.log(logging.WARNING if slow else logging.INFO, "%s %s %d %.0fms%s",
                 request.method, request.url.path, response.status_code, ms, " SLOW" if slow else "")
+    return response
+
+
+@app.middleware("http")
+async def cors(request: Request, call_next):
+    """The website calls from its own origin (SPEC "The website"); only its origins get CORS headers.
+
+    Added last, so it runs first: a preflight is answered here and never meets
+    the app key or the rate limits.
+    """
+    origin = request.headers.get("origin", "")
+    allowed = origin in web_origins()
+    if allowed and request.method == "OPTIONS":
+        return Response(status_code=204, headers=cors_headers(origin, preflight=True))
+    response = await call_next(request)
+    if allowed:
+        response.headers.update(cors_headers(origin))
     return response
 
 

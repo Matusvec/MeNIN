@@ -7,3 +7,19 @@
 		flush_interval -1
 	}
 }
+
+# The website (SPEC "The website"): static files in /srv/menin-web on the droplet,
+# published by scripts/web_deploy.sh. WEB_HOST is its own name, for example
+# play.203.0.113.7.sslip.io, so it gets its own certificate.
+{$WEB_HOST} {
+	root * /srv/menin-web
+	encode zstd gzip
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+	@page path / /index.html
+	header @page Cache-Control "no-cache"  # a deploy shows at once; hashed assets can cache
+	try_files {path} /index.html
+	file_server
+}

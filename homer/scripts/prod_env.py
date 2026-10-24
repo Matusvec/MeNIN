@@ -67,6 +67,8 @@ def main() -> int:
     lines = [f"{k}={local[k]}" for k in CARRY if local.get(k)]
     lines += [f"STDB_URL={args.stdb_url}", f"STDB_DB={args.stdb_db}"]
     lines += [f"{k}={keep[k]}" for k in ("STDB_TOKEN", "HOMER_SERVICE_KEY") if keep.get(k)]
+    written = {line.split("=", 1)[0] for line in lines}
+    lines += [f"{k}={keep[k]}" for k in ("HOMER_DEALER", "WEB_HOST", "HOMER_WEB_ORIGINS") if keep.get(k) and k not in written]  # prod-only switches
     if args.host:
         lines.append(f"HOMER_HOST={args.host}")
     if args.tunnel_token:

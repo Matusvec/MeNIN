@@ -81,3 +81,34 @@ def test_app_key_when_required(client, monkeypatch):
     assert client.post("/judge", json=VERSE, headers={"X-Homer-Key": "nope"}).status_code == 401
     assert client.post("/judge", json=VERSE, headers={"X-Homer-Key": "s3cret"}).status_code == 200
     assert client.get("/health").status_code == 200 and client.post("/scan", json=VERSE).status_code == 200  # not keyed
+
+
+WEB = "https://play.example.test"
+
+
+def test_the_website_gets_cors_and_needs_no_key(client, monkeypatch):
+    monkeypatch.setenv("HOMER_WEB_ORIGINS", f"{WEB}, https://playmenin.tech/")
+    monkeypatch.setenv("HOMER_APP_KEY", "s3cret")
+    monkeypatch.setenv("HOMER_APP_KEY_REQUIRED", "1")
+    pre = client.options("/judge", headers={"Origin": WEB, "Access-Control-Request-Method": "POST",
+                                            "Access-Control-Request-Headers": "content-type"})
+    assert pre.status_code == 204 and pre.headers["access-control-allow-origin"] == WEB
+    assert "content-type" in pre.headers["access-control-allow-headers"]
+    r = client.post("/judge", json=VERSE, headers={"Origin": WEB})
+    assert r.status_code == 200 and r.headers["access-control-allow-origin"] == WEB  # keyless from the website
+    assert client.post("/judge", json=VERSE, headers={"Origin": WEB, "X-Homer-Key": "nope"}).status_code == 401
+    assert client.get("/health", headers={"Origin": "https://playmenin.tech"}).headers["access-control-allow-origin"] == "https://playmenin.tech"
+    other = client.post("/judge", json=VERSE, headers={"Origin": "https://evil.test"})
+    assert other.status_code == 401 and "access-control-allow-origin" not in other.headers
+    assert client.options("/judge", headers={"Origin": "https://evil.test"}).status_code != 204
+
+
+def test_the_website_is_rate_limited_like_anyone(client, monkeypatch):
+    monkeypatch.setenv("HOMER_WEB_ORIGINS", WEB)
+    statuses = [client.post("/judge", json=VERSE, headers={"Origin": WEB}).status_code for _ in range(3)]
+    assert statuses == [200, 200, 429]
+
+
+def test_no_origins_no_cors(client, monkeypatch):
+    monkeypatch.delenv("HOMER_WEB_ORIGINS", raising=False)
+    assert "access-control-allow-origin" not in client.get("/health", headers={"Origin": WEB}).headers

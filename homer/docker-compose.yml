@@ -26,8 +26,10 @@ services:
     ports: ["80:80", "443:443"]
     environment:
       HOMER_HOST: ${HOMER_HOST:-}
+      WEB_HOST: ${WEB_HOST:-}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - /srv/menin-web:/srv/menin-web:ro  # the website, published by scripts/web_deploy.sh
       - caddy_data:/data  # the certificate survives restarts, so Let's Encrypt isn't asked again
       - caddy_config:/config
     depends_on:
