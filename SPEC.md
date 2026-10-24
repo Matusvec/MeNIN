@@ -153,6 +153,7 @@ Hard mode, **Homer mode**: dactylic hexameter, for the brave.
 Full-screen, always on, behind every mode. It paints the speaker's emotion live.
 
 - Procedural only: Metal shaders and SwiftUI. Never a generated image per line.
+- **Every flash means something** (Matus, Sat 4:35 PM: "lean into the color flashing, but not random flashes"): a loud syllable from the speaker's voice is a strike, a new word landing is a ripple, a change of feeling is a wash of new color, and silence settles it. No idle or timer-driven flashes. It reacts in real time (motion within about 100 ms of the voice). The website's battle, debate and Judge screens all use it.
 - Two layers:
   - **Instant**: loudness and pitch computed on the speaker's phone drive motion and texture at 60 fps. In a battle they stream to the arena at about 20 Hz.
   - **Color**: every ~1.5 seconds the emotion classifier returns weights over eight emotions; the scene blends their palettes, smoothed so it flows instead of flickering.
