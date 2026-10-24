@@ -23,6 +23,11 @@ struct DesignGalleryView: View {
             ForEach(Array(GallerySample.arenaMoments.enumerated()), id: \.offset) { i, m in
                 GalleryArena(model: m).tag(12 + i)
             }
+            ZStack {
+                SceneView(emotion: EmotionWeights())
+                ArenaStartView(status: nil, resumeCode: "WKRD", onStart: {}, onDemo: {}, onResume: {})
+            }
+            .tag(29)
             ForEach(Array(GallerySample.phoneMoments.enumerated()), id: \.offset) { i, m in
                 GalleryPhone(model: m).tag(30 + i)
             }

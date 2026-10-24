@@ -6,14 +6,50 @@ import SwiftUI
 /// - `raisedId`: the freeze rescue. That card lifts, edged in gold, while Homer whispers it.
 /// - `forward`: the whole hand comes forward (on deck, or a freeze).
 struct FormulaHandView: View {
+    enum Style {
+        /// Full slips: the hand on deck, the arena's guest seat.
+        case slips
+        /// Chips that wrap, for a phone mid-verse; the whispered card becomes a hero chip.
+        case compact
+    }
+
     let cards: [FormulaCard]
     var raisedId: String? = nil
     var forward: Bool = true
+    var style: Style = .slips
     var onTap: ((FormulaCard) -> Void)? = nil
 
     @Environment(\.stage) private var stage
 
     var body: some View {
+        if style == .compact { compact } else { slips }
+    }
+
+    private var compact: some View {
+        let k = stage.scale
+        return FlowLayout(spacing: Metrics.s2 * k) {
+            ForEach(cards) { card in
+                let raised = card.id == raisedId
+                VStack(alignment: .leading, spacing: 2 * k) {
+                    if raised { Text("Homer whispers").tracked(8 * k, color: Palette.onHero2) }
+                    Text(card.text)
+                        .font(card.kind == .move ? Typeface.text(14 * k, weight: 600) : Typeface.display((raised ? 21 : 16) * k))
+                        .strikethrough(card.used, color: Palette.ink3)
+                        .foregroundStyle(raised ? Palette.onHero : (card.used ? Palette.ink3 : Palette.ink))
+                }
+                .padding(.horizontal, Metrics.s3 * k)
+                .padding(.vertical, (raised ? Metrics.s2 : 6) * k)
+                .paper(raised ? Palette.hero : (card.used ? Palette.paper2 : Palette.paper), radius: Metrics.radiusS * k, lifted: raised)
+                .scaleEffect(raised ? 1.04 : 1)
+                .onTapGesture { onTap?(card) }
+            }
+        }
+        .animation(Motion.stamp, value: raisedId)
+        .animation(Motion.stamp, value: cards.map(\.used))
+    }
+
+    @ViewBuilder
+    private var slips: some View {
         let k = stage.scale
         let layout = stage.isArena
             ? AnyLayout(HStackLayout(alignment: .bottom, spacing: Metrics.s3 * k))

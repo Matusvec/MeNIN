@@ -27,6 +27,8 @@ final class TurnRecorder {
     private static let log = Logger(subsystem: "com.matusvec.homer", category: "voice")
     private(set) var talking = false
     private(set) var hits: UInt32 = 0
+    /// Each on-beat hit as a lane word (ms from beat 1), so the beat lane lights up live.
+    private(set) var hitMarks: [BeatWord] = []
     private(set) var rescueCard: String?
     /// Final text so far plus the live partial: what the arena shows.
     var transcript: String { finals + (partial.isEmpty ? "" : partial) }
@@ -229,8 +231,9 @@ final class TurnRecorder {
     private func handle(_ onset: MicEngine.Onset) {
         guard phase == .live, talking else { return }
         lastVoiceMs = onset.epochMs
-        if clock?.hit(atMs: onset.epochMs) != nil {
+        if let clock, clock.hit(atMs: onset.epochMs) != nil {
             hits += 1
+            hitMarks.append(BeatWord(text: "", t: onset.epochMs - clock.beatAtMs, stressed: true, onBeat: true))
             haptics.hit()
         }
     }
@@ -286,6 +289,7 @@ final class TurnRecorder {
         finals = ""
         partial = ""
         hits = 0
+        hitMarks = []
         rescueCard = nil
         rescuedLines.removeAll()
         pendingLineBreaks = 0

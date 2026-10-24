@@ -272,3 +272,71 @@ struct SongView: View {
         }
     }
 }
+
+/// H0: the arena before a room exists. The hall's front door: the wordmark,
+/// the two hosts, and the ways in.
+struct ArenaStartView: View {
+    /// e.g. "Connecting…" or a server error; nil when ready.
+    var status: String?
+    /// A room this arena hosted before, offered for a resume.
+    var resumeCode: String?
+    var onStart: (() -> Void)?
+    var onDemo: (() -> Void)?
+    var onResume: (() -> Void)?
+
+    var body: some View {
+        ArenaStartCanvas(status: status, resumeCode: resumeCode, onStart: onStart, onDemo: onDemo, onResume: onResume)
+            .arenaStage()
+    }
+}
+
+private struct ArenaStartCanvas: View {
+    var status: String?
+    var resumeCode: String?
+    var onStart: (() -> Void)?
+    var onDemo: (() -> Void)?
+    var onResume: (() -> Void)?
+    @Environment(\.stage) private var stage
+
+    var body: some View {
+        let k = stage.scale
+        HStack(alignment: .center, spacing: Metrics.s7 * k) {
+            VStack(alignment: .leading, spacing: Metrics.s4 * k) {
+                WordmarkView(size: 54 * k, showsGreek: true)
+                Text("The Agon")
+                    .font(Typeface.display(30 * k, italic: true))
+                    .foregroundStyle(Palette.ink)
+                Text("Poets join from their phones. Homer judges. The best line is carved.")
+                    .font(Typeface.text(15 * k))
+                    .foregroundStyle(Palette.ink2)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: Metrics.s3 * k) {
+                    if let onStart { Button(action: onStart) { ArrowLabel(title: "Start a battle") }.buttonStyle(.homer) }
+                    if let onDemo { Button("Demo for the judges", action: onDemo).buttonStyle(.homer(.secondary)) }
+                }
+                .padding(.top, Metrics.s2 * k)
+                .disabled(status != nil)
+                if let resumeCode, let onResume {
+                    Button("Resume \(resumeCode)", action: onResume).buttonStyle(.homer(.quiet))
+                        .disabled(status != nil)
+                }
+                if let status {
+                    HStack(spacing: Metrics.s2 * k) {
+                        LiveDot(size: 7 * k)
+                        Text(status).font(Typeface.text(13 * k, weight: 500)).foregroundStyle(Palette.ink2)
+                    }
+                }
+            }
+            .padding(Metrics.s6 * k)
+            .frame(maxWidth: 440 * k, alignment: .leading)
+            .paper(Palette.paper, radius: Metrics.radiusL * k)
+            .layoutPriority(1)
+            HStack(spacing: Metrics.s4 * k) {
+                HostMedallion(host: .homer, size: 128 * k)
+                HostMedallion(host: .socrates, size: 128 * k).opacity(0.85)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(Metrics.s6 * k)
+    }
+}

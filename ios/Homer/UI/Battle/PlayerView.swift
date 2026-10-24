@@ -111,13 +111,12 @@ struct PlayerView: View {
                     TranscriptView(lines: Array(transcript.split(separator: "\n").map(String.init).suffix(2)),
                                    listening: talking, formulas: hand.filter(\.used).map(\.text), maxLines: 2)
                 }
-                ScrollView {
-                    FormulaHandView(cards: hand, raisedId: rescueId, forward: rescueId != nil)
-                }
-                .scrollIndicators(.hidden)
+                FormulaHandView(cards: hand, raisedId: rescueId, forward: true, style: .compact)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Spacer(minLength: 0)
                 if pushToTalk {
                     HoldToTalkView(isHeld: Binding(get: { talking }, set: { actions.setTalking?($0) }), level: level)
-                        .frame(height: 170)
+                        .frame(height: 150)
                 } else {
                     HStack {
                         MicLevelView(level: level)
@@ -198,8 +197,8 @@ private struct JoinForm: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Metrics.s4) {
-            Text("Join the Agon").font(Typeface.display(31)).foregroundStyle(Palette.onPage)
             VStack(alignment: .leading, spacing: Metrics.s2) {
+                Text("Join the Agon").font(Typeface.display(31)).padding(.bottom, Metrics.s3)
                 Text("Room code").tracked(10)
                 TextField("WKRD", text: $code)
                     .font(Typeface.display(44, weight: 500))

@@ -7,7 +7,8 @@ import os
 final class StageAudio: @unchecked Sendable {
     static let sampleRate = 48_000.0
 
-    private let engine = AVAudioEngine()
+    private let engine: AVAudioEngine
+    private let ownsEngine: Bool
     private let beat = AVAudioPlayerNode()
     private let strike = AVAudioPlayerNode()
     private let voice = AVAudioPlayerNode()
@@ -15,10 +16,13 @@ final class StageAudio: @unchecked Sendable {
     private lazy var strikeBuffer = BeatSynth.strike(sampleRate: Self.sampleRate)
     private let voiceLevel = OSAllocatedUnfairLock(initialState: Float(0))
 
-    init() {
+    /// Pass the mic's engine in solo modes so its echo canceller hears what we play.
+    init(engine: AVAudioEngine? = nil) {
+        self.engine = engine ?? AVAudioEngine()
+        ownsEngine = engine == nil
         for node in [beat, strike, voice] {
-            engine.attach(node)
-            engine.connect(node, to: engine.mainMixerNode, format: format)
+            self.engine.attach(node)
+            self.engine.connect(node, to: self.engine.mainMixerNode, format: format)
         }
         // Homer's loudness for the scene's instant layer ("the scene reacts to Homer's voice").
         voice.installTap(onBus: 0, bufferSize: 1024, format: format) { [voiceLevel] buffer, _ in
@@ -31,7 +35,9 @@ final class StageAudio: @unchecked Sendable {
     /// The arena only plays; the phone records too. Call before scheduling anything.
     func start(recording: Bool) throws {
         let session = AVAudioSession.sharedInstance()
-        if recording {
+        if !ownsEngine {
+            // The mic owns the session and has started the shared engine.
+        } else if recording {
             try AudioSessionConfig.activateForRecording()
         } else {
             try session.setCategory(.playback, mode: .default)
@@ -46,7 +52,7 @@ final class StageAudio: @unchecked Sendable {
 
     func stop() {
         [beat, strike, voice].forEach { $0.stop() }
-        engine.stop()
+        if ownsEngine { engine.stop() }
     }
 
     // MARK: beat

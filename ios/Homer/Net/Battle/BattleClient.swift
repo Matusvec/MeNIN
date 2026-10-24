@@ -258,11 +258,14 @@ final class BattleClient: SpacetimeClientDelegate {
 
     @ObservationIgnored private var advancedFrom = Set<String>()
 
+    /// Identifies the reveal on screen now; an advance is only valid from the reveal it was meant for.
+    var revealKey: String? { room.map { "\($0.id) \($0.phase) \($0.roundNo) \($0.currentTurnId)" } }
+
     /// Advances once per reveal, however many callers (conductor, operator key, dev autopilot) ask.
-    func advanceOnce() {
-        guard let room else { return }
-        let key = "\(room.id) \(room.phase) \(room.roundNo) \(room.currentTurnId)"
-        guard !advancedFrom.contains(key) else { return }
+    /// Pass `from` when the advance was scheduled earlier, so a late one can't skip the next reveal.
+    func advanceOnce(from expected: String? = nil) {
+        guard let key = revealKey, expected == nil || expected == key, !advancedFrom.contains(key),
+              room?.phaseValue != .finished, room?.phaseValue != .lobby else { return }
         advancedFrom.insert(key)
         advance()
     }

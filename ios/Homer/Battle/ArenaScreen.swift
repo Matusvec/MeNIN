@@ -1,36 +1,21 @@
 import CoreImage.CIFilterBuiltins
 import SwiftUI
 
-/// Placeholder arena for the typed-turn smoke test. Bare styling; the art lead owns the look.
+/// The arena: the art lead's ArenaView fed by BattlePresenter once a room exists, and a bare
+/// start panel before that. Sound, Homer and auto-advance live in ArenaConductor.
 struct ArenaScreen: View {
     @State private var battle = BattleClient(role: .arena)
     @State private var autopilot: DevAutopilot?
     @State private var conductor: ArenaConductor?
 
     var body: some View {
-        List {
-            Section {
-                LabeledContent("Server", value: "\(ServerConfig.spacetime.host() ?? "?") / \(ServerConfig.database)")
-                LabeledContent("Connection", value: "\(battle.connection)")
-                if let error = battle.lastError { Text(error).foregroundStyle(.red) }
-                if let error = battle.agentError { Text(error).foregroundStyle(.orange) }
-                if let error = conductor?.audioError { Text(error).foregroundStyle(.red) }
-                if let line = conductor?.homer.caption {
-                    // Placeholder caption; the art lead's CaptionView takes over.
-                    Text("Homer: \(line.text)").italic()
-                }
-            }
-            if let room = battle.room {
-                roomSection(room)
+        Group {
+            if let model = BattlePresenter.arena(battle, conductor: conductor) {
+                ArenaView(model: model, actions: BattlePresenter.arenaActions(battle, conductor: conductor))
+                    .overlay(alignment: .topTrailing) { problems }
+                    .toolbar(.hidden, for: .navigationBar)
             } else {
-                Section("New battle") {
-                    Button("Start a battle") { battle.createRoom(.standard) }
-                    Button("Start a demo battle") { battle.createRoom(.demoMode) }
-                    if let latest = battle.latestHostedRoom {
-                        Button("Resume \(latest.code) (\(latest.phase))") { battle.watchRoom(latest.id) }
-                    }
-                }
-                .disabled(battle.connection != .connected)
+                startPanel
             }
         }
         .navigationTitle("Arena")
@@ -52,56 +37,38 @@ struct ArenaScreen: View {
         }
     }
 
+    /// Before a room exists: start one, or resume the last one this arena hosted.
+    private var startPanel: some View {
+        List {
+            Section {
+                LabeledContent("Server", value: "\(ServerConfig.spacetime.host() ?? "?") / \(ServerConfig.database)")
+                LabeledContent("Connection", value: "\(battle.connection)")
+                if let error = battle.lastError { Text(error).foregroundStyle(.red) }
+            }
+            Section("New battle") {
+                Button("Start a battle") { battle.createRoom(.standard) }
+                Button("Start a demo battle") { battle.createRoom(.demoMode) }
+                if let latest = battle.latestHostedRoom {
+                    Button("Resume \(latest.code) (\(latest.phase))") { battle.watchRoom(latest.id) }
+                }
+            }
+            .disabled(battle.connection != .connected)
+        }
+    }
+
+    /// Small, out of the judges' way: only shows when something is wrong.
     @ViewBuilder
-    private func roomSection(_ room: RoomRow) -> some View {
-        Section("Room") {
-            HStack {
-                Text(room.code).font(.system(size: 56, weight: .bold, design: .monospaced))
-                Spacer()
-                QRCodeView(text: "homer://join/\(room.code)").frame(width: 120, height: 120)
+    private var problems: some View {
+        let issues = [battle.connection == .connected ? nil : "Connection: \(battle.connection)",
+                      battle.lastError, battle.agentError, conductor?.audioError].compactMap { $0 }
+        if !issues.isEmpty {
+            VStack(alignment: .trailing, spacing: 2) {
+                ForEach(issues, id: \.self) { Text($0) }
             }
-            LabeledContent("Phase", value: room.phase)
-            LabeledContent("Round", value: "\(room.roundNo) of \(room.rounds)")
-            if room.demo { Text("Demo mode") }
-            if let round = battle.currentRound { LabeledContent("Theme", value: round.theme) }
-        }
-        Section("Poets") {
-            ForEach(battle.players) { p in
-                HStack {
-                    Text(p.name + (p.epithet.isEmpty ? "" : ", \(p.epithet)"))
-                    Spacer()
-                    Text("\(p.total)").monospacedDigit()
-                    Circle().fill(p.connected ? .green : .gray).frame(width: 8, height: 8)
-                }
-            }
-        }
-        if let turn = battle.currentTurn {
-            Section("Turn: \(battle.player(turn.playerId)?.name ?? "?")") {
-                LabeledContent("Status", value: turn.status + (turn.attempt > 1 ? " (attempt \(turn.attempt))" : ""))
-                Text(turn.transcript.isEmpty ? "…" : turn.transcript)
-                if let score = battle.score(for: turn.id) {
-                    Text(score.axes.map(String.init).joined(separator: " · ") + "  = \(score.total)").monospacedDigit()
-                    Text(score.verdict).italic()
-                }
-            }
-        }
-        Section("Controls") {
-            switch room.phaseValue {
-            case .lobby:
-                Button("Begin (\(battle.players.count) poets)") { battle.startBattle() }
-                    .disabled(battle.players.count < 2)
-            case .ready:
-                if let turn = battle.currentTurn { Button("Start turn") { battle.startTurn(turn.id) } }
-            case .speaking, .judging:
-                if let turn = battle.currentTurn { Button("Skip turn", role: .destructive) { battle.skipTurn(turn.id) } }
-            case .scored, .roundEnd, .finale:
-                Button("Advance") { battle.advance() }
-            default:
-                EmptyView()
-            }
-            if room.phaseValue != .lobby {
-                Button("Rematch") { battle.rematch() }
-            }
+            .font(.caption2)
+            .padding(6)
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 6))
+            .padding(8)
         }
     }
 }

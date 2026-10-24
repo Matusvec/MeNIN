@@ -13,6 +13,8 @@ struct HomerButtonStyle: ButtonStyle {
         let k = stage.scale
         configuration.label
             .font(Typeface.text(15 * k, weight: 600))
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
             .foregroundStyle(foreground)
             .padding(.horizontal, 18 * k)
             .frame(minHeight: 44 * k)
@@ -54,10 +56,13 @@ struct HomerButtonStyle: ButtonStyle {
 /// A button label with the concept's trailing arrow.
 struct ArrowLabel: View {
     let title: String
+    @Environment(\.stage) private var stage
+
     var body: some View {
-        HStack(spacing: 9) {
+        HStack(spacing: 9 * stage.scale) {
             Text(title)
-            Image("icon-arrow-right").renderingMode(.template).resizable().frame(width: 16, height: 16)
+            Image("icon-arrow-right").renderingMode(.template).resizable()
+                .frame(width: 16 * stage.scale, height: 16 * stage.scale)
         }
     }
 }

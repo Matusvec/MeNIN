@@ -63,10 +63,11 @@ final class DevAutopilot {
             guard !done.contains(key) else { return }
             done.insert(key)
             print("AUTOPILOT \(key)")
+            let from = battle.revealKey
             Task {
                 // The conductor advances auto-ready rooms itself once Homer's line ends.
                 try? await Task.sleep(for: .seconds(room.autoReady ? 12 : 2))
-                battle.advanceOnce()
+                battle.advanceOnce(from: from)
             }
         case .finished:
             once("finished \(room.id)") {

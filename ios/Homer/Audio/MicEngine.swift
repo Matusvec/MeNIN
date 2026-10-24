@@ -21,7 +21,10 @@ final class MicEngine: @unchecked Sendable {
     var onOnset: (@Sendable (Onset) -> Void)?
     let deliveryQueue = DispatchQueue(label: "com.matusvec.homer.mic")
 
-    private let engine = AVAudioEngine()
+    /// Shared with StageAudio in solo modes: the echo canceller only removes what its own
+    /// engine plays, so the phone's beat and Homer's voice must come out of this engine.
+    let engine: AVAudioEngine
+    private let ownsEngine: Bool
     private let state = OSAllocatedUnfairLock(initialState: State())
     private var converter: AVAudioConverter?
     private var inputSampleRate = 48_000.0
@@ -31,6 +34,11 @@ final class MicEngine: @unchecked Sendable {
         var muted = false
         var pending = Data()
         var detector = OnsetDetector()
+    }
+
+    init(engine: AVAudioEngine? = nil) {
+        self.engine = engine ?? AVAudioEngine()
+        ownsEngine = engine == nil
     }
 
     var muted: Bool {
@@ -59,13 +67,15 @@ final class MicEngine: @unchecked Sendable {
         input.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, time in
             self?.process(buffer, time: time, mono: mono, target: target)
         }
-        engine.prepare()
-        try engine.start()
+        if !engine.isRunning {
+            engine.prepare()
+            try engine.start()
+        }
     }
 
     func stop() {
         engine.inputNode.removeTap(onBus: 0)
-        engine.stop()
+        if ownsEngine { engine.stop() }
         state.withLock { $0 = State() }
     }
 

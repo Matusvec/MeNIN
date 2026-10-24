@@ -18,10 +18,22 @@ final class ArenaConductor {
     @ObservationIgnored private var beatFor: String?
     @ObservationIgnored private var lastHits: (turn: UInt64, hits: UInt32) = (0, 0)
     @ObservationIgnored private var said = Set<String>()
+    @ObservationIgnored private let agent: AgentClient?
     let homer: HomerVoice
+
+    /// What Homer is saying now, keyed like "enter 12", "verdict 40", "round 7", "song 2": the
+    /// presenter ties reveals (scores counting up, the carved line) to his voice.
+    private(set) var saying: String?
+    /// The player whose entrance is being announced.
+    private(set) var entering: UInt64?
+    /// The song line being performed in the finale.
+    private(set) var songLine = 0
+    /// Three theme cards for rooms with theme choice (from the agent's /themes).
+    private(set) var themeCards: [String] = []
 
     init(battle: BattleClient, agent: AgentClient?) {
         self.battle = battle
+        self.agent = agent
         homer = HomerVoice(audio: audio, agent: agent, role: .arena)
     }
 
@@ -90,17 +102,23 @@ final class ArenaConductor {
             guard !said.contains(key), !text.isEmpty else { return }
             said.insert(key)
             Task {
-                await homer.say(text)
+                await speak(key, text)
                 then?()
             }
         }
+        let from = battle.revealKey
         let advance: (() -> Void)? = room.autoReady ? { [weak self] in
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(1.5))
-                self?.battle.advanceOnce()
+                self?.battle.advanceOnce(from: from)
             }
         } : nil
 
+        if room.phaseValue == .theme, themeCards.isEmpty, let agent, !said.contains("themes \(room.id) \(room.roundNo)") {
+            said.insert("themes \(room.id) \(room.roundNo)")
+            Task { themeCards = (try? await agent.themes(n: 3, demo: room.demo)) ?? [] }
+        }
+        if room.phaseValue != .theme, !themeCards.isEmpty { themeCards = [] }
         for poet in battle.players where poet.entered && poet.named {
             once("enter \(poet.id)", poet.epithet.isEmpty ? "Enter \(poet.name)!" : "Enter \(poet.name), \(poet.epithet)!")
         }
@@ -125,16 +143,29 @@ final class ArenaConductor {
             guard !song.isEmpty else { return }
             let champion = battle.players.max { $0.total < $1.total }
             let crown = champion.map { "\($0.name)\($0.epithet.isEmpty ? "" : ", \($0.epithet)"). The hall is yours." } ?? ""
-            once("song \(room.id) \(room.roundNo)", song.joined(separator: " "), then: { [weak self] in
-                guard let self else { return }
-                Task {
-                    await self.homer.say(crown)
-                    advance?()
+            let key = "song \(room.id) \(room.roundNo)"
+            guard !said.contains(key) else { return }
+            said.insert(key)
+            Task {
+                // Line by line, so the arena can show which line is being performed.
+                for (i, line) in song.enumerated() {
+                    songLine = i
+                    await speak("song \(i)", line)
                 }
-            })
+                await speak("crown", crown)
+                advance?()
+            }
         default:
             break
         }
+    }
+
+    private func speak(_ key: String, _ text: String) async {
+        saying = key
+        if key.hasPrefix("enter "), let id = UInt64(key.dropFirst(6)) { entering = id }
+        await homer.say(text)
+        if saying == key { saying = nil }
+        if key.hasPrefix("enter ") { entering = nil }
     }
 
     private func stopBeatIfPlaying() {

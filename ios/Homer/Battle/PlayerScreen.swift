@@ -1,133 +1,85 @@
 import SwiftUI
 
-/// Placeholder phone screen for the typed-turn smoke test. Bare styling; the art lead owns the look.
+/// The phone in a battle: the art lead's PlayerView fed by BattlePresenter. The voice turn
+/// lives in TurnRecorder; when voice is unavailable (no agent or Cartesia key yet) a small
+/// typed field stands in during your turn, as a dev fallback.
 struct PlayerScreen: View {
     var initialCode = ""
 
     @State private var battle = BattleClient(role: .player)
     @State private var autopilot: DevAutopilot?
     @State private var recorder: TurnRecorder?
-    @State private var code = ""
-    @State private var name = ""
     @State private var draft = ""
     @AppStorage("poetName") private var savedName = ""
 
     var body: some View {
-        List {
-            Section {
-                LabeledContent("Connection", value: "\(battle.connection)")
-                if let error = battle.lastError { Text(error).foregroundStyle(.red) }
+        PlayerView(model: model, actions: actions)
+            .safeAreaInset(edge: .bottom) { typedFallback }
+            .toolbar(battle.me == nil ? .automatic : .hidden, for: .navigationBar)
+            .task {
+                battle.connect(to: ServerConfig.spacetime, database: ServerConfig.database)
+                let recorder = TurnRecorder(battle: battle, agent: AgentClient.configured)
+                recorder.attach()
+                self.recorder = recorder
+                autopilot = DevAutopilot(battle: battle)
+                autopilot?.recorder = recorder
+                autopilot?.start()
             }
-            if let room = battle.room, battle.me != nil {
-                inRoom(room)
-            } else {
-                Section("Join a battle") {
-                    TextField("Room code", text: $code)
-                        .textInputAutocapitalization(.characters)
-                        .autocorrectionDisabled()
-                    TextField("Your name", text: $name)
-                    Button("Join") {
-                        savedName = name
-                        battle.join(code: code, name: name)
-                    }
-                    .disabled(battle.connection != .connected || code.count != 4 || name.isEmpty)
-                }
+            .onDisappear {
+                recorder?.detach()
+                autopilot?.stop()
+                battle.disconnect()
             }
-        }
-        .navigationTitle("Poet")
-        .task {
-            if code.isEmpty { code = initialCode }
-            if name.isEmpty { name = savedName }
-            battle.connect(to: ServerConfig.spacetime, database: ServerConfig.database)
-            let recorder = TurnRecorder(battle: battle, agent: AgentClient.configured)
-            recorder.attach()
-            self.recorder = recorder
-            autopilot = DevAutopilot(battle: battle)
-            autopilot?.recorder = recorder
-            autopilot?.start()
-        }
-        .onDisappear {
-            recorder?.detach()
-            autopilot?.stop()
-            battle.disconnect()
-        }
     }
 
-    @ViewBuilder
-    private func inRoom(_ room: RoomRow) -> some View {
-        Section(room.code) {
-            LabeledContent("Phase", value: room.phase)
-            if let me = battle.me {
-                LabeledContent("You", value: me.name + (me.epithet.isEmpty ? "" : ", \(me.epithet)"))
-                LabeledContent("Total", value: "\(me.total)")
-                if !me.entered { Button("I'm here (mic check)") { battle.enter() } }
-            }
-            if let round = battle.currentRound { LabeledContent("Theme", value: round.theme) }
+    private var model: PlayerModel {
+        var m = BattlePresenter.player(battle, recorder: recorder)
+        if battle.me == nil {
+            m.code = initialCode
+            if m.me == nil, !savedName.isEmpty { m.me = PoetPlate(id: "", name: savedName, epithet: "", seat: 0) }
         }
-        if !battle.myHand.isEmpty {
-            Section("Your hand") {
-                ForEach(battle.myHand, id: \.self) { Text($0) }
-            }
-        }
-        if let turn = battle.currentTurn {
-            if battle.isMyTurn {
-                myTurn(turn, room: room)
-            } else {
-                Section("\(battle.player(turn.playerId)?.name ?? "?") is up") {
-                    Text(turn.transcript.isEmpty ? "…" : turn.transcript)
-                }
-            }
-            if let score = battle.score(for: turn.id) {
-                Section("Verdict") {
-                    Text(score.axes.map(String.init).joined(separator: " · ") + "  = \(score.total)").monospacedDigit()
-                    Text(score.verdict).italic()
-                }
-            }
-        }
+        return m
     }
 
+    private var actions: PlayerActions {
+        PlayerActions(
+            join: { code, name in
+                savedName = name
+                battle.join(code: code, name: name)
+            },
+            imHere: { battle.enter() },
+            ready: { if let turn = battle.currentTurn { battle.startTurn(turn.id) } },
+            setTalking: { recorder?.setTalking($0) },
+            done: {
+                if let recorder, recorder.phase == .live {
+                    Task { await recorder.finish() }
+                } else if let turn = battle.currentTurn {
+                    battle.endTurn(turn.id, draft)
+                    draft = ""
+                }
+            }
+        )
+    }
+
+    /// Typing stands in for the mic only during your own turn, and only when voice is down.
     @ViewBuilder
-    private func myTurn(_ turn: TurnRow, room: RoomRow) -> some View {
-        Section("Your turn") {
-            switch turn.statusValue {
-            case .waiting:
-                if room.autoReady {
-                    Text("Step up. The arena starts your turn.")
-                } else {
-                    Button("Ready") { battle.startTurn(turn.id) }
-                }
-            case .speaking where recorder?.phase == .live || recorder?.phase == .finishing:
-                if let recorder { talk(recorder) }
-            case .speaking:
-                // Typed fallback when voice is unavailable: one line per row, \(room.linesPerTurn) lines.
-                if case .unavailable(let why) = recorder?.phase {
-                    Text(why).font(.footnote).foregroundStyle(.secondary)
-                }
-                TextEditor(text: $draft)
-                    .frame(minHeight: 120)
+    private var typedFallback: some View {
+        if let turn = battle.currentTurn, battle.isMyTurn, turn.statusValue == .speaking,
+           case .unavailable(let why) = recorder?.phase {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(why).font(.caption).foregroundStyle(.secondary)
+                TextField("Type your verse, one line per row", text: $draft, axis: .vertical)
+                    .lineLimit(2...6)
+                    .textFieldStyle(.roundedBorder)
                     .onChange(of: draft) { _, text in battle.updateTranscript(turn.id, text) }
                 Button("Done") {
                     battle.endTurn(turn.id, draft)
                     draft = ""
                 }
-            default:
-                Text(turn.status)
+                .buttonStyle(.borderedProminent)
             }
+            .padding()
+            .background(.thinMaterial)
         }
-    }
-
-    /// Placeholder push-to-talk: hold to speak a line, release to end it.
-    @ViewBuilder
-    private func talk(_ recorder: TurnRecorder) -> some View {
-        Text(recorder.transcript.isEmpty ? "Hold to speak a line." : recorder.transcript)
-        LabeledContent("On the beat", value: "\(recorder.hits)")
-        if let card = recorder.rescueCard { LabeledContent("Homer whispers", value: card) }
-        Text(recorder.talking ? "Speaking…" : "Hold to talk")
-            .frame(maxWidth: .infinity, minHeight: 88)
-            .background(recorder.talking ? Color.accentColor.opacity(0.35) : Color.secondary.opacity(0.15))
-            .gesture(DragGesture(minimumDistance: 0)
-                .onChanged { _ in recorder.setTalking(true) }
-                .onEnded { _ in recorder.setTalking(false) })
-        Button("Done") { Task { await recorder.finish() } }
     }
 }

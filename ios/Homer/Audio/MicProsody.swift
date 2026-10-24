@@ -11,7 +11,11 @@ final class MicProsody {
     private(set) var isRunning = false
     private(set) var error: String?
 
-    @ObservationIgnored let engine = MicEngine()
+    @ObservationIgnored let engine: MicEngine
+
+    init(engine: MicEngine = MicEngine()) {
+        self.engine = engine
+    }
     @ObservationIgnored private var poll: Task<Void, Never>?
     /// Also receives each new reading, without a SwiftUI update (e.g. a SceneDriver).
     @ObservationIgnored var onProsody: ((Prosody) -> Void)?
