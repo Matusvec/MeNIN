@@ -1,0 +1,79 @@
+{
+  "actorSpecification": 1,
+  "fields": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "description": "One mined formula: the MeNIN formula-bank entry (content/formulas.json schema) plus source and count, and two review aids (pattern, example) that are not written to formulas.mined.json.",
+    "properties": {
+      "id": { "type": "string", "description": "The text in lowercase with hyphens, without a leading \"the\"." },
+      "text": { "type": "string", "description": "The formula as a player says it." },
+      "kind": { "type": "string", "enum": ["epithet", "kenning", "half_line"] },
+      "beats": { "type": "integer", "enum": [1, 2], "description": "Hits of a four-beat line it fills; a compound takes one hit, on its first part." },
+      "themes": {
+        "type": "array",
+        "items": { "type": "string", "enum": ["sea", "war", "home", "love", "loss", "journey", "night", "dawn", "storm", "fire", "gods", "feast", "city", "wild", "time", "glory"] }
+      },
+      "emotions": {
+        "type": "array",
+        "items": { "type": "string", "enum": ["anger", "grief", "joy", "awe", "tenderness", "fear", "defiance", "longing"] }
+      },
+      "source": { "type": "string", "description": "Book, translator and Project Gutenberg number, most occurrences first." },
+      "count": { "type": "integer", "description": "Occurrences across all mined books." },
+      "pattern": { "type": "string", "enum": ["compound", "appositive", "simple", "agentive", "genitive", "half_line"] },
+      "example": { "type": "string", "description": "The first passage it was found in." }
+    },
+    "required": ["id", "text", "kind", "beats", "themes", "emotions", "source", "count"],
+    "examples": [
+      {
+        "id": "aegis-bearing-zeus",
+        "text": "aegis-bearing Zeus",
+        "kind": "epithet",
+        "beats": 2,
+        "themes": ["gods", "storm"],
+        "emotions": ["awe", "fear"],
+        "source": "Iliad, tr. Lang, Leaf & Myers (Project Gutenberg #3059); Iliad, tr. Butler (Project Gutenberg #2199)",
+        "count": 60,
+        "pattern": "compound",
+        "example": "… come hither, thou daughter of aegis-bearing Zeus? Is it to behold the …"
+      }
+    ]
+  },
+  "views": {
+    "overview": {
+      "title": "Formulas",
+      "description": "Mined formulas, best first.",
+      "transformation": {
+        "fields": ["text", "kind", "beats", "count", "themes", "emotions", "source", "example"]
+      },
+      "display": {
+        "component": "table",
+        "properties": {
+          "text": { "label": "Formula", "format": "text" },
+          "kind": { "label": "Kind", "format": "text" },
+          "beats": { "label": "Beats", "format": "number" },
+          "count": { "label": "Count", "format": "number" },
+          "themes": { "label": "Themes", "format": "array" },
+          "emotions": { "label": "Emotions", "format": "array" },
+          "source": { "label": "Source", "format": "text" },
+          "example": { "label": "In context", "format": "text" }
+        }
+      }
+    },
+    "bank": {
+      "title": "Bank entries",
+      "description": "Exactly the fields of formulas.mined.json, ready to merge into a formula bank.",
+      "transformation": {
+        "fields": ["id", "text", "kind", "beats", "themes", "emotions", "source", "count"]
+      },
+      "display": {
+        "component": "table",
+        "properties": {
+          "id": { "label": "ID", "format": "text" },
+          "text": { "label": "Formula", "format": "text" },
+          "beats": { "label": "Beats", "format": "number" },
+          "count": { "label": "Count", "format": "number" }
+        }
+      }
+    }
+  }
+}

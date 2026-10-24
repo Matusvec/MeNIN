@@ -1,0 +1,4 @@
+# Versions the Actor was built and run with.
+apify==4.1.0
+crawlee==1.11.0
+pronouncing==0.3.0

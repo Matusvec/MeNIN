@@ -1,0 +1,88 @@
+{
+  "title": "Epithet Miner input",
+  "description": "Which Project Gutenberg books to mine, how many formulas to keep, and the existing bank to dedupe against. Every field has a default, so an empty input mines four prose translations of the Iliad and the Odyssey.",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "gutenbergIds": {
+      "title": "Project Gutenberg ebook IDs",
+      "type": "array",
+      "description": "Ebook IDs (or ebook URLs such as https://www.gutenberg.org/ebooks/3059). Defaults: 3059 Iliad (Lang, Leaf & Myers), 1728 Odyssey (Butcher & Lang), 2199 Iliad (Samuel Butler), 1727 Odyssey (Samuel Butler). Also public domain: 6130 Iliad and 3160 Odyssey (Alexander Pope, verse). A book is mined only if its Gutenberg record says \"Public domain in the USA.\"",
+      "editor": "stringList",
+      "prefill": ["3059", "1728", "2199", "1727"],
+      "default": ["3059", "1728", "2199", "1727"]
+    },
+    "maxFormulas": {
+      "title": "Max formulas",
+      "type": "integer",
+      "description": "The most formulas to output, best first. At most 15 of them, and never more than a fifth, are half-lines.",
+      "editor": "number",
+      "minimum": 1,
+      "maximum": 1000,
+      "default": 150
+    },
+    "minCount": {
+      "title": "Minimum occurrences",
+      "type": "integer",
+      "description": "How many times a formula must occur across all books. Homer's formulas recur; one-off phrases are not formulas. Plain adjectives (\"great\", \"old\") need twice this.",
+      "editor": "number",
+      "minimum": 1,
+      "maximum": 100,
+      "default": 2
+    },
+    "maxPerHead": {
+      "title": "Max formulas per name or noun",
+      "type": "integer",
+      "description": "Keeps the bank varied: at most this many formulas for one head (Zeus, ships, Troy).",
+      "editor": "number",
+      "minimum": 1,
+      "maximum": 50,
+      "default": 4
+    },
+    "includeHalfLines": {
+      "title": "Include half-lines",
+      "type": "boolean",
+      "description": "Also mine prepositional half-lines such as \"over the wine-dark sea\" (kind half_line).",
+      "editor": "checkbox",
+      "default": true
+    },
+    "modernizeNames": {
+      "title": "Use familiar Greek names",
+      "type": "boolean",
+      "description": "Write names the way players say them: Jove and Minerva (Butler) become Zeus and Athena; Athene, Achaians and Aias (Lang) become Athena, Achaeans and Ajax. Off keeps each translator's spelling.",
+      "editor": "checkbox",
+      "default": true
+    },
+    "existingBankUrl": {
+      "title": "Existing bank URL",
+      "type": "string",
+      "description": "URL of the formula bank to dedupe against (a JSON array like MeNIN's content/formulas.json). Formulas already in it, or variants of them (\"fleet-footed Achilles\" for \"swift-footed Achilles\"), are dropped.",
+      "editor": "textfield",
+      "sectionCaption": "Existing bank"
+    },
+    "existingBank": {
+      "title": "Existing bank (JSON)",
+      "type": "array",
+      "description": "The bank pasted as a JSON array of {id, text, ...} entries. Used when no URL is given.",
+      "editor": "json"
+    },
+    "maxRequestsPerMinute": {
+      "title": "Max requests per minute",
+      "type": "integer",
+      "description": "Politeness cap for gutenberg.org. Requests are always made one at a time.",
+      "editor": "number",
+      "minimum": 1,
+      "maximum": 30,
+      "default": 10,
+      "sectionCaption": "Crawling"
+    },
+    "useCache": {
+      "title": "Cache downloaded books",
+      "type": "boolean",
+      "description": "Keep downloaded books in the named key-value store epithet-miner-pg-cache, so later runs don't download them again.",
+      "editor": "checkbox",
+      "default": true
+    }
+  },
+  "required": []
+}

@@ -1,0 +1,19 @@
+{
+  "actorSpecification": 1,
+  "name": "epithet-miner",
+  "title": "Epithet Miner: Homeric formulas from Project Gutenberg",
+  "description": "Crawls public-domain Homer translations on Project Gutenberg and mines the noun-epithet formulas the oral poets improvised with (\"aegis-bearing Zeus\", \"the wine-dark deep\", \"laughter-loving Aphrodite\"), each tagged with its beat count from the CMU Pronouncing Dictionary, themes, emotions, source and frequency.",
+  "version": "0.1",
+  "buildTag": "latest",
+  "meta": {
+    "templateId": "ai-generated-actor",
+    "generatedBy": "Claude Opus 5.5 (Claude Code)"
+  },
+  "input": "./input_schema.json",
+  "storages": {
+    "dataset": "./dataset_schema.json"
+  },
+  "dockerfile": "./Dockerfile",
+  "minMemoryMbytes": 256,
+  "maxMemoryMbytes": 2048
+}
