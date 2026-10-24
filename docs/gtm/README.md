@@ -6,6 +6,7 @@ GTM brief. Friday Oct 23, 11 PM. Sources: Hacker Guide (organizers call it "the 
 | --- | --- |
 | [tracks.md](tracks.md) | Every track we enter: prize, criteria quoted verbatim, how we hit each one, what to submit, who to find |
 | [demo-script.md](demo-script.md) | **The 2-minute table demo**, second by second, with fallbacks |
+| [run-sheet.md](run-sheet.md) | Judging-day logistics: timeline, devices, charging, table layout, rematch drill, fallbacks, packing list |
 | [pitch.md](pitch.md) | Sponsor variants, booth pitches, Q&A bank, video shot list |
 | [devpost.md](devpost.md) | Devpost submission draft, ready to paste |
 | [reality-check.md](reality-check.md) | Are we building BS? What's strong, what isn't, and what each part of the build should change |
