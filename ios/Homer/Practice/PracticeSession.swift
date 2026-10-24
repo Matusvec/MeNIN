@@ -68,6 +68,14 @@ final class PracticeSession {
     @ObservationIgnored private var tasks: [Task<Void, Never>] = []
     @ObservationIgnored private var flushWaiters: [CheckedContinuation<Void, Never>] = []
     @ObservationIgnored private var pendingLineBreaks = 0
+    /// `finalize`s not yet answered; the verse is judged only after all are in.
+    @ObservationIgnored private var pendingFlushes = 0
+    @ObservationIgnored private var lastWordsMs = 0.0
+    @ObservationIgnored private var lastPauseBreakMs = 0.0
+    /// Free verse (SPEC, Sat 3:40): Practice has no beat either. A 3-2-1, then one window.
+    static let verseSeconds = 20.0
+    /// SPEAK to the window's end, for the countdown ring.
+    private(set) var verseWindow: (start: Date, end: Date)?
     @ObservationIgnored private var lastVoiceMs = 0.0
     @ObservationIgnored private var rescuedLines = Set<Int>()
     @ObservationIgnored private var rescues = 0
@@ -117,22 +125,24 @@ final class PracticeSession {
         await homer.say(theme)
         mic.muted = false
 
-        let bar = BeatClock(beatAtMs: 0, bpm: Self.bpm, barsPerLine: Self.barsPerLine, lines: Self.lines).barMs
-        let nowMs = Date().timeIntervalSince1970 * 1000
-        let clock = BeatClock(beatAtMs: nowMs + bar + 250, bpm: Self.bpm, barsPerLine: Self.barsPerLine, lines: Self.lines)
-        self.clock = clock
+        // 3, 2, 1 (haptic ticks 0.75 s apart), then SPEAK and one window; no drum, no grid.
+        let goAt = Date().timeIntervalSince1970 * 1000 + 2250 + 250
+        let endAt = goAt + Self.verseSeconds * 1000
+        clock = nil
+        verseWindow = (Date(timeIntervalSince1970: goAt / 1000), Date(timeIntervalSince1970: endAt / 1000))
         MusicDirector.shared.setMicOpen(true)
-        stage.playBeat(clock)
-        haptics.play(clock)
-        lastVoiceMs = clock.beatAtMs
+        haptics.countIn(toMs: goAt)
+        lastVoiceMs = goAt
+        lastWordsMs = goAt
         phase = .live
-        startLiveTasks(clock)
+        startLiveTasks(goAt: goAt, endAt: endAt)
     }
 
     /// Done tapped, or the last line's rest bar ended.
     func finish() async {
         guard phase == .live else { return }
         phase = .judging
+        pendingFlushes += 1
         stt?.finalize()
         await waitForFlush(timeoutMs: 1500)
         let verse = transcript.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -174,18 +184,12 @@ final class PracticeSession {
         haptics.prepare()
     }
 
-    private func startLiveTasks(_ clock: BeatClock) {
-        // Lines follow the beat: flush STT at each line boundary, then end after the last.
+    private func startLiveTasks(goAt: Double, endAt: Double) {
+        // The window ends the verse (Done can end it sooner).
         tasks.append(Task { [weak self] in
-            for n in 0..<clock.lines {
-                let boundary = clock.beatAtMs + clock.lineMs * Double(n + 1)
-                try? await Task.sleep(for: .milliseconds(max(0, Int(boundary - Date().timeIntervalSince1970 * 1000))))
-                guard let self, self.phase == .live else { return }
-                self.pendingLineBreaks += 1
-                self.stt?.finalize()
-            }
-            try? await Task.sleep(for: .milliseconds(300))
-            await self?.finish()
+            try? await Task.sleep(for: .milliseconds(max(0, Int(endAt - Date().timeIntervalSince1970 * 1000))))
+            guard let self, self.phase == .live else { return }
+            await self.finish()
         })
         // The scene's color, and the samples Range is scored from: about every 1.5 s.
         tasks.append(Task { [weak self] in
@@ -201,12 +205,14 @@ final class PracticeSession {
                 }
             }
         })
-        // Freeze rescue: about 1 s of silence in a speaking bar, once per line.
+        // Freeze rescue (P22) and lines broken on pauses.
         tasks.append(Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(200))
                 guard let self, self.phase == .live else { return }
-                self.checkFreeze(now: Date().timeIntervalSince1970 * 1000, clock: clock)
+                let now = Date().timeIntervalSince1970 * 1000
+                self.checkFreeze(now: now, goAt: goAt)
+                self.breakLineOnPause(now: now)
             }
         })
     }
@@ -215,8 +221,10 @@ final class PracticeSession {
         Self.log.notice("practice stt \(String(describing: event), privacy: .public)")
         switch event {
         case .partial(let text):
+            if text != partial { lastWordsMs = Date().timeIntervalSince1970 * 1000 }
             partial = text
         case .final(let text, _):
+            if !text.trimmingCharacters(in: .whitespaces).isEmpty { lastWordsMs = Date().timeIntervalSince1970 * 1000 }
             finals += text
             partial = ""
             matchCards()
@@ -225,8 +233,11 @@ final class PracticeSession {
                 pendingLineBreaks -= 1
                 if !finals.isEmpty, !finals.hasSuffix("\n") { finals = finals.trimmingCharacters(in: .whitespaces) + "\n" }
             }
-            flushWaiters.forEach { $0.resume() }
-            flushWaiters.removeAll()
+            pendingFlushes = max(0, pendingFlushes - 1)
+            if pendingFlushes == 0 {
+                flushWaiters.forEach { $0.resume() }
+                flushWaiters.removeAll()
+            }
         case .error(let message):
             if phase == .announcing || phase == .live { voiceNote = "Voice dropped (\(message)), so type the rest." }
         case .closed:
@@ -235,8 +246,9 @@ final class PracticeSession {
     }
 
     private func handle(_ onset: MicEngine.Onset) {
-        guard phase == .live, let clock else { return }
+        guard phase == .live else { return }
         lastVoiceMs = onset.epochMs
+        guard let clock else { return }  // free verse: no beat lane
         let t = onset.epochMs - StressGate.heardLatencyMs - clock.beatAtMs  // as heard, on the beat's timeline
         switch gate.judge(onset, on: clock) {
         case .unstressed:
@@ -258,11 +270,12 @@ final class PracticeSession {
         }
     }
 
-    private func checkFreeze(now: Double, clock: BeatClock) {
-        guard clock.isSpeakingBar(atMs: now), now - lastVoiceMs > 1000 else { return }
-        let line = clock.line(atMs: now)
-        guard !rescuedLines.contains(line), let agent else { return }
-        rescuedLines.insert(line)
+    /// P22: ~1.5 s of silence after SPEAK (onset or words), at most once per 6 s and two per verse.
+    private func checkFreeze(now: Double, goAt: Double) {
+        guard now > goAt + 1200, now - lastVoiceMs > 1500 || now - lastWordsMs > 1800 else { return }
+        let slot = Int((now - goAt) / 6000)
+        guard rescuedLines.count < 2, !rescuedLines.contains(slot), let agent else { return }
+        rescuedLines.insert(slot)
         let request = RescueRequest(transcript: transcript, hand: hand.map(\.text), played: Array(played), theme: theme)
         Task {
             guard let rescue = try? await agent.rescue(request) else { return }
@@ -349,6 +362,16 @@ final class PracticeSession {
         scene.prosody = .silent
     }
 
+    /// A pause of ~0.7 s with words pending ends a line, so the judge sees lines.
+    private func breakLineOnPause(now: Double) {
+        guard !partial.trimmingCharacters(in: .whitespaces).isEmpty, now - lastWordsMs > 700,
+              now - lastPauseBreakMs > 900 else { return }
+        lastPauseBreakMs = now
+        pendingLineBreaks += 1
+        pendingFlushes += 1
+        stt?.finalize()
+    }
+
     private func resetTurn() {
         finals = ""
         partial = ""
@@ -364,6 +387,9 @@ final class PracticeSession {
         rescues = 0
         gate.reset()
         pendingLineBreaks = 0
+        pendingFlushes = 0
+        lastPauseBreakMs = 0
+        verseWindow = nil
         for i in hand.indices { hand[i].used = false }
     }
 }

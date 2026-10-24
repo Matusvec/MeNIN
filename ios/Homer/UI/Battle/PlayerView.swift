@@ -398,8 +398,9 @@ struct PhrasesHeader: View {
 /// then the whole screen flips to your seat's color with one SPEAK for the whole
 /// verse and a ring counting the seconds down. Your words show as Homer hears
 /// them; Homer's phrases sit below, and "+Craft" pops when one lands.
-private struct VerseStage: View {
-    let lane: BeatLane
+struct VerseStage: View {
+    /// The beat grid, as a fallback when there's no window (nil for free verse).
+    let lane: BeatLane?
     let lines: [String]
     let hand: [FormulaCard]
     let rescueId: String?
@@ -609,7 +610,10 @@ private struct VerseStage: View {
             let end = window.end.timeIntervalSince1970 * 1000
             return (start, end, (end - start) / 1000, 750) // the count ticks every 0.75 s
         }
-        return (lane.startedAt, lane.startedAt + 20_000, 20, 60_000 / max(lane.bpm, 1))
+        if let lane {
+            return (lane.startedAt, lane.startedAt + 20_000, 20, 60_000 / max(lane.bpm, 1))
+        }
+        return (.infinity, .infinity, 20, 750) // nothing scheduled yet: Get ready
     }
 
     /// 3-2-1 on the three ticks before the verse, then one SPEAK until the time is up.

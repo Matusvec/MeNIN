@@ -98,6 +98,19 @@ struct AgentClient: Sendable {
         try await post("lesson/feedback", request)
     }
 
+    /// Whether Homer's voice service works right now ("ok", "out" of credits, or "down"); the agent caches it 60 s.
+    /// A minted token doesn't mean the voice works, so ask this once when the mic socket fails.
+    func voiceStatus() async throws -> (voice: String, message: String) {
+        struct Status: Decodable { var voice: String; var message: String? }
+        var req = URLRequest(url: base.appending(path: "voice/status"))
+        req.timeoutInterval = 6
+        if !Self.appKey.isEmpty { req.setValue(Self.appKey, forHTTPHeaderField: "X-Homer-Key") }
+        let (data, response) = try await session.data(for: req)
+        try check(response, body: data)
+        let s = try JSONDecoder().decode(Status.self, from: data)
+        return (s.voice, s.message ?? "")
+    }
+
     func debateQuestions() async throws -> [DebateQuestion] {
         try await debateContent().questions
     }

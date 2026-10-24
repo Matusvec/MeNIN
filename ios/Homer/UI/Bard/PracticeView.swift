@@ -33,6 +33,8 @@ struct PracticeModel: Equatable {
     var typed: String?
     /// A wait over the screen (Homer warming up, reconnecting).
     var wait: WaitState? = nil
+    /// Free verse, no drum: SPEAK from start to end, after a 3·2·1 count.
+    var verseWindow: VerseWindow? = nil
 }
 
 struct PracticeActions {
@@ -66,6 +68,17 @@ struct PracticeView: View {
     var actions = PracticeActions()
 
     var body: some View {
+        if case .live = model.phase, let window = model.verseWindow, model.typed == nil {
+            // Free verse, like a battle: 3·2·1, then one SPEAK with the clock running.
+            VerseStage(lane: nil, lines: model.transcript, hand: model.hand, rescueId: model.rescueId, level: model.level,
+                       topic: model.theme.isEmpty ? nil : model.theme, ink: Palette.hero, window: window,
+                       onDone: actions.done, onBack: actions.back)
+        } else {
+            scaffold
+        }
+    }
+
+    private var scaffold: some View {
         PhoneScaffold(eyebrow: "Practice · Spar with Homer", title: model.theme.isEmpty ? "Choose a theme" : model.theme,
                       onBack: actions.back, homer: model.homer.flatMap { $0.whisper ? nil : $0 }, wait: model.wait) {
             ZStack {

@@ -385,7 +385,16 @@ final class TurnRecorder {
             // Never a silent SPEAK: if speech-to-text fails, even mid-verse (out of credits, socket
             // dropped), the phone says so and offers the typed verse, keeping the words heard so far.
             if phase == .live { draftFromVoice = finals + partial; teardown() }
-            if [.preparing, .ready, .live].contains(phase) { phase = .unavailable(Self.plain(message)) }
+            if [.preparing, .ready, .live].contains(phase) {
+                phase = .unavailable(Self.plain(message))
+                // The socket fails with no reason when credits are out: ask the agent once.
+                if let agent {
+                    Task { [weak self] in
+                        guard let status = try? await agent.voiceStatus(), status.voice == "out" else { return }
+                        if case .unavailable = self?.phase { self?.phase = .unavailable("Voice credits are out. Type your lines.") }
+                    }
+                }
+            }
         case .closed:
             break
         }
