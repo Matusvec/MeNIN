@@ -11,6 +11,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 | `[turn-to-voice p50]` | **Number** | The measured time from a turn's end to Homer's first word, on build 4 (the 1:30 PM run's latency HUD) | Sat 1:30 PM |
 | `[poet's name]`, `[the poet's scene]`, `[poet quote]`, `[composer's name]`, `[how the score was made]`, `[team]` | **A fact only Matus has** | Matus (the list went to leader) | Today |
 | `[If debate passed]`, `[If discus passed]` | Checkpoint | The Sat 8 PM check: 5 runs in a row without a failure. Delete the section if the event failed. | Sat 8 PM |
+| `[URL]` | Link | **The website** (SPEC, Sat 12:20 PM): the arena in a browser at a public HTTPS URL, served from the droplet. It's the first "try it" link. | When it's deployed |
 | `[TestFlight public link]`, `[Video]`, `[Figma Slides]`, `[ASI:One link]` | Link | Apple's Beta App Review; [video.md](video.md); the Slides deck; builder | As each lands |
 
 ---
@@ -21,7 +22,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 
 *Trademarks: no "Wii", "Wii Sports", "Guitar Hero" or "Olympic" anywhere in this page.*
 
-**Try it:** [TestFlight public link] · [playmenin.tech, if registered] · Video: [Video] · Figma: [Figma Slides] · Clickable prototypes: [first open → practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102) · [a full battle](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364)
+**Try it:** **[URL]**: open it on a laptop and it becomes the arena, then join from your iPhone · iPhone app: [TestFlight public link] · [playmenin.tech, if registered] · Video: [Video] · Figma: [Figma Slides] · Clickable prototypes: [first open → practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102) · [a full battle](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364)
 
 ---
 
@@ -41,7 +42,7 @@ The first time you open MeNIN, Homer speaks before any menu: "The first word of 
 
 Homer is a live agent doing real work: he deals, listens, judges, coaches, hosts and writes the song from the room.
 
-One screen is the arena: a Mac or an iPad running the app. Every player's iPhone is their controller. Scan the QR code or type the room code to join. No account needed.
+One screen is the arena: any laptop browser at [URL], or a Mac or an iPad running the app. Every player's iPhone is their controller. Scan the QR code or type the room code to join. No account needed.
 
 | Event | Host | You |
 | --- | --- | --- |
@@ -77,6 +78,7 @@ Other events show as locked tiles, because we only unlock what's solid.
 
 - **One engine, many events.** Each event is a config: host, hand, rubric, turn length, beat on or off. [If debate passed: the debate took (hours) on top of the poetry engine.]
 - **Universal iOS app (SwiftUI, iOS 18+, iPhone and iPad).** One app, every mode. A device runs it as the arena or as a player, and Apple Silicon Macs run it as the arena.
+- **The website ([URL]).** The arena in a browser: static files served from our droplet over HTTPS, on SpacetimeDB's TypeScript SDK and the same agent service as the app. Phones join its room with the app, the same way they join a Mac arena.
   - AVAudioEngine captures the mic with voice processing.
   - Core Haptics plays the beat in your hand.
   - Metal shaders render the scene.
@@ -117,7 +119,7 @@ Other events show as locked tiles, because we only unlock what's solid.
 - **Hearing "rose-fingered Dawn" through a drum.** Recognizers mangle exactly the rare phrases the game runs on. We feed your hand to the recognizer as keyterms, and with the drum at full volume in our tests the word error rate fell from 20% to 3%.
 - **A verdict that lands in three seconds.** Our first judge was a slow, multi-step tool loop. We cut it to one streamed Claude call with the scanner's count already in the prompt, low effort and a fixed JSON schema. Verdict text now arrives in p50 1.0 s and p95 1.5 s, and Homer's voice starts about 100 ms later.
 - **Every phone was syncing every room.** The community Swift SDK subscribes to whole tables, so with a 20 Hz voice stream each phone would have received every room's traffic. We patched it to subscribe per room.
-- **We switched from web to iOS mid-build.** On Friday night the scene was already written for the web in React, Three.js and GLSL. The palette and motion lived in plain math tables, so they carried over to Metal almost line for line. The React code didn't survive.
+- **We switched from web to iOS mid-build.** On Friday night the scene was already written for the web in React, Three.js and GLSL. The palette and motion lived in plain math tables, so they carried over to Metal almost line for line. The React code didn't survive. [If the website ships:] On Saturday we brought the arena back to the browser, so anyone can open it at a public URL.
 - **Six AI sessions on one 24 GB laptop.** The whole team of Claude Code sessions, plus Xcode and the simulators, shared one MacBook Air. We set a memory budget (keep 25% free, one simulator at a time, shut everything down after each screenshot) so the machine never ran out mid-build.
 - **An agent the Agentverse button couldn't reach.** Our Fetch.ai agent runs inside Docker on the server, where the Inspector's Connect button can't reach it, so we register its mailbox with an API key from inside the container instead.
 - **Meaning-based dealing can skew.** With Moss, "A city that never sleeps" kept dealing Troy epithets, the Iliad's city, so that theme came off the judging cards while we retag the bank and add modern city formulas. The first list our Apify Actor mined was full of "dear son" and "great wealth" before we restricted it to Homer's fixed epithets.
@@ -150,7 +152,7 @@ Other events show as locked tiles, because we only unlock what's solid.
 *(For Microsoft's track. Each line answers one of their five capabilities.)*
 - **Customer understanding:** we started from one community, spoken-word and slam poets in [the poet's scene], and tested on people who'd never freestyled.
 - **Measurable usefulness:** the stress scanner's Beat score is an objective measure. [N] first-timers went from [first] to [last] out of 10 in one lesson.
-- **A path from prototype to production:** TestFlight now, then the App Store. The agent service runs in Docker on DigitalOcean, and SpacetimeDB on Maincloud.
+- **A path from prototype to production:** TestFlight now, then the App Store. The website is live at [URL], served from the same DigitalOcean droplet as the agent service (Docker), and SpacetimeDB runs on Maincloud.
 - **Responsible design:** captions, push-to-talk, no audio through our server, gentle roasts, and the content and name filters (below).
 - **End-to-end functionality:** the live battle runs on real services, with nothing mocked.
 
@@ -214,6 +216,7 @@ Main prizes are automatic.
 ## Submission checklist
 
 - [ ] Every teammate added on Devpost
+- [ ] **Team name, a 2–3 sentence elevator pitch and our table number.** The Hive FAQ: "All submissions must include a 2-3 sentence elevator pitch / summary, team location (your table number), and the team name." Tables are assigned "shortly after the 9:00 AM submission deadline" (Hacker Guide), so add the table number then if Devpost has a field for it.
 - [ ] No keys in the repo: `.env` gitignored, `.env.example` committed, and the leader's full-history secret scan rerun after the Sat ~11 PM freeze
 - [ ] **Repo public by 8:00 AM Sunday:** Sunya (the owner) flips it in Settings → General → Danger Zone. It stays private until then (Matus's call). Matus pings Sunya Saturday night.
 - [ ] The GitHub link opens in a logged-out browser (a private window) before the 8:45 submit
@@ -223,6 +226,7 @@ Main prizes are automatic.
 - [ ] Figma Slides link, files shared with "Anyone", whole team Edu verified
 - [ ] **Matus submits build 4 (0.1.0, `202610240956`) for external review (Beta App Review) as soon as it finishes processing.** Not build 2 or 3: build 4 has lesson 1, debate, discus and the force-quit rejoin, and its stricter Beat matches our study numbers.
 - [ ] TestFlight public link installs on an iPhone that isn't on our internal tester list
+- [ ] **The website opens at [URL]** in a private window on a laptop, and on a phone on cellular with Wi-Fi off, so we know it works off our network. Then an iPhone joins its room
 - [ ] Cover image: an arena frame with the carved gold line, matte, no neon
 - [ ] Every `[bracket]` filled or deleted. Search the page for `[` before submitting.
 - [ ] Submitted by **8:45 AM Sunday** (hard deadline 9:00)

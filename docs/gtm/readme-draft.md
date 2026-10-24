@@ -10,13 +10,13 @@ Sponsor judges may score asynchronously from this page and the video alone (Devp
 
 μῆνιν (*mēnin*, "MAY-nin") means **rage**. It's the first word of the Iliad.
 
-**Video:** [link] · **Devpost:** [link] · **TestFlight:** [link] · **Figma:** [design file](https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv) · prototypes: [first open → practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102), [a full battle](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364)
+**Try it: [URL]** (open it on a laptop and it's the arena) · **iPhone app:** [TestFlight link] · **Video:** [link] · **Devpost:** [link] · **Figma:** [design file](https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv) · prototypes: [first open → practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102), [a full battle](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364)
 
 Built at Cal Hacks 13.0 by [team: names and roles], with a team of Claude Code sessions. Original score by [composer's name].
 
 ## What it is
 
-One screen is the arena: a Mac or an iPad running the app. Every player's iPhone is their mic and their private hand of cards.
+One screen is the arena: any laptop browser at [URL], or a Mac or an iPad running the app. Every player's iPhone is their mic and their private hand of cards.
 
 - **The poetry battle** (the main event). Homer deals you five stock phrases that fit the beat, the way Homer himself improvised. He drops a slow drum, which you feel in your palm through haptics, and you speak up to four lines. Freeze, and he whispers you a line. About three seconds after your last word, he scores you on five axes and quotes your best line. At the end, he stitches everyone's lines into one song and crowns a champion.
 - [If it passed] **The Socratic debate**, hosted by Socrates in his own voice.
@@ -28,7 +28,7 @@ One screen is the arena: a Mac or an iPad running the app. Every player's iPhone
 ## How it works
 
 ```
-iPhone (player)                         Mac or iPad (arena)
+iPhone (player)                         browser, Mac or iPad (arena)
   mic → on-device syllable onsets ──────► beat lane hits
   mic → Cartesia ink-2 STT (keyterms) ──► live transcript
   loudness + pitch, 20 Hz ──┐
@@ -41,7 +41,7 @@ iPhone (player)                         Mac or iPad (arena)
     Cartesia token minting ──────────────► Cartesia TTS (Homer's voice) on the arena
 ```
 
-Three deployables: the iOS app (`ios/`), the SpacetimeDB module (`spacetime/`) and the agent service (`homer/`).
+Four deployables: the iOS app (`ios/`), the website (`web/`, static files served from our droplet), the SpacetimeDB module (`spacetime/`) and the agent service (`homer/`).
 
 ## Cartesia: ears and voice
 
@@ -123,6 +123,8 @@ open Homer.xcodeproj     # set your own signing team, then run on an iPhone, an 
 ```
 The optional app key goes in `ios/Homer/Support/Secrets.xcconfig` (gitignored).
 
+**Website** (`web/`): [how to build and serve it]. The live one is at [URL].
+
 **Agent service:** see [`homer/README.md`](homer/README.md). Copy `homer/.env.example` to `homer/.env`, then add your Anthropic and Cartesia keys.
 
 **SpacetimeDB module:** see [`spacetime/HOSTING.md`](spacetime/HOSTING.md) and [`spacetime/CONTRACT.md`](spacetime/CONTRACT.md).
@@ -132,6 +134,7 @@ The optional app key goes in `ios/Homer/Support/Secrets.xcconfig` (gitignored).
 | Folder | What's in it |
 | --- | --- |
 | `ios/` | The universal SwiftUI app: audio, haptics, Metal scene, UI, the vendored SpacetimeDB SDK |
+| `web/` | The website: the arena in a browser, on SpacetimeDB's TypeScript SDK |
 | `spacetime/` | The SpacetimeDB module (TypeScript) and its contract |
 | `homer/` | The agent service: the judge, the scanner, the dealer, voice tokens |
 | `content/` | Lessons and the formula bank |
