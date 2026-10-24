@@ -218,6 +218,19 @@ enum BattlePresenter {
             return model
         }
         switch turn.statusValue {
+        case .waiting where room.event == "coach":
+            // Talk to Homer: his last answer stays up while the next turn gets ready.
+            let previous = battle.turns.filter { $0.playerId == me.id && $0.turnNo < turn.turnNo }.max { $0.turnNo < $1.turnNo }
+            if let previous, let reply = battle.score(for: previous.id)?.verdict, !reply.isEmpty {
+                model.moment = .answering(reply: reply, yourTurnAgain: true)
+            } else {
+                model.moment = .onDeck(hand: [], autoReady: room.autoReady)
+            }
+        case .judging where room.event == "coach":
+            model.moment = .answering(reply: nil, yourTurnAgain: false)
+        case .scored where room.event == "coach", .declined where room.event == "coach", .skipped where room.event == "coach":
+            let reply = battle.score(for: turn.id)?.verdict
+            model.moment = .answering(reply: reply?.isEmpty == false ? reply : nil, yourTurnAgain: false)
         case .waiting:
             model.moment = .onDeck(hand: hand, autoReady: room.autoReady)
         case .speaking where recorder?.phase == .closing:

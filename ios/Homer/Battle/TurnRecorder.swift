@@ -472,6 +472,7 @@ final class TurnRecorder {
     /// arrive late and in bursts, so they can't judge silence), never in the first 3 s after SPEAK,
     /// at most one whisper per 6 s and two per turn.
     private func checkVerseFreeze(now: Double) {
+        guard battle.room?.event != "coach" else { return }  // Judge mode deals no phrases to whisper
         guard talking, now > goAt + 3000, now - lastVoiceMs > 2500 else { return }
         let slot = Int((now - goAt) / 6000)
         guard rescuedLines.count < 2, !rescuedLines.contains(slot) else { return }
