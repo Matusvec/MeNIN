@@ -1,0 +1,21 @@
+{
+  "name": "homer-spacetime",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Homer battle module for SpacetimeDB",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "smoke": "node scripts/smoke.mjs",
+    "build": "spacetime build",
+    "publish:local": "spacetime publish -s local -y homer",
+    "publish:local:reset": "spacetime publish -s local -c always -y homer",
+    "logs": "spacetime logs -s local homer"
+  },
+  "dependencies": {
+    "spacetimedb": "2.13.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.6.2"
+  }
+}
