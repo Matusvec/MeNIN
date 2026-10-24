@@ -95,7 +95,7 @@ Two to five human poets in one room, Jackbox-style:
 How a battle runs:
 
 - **Entrance.** Homer announces every poet by their epithet ("Enter Matus, Breaker of Deadlines!"). A poet without one gets one coined by Homer on join.
-- **Rounds.** Three rounds. Each round has a theme; every poet takes one turn; turn order rotates. The scene on the arena reacts to whoever is speaking. In battles you hold to talk (push-to-talk) on your phone; solo modes use an open mic.
+- **Rounds.** Three rounds. Each round has a theme; every poet takes one turn; turn order rotates. The scene on the arena reacts to whoever is speaking. The mic is hands-free everywhere (Matus's call, Sat 2 PM; push-to-talk confused first-timers): it opens with a haptic thump when your turn goes live and stays open for the whole verse, your words show live on the arena as you speak, and "I'm done" ends early.
 - **The hall stays open.** When an event ends, the arena returns to the event menu with everyone still joined.
 - **Verdict.** The judge scores every verse. At the end of each round Homer reads the verdict aloud, and the best line of the round is carved in gold across the arena.
 - **Winner.** Highest total after three rounds.
