@@ -28,6 +28,7 @@ from .scanner import VerseScan, scan_verse, strong_hits
 NAME_MAX, EPITHET_MAX = 24, 32
 THEME_WORDS, CALL_WORDS = 6, 6
 VERSE_MAX = 400  # characters of a poet's last verse sent to seed an epithet
+SILENT_ROUND = "Silence in the hall. No verse this round."  # every turn skipped: still a call, so the round can end
 # A nudge per epithet, so the same name doesn't always get the same title (Claude settles on one).
 ANGLES = ("a trade or a tool", "an animal", "a place", "a time of day", "the weather", "a sound", "food or drink",
           "a game", "the sky", "a machine", "a small household thing", "a journey")
@@ -174,8 +175,8 @@ class Host:
         """
         ev = event or self.event
         scored = [v for v in verses if _units(v.transcript, ev)]
-        if not scored:
-            return "", 0, ""
+        if not scored:  # the module wants a verdict to close the round (best turn 0 is allowed)
+            return SILENT_ROUND, 0, ""
         top = max(scored, key=lambda v: v.total)
         fallback = (top.turn_id, top.best_line or _units(top.transcript, ev)[0])
         schema = claude.obj({"verdict": STR, "best_turn": INT, "best_line": STR})

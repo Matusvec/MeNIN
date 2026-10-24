@@ -780,6 +780,9 @@ export class Arena {
       case 'finale': {
         const song = this.songLines()
         const key = `song ${room.id}.${this.generation} ${room.roundNo}`
+        // A battle where every turn was skipped has no song and no champion: close it and move on.
+        const sung = this.turns().some((t) => t.status === 'scored')
+        if (!sung) return this.say(key, 'No verse tonight, so no song. The hall is still open.', advance)
         if (!song.length || this.said.has(key)) return
         this.said.add(key)
         const champion = [...poets].sort((a, b) => b.total - a.total)[0]

@@ -238,7 +238,8 @@ export default function ArenaPanel({
   const discus = room.event === 'discus'
   const begun = room.phase !== 'lobby'
   const over = room.phase === 'finale' || room.phase === 'finished'
-  const champion = over ? [...view.poets].sort((a, b) => b.total - a.total)[0] : null
+  const top = over ? [...view.poets].sort((a, b) => b.total - a.total)[0] : undefined
+  const champion = top && top.total > 0 ? top : null // nobody scored, nobody crowned
   const speaker = view.turn ? view.poets.find((p) => p.id === view.turn!.playerId) : undefined
   const showVerse = !discus && view.turn?.transcript && ['speaking', 'judging'].includes(room.phase)
   // Ranked once the battle starts; discus keeps join order (a total would give a throw away before its arc lands).

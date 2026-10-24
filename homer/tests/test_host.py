@@ -265,3 +265,11 @@ def test_name_poet_reads_the_player_row():
     a, db = arena({"name": "Bo", "epithet": "Storm-Throated", "coined": True})
     assert run(a.name_poet(20)) == ("Bo", "Storm-Throated")
     assert db.calls == [("name_poet", [20, "Bo", "Storm-Throated"])]
+
+
+def test_a_round_where_nobody_spoke_still_gets_a_call_to_close_it():
+    from homer.host import SILENT_ROUND
+
+    h = host({"verdict": "unused", "best_turn": 0, "best_line": ""})
+    assert run(h.round_verdict("the sea", [])) == (SILENT_ROUND, 0, "")
+    assert h.client.calls == []  # nothing to judge, no Claude call
