@@ -56,6 +56,20 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 - Log the visit in [figma-stage-log.md](figma-stage-log.md).
 
 ### Cartesia (sponsor-11, 2:00 PM)
+- **Ask this first, before the demo: more TTS concurrency** (leader, Sat ~12:50 PM). Our account hits "concurrency limit of 2" on TTS (swift, Sat 12:45 PM). The limit is per account, shared by every device on our key. During judging and the 6–8 PM study, a few phones speaking at once can silence Homer.
+  - **The ask:** "With a few phones in one room we hit the TTS concurrency limit of 2. Can you lift our limit for the weekend? If not, what's the cheapest plan that does?"
+  - **What Cartesia's docs say** ("Concurrency and WebSocket Limits" at docs.cartesia.ai, and cartesia.ai/pricing, read Sat 12:48 PM). A limit of 2 means we're on the Free plan:
+
+    | Plan | Price | TTS at once | STT at once | TTS minutes a month |
+    | --- | --- | --- | --- | --- |
+    | Free | $0 | 2 | 8 | about 27 |
+    | Pro | $5 a month | 3 | 12 | about 133 |
+    | Startup | $49 a month | 5 | 20 | about 1,667 |
+    | Scale | $299 a month | 15 | 60 | about 10,667 |
+
+  - **Ask about credits too.** Free includes only about 27 minutes of TTS and 1 h 51 min of STT a month, and the study plus judging could use that up. A hacker's "How do I get the credits?" in #spons-cartesia (Sat 11:38 AM) is still unanswered.
+  - Paying is Matus's call. Startup is the cheapest plan with real headroom (5 at once); Pro adds only one.
+  - **Tell leader the answer right away.** If nobody's at the booth, send leader this draft for Matus to post in #spons-cartesia: "Hi Cartesia team! We're building MeNIN, a party game where Homer judges spoken verse live in Sonic 3.6. With a few phones in one room we hit the TTS concurrency limit of 2. Could you lift it for our account for the weekend, or tell us the cheapest plan that does? Happy to show you the demo at the booth."
 - **Show the keyterms live.** With the drum on, the poet speaks a formula from the hand ("the wine-dark sea"), and the live transcript catches it. Then Homer delivers the verdict in Carl's voice.
 - **The line:** "We feed your hand to the recognizer, so it hears the wine-dark sea through the drum. In our tests, with the drum at full volume, that's 3% word error with ink-2 keyterms and 20% without. The final transcript lands about 75 ms after you stop, and Homer's first audio comes in about 100 ms." If debate passed by then, play 10 s of Socrates, the second voice.
 - **Ask:**
