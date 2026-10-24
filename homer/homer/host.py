@@ -9,6 +9,7 @@ fallback is built from the poets' own words, never a canned line.
 from __future__ import annotations
 
 import difflib
+import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -23,6 +24,7 @@ from .scanner import VerseScan, scan_verse
 
 NAME_MAX, EPITHET_MAX = 24, 32
 SONG_MAX, DEMO_SONG_MAX = 16, 4
+CALL_MAX_WORDS = 12  # the round call, before the carved line: ~7 s together (docs/gtm/demo-script.md)
 
 STR = {"type": "string"}
 INT = {"type": "integer"}
@@ -39,6 +41,13 @@ class Verse:
 
 def _lines(text: str) -> list[str]:
     return [line.strip() for line in text.splitlines() if line.strip()]
+
+
+def _lead_in(text: str) -> str:
+    """Homer's round call as one short lead-in that ends in a colon, ready for the carved line."""
+    first = re.split(r"(?<=[.!?:])\s", clean_verdict(text), maxsplit=1)[0]
+    words = first.rstrip(" .!?:;,").split()[:CALL_MAX_WORDS]
+    return " ".join(words) + ":" if words else ""
 
 
 def _match_line(quoted: str, candidates: list[str]) -> str | None:
@@ -83,7 +92,11 @@ class Host:
     # ----- The round verdict and the carved line ---------------------------
 
     async def round_verdict(self, theme: str, verses: list[Verse]) -> tuple[str, int, str]:
-        """Returns (verdict, best_turn_id, best_line)."""
+        """Returns (verdict, best_turn_id, best_line).
+
+        The verdict is what Homer speaks: a lead-in of at most twelve words,
+        then the carved line itself, verbatim. The arena reads it once.
+        """
         scored = [v for v in verses if _lines(v.transcript)]
         if not scored:
             return "", 0, ""
@@ -105,7 +118,8 @@ class Host:
             best_turn, line = fallback
         else:
             best_turn = v.turn_id
-        return clean_verdict(str(data.get("verdict", ""))), best_turn, line
+        call = _lead_in(str(data.get("verdict", "")))
+        return (f"{call} {line}" if call else ""), best_turn, line
 
     # ----- The stitched song -------------------------------------------------
 

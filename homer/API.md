@@ -306,7 +306,9 @@ Call about every 1.5 s while a battle turn is speaking. The agent classifies the
 
 In `round_end`. The agent reads the round's scored verses from SQL, Homer calls the round, the best line is chosen, and `post_verdict` is called.
 
-`{"roundId": 5}` returns `{"verdict": "Bo takes the round, …", "bestTurnId": 21, "bestLine": "I stand on the shore with salt in my teeth"}`.
+`{"roundId": 5}` returns `{"verdict": "The round goes to Ada, and the line that stung: I stand on the shore with salt in my teeth", "bestTurnId": 21, "bestLine": "I stand on the shore with salt in my teeth"}`.
+
+- `verdict` (written to `round.verdict`) is the whole thing Homer speaks, about 7 s: a lead-in of at most twelve words, then the carved line verbatim. **Speak `round.verdict` once; don't read `best_line` again.** Show `best_line` carved in gold.
 
 - The carved line is always a real line from a scored verse; an invented one is never carved.
 - If Claude fails, `verdict` is `""` and the carved line is the top-scoring verse's best line.

@@ -46,11 +46,20 @@ def test_name_poet_without_claude_keeps_what_was_typed():
 # ----- Round verdict ---------------------------------------------------------
 
 
-def test_round_verdict_carves_a_real_line():
-    h = host({"verdict": "Bo takes the round. Ada's salt still stings.", "best_turn": 1,
+def test_round_verdict_carves_a_real_line_and_reads_it():
+    h = host({"verdict": "The round goes to Ada, and the line that stung:", "best_turn": 1,
               "best_line": "I stand on the shore with salt in my teeth"})
     assert run(h.round_verdict("the sea", [ADA, BO])) == (
-        "Bo takes the round. Ada's salt still stings.", 1, "I stand on the shore with salt in my teeth")
+        "The round goes to Ada, and the line that stung: I stand on the shore with salt in my teeth",
+        1, "I stand on the shore with salt in my teeth")
+
+
+def test_a_long_round_call_is_cut_to_one_short_lead_in():
+    long = "Bo takes the round with a storm that turned into a breeze and sailed home. Ada fought well."
+    h = host({"verdict": long, "best_turn": 2, "best_line": BO.best_line})
+    verdict, _, line = run(h.round_verdict("the sea", [ADA, BO]))
+    call = verdict[: -len(line) - 1]
+    assert call.endswith(":") and len(call.split()) == 12 and verdict.endswith(BO.best_line)
 
 
 def test_an_invented_line_is_never_carved():
@@ -156,8 +165,9 @@ def arena(*replies):
 
 def test_round_verdict_reads_the_round_and_posts_the_carved_line():
     a, db = arena({"verdict": "Bo takes it.", "best_turn": 2, "best_line": BO.best_line})
-    assert run(a.round_verdict(5)) == ("Bo takes it.", 2, BO.best_line)
-    assert db.calls == [("post_verdict", [5, "Bo takes it.", 2, BO.best_line])]
+    spoken = f"Bo takes it: {BO.best_line}"
+    assert run(a.round_verdict(5)) == (spoken, 2, BO.best_line)
+    assert db.calls == [("post_verdict", [5, spoken, 2, BO.best_line])]
     sent = a.host.client.calls[0]["messages"][0]["content"]
     assert sent.index('turn="1" poet="Ada, Iron-Hearted"') < sent.index('turn="2" poet="Bo"')  # turn order
     assert 'turn="3"' not in sent  # skipped turns aren't verses
