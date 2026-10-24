@@ -31,7 +31,17 @@ export default function SceneBackdrop({ emotion, energy, pitch, hits, turnKey, t
   const canvas = useRef<HTMLCanvasElement>(null)
   const scene = useRef<MeninScene | null>(null)
   const [on, setOn] = useState(false)
+  // Bumped when the browser gives the GPU back after a loss: the sea is rebuilt on the restored context.
+  const [epoch, setEpoch] = useState(0)
   const seen = useRef({ turnKey, hits })
+
+  useEffect(() => {
+    const el = canvas.current
+    if (!el) return
+    const restored = () => setEpoch((e) => e + 1)
+    el.addEventListener('webglcontextrestored', restored)
+    return () => el.removeEventListener('webglcontextrestored', restored)
+  }, [])
 
   useEffect(() => {
     if (!canvas.current) return
@@ -46,20 +56,21 @@ export default function SceneBackdrop({ emotion, energy, pitch, hits, turnKey, t
       }
     } catch (error) {
       // No WebGL2: the page keeps its own background.
+      setOn(false)
       console.warn('MeNIN scene off:', error)
     }
-  }, [])
+  }, [epoch])
 
   // Only a real change of feeling reaches the scene (the row object is new on every update).
   const emotionKey = emotion ? Object.entries(emotion).map(([k, v]) => `${k}:${(v ?? 0).toFixed(3)}`).join(',') : ''
   useEffect(() => {
     scene.current?.setEmotion(emotion)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [emotionKey, on])
+  }, [emotionKey, on, epoch])
 
   useEffect(() => {
     scene.current?.setTheme(theme)
-  }, [theme, on])
+  }, [theme, on, epoch])
 
   useEffect(() => {
     scene.current?.setProsody(energy, pitch)
