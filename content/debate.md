@@ -93,7 +93,7 @@ In poetry, Homer whispers a formula. In debate, Socrates whispers a question for
 - **What happens:** your hand comes forward on your phone, one move card is raised, and Socrates whispers a question.
 - **The whisper:**
   - It is always a single question, under ten words, in your own voice, so you can just say it out loud.
-  - It performs the raised move on the current argument. If the move is "ask for a definition" and the last speaker said "fair", the whisper is "What do you mean by fair?"
+  - It performs the raised move on the current argument. If the move is "challenge a term" and the last speaker said "fair", the whisper is "What do you mean by fair?"
   - Nothing else: no "try asking", no name.
 - **Prepared ahead:** when you step up, the agent prepares one whisper per move in your hand from the question and the previous turn, so the rescue plays instantly. If you're first in the round, the whispers aim at the question itself.
 - **Fallback:** if a prepared whisper isn't ready, use the move's template from the table below, with `{term}` filled from the previous turn.

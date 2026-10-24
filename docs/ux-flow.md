@@ -2,7 +2,7 @@
 
 This doc is for Matus to design against. It covers the flow, the states, the timing and what each screen shows. Visual design is Matus's, so this doc describes what is shown and what changes, never how it looks. Words like "large" or "pinned" describe hierarchy.
 
-`SPEC.md` (as of commit f3eabe7) is the source of truth. Anything not in it is marked **Proposal Pn** and waits on Matus.
+`SPEC.md` (as of commit 5a6a8fe) is the source of truth. Anything not in it is marked **Proposal Pn** and waits on Matus.
 
 MeNIN is ancient Greek Wii Sports, with Homer as the host: party events on one shared screen, with phones as controllers. The poetry battle is the core (sections 1 to 6). Socratic debate and discus are in build now (sections 8 and 9). The event menu ties them together (section 7), and section 10 says where the music plays.
 
@@ -47,7 +47,7 @@ MeNIN is one universal iOS app (iPhone and iPad), distributed through TestFlight
 - **Carved line:** the best line of each round is carved in gold across the arena.
 - **The stitched song:** at the finale Homer stitches every verse into one poem and performs it over the beat while the scene replays the battle's colors, then crowns the champion.
 
-**Proposals P7 to P20**
+**Proposals P7 to P21**
 
 Leader approved these as delegator, and Matus can veto any of them. Approved items keep their Pn tag in the body, so a veto is easy to trace.
 
@@ -67,6 +67,7 @@ Leader approved these as delegator, and Matus can veto any of them. Approved ite
 | P18 | **Sides are dealt.** In debate, sides alternate by turn order, so you often argue a side you don't hold (section 8). | Approved, and in SPEC.md |
 | P19 | **Demo mode music.** At the judging table, the hall theme stays at its ducked level the whole time, because we talk over the menu. An operator key mutes all music (sections 6 and 10). | Approved, and in SPEC.md "Music" |
 | P20 | **Beat number in lessons.** After each try in a lesson, your Beat score (1 to 10) shows small beside Homer's note, so you can watch it climb. The first-timer study (`docs/study.md`) and the video's before-and-after shot both read it off the screen (L4). | Approved |
+| P21 | **The call to step up.** As each turn starts, the host calls the speaker by name. The round's first poet gets a call written for the theme ("Priya, Salt-Tongued. The sea is yours."). Every later poet gets "Answer that.", since they answer the line before (P7). In debate, Socrates says your side (T1 in sections 5 and 8). | Proposed |
 
 P1 to P6 were approved by Matus and are listed above.
 
@@ -334,7 +335,7 @@ Two to five poets in one room, with the arena and their phones.
 
 - **Arena:** The round number, the theme, and this round's turn order. The order rotates every round.
 - **Phone:** The theme and your hand of five. The spec says you can save your best formula for the last round. My reading: a card you speak is spent, unspoken cards carry over, and the hand refills to five with new theme cards and cards from your hoard, with hoard cards marked as yours. That needs confirming (open question 5). You can study your hand from now until your turn.
-- **Homer:** "Round one. A ship that never came home."
+- **Homer:** "Round one. A ship that never came home." In demo mode there's only one round, so he drops "Round one" and says the theme with the first poet's call (T1).
 - **Next:** Automatic → the first poet's turn.
 
 #### B3 · Turns · ~45 s each (section 5)
@@ -397,7 +398,29 @@ Practice and Battle share this. The spec's order is theme, hand, speak, freeze r
 
 - **Arena:** The poet's name and epithet. With P7, the previous poet's best line is pinned and labeled as the line to answer; for the first poet of a round, the theme is pinned instead. The beat lane resets to 4 lines of 4 beats.
 - **Phone:** A **Ready** button, your hand, and the theme.
-- **Homer:** "Matus. The sea is yours."
+- **Homer (P21):** calls the poet up in MC voice, using the name and epithet as the entrance does.
+  - **The round's first poet:** "{name}, {title}." and then the theme's call from the table below, like "Matus, Breaker of Deadlines. The sea is yours." A theme that isn't in the table gets "The floor is yours."
+  - **Every later poet:** "{name}. Answer that." Their job is to answer the line pinned on the arena (P7), and the call says so.
+  - The count-in (T2) waits until Homer finishes, even in auto-ready, so his voice never runs into an open mic.
+
+| Theme | The call |
+| --- | --- |
+| A ship that never came home | "The sea is yours." |
+| The night before the deadline | "The clock is yours." |
+| The war between two brothers | "Pick a brother." |
+| A city that never sleeps | "The streets are yours." |
+| The last train out | "The platform is yours." |
+| A feast for a returning hero | "Raise the cup." |
+| The forge at midnight | "Strike while it's hot." |
+| A storm on the open sea | "The storm is yours." |
+| The road that brought you here | "The road is yours." |
+| A letter never sent | "Send it now." |
+| Dawn after the long battle | "The dawn is yours." |
+| The wolf at the edge of the wood | "Mind the wolf." |
+| A crown nobody wanted | "The crown is yours." |
+| The fire that took the hall | "The fire is yours." |
+| The gods are watching | "Give them a show." |
+| The house you grew up in | "Take us home." |
 - **Next:** A tap on Ready, or automatically after 5 s.
 
 #### T2 · Count-in · one bar, ~3 s
@@ -734,6 +757,87 @@ MeNIN has an original soundtrack by a teammate (spec, "Music"). The composer's b
 Everything else has no music: the turn (T0 to T8), round titles (B2), the tally (B5) and the song (B6). In poetry, the beat carries them.
 
 **The beat's sounds.** The composer also records the beat's single hits: six lyre notes (`lyre-d3`, `lyre-f3`, `lyre-g3`, `lyre-a3`, `lyre-c4`, `lyre-d4`), `drum-kick` and `drum-rim`. They're dry, mono, 48 kHz, and start on the first sample. They replace the synthesized kick, rim and pluck in the beat. The app still schedules every hit, so the beat stays procedural, and the drum strike is the kick and rim together. Until the files arrive, the synthesized sounds stay. The full spec for these files is in `docs/audio.md`.
+
+---
+
+## Sat 8 PM runs
+
+The checkpoint (`docs/gtm/reality-check.md`): an extra event that can't run **5 times in a row without a failure** stays a locked tile for the demo. Poetry is never locked, but it gets the same 5 runs, because it's the demo.
+
+**Rules for every run**
+
+- **Set up as at the table:** the arena Mac on Ethernet in arena mode, phones with wired EarPods, the production agent service with Moss dealing, demo mode on, and every device on the build we'll demo (build 4 or later). Run it in the hacking hall, not in a quiet room.
+- **The count:** 5 clean runs in a row per event. A failure resets that event's count to 0, and you can start again right away. A new build, a redeploy or a code change also resets it. The series has to end by 9 PM, when the hall noise test starts.
+- **Order:** debate, then discus, then poetry, so the two events that might be locked go first. All three take about 45 minutes.
+- **Between runs:** the hall stays open. Use Rematch or New event, the way we will at the table. Never relaunch the app or restart a server.
+- **Who records:** whoever isn't playing fills in the table at the end of this section and sends it to the leader. The leader decides which tiles are unlocked.
+
+**These are failures in every event:**
+
+- The app crashes, freezes, or has to be relaunched on any device.
+- Someone has to do something that isn't in `docs/gtm/run-sheet.md`, like a hidden key, a server poke or a rejoin.
+- The host is silent where he should speak, or he speaks with no caption.
+- The arena or a phone shows a state that doesn't match the run, like the wrong player, a stale screen or a missing score.
+- Music plays under an open mic.
+
+Player slips aren't failures when the app handles them as designed: a freeze gets a rescue, silence gets "Again", and a short swing counts as a drop. Handling those is part of what we're testing.
+
+### Poetry
+
+- **One run:** a full demo-mode battle. The poetry tile opens, the theme is set, both poets take one turn of 2 lines, then come the verdicts, the round verdict with the carved line, the 4-line song and the crown, and then **Rematch** until the next battle is ready. Use the ship theme in runs 1, 4 and 5, the deadline theme in run 2, and the war theme in run 3.
+- **Who plays:** the demo cast. The poet is Poet 1, Matus is Poet 2 and does the staged freeze, and the operator runs the arena.
+- **Also a failure:**
+  - A verdict starts more than 4 s after a turn ends.
+  - Matus's staged freeze gets no whisper within about 2 s.
+  - The drum, the beat lane or the drum strikes are missing.
+  - A clearly spoken line comes back empty or garbled in the transcript.
+  - A hand doesn't reach a phone.
+  - Rematch takes more than 10 s.
+
+### Debate
+
+- **One run:** a demo-length debate on the arena. The debate tile opens, Socrates asks the question, and both debaters take one 45-second turn, each tapping at least one move as they make it. Then come the verdicts, the round verdict, Socrates' last question and the crown, and then **New event** back to the menu.
+- **Who plays:** Matus is debater 1. Debater 2 is someone who hasn't played debate, in at least 2 of the 5 runs, since a judge will be in that seat. Debater 2 goes silent for about 3 s once in every run, to test the rescue.
+- **Also a failure:**
+  - The side on the arena or the phone is missing or wrong.
+  - The silence gets no Socrates whisper within about 3 s.
+  - A tapped move doesn't land on the arena.
+  - A verdict starts more than 5 s after a turn ends.
+  - Homer's voice speaks instead of Socrates'.
+  - Any drum plays.
+
+### Discus
+
+- **One run:** one discus event with two throwers and three throws each. The discus tile opens, each thrower goes through the safety card on their first throw, then the throws, the flight, the distances with Homer's call, the leaderboard and "The discus goes to {name}.", and then **New event** back to the menu.
+- **Who plays:** the operator and one other person. The other thrower uses Matus's iPhone, as a judge will, and is someone who has never thrown, in at least 2 of the 5 runs. Throw only where there's arm room, away from laptops.
+- **Also a failure:**
+  - A full swing with the thumb lifted at the end gets read as a drop, or as no throw.
+  - The arena shows the throw more than about 1 s after the release.
+  - A distance is plainly wrong: 0 m on a full swing, over 100 m, or different on the phone and the arena.
+  - Homer gives the wrong call, like "New mark" when it isn't the hall's best, or names the wrong champion.
+  - The phone leaves anyone's hand. That's a failure, and it also stops discus for the night until the leader says otherwise.
+
+### Results
+
+| Event | Run | Time | Pass or fail | What failed |
+| --- | --- | --- | --- | --- |
+| Debate | 1 | | | |
+| Debate | 2 | | | |
+| Debate | 3 | | | |
+| Debate | 4 | | | |
+| Debate | 5 | | | |
+| Discus | 1 | | | |
+| Discus | 2 | | | |
+| Discus | 3 | | | |
+| Discus | 4 | | | |
+| Discus | 5 | | | |
+| Poetry | 1 | | | |
+| Poetry | 2 | | | |
+| Poetry | 3 | | | |
+| Poetry | 4 | | | |
+| Poetry | 5 | | | |
+
+Add rows for any restarted series. If an event never gets 5 clean in a row by 9 PM, its tile stays locked, and the demo script's "If debate passed" and "If discus passed" lines don't run.
 
 ---
 
