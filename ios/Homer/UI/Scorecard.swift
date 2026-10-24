@@ -80,7 +80,7 @@ struct ScorecardView: View {
                             SpringKeyframe(1.45, duration: 0.07, spring: .snappy)
                             SpringKeyframe(1.0, duration: 0.4, spring: .bouncy)
                         }
-                    Text("/\(ruling.axes.count * 10)").font(Typeface.numeral(13 * k, weight: 600)).foregroundStyle(Palette.ink3)
+                    Text("/\(ruling.maxTotal)").font(Typeface.numeral(13 * k, weight: 600)).foregroundStyle(Palette.ink3)
                 }
                 .opacity(step > count ? 1 : 0.15)
                 .fixedSize()
@@ -126,7 +126,7 @@ struct ScorecardView: View {
 
     private var accessibilitySummary: String {
         let axes = ruling.axes.map { "\($0.name) \($0.value)" }.joined(separator: ", ")
-        return "\(ruling.verdict). \(axes). Total \(ruling.total) of \(ruling.axes.count * 10). Best line: \(ruling.bestLine)"
+        return "\(ruling.verdict). \(axes). Total \(ruling.total) of \(ruling.maxTotal). Best line: \(ruling.bestLine)"
     }
 }
 

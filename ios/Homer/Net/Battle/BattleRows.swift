@@ -121,7 +121,7 @@ struct ScoreRow: Codable, Sendable, Equatable {
     var poetryScorecard: Scorecard? {
         guard axes.count == Axis.allCases.count else { return nil }
         let a = axes.map(Int.init)
-        return Scorecard(scores: Scores(beat: a[0], craft: a[1], image: a[2], answer: a[3], range: a[4]), verdict: verdict, bestLine: bestLine)
+        return Scorecard(scores: Scores(beat: a[0], craft: a[1], image: a[2], answer: a[3], range: a[4]), verdict: verdict, bestLine: bestLine, total: Int(total))
     }
 }
 

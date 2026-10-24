@@ -41,27 +41,51 @@ struct Ruling: Equatable {
     var axes: [AxisScore]
     var verdict: String
     var bestLine: String
+    /// The event's own total when it isn't a plain sum (poetry is weighted, out of 100).
+    var weightedTotal: Int? = nil
+    /// What the total is out of; nil means a plain sum, out of 10 per axis.
+    var outOf: Int? = nil
 
-    var total: Int { axes.reduce(0) { $0 + $1.value } }
+    var total: Int { weightedTotal ?? axes.reduce(0) { $0 + $1.value } }
+    var maxTotal: Int { outOf ?? axes.count * 10 }
 
-    /// From the server's ordered axes for an event.
-    init(event: EventKind, values: [Int], verdict: String, bestLine: String) {
+    /// From the server's ordered axes for an event. Poetry's total is weighted
+    /// (the server's ScoreRow.total); pass it when you have it, else it's computed the same way.
+    init(event: EventKind, values: [Int], verdict: String, bestLine: String, weightedTotal: Int? = nil, outOf: Int? = nil) {
         axes = Self.shown(zip(event.axes, values).map { AxisScore(name: $0, value: $1) })
         self.verdict = verdict
         self.bestLine = bestLine
+        if event == .poetry {
+            self.weightedTotal = weightedTotal ?? Self.poetryTotal(axes)
+            self.outOf = outOf ?? 100
+        } else {
+            self.weightedTotal = weightedTotal
+            self.outOf = outOf
+        }
     }
 
-    init(axes: [AxisScore], verdict: String, bestLine: String) {
+    init(axes: [AxisScore], verdict: String, bestLine: String, weightedTotal: Int? = nil, outOf: Int? = nil) {
         self.axes = axes
         self.verdict = verdict
         self.bestLine = bestLine
+        self.weightedTotal = weightedTotal
+        self.outOf = outOf
     }
 
-    /// Poetry's contract scorecard.
-    init(_ card: Scorecard) {
+    /// Poetry's contract scorecard, weighted out of 100 like the server's total.
+    init(_ card: Scorecard, weightedTotal: Int? = nil) {
         axes = Self.shown(Axis.allCases.map { AxisScore(name: $0.rawValue.capitalized, value: card.scores[$0]) })
         verdict = card.verdict
         bestLine = card.bestLine
+        self.weightedTotal = weightedTotal ?? Self.poetryTotal(axes)
+        outOf = 100
+    }
+
+    /// Poetry's weights (the server's ScoreRow.total): the picture and the answer count most.
+    /// Image ×3, Answer ×3, Craft ×2, Flow ×1, Range ×1, out of 100.
+    static func poetryTotal(_ axes: [AxisScore]) -> Int {
+        let weights = ["Image": 3, "Answer": 3, "Craft": 2, "Flow": 1, "Beat": 1, "Range": 1]
+        return axes.reduce(0) { $0 + (weights[$1.name] ?? 1) * $1.value }
     }
 
     /// Poetry as the players read it (the playtest): Beat is called Flow, and the

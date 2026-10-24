@@ -110,7 +110,7 @@ struct JudgeResult: Decodable, Equatable, Sendable {
     var silent: Bool?
     var scan: VerseScan?
 
-    var scorecard: Scorecard { Scorecard(scores: scores, verdict: verdict, bestLine: bestLine) }
+    var scorecard: Scorecard { Scorecard(scores: scores, verdict: verdict, bestLine: bestLine, total: total) }
     /// Claude timed out: show "Homer is silent on this one."
     var isSilent: Bool { silent ?? false }
     /// Not fit for the hall: "Not in my hall. Give me another."

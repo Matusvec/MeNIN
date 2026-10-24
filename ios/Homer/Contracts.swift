@@ -113,4 +113,7 @@ struct Scorecard: Codable, Equatable, Sendable {
     var scores: Scores
     var verdict: String
     var bestLine: String
+    /// The judge's weighted total (poetry: Image×3 + Answer×3 + Craft×2 + Flow×1 + Range×1, out of
+    /// 100). Optional so older payloads still decode; nil means "sum the axes".
+    var total: Int? = nil
 }
