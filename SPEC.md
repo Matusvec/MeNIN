@@ -18,7 +18,9 @@ The feel is professional and badass, never academic. Homer is a legendary bard, 
 
 ## Platform
 
-MeNIN is a universal iOS app (SwiftUI, iOS 18+, iPhone and iPad), shared with the team through TestFlight. Universal so the arena runs full-screen on an iPad or a Mac. There is no web app. The display name is MeNIN; internal names (the `Homer` Xcode target, the `homer/` folder, the bundle id) stay as they are. The same app runs every mode; in a battle each device runs it as either the arena or a player.
+MeNIN is a universal iOS app (SwiftUI, iOS 18+, iPhone and iPad), shared with the team through TestFlight. Universal so the arena runs full-screen on an iPad or a Mac. The display name is MeNIN; internal names (the `Homer` Xcode target, the `homer/` folder, the bundle id) stay as they are. The same app runs every mode; in a battle each device runs it as either the arena or a player.
+
+**The website** (Matus's call, Sat 12:20 PM) is the big screen anyone can open: MeNIN's hall of Greek games in a browser, at a public HTTPS URL. Open it on a laptop and it becomes the arena; phones join its room with the app, the same way they join the Mac arena. It is deployed, never localhost: judges must be able to open it themselves. It's static files served from our droplet, talking to the same SpacetimeDB database and agent service as the app. It replaces the Mac arena in the demo only after it passes the same 5-runs-in-a-row check; until then the Mac app is the arena and the website is the link judges can open.
 
 The look is **Atelier** (Matus's pick, Sat 11:55 AM): cream cards with Bodoni display type and Inter UI, wine and gold accents, over the full-screen scene of matte, painted color. Open and simple, lots of negative space, no glow or neon. Names and the wordmark must read from 2 m away on a laptop screen.
 
@@ -174,7 +176,7 @@ The script is `docs/gtm/demo-script.md`.
 - Voice chat between players. Battles are in one room; remote players see the live transcript.
 - Generated images per line.
 - Required accounts. An account only keeps your rank and hoard.
-- A web app. Three deployables: the iOS app, SpacetimeDB, one Python service.
+- A fifth deployable. Four: the iOS app, the website (static, served from the droplet), SpacetimeDB, one Python service.
 - A demo that depends on a side quest. Sponsor side integrations (an Apify Actor that mines the formula bank at build time; a Fetch.ai agent and Moss retrieval inside the agent service) are allowed only behind switches, with today's path as the fallback, and the demo never needs them.
 
 ## Cut order

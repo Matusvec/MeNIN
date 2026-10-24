@@ -6,12 +6,13 @@
 
 ## Stack
 
-- App: iOS only (SwiftUI, iOS 18+, universal iPhone and iPad), Metal shaders for the scene, AVAudioEngine for the mic, project generated with XcodeGen. No web app.
+- App: iOS only (SwiftUI, iOS 18+, universal iPhone and iPad), Metal shaders for the scene, AVAudioEngine for the mic, project generated with XcodeGen.
+- Website: the arena in a browser, in `web/`, deployed as static files from the droplet at a public HTTPS URL (never localhost). It uses SpacetimeDB's TypeScript SDK and the agent service, like the app.
 - Real-time state: SpacetimeDB (rooms, players, turns, verses, scores, scene state).
 - Agent service: Python + FastAPI (Claude calls, meter scanner, formula bank).
 - Voice: Cartesia (streaming STT, TTS).
 
-Three deployables. Do not add a fourth.
+Four deployables (the app, the website, SpacetimeDB, the agent service). Do not add a fifth.
 
 ## UI
 
@@ -24,6 +25,7 @@ Matus owns the visual design and UX. Keep state and logic (view models, Spacetim
   - `homer/`: agent brain in Python (Claude calls, meter scanner, judging).
   - `spacetime/`: SpacetimeDB module (TypeScript) and `spacetime/CONTRACT.md`, the contract for tables and reducers.
   - `ios/`: the iOS app. The project, app shell, audio, networking and state belong to the iOS lead; `ios/Homer/Scene/` and `ios/Homer/UI/` belong to the art lead. Shared types live in `ios/Homer/Contracts.swift`; change them only with the leader's sign-off.
+  - `web/`: the website. It belongs to Matus's partner; sessions change it only when asked.
   - `content/`: lesson scripts and the formula bank, read by the agent service and the app.
   - `docs/`: UX flow, voice research, and other design docs. Go-to-market material goes in `docs/gtm/`.
 - Never force-push, never rewrite history, never delete files you did not create. If a push is rejected, pull and merge, then push again.
