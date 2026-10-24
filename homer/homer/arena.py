@@ -6,6 +6,11 @@ work and writes it with the agent's reducers (spacetime/CONTRACT.md, "Agent
 service"). It also remembers what only the agent knows: the cards it dealt
 (hands are private, so SQL can't read them) and each turn's emotion samples,
 which Range is scored from.
+
+The room's event (room.event) decides the rest: a poetry round gets a theme
+and formulas, a debate round a question and moves; the host's persona, the
+round call and the finale (the stitched song, or Socrates' last question)
+follow the event.
 """
 
 from __future__ import annotations
@@ -15,7 +20,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import TypeVar
 
-from . import events
+from . import debate, events
 from .emotion import EMOTIONS, Classifier
 from .deal import CANDIDATES, deal, pick_theme
 from .host import Host, Verse
@@ -46,6 +51,9 @@ class BattleTurn:
     player_id: int = 0
     hoard: list[str] = field(default_factory=list)
     demo: bool = False
+    side: str = ""  # debate: the side dealt to this debater
+    turn_seconds: float | None = None  # debate: for keeping the floor
+    spoken_seconds: float | None = None  # debate: for pace
 
 
 class NotFound(LookupError):
@@ -89,6 +97,9 @@ class Arena:
                 emotion_history=self.history.get(bt.turn_id, []),
                 hoard=bt.hoard,
                 demo=bt.demo,
+                side=bt.side,
+                turn_seconds=bt.turn_seconds,
+                spoken_seconds=bt.spoken_seconds,
             )
             j = await self.judge.judge(turn)
             if j.declined:
@@ -99,6 +110,15 @@ class Arena:
             return "post_score", j
 
         return await self.once(("judge", bt.turn_id), work)
+
+    async def room(self, room_id: int) -> dict:
+        rows = await self.db.sql(f"SELECT * FROM room WHERE id = {int(room_id)}")
+        if not rows:
+            raise NotFound(f"no room {room_id}")
+        return rows[0]
+
+    async def event_of(self, room_id: int) -> events.Event:
+        return events.get((await self.room(room_id)).get("event") or "poetry")
 
     async def poets(self, room_id: int) -> list[Poet]:
         """The room's poets in seat order, from SQL (the source of truth for hoards)."""
@@ -115,14 +135,23 @@ class Arena:
             nonlocal poets
             if poets is None:
                 poets = await self.poets(room_id)
-            t = theme.strip() or pick_theme(avoid=self.themes_used.get(room_id, []))
-            offered: set[str] = set()  # poets in one round get different cards
+            event = await self.event_of(room_id)
+            used = self.themes_used.get(room_id, [])
             hands: list[list] = []
-            for p in poets:
-                cards = deal(t, p.hoard, n=CANDIDATES, exclude=[*self.dealt.get(p.player_id, []), *offered])
-                texts = [c.text for c in cards]
-                offered.update(texts)
-                hands.append([p.player_id, texts])
+            if event.hand == "moves":  # debate: a question, and moves with every role (one deck per poet)
+                q = debate.question(theme) if theme.strip() else debate.pick_question(avoid=used)
+                t = q.ask if q else theme.strip()
+                for p in poets:
+                    moves = debate.deal(n=debate.CANDIDATES, exclude=self.dealt.get(p.player_id, []))
+                    hands.append([p.player_id, [m.text for m in moves]])
+            else:
+                t = theme.strip() or pick_theme(avoid=used)
+                offered: set[str] = set()  # poets in one round get different cards
+                for p in poets:
+                    cards = deal(t, p.hoard, n=CANDIDATES, exclude=[*self.dealt.get(p.player_id, []), *offered])
+                    texts = [c.text for c in cards]
+                    offered.update(texts)
+                    hands.append([p.player_id, texts])
             await self.db.call("deal_round", room_id, round_no, t, hands)
             for pid, texts in hands:
                 self.dealt.setdefault(pid, []).extend(texts)
@@ -153,12 +182,13 @@ class Arena:
 
         async def work() -> tuple[str, str]:
             n, e = name, epithet
+            rows = await self.db.sql(f"SELECT * FROM player WHERE id = {int(player_id)}")
+            if not rows:
+                raise NotFound(f"no player {player_id}")
             if n is None:
-                rows = await self.db.sql(f"SELECT * FROM player WHERE id = {int(player_id)}")
-                if not rows:
-                    raise NotFound(f"no player {player_id}")
                 n, e = rows[0]["name"], rows[0]["epithet"]
-            n, e, _ = await self.host.name_poet(n, e or "")
+            event = await self.event_of(rows[0]["room_id"])
+            n, e, _ = await self.host.name_poet(n, e or "", event)
             await self.db.call("name_poet", player_id, n, e)
             return n, e
 
@@ -187,22 +217,32 @@ class Arena:
             if not rows:
                 raise NotFound(f"no round {round_id}")
             rnd = rows[0]
+            event = await self.event_of(rnd["room_id"])
             verses = await self._verses(rnd["room_id"], f"round_id = {int(round_id)}")
-            verdict, best_turn, line = await self.host.round_verdict(rnd.get("theme", ""), verses)
+            verdict, best_turn, line = await self.host.round_verdict(rnd.get("theme", ""), verses, event)
             await self.db.call("post_verdict", round_id, verdict, best_turn, line)
             return verdict, best_turn, line
 
         return await self.once(("verdict", round_id), work)
 
     async def song(self, room_id: int) -> list[tuple[int, str]]:
-        """Stitch every scored verse so far into the song: post_song. Demo rooms get 4 lines."""
+        """The finale, written with post_song.
+
+        Poetry: every scored verse so far stitched into the song (4 lines in demo
+        rooms). Debate: Socrates' last question, the night's strongest point
+        quoted and then the question nobody answered.
+        """
 
         async def work() -> list[tuple[int, str]]:
-            rows = await self.db.sql(f"SELECT * FROM room WHERE id = {int(room_id)}")
-            if not rows:
-                raise NotFound(f"no room {room_id}")
+            room = await self.room(room_id)
+            event = events.get(room.get("event") or "poetry")
             verses = await self._verses(room_id, f"room_id = {int(room_id)}")
-            lines = await self.host.song(verses, demo=bool(rows[0].get("demo")))
+            if event.hand == "moves":
+                rounds = await self.db.sql(f"SELECT * FROM round WHERE room_id = {int(room_id)}")
+                asked = [r.get("theme", "") for r in sorted(rounds, key=lambda r: r.get("round_no", 0))]
+                lines = await self.host.last_question(verses, asked)
+            else:
+                lines = await self.host.song(verses, demo=bool(room.get("demo")))
             await self.db.call("post_song", room_id, [t for t, _ in lines], [text for _, text in lines])
             return lines
 

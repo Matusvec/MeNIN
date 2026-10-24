@@ -7,7 +7,7 @@ import pytest
 from homer.voice import RateLimit, VoiceConfig, VoiceError, mint
 
 CFG = VoiceConfig(api_key="sk_test", version="2026-08-14", ttl=120, stt_model="ink-2", stt_encoding="pcm_s16le",
-                  stt_sample_rate=16000, tts_model="sonic-3.6", voice_id="homer-voice")
+                  stt_sample_rate=16000, tts_model="sonic-3.6", voice_id="homer-voice", socrates_voice_id="socrates-voice")
 
 
 def cartesia(seen):
@@ -28,7 +28,8 @@ def test_grants_follow_the_role(role, grants):
     assert out["token"] == "tok_123" and out["cartesiaVersion"] == "2026-08-14"
     assert ("stt" in out) == ("stt" in grants) and ("tts" in out) == ("tts" in grants)
     if "tts" in out:
-        assert out["tts"] == {"model": "sonic-3.6", "voiceId": "homer-voice"}
+        assert out["tts"] == {"model": "sonic-3.6", "voiceId": "homer-voice",
+                              "voices": {"homer": "homer-voice", "socrates": "socrates-voice"}}
 
 
 def test_no_key_no_token():

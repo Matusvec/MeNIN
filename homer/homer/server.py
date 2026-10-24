@@ -24,7 +24,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
-from . import events, formulas
+from . import debate, events, formulas
 from .arena import Arena, BattleTurn, NotFound, Poet
 from .config import settings
 from .deal import Card, deal, pick_theme, rescue, themes
@@ -137,6 +137,9 @@ class JudgeRequest(ScanRequest):
     emotion_history: list[dict[str, float]] = Field(default_factory=list)
     hoard: list[str] = Field(default_factory=list)
     demo: bool = False
+    side: str = ""  # debate: the side dealt to this debater
+    turn_seconds: float | None = None  # debate: the turn's length, for keeping the floor
+    spoken_seconds: float | None = None  # debate: Go to the end of the turn, for pace without word timings
 
 
 def camel(obj: Any) -> Any:
@@ -171,6 +174,9 @@ def scorecard(j: Judgment, bpm: float | None = None, started_at: float = 0.0, ev
         "declined": j.declined,
         "silent": j.silent,
         "scan": scan_json(j.scan, bpm, started_at, event) if j.scan else None,
+        "delivery": camel(j.delivery) if j.delivery else None,  # debate: what Poise was measured from
+        "made": j.made,  # debate: move ids the judge heard made
+        "tappedUnmade": j.tapped_unmade,  # debate: tapped but not made, so no Craft for them (P17)
         "timing": j.timing,
         "model": j.model,
     }
@@ -240,6 +246,9 @@ async def judge_turn(req: JudgeRequest, request: Request):
         emotion_history=req.emotion_history,
         hoard=req.hoard,
         demo=req.demo,
+        side=req.side,
+        turn_seconds=req.turn_seconds,
+        spoken_seconds=req.spoken_seconds,
     )
     if "text/event-stream" not in request.headers.get("accept", ""):
         try:
@@ -278,6 +287,15 @@ def card_json(c: Card) -> dict[str, Any]:
     return {"id": c.id, "text": c.text, "kind": c.kind, "used": False, "beats": c.beats, "hoard": c.hoard}
 
 
+def move_json(m: debate.Move) -> dict[str, Any]:
+    """A debate move card: `FormulaCard` with kind "move", plus its role and how it sounds as a question."""
+    return {"id": m.id, "text": m.text, "kind": "move", "used": False, "beats": 0, "hoard": False, "role": m.role, "template": m.template}
+
+
+def question_json(q: debate.Question) -> dict[str, Any]:
+    return {"id": q.id, "ask": q.ask, "sides": [q.side_a, q.side_b], "kind": q.kind}
+
+
 @app.get("/themes")
 async def get_themes(n: int = 3, demo: bool = False) -> dict[str, Any]:
     """Theme cards for the arena or Practice. Demo mode gets the three rehearsed themes."""
@@ -288,17 +306,24 @@ async def get_themes(n: int = 3, demo: bool = False) -> dict[str, Any]:
 
 
 class DealRequest(Model):
-    theme: str = ""
+    theme: str = ""  # debate: a question's id or words
     hoard: list[str] = Field(default_factory=list)
     exclude: list[str] = Field(default_factory=list)  # cards already held or spent
     n: int = 5
+    event: str = "poetry"
 
 
 @app.post("/deal")
 async def deal_hand(req: DealRequest) -> dict[str, Any]:
     """A hand for Practice (battle hands come from /battle/deal). An empty theme gets a random one."""
+    n = max(1, min(req.n, 8))
+    if events.get(req.event).hand == "moves":
+        q = debate.question(req.theme) if req.theme.strip() else debate.pick_question()
+        if q is None:
+            raise HTTPException(404, f"no question {req.theme}")
+        return {"theme": q.ask, "question": question_json(q), "hand": [move_json(m) for m in debate.deal(n, exclude=req.exclude)]}
     theme = req.theme.strip() or pick_theme()
-    return {"theme": theme, "hand": [card_json(c) for c in deal(theme, req.hoard, n=max(1, min(req.n, 8)), exclude=req.exclude)]}
+    return {"theme": theme, "hand": [card_json(c) for c in deal(theme, req.hoard, n=n, exclude=req.exclude)]}
 
 
 class RescueRequest(Model):
@@ -306,15 +331,54 @@ class RescueRequest(Model):
     hand: list[str]
     played: list[str] = Field(default_factory=list)
     theme: str = ""
+    event: str = "poetry"
+    previous: str = ""  # debate: the turn being answered
+    elapsed_s: float = 0.0  # debate: seconds into the turn
+    turn_seconds: float = 45.0  # debate
+    whispers: dict[str, str] = Field(default_factory=dict)  # debate: from /debate/whispers at step-up
 
 
 @app.post("/rescue")
 async def rescue_card(req: RescueRequest) -> dict[str, Any]:
-    """The card Homer whispers when the poet freezes. No model call."""
+    """What the host whispers when the player freezes. No model call.
+
+    Poetry: Homer whispers a formula that fits the line. Debate: one move is
+    raised and Socrates whispers a question that performs it, the one prepared
+    at step-up when there is one, else the move's template.
+    """
+    if events.get(req.event).hand == "moves":
+        m = debate.rescue_move(req.hand, req.played, req.elapsed_s, req.turn_seconds, req.previous)
+        if m is None:
+            raise HTTPException(409, "no unplayed move in the hand")
+        whisper = req.whispers.get(m.id) or debate.template_whisper(m, debate.question(req.theme), req.previous)
+        return {"whisper": whisper, "card": move_json(m)}
     c = rescue(req.transcript, req.hand, played=req.played, theme=req.theme)
     if c is None:
         raise HTTPException(409, "no unplayed card in the hand")
     return {"formula": c.text, "card": card_json(c)}
+
+
+@app.get("/debate")
+async def debate_content() -> dict[str, Any]:
+    """The debate content from content/debate.md and content/moves.json, for the app."""
+    return {
+        "questions": [question_json(q) for q in debate.questions()],
+        "moves": [move_json(m) for m in debate.moves()],
+        "lines": debate.lines(),
+    }
+
+
+class WhispersRequest(Model):
+    question: str = ""  # a question's id or words (the round's theme)
+    side: str = ""
+    hand: list[str]
+    previous: str = ""  # the turn this debater will answer, if any
+
+
+@app.post("/debate/whispers")
+async def debate_whispers(req: WhispersRequest) -> dict[str, Any]:
+    """At step-up: one rescue question per move in the hand, so the freeze rescue plays instantly."""
+    return {"whispers": await host().whispers(req.question, req.side, req.hand, req.previous)}
 
 
 class PoetIn(Model):
@@ -358,6 +422,9 @@ class BattleJudgeRequest(Model):
     player_id: int = 0
     hoard: list[str] = Field(default_factory=list)
     demo: bool = False
+    side: str = ""  # debate: the side dealt to this debater (sides alternate by turn order)
+    turn_seconds: float | None = None  # debate: room.turn_seconds, for keeping the floor
+    spoken_seconds: float | None = None  # debate: Go (turn.beat_at) to end_turn, for pace
 
 
 @app.post("/battle/judge")
@@ -377,6 +444,9 @@ async def battle_judge(req: BattleJudgeRequest) -> dict[str, Any]:
         player_id=req.player_id,
         hoard=req.hoard,
         demo=req.demo,
+        side=req.side,
+        turn_seconds=req.turn_seconds,
+        spoken_seconds=req.spoken_seconds,
     )
     try:
         posted, j = await arena().judge_turn(bt)
@@ -551,17 +621,27 @@ async def lesson_feedback_endpoint(req: LessonFeedbackRequest) -> dict[str, Any]
 
 
 class SparRequest(Model):
-    theme: str = ""
-    lines: int = 4
-    answer_to: str = ""  # the poet's verse Homer answers
+    theme: str = ""  # debate: a question's id or words
+    lines: int = 4  # debate: sentences
+    answer_to: str = ""  # the player's turn the host answers
     hand: list[str] | None = None  # formulas to build from; dealt from the theme when absent
     bpm: float | None = None
     started_at: float = 0.0
+    event: str = "poetry"
+    side: str = ""  # debate: the side Socrates argues (the one the student wasn't dealt)
 
 
 @app.post("/spar")
 async def spar(req: SparRequest) -> dict[str, Any]:
-    """Homer's own verse (Practice spar, lesson demos), built from formulas and checked by the scanner."""
+    """The host's own turn in a spar. Homer: a verse from formulas, checked by the scanner. Socrates: the other side, in questions."""
+    if events.get(req.event).hand == "moves":
+        q = debate.question(req.theme) if req.theme.strip() else debate.pick_question()
+        ask = q.ask if q else req.theme.strip()
+        side = req.side or (q.side_b if q else "")
+        lines = await host().spar_debate(ask, side, req.lines, req.answer_to)
+        if not lines:
+            raise HTTPException(503, "Socrates is silent on this one")
+        return {"theme": ask, "side": side, "lines": lines}
     theme = req.theme.strip() or pick_theme()
     verse, scan = await host().spar(theme, req.lines, req.answer_to, req.hand)
     if not verse:

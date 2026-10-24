@@ -30,11 +30,12 @@ from typing import Any
 
 import anthropic
 
-from . import claude, emotion, events, formulas
+from . import claude, debate, emotion, events, formulas
 from .config import Settings, settings as load_settings
 from .events import Event
 from .formulas import Formula
 from .prompts import block, judge_system, quote_untrusted
+from .debate import Delivery
 from .scanner import TimedWord, VerseScan, scan_verse, strong_hits
 
 log = logging.getLogger("homer")
@@ -58,13 +59,16 @@ class Turn:
     hand: list[str] = field(default_factory=list)  # in a battle, the cards dealt (remembered by the agent)
     played: list[str] = field(default_factory=list)
     rescues: int = 0
-    previous: str = ""  # the verse this one answers, or its best line
+    previous: str = ""  # the verse (or debate turn) this one answers, or its best line
     words: list[TimedWord] | None = None
     bpm: float | None = None
     lines_expected: int | None = None
     emotion_history: list[dict[str, float]] = field(default_factory=list)
     hoard: list[str] = field(default_factory=list)
     demo: bool = False
+    side: str = ""  # debate: the side this debater was dealt
+    turn_seconds: float | None = None  # debate: the turn's length, for keeping the floor
+    spoken_seconds: float | None = None  # debate: Go to the end of the turn, for pace when there are no word timings
 
 
 @dataclass
@@ -77,6 +81,9 @@ class Judgment:
     silent: bool = False  # Claude didn't answer in time: Craft, Image and Answer are 0
     error: str = ""
     scan: VerseScan | None = None
+    delivery: Delivery | None = None  # debate: what Poise was measured from
+    made: list[str] = field(default_factory=list)  # debate: move ids the judge heard made, tapped or not
+    tapped_unmade: list[str] = field(default_factory=list)  # debate: tapped but not made (P17: no Craft)
     timing: dict[str, float] = field(default_factory=dict)  # ms from the request
     model: str = ""
     usage: dict[str, int] = field(default_factory=dict)
@@ -98,8 +105,23 @@ def output_schema(event: Event) -> dict[str, Any]:
     }
     for axis in event.claude_axes:
         props[axis.key] = {"type": "integer", "enum": SCORES}
-    props["coined"] = {"type": "string"}
+    if event.hoard:
+        props["coined"] = {"type": "string"}
+    if event.hand == "moves":
+        props["made"] = {"type": "array", "items": {"type": "string"}}
     return claude.obj(props)
+
+
+SENTENCE_RE = re.compile(r"(?<=[.!?])\s+|\n+")
+
+
+def sentences(text: str, chunk: int = 24) -> list[str]:
+    """A spoken turn as sentences; unpunctuated speech is cut into chunks of about `chunk` words."""
+    out = []
+    for part in SENTENCE_RE.split(text.strip()):
+        words = part.split()
+        out.extend(" ".join(words[i : i + chunk]) for i in range(0, len(words), chunk))
+    return [s for s in out if s]
 
 
 def clean_verdict(text: str) -> str:
@@ -169,7 +191,41 @@ class Judge:
             ]
         )
 
-    def request(self, turn: Turn, event: Event, scan: VerseScan) -> dict[str, Any]:
+    def debate_content(self, turn: Turn, d: Delivery) -> str:
+        hand = [m for m in (debate.move(c) for c in dict.fromkeys(turn.hand + turn.played)) if m]
+        tapped = [m.id for m in (debate.move(p) for p in turn.played) if m]
+        info = [
+            f"mode: {turn.mode}",
+            f"question: {quote_untrusted(turn.theme.strip()) or 'open'}",
+            f"side: {quote_untrusted(turn.side.strip()) or 'not given'}",
+            "hand:" + ("".join(f"\n- {m.id} ({m.role}): {quote_untrusted(m.template)}" for m in hand) or " none"),
+            f"tapped: {', '.join(tapped) or 'none'}",
+            f"rescues: {turn.rescues}",
+        ]
+        facts = [f"{d.words} words", f"fillers: {len(d.fillers)}" + (f" ({', '.join(sorted(set(d.fillers)))})" if d.fillers else "")]
+        if d.wpm is not None:
+            facts.append(f"pace: {d.wpm:.0f} words a minute")
+        if d.longest_silence_ms is not None:
+            facts.append(f"longest silence: {d.longest_silence_ms / 1000:.1f} s")
+        facts.append(f"dead air (2 s or more, including rescues): {d.dead_air}")
+        previous = (
+            block("previous_turn", turn.previous)
+            if turn.previous.strip()
+            else "<previous_turn>\nnone: this turn answers the question\n</previous_turn>"
+        )
+        return "\n\n".join(
+            [
+                "<turn>\n" + "\n".join(info) + "\n</turn>",
+                previous,
+                block("delivery", "\n".join(facts)),
+                block("argument", turn.transcript),
+            ]
+        )
+
+    def request(self, turn: Turn, event: Event, content: VerseScan | str) -> dict[str, Any]:
+        """The Claude call. `content` is the poetry scan, or a user message already built."""
+        if not isinstance(content, str):
+            content = self.user_content(turn, content)
         cfg = self.cfg
         kwargs = claude.options(
             cfg.judge_model,
@@ -180,7 +236,7 @@ class Judge:
             fallbacks=cfg.fallbacks,
         )
         kwargs["system"] = claude.system(judge_system(event))
-        kwargs["messages"] = [{"role": "user", "content": self.user_content(turn, scan)}]
+        kwargs["messages"] = [{"role": "user", "content": content}]
         return kwargs
 
     # ----- Judging ---------------------------------------------------------
@@ -188,23 +244,37 @@ class Judge:
     async def judge(self, turn: Turn, on_verdict: OnVerdict | None = None) -> Judgment:
         t0 = time.perf_counter()
         event = events.get(turn.event)
-        scan = self.scan(turn, event)
-        if not any(line.words for line in scan.lines):
-            raise EmptyVerse("nothing to judge")
-        lines = [line.text for line in scan.lines]
-        scores = {a.key: 0 for a in event.axes}
-        scores["beat"] = scan.beat
-        scores["range"] = emotion.range_score(turn.emotion_history, lines)
-        j = Judgment(scores=scores, scan=scan, model=self.cfg.judge_model)
+        j = Judgment(scores={a.key: 0 for a in event.axes}, model=self.cfg.judge_model)
+        if event.hand == "moves":  # debate: Poise from the delivery
+            text = turn.transcript or " ".join(w.text for w in turn.words or [])
+            if not text.strip():
+                raise EmptyVerse("nothing to judge")
+            turn.transcript = text
+            j.delivery = debate.poise(text, turn.words, turn.turn_seconds, turn.rescues, turn.spoken_seconds)
+            j.scores["poise"] = j.delivery.poise
+            lines = sentences(text)
+            fallback = max(range(len(lines)), key=lambda i: len(lines[i].split())) if lines else None
+            content = self.debate_content(turn, j.delivery)
+        else:  # poetry: Beat from the scanner, Range from the emotion samples
+            j.scan = scan = self.scan(turn, event)
+            if not any(line.words for line in scan.lines):
+                raise EmptyVerse("nothing to judge")
+            lines = [line.text for line in scan.lines]
+            j.scores["beat"] = scan.beat
+            j.scores["range"] = emotion.range_score(turn.emotion_history, lines)
+            fallback = scan.best_line
+            content = self.user_content(turn, scan)
         j.timing["scan"] = _ms(t0)
 
         try:
             text, final = await asyncio.wait_for(
-                self._call(self.request(turn, event, scan), j, t0, on_verdict), self.cfg.judge_timeout
+                self._call(self.request(turn, event, content), j, t0, on_verdict), self.cfg.judge_timeout
             )
         except (asyncio.TimeoutError, anthropic.APIError) as exc:
             j.silent, j.error = True, type(exc).__name__
-            j.best_line = lines[scan.best_line] if scan.best_line is not None else ""
+            j.best_line = lines[fallback] if fallback is not None else ""
+            if event.hand == "moves":
+                j.best_line = debate.clean_line(j.best_line)
             j.timing["done"] = _ms(t0)
             return j
         j.timing["done"] = _ms(t0)
@@ -221,7 +291,7 @@ class Judge:
             data = json.loads(text)
         except json.JSONDecodeError:
             j.silent, j.error = True, f"bad JSON (stop_reason={final.stop_reason})"
-            j.best_line = lines[scan.best_line] if scan.best_line is not None else ""
+            j.best_line = lines[fallback] if fallback is not None else ""
             return j
         if not data.get("fit", True):
             j.declined = True
@@ -230,8 +300,16 @@ class Judge:
         for axis in event.claude_axes:
             j.scores[axis.key] = max(1, min(10, int(data.get(axis.key, 1))))
         j.verdict = clean_verdict(str(data.get("verdict", "")))
-        j.best_line = self._best_line(str(data.get("best_line", "")), lines, scan)
-        j.coined = self._coined(str(data.get("coined", "")), turn, lines, j.scores.get("craft", 0))
+        j.best_line = self._best_line(str(data.get("best_line", "")), lines, fallback)
+        if event.hoard:
+            j.coined = self._coined(str(data.get("coined", "")), turn, lines, j.scores.get("craft", 0))
+        if event.hand == "moves":
+            j.verdict = debate.plain_moves(j.verdict)
+            j.best_line = debate.clean_line(j.best_line)
+            dealt = {m.id for m in (debate.move(c) for c in turn.hand + turn.played) if m}
+            j.made = [i for i in dict.fromkeys(str(x) for x in data.get("made", []) or []) if i in dealt]
+            tapped = [m.id for m in (debate.move(p) for p in turn.played) if m]
+            j.tapped_unmade = [t for t in tapped if t not in j.made]
         return j
 
     async def _call(self, kwargs: dict[str, Any], j: Judgment, t0: float, on_verdict: OnVerdict | None):
@@ -254,8 +332,8 @@ class Judge:
         return await claude.complete(self.client, kwargs, watch)
 
     @staticmethod
-    def _best_line(quoted: str, lines: list[str], scan: VerseScan) -> str:
-        """The quoted line, held to the verse: a line, or a span of one, never invented."""
+    def _best_line(quoted: str, lines: list[str], fallback: int | None) -> str:
+        """The quoted line, held to the verse (or turn): a line, or a span of one, never invented."""
         q = " ".join(quoted.split()).strip(" \"'“”")
         if q:
             for line in lines:
@@ -264,7 +342,7 @@ class Judge:
             close = difflib.get_close_matches(q.lower(), [line.lower() for line in lines], n=1, cutoff=0.6)
             if close:
                 return lines[[line.lower() for line in lines].index(close[0])]
-        return lines[scan.best_line] if scan.best_line is not None else ""
+        return lines[fallback] if fallback is not None else ""
 
     def _coined(self, coined: str, turn: Turn, lines: list[str], craft: int) -> str:
         """Keep a coined formula only if it is new, really in the verse, scans, and the verse rated well."""

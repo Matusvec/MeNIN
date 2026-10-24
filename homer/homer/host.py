@@ -15,10 +15,11 @@ from typing import Any
 
 import anthropic
 
-from . import claude, events, formulas
+from . import claude, debate, events, formulas
 from .config import Settings, settings as load_settings
 from .deal import deal
-from .judge import clean_verdict
+from .events import Event
+from .judge import clean_verdict, sentences
 from .prompts import attr, block, host_system, quote_untrusted
 from .scanner import VerseScan, scan_verse
 
@@ -37,6 +38,11 @@ class Verse:
     transcript: str
     total: int = 0
     best_line: str = ""
+
+
+def _units(text: str, event: Event) -> list[str]:
+    """What a best line can be: a line of verse, or a sentence of a debate turn."""
+    return sentences(text) if event.hand == "moves" else _lines(text)
 
 
 def _lines(text: str) -> list[str]:
@@ -68,21 +74,22 @@ class Host:
         self.client = client if client is not None else anthropic.AsyncAnthropic(timeout=self.cfg.timeout)
         self.event = events.get(event)
 
-    def _kwargs(self, task: str, schema: dict[str, Any], user: str) -> dict[str, Any]:
+    def _kwargs(self, task: str, schema: dict[str, Any], user: str, event: Event | None = None) -> dict[str, Any]:
+        ev = event or self.event
         kw = claude.options(self.cfg.model, self.cfg.effort, schema, speed=self.cfg.speed, fallbacks=self.cfg.fallbacks)
-        kw["system"] = claude.system(host_system(self.event, task))
+        kw["system"] = claude.system(host_system(ev, ev.task(task)))
         kw["messages"] = [{"role": "user", "content": user}]
         return kw
 
-    async def _ask(self, task: str, schema: dict[str, Any], user: str) -> dict[str, Any] | None:
-        return await claude.ask(self.client, self._kwargs(task, schema, user), self.cfg.timeout)
+    async def _ask(self, task: str, schema: dict[str, Any], user: str, event: Event | None = None) -> dict[str, Any] | None:
+        return await claude.ask(self.client, self._kwargs(task, schema, user, event), self.cfg.timeout)
 
     # ----- The entrance ------------------------------------------------------
 
-    async def name_poet(self, name: str, epithet: str = "") -> tuple[str, str, bool]:
+    async def name_poet(self, name: str, epithet: str = "", event: Event | None = None) -> tuple[str, str, bool]:
         """A PG name and an epithet (coined if they brought none). Returns (name, epithet, coined)."""
         schema = claude.obj({"name": STR, "epithet": STR, "coined": {"type": "boolean"}})
-        data = await self._ask("poet", schema, block("name", name) + "\n\n" + block("epithet", epithet))
+        data = await self._ask("poet", schema, block("name", name) + "\n\n" + block("epithet", epithet), event)
         if data is None:  # keep what they typed; the arena announces the bare name
             return name.strip()[:NAME_MAX] or "Nameless", epithet.strip()[:EPITHET_MAX], False
         new_name = clean_verdict(str(data.get("name", ""))).strip(".!?")[:NAME_MAX] or name.strip()[:NAME_MAX]
@@ -91,33 +98,37 @@ class Host:
 
     # ----- The round verdict and the carved line ---------------------------
 
-    async def round_verdict(self, theme: str, verses: list[Verse]) -> tuple[str, int, str]:
+    async def round_verdict(self, theme: str, verses: list[Verse], event: Event | None = None) -> tuple[str, int, str]:
         """Returns (verdict, best_turn_id, best_line).
 
         The verdict is what Homer speaks: a lead-in of at most twelve words,
         then the carved line itself, verbatim. The arena reads it once.
         """
-        scored = [v for v in verses if _lines(v.transcript)]
+        ev = event or self.event
+        scored = [v for v in verses if _units(v.transcript, ev)]
         if not scored:
             return "", 0, ""
         top = max(scored, key=lambda v: v.total)
-        fallback = (top.turn_id, top.best_line or _lines(top.transcript)[0])
+        fallback = (top.turn_id, top.best_line or _units(top.transcript, ev)[0])
         schema = claude.obj({"verdict": STR, "best_turn": INT, "best_line": STR})
         body = "\n\n".join(
             f'<verse turn="{v.turn_id}" poet="{attr(v.poet)}" total="{v.total}">\n'
             f"{quote_untrusted(v.transcript.strip())}\nbest_line: {quote_untrusted(v.best_line)}\n</verse>"
             for v in scored
         )
-        data = await self._ask("verdict", schema, f"theme: {quote_untrusted(theme) or 'open'}\n\n{body}")
+        label = "question" if ev.hand == "moves" else "theme"
+        data = await self._ask("verdict", schema, f"{label}: {quote_untrusted(theme) or 'open'}\n\n{body}", ev)
         if data is None:
             return "", *fallback
         by_id = {v.turn_id: v for v in scored}
         v = by_id.get(int(data.get("best_turn", 0)))
-        line = _match_line(str(data.get("best_line", "")), _lines(v.transcript)) if v else None
+        line = _match_line(str(data.get("best_line", "")), _units(v.transcript, ev)) if v else None
         if v is None or line is None:  # an invented line is never carved
             best_turn, line = fallback
         else:
             best_turn = v.turn_id
+        if ev.hand == "moves":
+            line = debate.clean_line(line)
         call = _lead_in(str(data.get("verdict", "")))
         return (f"{call} {line}" if call else ""), best_turn, line
 
@@ -180,3 +191,72 @@ class Host:
         raw = (data or {}).get("lines", [])
         out = [" ".join(str(line).replace("/", " ").split()).lower() for line in raw if str(line).strip()]
         return out[:n]
+
+    # ----- Socrates: whispers, the last question, sparring ------------------
+
+    async def whispers(self, question: str, side: str, hand: list[str], previous: str = "") -> dict[str, str]:
+        """One rescue question per move in the hand, prepared at step-up: {move id: question}.
+
+        Every move gets its filled template first, so a rescue always has
+        something to play; Claude's version replaces it only if it's a single
+        short question.
+        """
+        moves = [m for m in (debate.move(h) for h in hand) if m]
+        q = debate.question(question)
+        out = {m.id: debate.template_whisper(m, q, previous) for m in moves}
+        if not moves:
+            return out
+        schema = claude.obj({"whispers": {"type": "array", "items": claude.obj({"id": STR, "text": STR})}})
+        user = (
+            f"question: {quote_untrusted(question) or 'open'}\nside: {quote_untrusted(side) or 'not given'}\nhand:"
+            + "".join(f"\n- {m.id} ({m.role}): {m.template}" for m in moves)
+        )
+        if previous.strip():
+            user += "\n\n" + block("previous_turn", previous)
+        data = await self._ask("whispers", schema, user, events.DEBATE)
+        for item in (data or {}).get("whispers", []):
+            if not isinstance(item, dict) or item.get("id") not in out:
+                continue
+            text = clean_verdict(str(item.get("text", ""))).strip("\"'“”")
+            if text.endswith("?") and text.count("?") == 1 and len(text.split()) <= 10:
+                out[item["id"]] = text
+        return out
+
+    async def last_question(self, verses: list[Verse], questions: list[str]) -> list[tuple[int, str]]:
+        """The debate finale: the night's strongest point quoted, then the question nobody answered.
+
+        Returns [(turn, quote), (turn, question)]. If Claude fails, the top
+        turn's best line stands alone; no question is invented.
+        """
+        spoken = [v for v in verses if sentences(v.transcript)]
+        if not spoken:
+            return []
+        top = max(spoken, key=lambda v: v.total)
+        fallback = [(top.turn_id, top.best_line or sentences(top.transcript)[0])]
+        schema = claude.obj({"quote_turn": INT, "quote": STR, "question": STR})
+        asked = "\n".join(f"- {quote_untrusted(q)}" for q in questions if q.strip()) or "- open"
+        body = "\n\n".join(
+            f'<verse turn="{v.turn_id}" poet="{attr(v.poet)}">\n{quote_untrusted(v.transcript.strip())}\n</verse>' for v in spoken
+        )
+        data = await self._ask("song", schema, f"questions tonight:\n{asked}\n\n{body}", events.DEBATE)
+        if data is None:
+            return fallback
+        v = {x.turn_id: x for x in spoken}.get(int(data.get("quote_turn", 0) or 0))
+        quote = _match_line(str(data.get("quote", "")), sentences(v.transcript)) if v else None
+        question = clean_verdict(str(data.get("question", ""))).strip("\"'“”")
+        if v is None or quote is None:
+            return [(t, debate.clean_line(line)) for t, line in fallback]
+        out = [(v.turn_id, debate.clean_line(quote))]
+        if question.endswith("?") and len(question.split()) <= 20:
+            out.append((v.turn_id, question))
+        return out
+
+    async def spar_debate(self, question: str, side: str, n: int = 3, answer_to: str = "") -> list[str]:
+        """Socrates' own turn in a spar: the other side, argued mostly in questions."""
+        n = max(1, min(n, 6))
+        schema = claude.obj({"lines": {"type": "array", "items": STR}})
+        user = f"question: {quote_untrusted(question) or 'open'}\nyour side: {quote_untrusted(side) or 'the other one'}\nsentences: {n}"
+        if answer_to.strip():
+            user += "\n\n" + block("answer_to", answer_to)
+        data = await self._ask("spar", schema, user, events.DEBATE)
+        return [clean_verdict(str(x)) for x in (data or {}).get("lines", []) if str(x).strip()][:n]

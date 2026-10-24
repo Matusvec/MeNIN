@@ -33,7 +33,8 @@ class VoiceConfig:
     stt_encoding: str
     stt_sample_rate: int
     tts_model: str
-    voice_id: str
+    voice_id: str  # Homer
+    socrates_voice_id: str = ""  # the debate host
 
     @classmethod
     def from_env(cls) -> VoiceConfig:
@@ -47,6 +48,7 @@ class VoiceConfig:
             stt_sample_rate=int(e("HOMER_STT_SAMPLE_RATE", "16000")),
             tts_model=e("HOMER_TTS_MODEL", "sonic-3.6"),
             voice_id=e("HOMER_VOICE_ID", ""),
+            socrates_voice_id=e("SOCRATES_VOICE_ID", ""),
         )
 
 
@@ -91,5 +93,9 @@ async def mint(cfg: VoiceConfig, role: str, http: httpx2.AsyncClient) -> dict:
     if "stt" in GRANTS[role]:
         out["stt"] = {"model": cfg.stt_model, "encoding": cfg.stt_encoding, "sampleRate": cfg.stt_sample_rate}
     if "tts" in GRANTS[role]:
-        out["tts"] = {"model": cfg.tts_model, "voiceId": cfg.voice_id}
+        out["tts"] = {
+            "model": cfg.tts_model,
+            "voiceId": cfg.voice_id,  # Homer
+            "voices": {"homer": cfg.voice_id, "socrates": cfg.socrates_voice_id},  # one per host
+        }
     return out

@@ -1,11 +1,10 @@
 """Per-event config: the host, the hand, the rubric, the beat.
 
-SPEC "The games": each event is a config on one engine. Poetry is the only
-event so far. TODO(spec): Socratic debate adds a second Event here (host
-Socrates, a hand of rhetorical moves, its own five axes, no beat) once the
-poetry demo passes the Sat 2 PM checkpoint. The score table in SpacetimeDB
-has fixed columns (beat, craft, image, answer, range), so debate's axes will
-need a mapping onto them or a contract change.
+SPEC "The games": each event is a config on one engine. Poetry and Socratic
+debate share the turn, the judge and the verdict; this config is where they
+differ. SpacetimeDB stores a score as an axes array in rubric order, so the
+order of `axes` here is the wire order. Discus has no voice and no Claude, so
+it isn't an event here.
 """
 
 from __future__ import annotations
@@ -28,13 +27,22 @@ class Event:
     persona: str  # prompt file in homer/prompts/
     judge_prompt: str  # prompt file in homer/prompts/
     axes: tuple[Axis, ...]
-    hand: str  # where hands are dealt from: "formulas" is content/formulas.json
+    hand: str  # where hands are dealt from: "formulas" (content/formulas.json) or "moves" (content/moves.json)
     beat: bool
     beats_per_line: int = 4
+    hoard: bool = True  # coined cards join the poet's hoard
+    tasks: tuple[tuple[str, str], ...] = ()  # the host's other jobs: (task, prompt file in homer/prompts/)
 
     @property
     def claude_axes(self) -> tuple[Axis, ...]:
         return tuple(a for a in self.axes if a.source == "claude")
+
+    def task(self, name: str) -> str:
+        """The prompt file for one of the host's jobs (verdict, song, spar, whispers)."""
+        try:
+            return dict(self.tasks)[name]
+        except KeyError:
+            raise ValueError(f"{self.id} has no {name}") from None
 
 
 POETRY = Event(
@@ -70,9 +78,48 @@ POETRY = Event(
     ),
     hand="formulas",
     beat=True,
+    tasks=(("poet", "poet"), ("verdict", "verdict"), ("song", "song"), ("spar", "spar")),
 )
 
-EVENTS = {POETRY.id: POETRY}
+# content/debate.md, "The rubric". Poise is measured from the delivery, never scored by Claude.
+DEBATE = Event(
+    id="debate",
+    host="Socrates",
+    persona="socrates",
+    judge_prompt="judge_debate",
+    axes=(
+        Axis("claim", "Claim", "They took their side, said it plainly, and held it to the end.", "claude"),
+        Axis("reason", "Reason", "Their reasons and examples actually support their claim.", "claude"),
+        Axis(
+            "answer",
+            "Answer",
+            "They took on the last speaker's strongest point, not their weakest. "
+            "If they went first, they took on the question itself.",
+            "claude",
+        ),
+        Axis(
+            "craft",
+            "Craft",
+            "They made the moves in their hand, at the right moment, and varied them. Doing a move counts; "
+            "naming it doesn't. A move they tapped but didn't make earns nothing.",
+            "claude",
+        ),
+        Axis("poise", "Poise", "They kept the floor: steady pace, few fillers, no dead air.", "delivery"),
+    ),
+    hand="moves",
+    beat=False,
+    beats_per_line=0,
+    hoard=False,
+    tasks=(
+        ("poet", "poet"),
+        ("verdict", "verdict_debate"),
+        ("song", "last_question"),
+        ("spar", "spar_debate"),
+        ("whispers", "whispers"),
+    ),
+)
+
+EVENTS = {POETRY.id: POETRY, DEBATE.id: DEBATE}
 
 
 def get(event_id: str) -> Event:
