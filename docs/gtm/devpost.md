@@ -182,7 +182,7 @@ Every integration below runs behind a switch, off the demo path (SPEC `5a6a8fe`)
 - **How it works:** it finds noun-epithet formulas with readable rules and no language model. It folds Roman names to Greek (Jove becomes Zeus) and merges synonyms. It counts each phrase's beats with the same CMU-dictionary rule as our stress scanner, and ranks phrases by how often and how widely they recur ("aegis-bearing Zeus" appears 60 times across two translations).
 - **What it produced:** 150 candidates. A person reviewed them and kept 55, so the bank grew from 158 to 213 formulas: about a quarter of what Homer can deal you now came from the Actor.
 
-It's published on the Apify Store: https://apify.com/matusnator/epithet-miner It runs at build time; the game never calls Apify live. The full, honest build log is in `apify/BUILD_LOG.md`, including what went wrong: the first list was full of "dear son" and "great wealth".
+It's published on the Apify Store: https://apify.com/matusnator/epithet-miner (Actor ID `v4i7ItNXjHMmnKzfo`). It runs at build time; the game never calls Apify live. The full, honest build log is in `apify/BUILD_LOG.md`, including what went wrong: the first list was full of "dear son" and "great wealth".
 
 **Fetch.ai: Homer on Agentverse.** The whole battle turn works inside an ASI:One conversation. Ask Homer for a theme, and he deals you five stock phrases that fit it. Write your verse with them, and he judges it with the same scanner and Claude judge that run our live battles: five scores, your best line quoted and a one-line verdict.  It's an agent registered on Agentverse that speaks the Agent Chat Protocol, running inside our agent service behind a switch, so the battle never depends on it. Agentverse's Inspector button can't reach an agent inside Docker, so we register its mailbox with an Agentverse API key from inside the container (`homer/scripts/agentverse_connect.py`). Agent: `homer-bard` (`agent1qf8cydj43pd7tue06mk9avnp45avcc4ss9gjm98r4lkjczsw0gskzw97edc`). Try it: [ASI:One link].
 
@@ -194,13 +194,13 @@ Voice games have to answer while the room is still listening, and Moss keeps the
 
 ## Tracks to tag on Devpost
 
-**As of Sat 12:20 PM, Devpost lists "[Spacetime] Best Use of Spacetime" and "[Anthropic] Claude for Public Benefit". Tag both** (leader). It still has no MLH Gen AI, .Tech or DigitalOcean (Hive has all three; Devpost lists Vultr instead), and it still shows Figma's old five prizes. MLH: "you can opt in to multiple prize categories at time of submission!" An organizer: "Devpost will also be updated soon!" (#0-ask-directors, Sat 10:40–10:50 AM). Tag every track below that Devpost offers on Sunday morning.
+**As of Sat 12:20 PM, Devpost lists "[Spacetime] Best Use of Spacetime" and "[Anthropic] Claude for Public Benefit". Tag both** (leader). It still has no MLH Gen AI, .Tech or DigitalOcean (Hive has all three; Devpost lists Vultr instead). **As of Sat 2:20 PM, Figma's five old entries are one: "[Figma] Best Figma Workflow Hack".** MLH: "you can opt in to multiple prize categories at time of submission!" An organizer: "Devpost will also be updated soon!" (#0-ask-directors, Sat 10:40–10:50 AM). Tag every track below that Devpost offers on Sunday morning. **How:** tracks are picked on the submission form ("step 3 or 4"), after joining the Cal Hacks 13.0 Devpost (MLH, #0-ask-directors, Sat 12:24 PM). A hacker reported that Step 4 lists individual prize names, such as "1st place from Microsoft", so tick every prize line under each track we enter.
 
 - [ ] **Spacetime: Best Use of Spacetime** (on Devpost since Sat ~12 PM)
 - [ ] Meta: Bringing People Closer Together with AI
 - [ ] Cartesia: Best Use of Cartesia
 - [ ] **Anthropic: Claude for Public Benefit** (on Devpost since Sat ~12 PM)
-- [ ] Figma (add the Figma Slides link and the stage log)
+- [ ] **Figma: "[Figma] Best Figma Workflow Hack"** (one entry since Sat ~2 PM; add the Figma Slides link and the stage log). Devpost shows "$1,000 in cash, 1 winner" in Amazon gift cards, but Figma's brief still lists four prizes: Best Figma Workflow $2,000, Best Stage Log $2,000, Best Design $500, Most Creative $500. The booth activation ended at 2 PM, so Matus can ask in #spons-figma (draft in [slack-intel.md](slack-intel.md)). We submit the same three deliverables either way: the video (3 minutes max), the stage log and the Figma Slides deck.
 - [ ] MLH: Best Use of Gen AI
 - [ ] MLH: Best .Tech Domain Name (if registered)
 - [ ] MLH: Commit Fellowship (if we want it)
@@ -209,7 +209,7 @@ Voice games have to answer while the room is still listening, and Moss keeps the
 - [ ] **Fetch.ai: Best Use of Fetch.ai** (only if Homer's judge is live on Agentverse and usable from ASI:One)
 - [ ] **Moss: Best Use of Moss.** Shipped: `HOMER_DEALER=moss` is live on the droplet, p50 13.7 ms, with a tested fallback. Tag it.
 - [ ] MLH: Best Use of DigitalOcean (the agent service runs there)
-- [ ] **Apify: "[Apify] Best Use of Apify".** Devpost now has one Apify entry with 6 winners, covering Best Use and "Best Actor Built with AI Chat (make sure to tag in your submission that is an actor)". So tag it, and the Apify blurb says outright that **Epithet Miner is an Apify Actor, built with AI chat** (leader, Sat 12:30 PM). Ready: 55 of the bank's 213 formulas came from it, and it's live on the Store (https://apify.com/matusnator/epithet-miner).
+- [ ] **Apify: "[Apify] Best Use of Apify".** Devpost now has one Apify entry with 6 winners, covering Best Use and "Best Actor Built with AI Chat (make sure to tag in your submission that is an actor)". So tag it, and the Apify blurb says outright that **Epithet Miner is an Apify Actor, built with AI chat** (leader, Sat 12:30 PM). Ready: 55 of the bank's 213 formulas came from it, and it's live on the Store (https://apify.com/matusnator/epithet-miner). Apify staff: "in your submission just share the link and id for us" (#spons-apify, Sat 1:13 PM), so the blurb gives both: Actor ID `v4i7ItNXjHMmnKzfo`.
 
 Main prizes are automatic.
 
