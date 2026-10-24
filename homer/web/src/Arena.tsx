@@ -78,6 +78,7 @@ function waitingFor(view: ArenaView | null): string {
   if (view.status === 'other-tab') return ''
   const room = view.room
   const host = room?.event === 'debate' ? 'Socrates' : 'Homer'
+  if (view.comeback) return `Waiting for ${view.comeback.name} to come back… ${view.comeback.secondsLeft}`
   if (view.warming) return `${host} is about to speak`
   if (!room) return ''
   const speaker = view.turn ? view.poets.find((p) => p.id === view.turn!.playerId) : undefined
@@ -363,7 +364,12 @@ export default function ArenaPanel({
               Rematch
             </button>
           )}
-          {!['lobby', 'finished', 'speaking'].includes(room.phase) && (
+          {view.comeback && (
+          <button className="secondary-action operator" onClick={() => arena.current?.skipComeback()}>
+            Skip
+          </button>
+        )}
+        {!view.comeback && !['lobby', 'finished', 'speaking'].includes(room.phase) && (
             <button className="secondary-action operator" onClick={() => arena.current?.advanceOnce()}>
               Next
             </button>

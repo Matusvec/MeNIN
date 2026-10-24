@@ -88,6 +88,7 @@ export type ArenaView = {
   warming: boolean // Homer's next line is on its way from the voice, not yet heard
   carvedBy: string // the poet whose line the round carved
   sound: boolean // the hall was started with a click: voice and drum are on
+  comeback: { name: string; secondsLeft: number } | null // waiting for a poet's phone to come back, counting down
   voiceNote: string // the operator corner: why Homer is on text ("Voice credits out", "Voice offline"), or ''
 }
 
@@ -183,6 +184,9 @@ export class Arena {
   private stage: Stage | null = null
   private voiceDownUntil = 0 // Homer is on text until then
   private voiceNote = ''
+  private comeback: { turnId: bigint; name: string; until: number } | null = null // the absent poet the arena waits for
+  private skipWait = false // the operator pressed Skip
+  private heardEntrance = new Set<bigint>() // poets whose "Enter X, epithet!" was spoken in this hall
   private onsets = { turn: 0n, count: 0, armed: true } // the live verse's voice onsets
 
   constructor(private onView: (view: ArenaView) => void) {}
@@ -562,10 +566,18 @@ export class Arena {
       // the turn goes ahead and the timer skips it).
       let away = false
       const giveUp = Date.now() + COMEBACK_MS
-      while (Date.now() < giveUp && this.poets().find((p) => p.id === turn.playerId)?.connected === false) {
-        away = true
+      this.skipWait = false
+      while (Date.now() < giveUp && !this.skipWait && this.poets().find((p) => p.id === turn.playerId)?.connected === false) {
+        if (!away) {
+          away = true
+          this.comeback = { turnId: turn.id, name: this.poets().find((p) => p.id === turn.playerId)?.name ?? 'the poet', until: giveUp }
+        }
+        this.publish() // the countdown never looks frozen
         await sleep(500)
       }
+      this.comeback = null
+      this.publish()
+      if (this.skipWait) return // the operator skipped the turn (skipComeback): nothing to start
       // A phone that just came back must see `ready` before `speaking`, or it takes the turn for one it
       // reopened mid-verse and stays silent (Matus's WMCN attempt 2 started 0.19 s after he reconnected).
       if (away && this.poets().find((p) => p.id === turn.playerId)?.connected) {
@@ -578,6 +590,14 @@ export class Arena {
         this.call(() => this.conn!.reducers.startTurn({ turnId: turn.id }))
       }
     })()
+  }
+
+  /** The operator's Skip while the arena waits for an absent poet: the turn is skipped now, not 20 s later. */
+  skipComeback(): void {
+    const wait = this.comeback
+    if (!wait) return
+    this.skipWait = true
+    this.call(() => this.conn!.reducers.skipTurn({ turnId: wait.turnId }))
   }
 
   /** Battle work from the agent when the phase calls for it, once per step; results arrive by subscription. */
@@ -694,7 +714,10 @@ export class Arena {
     this.pending += 1
     this.queue = this.queue.then(async () => {
       try {
+        // An entrance still queued when the battle starts is stale: Begin cuts the lobby short.
+        if (key.startsWith('enter ') && this.room()?.phase !== 'lobby') return
         await this.sayNow(gen, text, then)
+        if (key.startsWith('enter ')) this.heardEntrance.add(BigInt(key.slice('enter '.length)))
       } finally {
         this.pending -= 1
         this.lineEndsAt = null
@@ -825,7 +848,9 @@ export class Arena {
         if (opening) this.said.add(`theme ${round.id}`)
         const theme = opening ? `${round.theme.trim()}${/[.!?]$/.test(round.theme.trim()) ? '' : '.'} ` : ''
         const first = turn.turnNo === Math.min(...this.turns().filter((t) => t.roundId === round.id).map((t) => t.turnNo))
-        const title = poet.epithet ? `${poet.name}, ${poet.epithet}.` : `${poet.name}.`
+        // The epithet once per hall: at the entrance, or here if the entrance was cut short (Begin in the lobby).
+        const heard = this.heardEntrance.has(poet.id)
+        const title = poet.epithet && !heard ? `${poet.name}, ${poet.epithet}.` : `${poet.name}.`
         const side = room.event === 'debate' ? this.side(round.theme, turn.turnNo) : ''
         const call =
           turn.attempt > 1 ? 'Again.'
@@ -929,6 +954,7 @@ export class Arena {
       carvedBy: room ? this.carvedBy(room) : '',
       sound: Boolean(this.stage),
       voiceNote: this.voiceNote,
+      comeback: this.comeback ? { name: this.comeback.name, secondsLeft: Math.max(0, Math.ceil((this.comeback.until - Date.now()) / 1000)) } : null,
     })
   }
 }
