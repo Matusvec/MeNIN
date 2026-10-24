@@ -28,6 +28,7 @@ from .style import modern
 
 NAME_MAX, EPITHET_MAX = 24, 32
 THEME_WORDS, CALL_WORDS = 6, 6
+COACH_TURNS, COACH_TEXT_MAX, COACH_WORDS = 8, 600, 45  # the conversation Homer sees, a turn's length, his reply
 VERSE_MAX = 400  # characters of a poet's last verse sent to seed an epithet
 SILENT_ROUND = "Silence in the hall. No verse this round."  # every turn skipped: still a call, so the round can end
 # A nudge per epithet, so the same name doesn't always get the same title (Claude settles on one).
@@ -142,6 +143,23 @@ class Host:
         # It must fill half a line: the first the scanner hears as two hits.
         pick = next((e for e in options if strong_hits(e) == 2), options[0]) if ev.beat else options[0]
         return new_name, pick, True
+
+    # ----- Talk to Homer (the coach event) -----------------------------------
+
+    async def coach(self, history: list[tuple[str, str, str]], theme: str) -> str:
+        """Homer's next line in a coach conversation: [(who, name, text)] oldest first, "homer" or "poet".
+
+        Two sentences at most, about forty words; "" if Claude failed.
+        """
+        convo = "\n".join(
+            f'<turn who="{who}"' + (f' name="{attr(name)}"' if name else "") + f">\n{quote_untrusted(text[:COACH_TEXT_MAX])}\n</turn>"
+            for who, name, text in history[-COACH_TURNS:]
+        )
+        data = await self._ask("coach", claude.obj({"reply": STR}), f"theme: {quote_untrusted(theme) or 'open'}\n\n{convo}", events.COACH)
+        reply = clean_verdict(str((data or {}).get("reply", "")))
+        if len(reply.split()) > COACH_WORDS:  # the second sentence ran long: keep the first
+            reply = re.findall(r"[^.!?]+[.!?]*", reply)[0].strip()
+        return reply
 
     # ----- The theme ---------------------------------------------------------
 

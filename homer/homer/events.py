@@ -131,7 +131,21 @@ DEBATE = Event(
     ),
 )
 
-EVENTS = {POETRY.id: POETRY, DEBATE.id: DEBATE}
+# Judge mode, "Talk to Homer" (SPEC "The website", Sat 4:25 PM): the battle engine with Homer's spoken
+# reply in place of a score. Poets talk into their phones; Homer answers on the screen. No axes, no cards.
+COACH = Event(
+    id="coach",
+    host="Homer",
+    persona="homer",
+    judge_prompt="judge_poetry",
+    axes=(),
+    hand="formulas",  # the theme and the free-verse lines work as in poetry; deal_round gets empty hands
+    beat=False,
+    hoard=False,
+    tasks=(("poet", "poet"), ("theme", "theme"), ("coach", "coach")),
+)
+
+EVENTS = {POETRY.id: POETRY, DEBATE.id: DEBATE, COACH.id: COACH}
 
 
 def get(event_id: str) -> Event:

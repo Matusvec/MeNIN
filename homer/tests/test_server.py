@@ -24,7 +24,7 @@ def client(monkeypatch):
 
 def test_health(client):
     body = client.get("/health").json()
-    assert body["ok"] and body["events"] == ["poetry", "debate"]
+    assert body["ok"] and body["events"] == ["poetry", "debate", "coach"]
 
 
 def test_scan_returns_lines_and_a_beat_lane(client):

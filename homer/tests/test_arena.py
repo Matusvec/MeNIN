@@ -264,3 +264,51 @@ def test_a_long_breath_splits_at_its_full_stops_first():
         "The storm destroyed its once felt swoop at dawn.",
         "It could not recover from its",
     ]
+
+
+class CoachDb(FakeDb):
+    """A coach room: one earlier exchange, then the turn being answered."""
+
+    def handler(self, request):
+        if request.url.path.endswith("/sql"):
+            q = request.content.decode()
+            table = q.split("FROM ")[1].split()[0]
+            data = {
+                "turn": (["id", "room_id", "player_id", "status", "transcript", "played", "rescues"],
+                         [[1, 9, 5, "scored", "the sea took my brother", [], 0], [2, 9, 5, "judging", "the gull came back alone", [], 0]]),
+                "score": (["turn_id", "verdict"], [[1, "The sea took him. Now show me the empty oar."]]),
+                "player": (["id", "name"], [[5, "Ada"]]),
+                "round": (["id", "theme"], [[3, "The ship that left without you"]]),
+            }[table]
+            rows = data[1]
+            if table == "turn" and "WHERE id = " in q:
+                rows = [r for r in rows if r[0] == int(q.rsplit("= ", 1)[1])]
+            return httpx2.Response(200, json=[{"schema": {"elements": [{"name": {"some": c}} for c in data[0]]}, "rows": rows}])
+        return super().handler(request)
+
+
+def test_a_coach_turn_gets_homers_reply_from_the_whole_conversation():
+    db = CoachDb()
+    client = FakeClient({"reply": "The gull came back alone. Now tell me what it carried."})
+    arena = Arena(Judge(client=client, cfg=cfg()), Stdb(cfg(), httpx2.AsyncClient(transport=httpx2.MockTransport(db.handler))))
+    posted, j = asyncio.run(arena.judge_turn(BattleTurn(turn_id=2, transcript="", event="coach")))
+    assert posted == "post_score" and j.verdict.startswith("The gull came back alone")
+    assert db.calls[0][:2] == ("post_score", [2, [], j.verdict, "", ""])  # no axes: a reply, not a score
+    sent = client.calls[0]["messages"][0]["content"]
+    assert sent.index("Give me a verse about the ship that left without you") < sent.index("the sea took my brother")
+    assert sent.index("Now show me the empty oar") < sent.index("the gull came back alone")
+    assert 'name="Ada"' in sent
+
+
+def test_a_coach_room_is_dealt_a_theme_and_no_cards():
+    db = CoachDb()
+    arena = Arena(Judge(client=FakeClient({"theme": "A shield left on the beach", "call": "Pick it up."}), cfg=cfg()),
+                  Stdb(cfg(), httpx2.AsyncClient(transport=httpx2.MockTransport(db.handler))))
+
+    async def deal():
+        arena.event_of = lambda room_id: asyncio.sleep(0, result=__import__("homer.events", fromlist=["COACH"]).COACH)
+        from homer.arena import Poet
+        return await arena.deal_round(9, 1, "", [Poet(5, "Ada", "", [])])
+
+    theme, hands = asyncio.run(deal())
+    assert theme == "A shield left on the beach" and hands == {5: []}

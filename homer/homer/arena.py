@@ -28,7 +28,7 @@ from .emotion import EMOTIONS, Classifier
 from .deal import CANDIDATES, call_for, deal, pick_theme
 from .host import Host, Verse
 from .lines import break_lines
-from .judge import Judge, Judgment, Turn
+from .judge import SILENT_VERDICT, EmptyVerse, Judge, Judgment, Turn
 from .stdb import Refused, Stdb, StdbError
 
 T = TypeVar("T")
@@ -106,6 +106,8 @@ class Arena:
             live = rows[0]
             if live.get("status") != "judging":
                 raise Refused(f"turn {bt.turn_id} is {live.get('status')}, not judging")
+            if bt.event == "coach":  # a wrong event can't slip through: the module refuses axes that don't fit the room
+                return await self._coach_turn(bt.turn_id, live)
             event = events.get(bt.event)
             said = live.get("transcript") or ""
             turn = Turn(
@@ -137,6 +139,30 @@ class Arena:
             return "post_score", j
 
         return await self.once(("judge", bt.turn_id), work)
+
+    async def _coach_turn(self, turn_id: int, live: dict) -> tuple[str, Judgment]:
+        """Talk to Homer: his spoken reply to this turn, from the room's conversation so far, posted as the verdict."""
+        room_id = int(live["room_id"])
+        said = break_lines(live.get("transcript") or "")
+        if not said.strip():
+            raise EmptyVerse("nothing to answer")
+        turns = sorted(await self.db.sql(f"SELECT * FROM turn WHERE room_id = {room_id}"), key=lambda t: t["id"])
+        replies = {s["turn_id"]: s.get("verdict", "") for s in await self.db.sql(f"SELECT * FROM score WHERE room_id = {room_id}")}
+        names = {p["id"]: p.get("name", "") for p in await self.db.sql(f"SELECT * FROM player WHERE room_id = {room_id}")}
+        rounds = sorted(await self.db.sql(f"SELECT * FROM round WHERE room_id = {room_id}"), key=lambda r: r["id"])
+        theme = (rounds[-1].get("theme") if rounds else "") or ""
+        history: list[tuple[str, str, str]] = [("homer", "", opening_line(theme))] if theme else []
+        for t in turns:
+            if t["id"] == turn_id:
+                break
+            text = (t.get("transcript") or "").strip()
+            if text and replies.get(t["id"]):
+                history += [("poet", names.get(t["player_id"], ""), text), ("homer", "", replies[t["id"]])]
+        history.append(("poet", names.get(live.get("player_id"), ""), said))
+        reply = await self.host.coach(history, theme) or SILENT_VERDICT  # honest, never invented
+        await self.db.call("post_score", turn_id, [], reply, "", "")
+        j = Judgment(scores={}, verdict=reply, silent=reply == SILENT_VERDICT)
+        return "post_score", j
 
     async def room(self, room_id: int) -> dict:
         rows = await self.db.sql(f"SELECT * FROM room WHERE id = {int(room_id)}")
@@ -171,6 +197,9 @@ class Arena:
                 for p in poets:
                     moves = debate.deal(n=debate.CANDIDATES, exclude=self.dealt.get(p.player_id, []))
                     hands.append([p.player_id, [m.text for m in moves]])
+            elif event.id == "coach":  # Talk to Homer: a theme to open the conversation, no cards
+                t = theme.strip() or await self._theme_for(room_id, used)
+                hands = [[p.player_id, []] for p in poets]
             else:
                 t = theme.strip() or await self._theme_for(room_id, used)
                 ranked = await moss_dealer.ranked_formulas(t)  # None unless HOMER_DEALER=moss and Moss answers in time
@@ -397,6 +426,12 @@ class Arena:
             self.history.pop(t, None)
         for p in player_ids:
             self.dealt.pop(p, None)
+
+
+def opening_line(theme: str) -> str:
+    """Homer's opening in Talk to Homer: "Give me a verse about the ship that left without you." """
+    t = theme.strip().rstrip(".")
+    return f"Give me a verse about {t[:1].lower() + t[1:]}." if t else "Give me a verse."
 
 
 def _failed(task: asyncio.Task) -> bool:
