@@ -171,6 +171,21 @@ swift · swiftui · metal · avfoundation · core-haptics · [core-motion] · sp
 
 ---
 
+## Sponsor-track blurbs (paste only for tracks that really shipped)
+
+Every integration below runs behind a switch, off the demo path (SPEC `5a6a8fe`). Fill each bracket with what's true, or delete the blurb.
+
+**Apify: Epithet Miner.** Homer improvised with stock phrases, and so do you: every turn deals you five. Our Apify Actor, **Epithet Miner**, builds that bank:
+- It reads public-domain Homer translations on Project Gutenberg and pulls out the recurring epithets and formulas ("the wine-dark sea", "rosy-fingered Dawn").
+- It counts how often each one appears, and outputs them in our bank's format, with the source.
+- Our stress scanner counts each phrase's beats, and a person reviews every candidate before it joins the bank.
+
+[N] of the [M] phrases you can be dealt came from the Actor. We built it with [Apify AI Chat / the Apify MCP in Claude Code: say which, honestly] and published it at [Apify Store link].
+
+**Fetch.ai: Homer on Agentverse.** Anyone on ASI:One can send Homer a verse and get his verdict back: five scores, the best line quoted and a one-line verdict, from the same judge that runs our live battles. [If it shipped: and ask him to deal a hand of five formulas for any theme.] It's an agent registered on Agentverse that speaks the Agent Chat Protocol, running inside our agent service behind a switch, so the battle never depends on it. Try it: [ASI:One link or agent address].
+
+**Moss: dealing that fits the theme, in milliseconds.** When Homer announces a theme, every poet gets five stock phrases that fit it. With Moss, the dealer retrieves the formulas closest in meaning to the theme from our bank of [N], in [measured] ms, rather than matching keywords. So "[a real theme]" deals you "[a real formula from the bank that shares no word with it]". Voice games have to answer while the room is still listening, and Moss keeps the deal instant. It runs behind a switch, with our keyword dealer as the fallback.
+
 ## Tracks to tag on Devpost
 
 **As of Sat 8:27 AM, Devpost's prize list has no Spacetime, no Anthropic, and no MLH Gen AI, .Tech or DigitalOcean.** It also lists Figma's old five prizes. The Hacker Guide wins, and a question to the directors is drafted ([slack-intel.md](slack-intel.md)). Tag every track below that Devpost offers by Sunday, and follow the directors' answer for the rest.
@@ -185,9 +200,10 @@ swift · swiftui · metal · avfoundation · core-haptics · [core-motion] · sp
 - [ ] MLH: Commit Fellowship (if we want it)
 - [ ] **Microsoft: Built for the Real World** and the Customer Impact Award ([opportunities.md](opportunities.md) #3)
 - [ ] MLH: Best Domain Name from GoDaddy Registry (only if we register one)
-- [ ] Fetch.ai, Moss (only if those integrations really ship; [opportunities.md](opportunities.md))
+- [ ] **Fetch.ai: Best Use of Fetch.ai** (only if Homer's judge is live on Agentverse and usable from ASI:One)
+- [ ] **Moss: Best Use of Moss** (only if theme-fitting dealing really ships behind its switch)
 - [ ] MLH: Best Use of DigitalOcean (the agent service runs there)
-- [ ] Apify plus Best Actor (only if the Actor builds the bank)
+- [ ] **Apify: Best use** and **Best Actor** (only once Epithet Miner's formulas are really in the bank)
 
 Main prizes are automatic.
 
