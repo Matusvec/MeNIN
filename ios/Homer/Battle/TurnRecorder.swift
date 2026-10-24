@@ -263,6 +263,20 @@ final class TurnRecorder {
         if Self.handsFree {
             talking = true
             mic.engine.muted = false  // the haptic count-in (3, 2, 1, then a strong beat 1) says when
+            // The mic must be delivering audio before SPEAK. If it has gone quiet (a stale audio
+            // session after other app audio), restart it during the count-in.
+            tasks.append(Task { [weak self] in
+                try? await Task.sleep(for: .milliseconds(700))
+                guard let self, self.phase == .live else { return }
+                let stale = Date().timeIntervalSince1970 * 1000 - self.mic.engine.lastBufferMs
+                if stale > 500 {
+                    Self.log.info("mic delivered nothing for \(Int(stale)) ms: restarting it")
+                    self.lastSTTNote = "mic restarted"
+                    self.mic.stop()
+                    await self.mic.start(voiceProcessing: false)
+                    self.mic.engine.muted = false
+                }
+            })
             if room.event == "debate" || clock != nil {
                 tasks.append(Task { [weak self] in await self?.flushLines(clock: clock, endMs: endMs) })
             }
@@ -433,6 +447,7 @@ final class TurnRecorder {
     private func handle(_ onset: MicEngine.Onset) {
         guard phase == .live, talking else { return }
         lastVoiceMs = onset.epochMs
+        if onset.epochMs >= goAt { voiceSinceFlush = true }
         guard let clock else { return }
         let t = onset.epochMs - StressGate.heardLatencyMs - clock.beatAtMs  // as heard, on the beat's timeline
         switch gate.judge(onset, on: clock) {
@@ -453,24 +468,37 @@ final class TurnRecorder {
         battle.playCards(spokenIn: finals, turnId: turnId)
     }
 
-    /// Free verse: a freeze is ~1.5 s of silence after SPEAK (by either signal). At most one
-    /// whisper per 6 s, two per turn.
+    /// Free verse (P22, Sat 4 PM): a freeze is 2.5 s of LOCAL silence (no mic onsets; STT words
+    /// arrive late and in bursts, so they can't judge silence), never in the first 3 s after SPEAK,
+    /// at most one whisper per 6 s and two per turn.
     private func checkVerseFreeze(now: Double) {
-        guard talking, now > goAt + 1200, now - lastVoiceMs > 1500 || now - lastWordsMs > 1800 else { return }
+        guard talking, now > goAt + 3000, now - lastVoiceMs > 2500 else { return }
         let slot = Int((now - goAt) / 6000)
         guard rescuedLines.count < 2, !rescuedLines.contains(slot) else { return }
         rescuedLines.insert(slot)
         whisperRescue()
     }
 
-    /// Free verse: a pause of ~0.7 s with words pending ends a line, so the judge sees lines.
+    /// Free verse: speech-to-text sends a verse's words only when asked (finalize) or at its own
+    /// long-pause endpoint, so without this the words sat on the phone until the poet stopped
+    /// (JZRE/RZUD: words arrived only after a long pause, beside the rescue). Ask for them at every
+    /// short pause in the voice (~0.4 s without an onset) and at least every 2 s of continuous voice;
+    /// a longer pause (~0.8 s) also ends the line, so the judge sees lines.
     private func breakLineOnPause(now: Double) {
-        guard !partial.trimmingCharacters(in: .whitespaces).isEmpty, now - lastWordsMs > 700,
-              now - lastPauseBreakMs > 900 else { return }
-        lastPauseBreakMs = now
-        pendingLineBreaks += 1
-        flush()
+        guard voiceSinceFlush else { return }
+        let quiet = now - lastVoiceMs
+        if quiet > 800 {
+            voiceSinceFlush = false
+            lastPauseBreakMs = now
+            pendingLineBreaks += 1
+            flush()
+        } else if quiet > 400 || now - lastPauseBreakMs > 2000 {
+            voiceSinceFlush = quiet <= 400  // still talking: keep collecting for the next push
+            lastPauseBreakMs = now
+            flush()
+        }
     }
+    @ObservationIgnored private var voiceSinceFlush = false
     @ObservationIgnored private var lastPauseBreakMs = 0.0
 
     private func checkFreeze(now: Double, clock: BeatClock) {

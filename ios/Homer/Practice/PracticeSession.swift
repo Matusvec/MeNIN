@@ -248,6 +248,7 @@ final class PracticeSession {
     private func handle(_ onset: MicEngine.Onset) {
         guard phase == .live else { return }
         lastVoiceMs = onset.epochMs
+        voiceSinceFlush = true
         guard let clock else { return }  // free verse: no beat lane
         let t = onset.epochMs - StressGate.heardLatencyMs - clock.beatAtMs  // as heard, on the beat's timeline
         switch gate.judge(onset, on: clock) {
@@ -270,9 +271,10 @@ final class PracticeSession {
         }
     }
 
-    /// P22: ~1.5 s of silence after SPEAK (onset or words), at most once per 6 s and two per verse.
+    /// P22: 2.5 s of LOCAL silence (no mic onsets), never in the first 3 s after SPEAK, at most
+    /// once per 6 s and two per verse.
     private func checkFreeze(now: Double, goAt: Double) {
-        guard now > goAt + 1200, now - lastVoiceMs > 1500 || now - lastWordsMs > 1800 else { return }
+        guard now > goAt + 3000, now - lastVoiceMs > 2500 else { return }
         let slot = Int((now - goAt) / 6000)
         guard rescuedLines.count < 2, !rescuedLines.contains(slot), let agent else { return }
         rescuedLines.insert(slot)
@@ -362,15 +364,25 @@ final class PracticeSession {
         scene.prosody = .silent
     }
 
-    /// A pause of ~0.7 s with words pending ends a line, so the judge sees lines.
+    /// Ask speech-to-text for the words at every short pause (~0.4 s without an onset) and at
+    /// least every 2 s of voice; a longer pause (~0.8 s) also ends the line.
     private func breakLineOnPause(now: Double) {
-        guard !partial.trimmingCharacters(in: .whitespaces).isEmpty, now - lastWordsMs > 700,
-              now - lastPauseBreakMs > 900 else { return }
-        lastPauseBreakMs = now
-        pendingLineBreaks += 1
-        pendingFlushes += 1
-        stt?.finalize()
+        guard voiceSinceFlush else { return }
+        let quiet = now - lastVoiceMs
+        if quiet > 800 {
+            voiceSinceFlush = false
+            lastPauseBreakMs = now
+            pendingLineBreaks += 1
+            pendingFlushes += 1
+            stt?.finalize()
+        } else if quiet > 400 || now - lastPauseBreakMs > 2000 {
+            voiceSinceFlush = quiet <= 400
+            lastPauseBreakMs = now
+            pendingFlushes += 1
+            stt?.finalize()
+        }
     }
+    @ObservationIgnored private var voiceSinceFlush = false
 
     private func resetTurn() {
         finals = ""

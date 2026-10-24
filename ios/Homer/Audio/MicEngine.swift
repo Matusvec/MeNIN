@@ -34,7 +34,12 @@ final class MicEngine: @unchecked Sendable {
         var muted = false
         var pending = Data()
         var detector = OnsetDetector()
+        var lastBufferMs = 0.0
     }
+
+    /// When the mic last delivered audio (epoch ms): a stalled input (a stale session after other
+    /// audio) delivers nothing, which the battle recorder checks in the count-in.
+    var lastBufferMs: Double { state.withLock { $0.lastBufferMs } }
 
     init(engine: AVAudioEngine? = nil) {
         self.engine = engine ?? AVAudioEngine()
@@ -101,6 +106,7 @@ final class MicEngine: @unchecked Sendable {
         let frames = Int(buffer.frameLength)
         let samples = UnsafeBufferPointer(start: channel, count: frames)
         let bufferEpochMs = Self.epochMs(of: time)
+        state.withLock { $0.lastBufferMs = Date().timeIntervalSince1970 * 1000 }
 
         var onsets: [Onset] = []
         let muted = state.withLock { s -> Bool in
