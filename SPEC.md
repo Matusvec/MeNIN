@@ -77,7 +77,7 @@ Shared by practice and battle. This is the core loop; get it right first.
 
 1. **Theme.** Homer announces it aloud ("A ship that never came home").
 2. **Hand.** You are dealt five formulas that fit the beat, drawn from the theme and your hoard: "the whale-road", "grey-eyed Athena", "when rose-fingered Dawn came early".
-3. **Speak.** Homer plays the beat: a slow drum-and-lyre loop, four beats a bar, one line per bar. Thirty seconds, four lines (configurable). The beat lane shows the pulses; your words land on it live, and a stressed syllable that hits a beat sounds like a drum strike. A formula card lights up when you use it. The live transcript is always visible.
+3. **Speak.** Homer plays the beat: a slow drum-and-lyre loop, four beats a bar, one line per bar. In a battle the arena ducks the drum while a poet speaks, and the speaker's phone carries the beat as haptics, so the beat doesn't bleed into the mic. Thirty seconds, four lines (configurable). The beat lane shows the pulses; your words land on it live, and a stressed syllable that hits a beat sounds like a drum strike. A formula card lights up when you use it. The live transcript is always visible.
 4. **Freeze rescue.** If you go silent for about a second mid-turn, your hand glows and Homer whispers one formula that fits.
 5. **Scene.** Reacts as you speak (see below).
 6. **Judge.** Scores 1 to 10 on five axes, speaks a one-line verdict, quotes your best line.
@@ -110,6 +110,7 @@ Hard mode, **Homer mode**: dactylic hexameter, for the brave.
 - Bard and Practice: a pro coach. Calm authority, precise feedback, one fix at a time.
 - Battle: full badass. An MC at a title fight: big entrances, hype, gentle roasts, verdicts that land like a knockout.
 - Never condescends.
+- Everything Homer says is captioned on screen.
 - Shows before telling: every lesson opens with Homer spitting.
 - Never names the user's emotion in words. The scene shows it.
 
@@ -122,6 +123,19 @@ Full-screen, always on, behind every mode. It paints the speaker's emotion live.
   - **Instant**: loudness and pitch computed on the speaker's phone drive motion and texture at 60 fps. In a battle they stream to the arena at about 20 Hz.
   - **Color**: every ~1.5 seconds the emotion classifier returns weights over eight emotions; the scene blends their palettes, smoothed so it flows instead of flickering.
 - Palette per emotion: see "Live emotion engine" in the plan.
+
+## Demo mode
+
+Judging is a 2-minute pitch with a live demo at a shared table, three times over. Demo mode is the same live engine with a shorter battle, never a mock:
+
+- 1 round, 2 poets, 2 lines per turn. Poets are auto-ready.
+- Scores count up while Homer speaks the verdict.
+- The carved line appears once, at round end. No hoard step, no tally.
+- The stitched song is capped at 4 lines; the crown is one line.
+- Optional: the judges pick from 3 theme cards on the arena (first thing to cut).
+- Rematch resets in under 10 seconds.
+
+The script is `docs/gtm/demo-script.md`.
 
 ## Not building
 
