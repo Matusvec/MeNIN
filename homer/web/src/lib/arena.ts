@@ -58,6 +58,7 @@ export type Conductor = {
 
 const TICK_MS = 300
 const STEP_UP_MS = 2000 // auto-ready: a short beat before each turn starts
+const QUEUE_CAP_MS = 15000 // auto-start waits for Homer's line at most this long
 const COMEBACK_MS = 20000 // a poet reopening the app gets this long to come back
 const ADVANCE_AFTER_MS = 500 // after Homer's line, before the next reveal
 const CONNECT_WATCHDOG_MS = 15000 // a connect that hangs never errors; give up and offer a retry
@@ -519,14 +520,25 @@ export class Arena {
     const key = `${turn.id}-${turn.attempt}`
     if (this.autoStarted === key) return
     this.autoStarted = key
+    // Every wait here is capped by the clock, not by counting sleeps: a hidden tab's timers are throttled.
+    const homerDone = () => Promise.race([this.queue, sleep(QUEUE_CAP_MS)])
     void (async () => {
       await sleep(STEP_UP_MS)
       // The count-in waits until Homer finishes his call (docs/ux-flow.md T1), so his voice never meets an open mic.
-      await this.queue
-      // A poet reopening the app gets up to 20 s (capped: a stale `connected = false` can't stall the battle).
-      for (let waited = 0; waited < COMEBACK_MS; waited += 500) {
-        if (this.poets().find((p) => p.id === turn.playerId)?.connected !== false) break
+      await homerDone()
+      // A poet reopening the app gets up to 20 s (capped: a phone that never comes back can't stall the battle;
+      // the turn goes ahead and the timer skips it).
+      let away = false
+      const giveUp = Date.now() + COMEBACK_MS
+      while (Date.now() < giveUp && this.poets().find((p) => p.id === turn.playerId)?.connected === false) {
+        away = true
         await sleep(500)
+      }
+      // A phone that just came back must see `ready` before `speaking`, or it takes the turn for one it
+      // reopened mid-verse and stays silent (Matus's WMCN attempt 2 started 0.19 s after he reconnected).
+      if (away && this.poets().find((p) => p.id === turn.playerId)?.connected) {
+        await sleep(STEP_UP_MS)
+        await homerDone()
       }
       const now = this.room()
       const current = now && this.currentTurn(now)
