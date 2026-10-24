@@ -2,7 +2,7 @@
 
 This doc is for Matus to design against. It covers the flow, the states, the timing and what each screen shows. Visual design is Matus's, so this doc describes what is shown and what changes, never how it looks. Words like "large" or "pinned" describe hierarchy.
 
-`SPEC.md` (as of commit 5fb8baf) is the source of truth. Anything not in it is marked **Proposal Pn** and waits on Matus.
+`SPEC.md` (as of commit 69c5135) is the source of truth. Anything not in it is marked **Proposal Pn** and waits on Matus.
 
 MeNIN is ancient Greek Wii Sports, with Homer as the host: party events on one shared screen, with phones as controllers. The poetry battle is the core (sections 1 to 6). Socratic debate and discus are in build now (sections 8 and 9). The event menu ties them together (section 7), and section 10 says where the music plays.
 
@@ -44,7 +44,7 @@ MeNIN is one universal iOS app (iPhone and iPad), distributed through TestFlight
 
 - **The beat lives in the lessons and the song:** a slow drum-and-lyre loop, four beats a bar, one line per bar. A stressed syllable that hits a beat sounds a soft strike. Bard lessons teach with it, and Homer performs the stitched song over it.
 - **Free verse in battle** (Matus, Sat 3:30 PM: "I just want to spit poetry without the metronome"): no drum, no beat haptics and no Speak/Breathe while a poet speaks. One SPEAK, one window with a countdown ring (20 s in demo mode), and "I'm done" ends it early. A line is whatever you say between breaths.
-- **Freeze rescue:** silence mid-turn brings Homer's phrases forward, and Homer whispers one that fits. SPEC says about 1 s; for battles see P22. Lesson 2 teaches it.
+- **Freeze rescue:** about 1.5 s of silence mid-turn in battle and Practice brings Homer's phrases forward, and Homer whispers one that fits. It can fire right after SPEAK, at most once every 6 s and twice a turn, so an ordinary breath never sets it off. Lessons keep about 1 s inside a speaking bar, and lesson 2 teaches it.
 - **Arena and phones:** the website is the one shared screen, and each phone is that poet's mic and private phrases. You join by QR code or room code.
 - **A fresh epithet every battle:** Homer coins a new one for each poet in each battle, never one of their last five (Matus: the same one every time is boring). The one you forge in lesson 3 ("___, Breaker of Deadlines") joins your hoard and is only the fallback.
 - **A fresh theme every round:** Homer writes it: six words or fewer, vivid and specific, with a feeling in it, and never one of the last twenty ("The text you never sent"). The written themes are the fallback.
@@ -77,7 +77,7 @@ Leader approved these as delegator, and Matus can veto any of them. Approved ite
 | P20 | **Score number in lessons.** After each try in a lesson, your scanner score (1 to 10) shows small beside Homer's note, so you can watch it climb. The first-timer study (`docs/study.md`) and the video's before-and-after shot both read it off the screen (L4). Builds 4 and 5 label it "Beat". If the lesson screen is renamed to Flow, the study names it the same way. | Approved |
 | P21 | **The call to step up.** As each turn starts, the host calls the speaker by name. The round's first poet gets the theme's call ("Priya, Salt-Tongued. The sea is yours."). Every later poet gets "Answer that.", since they answer the line before (P7). In debate, the host says your side (T1 in sections 5 and 8). | Approved, built in the app and the website |
 | P21b | **A call for a fresh theme.** Only the written themes have a call, so with fresh themes the first poet nearly always hears "The floor is yours." Homer writes a call of five words or fewer in the same step as the theme ("The text you never sent" → "Send it now."). | Approved, in builder's plan: the theme and its call come from one call |
-| P22 | **The freeze in free verse.** With no bars, a breath between lines is a pause too, and lines are split at pauses. At SPEC's 1 s, the rescue could fire between ordinary lines. In battle and Practice, the rescue fires after about 1.5 s of silence, including right after SPEAK, at most once every 8 s. Lessons keep 1 s inside a speaking bar. | Proposed |
+| P22 | **The freeze in free verse.** With no bars, a breath between lines is a pause too, and lines are split at pauses. At SPEC's 1 s, the rescue could fire between ordinary lines. In battle and Practice, the rescue fires after about 1.5 s of silence, including right after SPEAK, at most once every 6 s and twice a turn. Lessons keep 1 s inside a speaking bar. | **Approved,** and in SPEC.md (built in swift's build 13) |
 
 P1 to P6 were approved by Matus and are listed above.
 
@@ -298,7 +298,7 @@ Two to five poets in one room, with the arena and their phones.
 
 #### H0 · Open the hall (arena) · until tap
 
-- **Arena:** The website, open on the laptop that will be the arena: "Host a battle on this screen". The settings sit behind it: rounds (3), turn length (30 s), Homer mode, and demo mode. The mic is always hands-free in battles.
+- **Arena:** The website, open on the laptop that will be the arena: "Host a battle on this screen". The settings sit behind it: rounds (3), turn window (10 s a line), Homer mode, and demo mode. The mic is always hands-free in battles.
 - **Next:** The tap creates the room and puts this device in arena mode.
 
 #### H1 · Lobby · until the host begins
@@ -441,7 +441,7 @@ Practice and Battle share this. The spec's order is theme, hand, speak, freeze r
 - **Lessons are different:** there the count-in is a bar of the drum, and each line gets a speaking bar and a rest bar (section 2).
 - **Next:** SPEAK → T3.
 
-#### T3 · Speak · one window: 20 s in demo mode, 30 s otherwise
+#### T3 · Speak · one window: 20 s in demo mode, 10 s a line otherwise
 
 Free verse: no drum, no beat lane, no beat haptics, and no Speak/Breathe per line (spec).
 
@@ -455,7 +455,7 @@ Free verse: no drum, no beat lane, no beat haptics, and no Speak/Breathe per lin
 - **Homer:** Silent, except for the freeze rescue.
 - **Next:** The ring empties or the poet taps I'm done.
 - **Lines:** a line is whatever you say between breaths. The pause length that splits lines is builder's to tune. It has to be shorter than the freeze (P22), or every line break would raise a rescue.
-- **Freeze rescue (P22):** after about 1.5 s of silence, including right after SPEAK, Homer's phrases come forward on your phone, the one that fits is raised and shown first, and Homer whispers it. At most once every 8 s.
+- **Freeze rescue (P22):** after about 1.5 s of silence, including right after SPEAK, Homer's phrases come forward on your phone, the one that fits is raised and shown first, and Homer whispers it. At most once every 6 s and twice a turn.
 
 #### T4 · Settle · from the end of the turn to ~0.6 s
 
@@ -491,7 +491,7 @@ Free verse: no drum, no beat lane, no beat haptics, and no Speak/Breathe per lin
 - **Next:** The next poet's T1, or the round verdict.
 - **Rule (spec):** You coined it, it scans, and the judge rated it well.
 
-End to end, a turn takes about 3 + 3 + 24 + 10 seconds, so roughly 40 to 45 s.
+End to end, a three-line turn takes about 3 + 3 + 30 + 10 seconds, so roughly 45 s. In demo mode, with the 20 s window, it takes about 35 s.
 
 ### Latency budget
 
@@ -547,7 +547,7 @@ Demo mode is in SPEC.md. Rows marked P14 are extras, approved by leader.
 | --- | --- | --- | --- |
 | Rounds | 3 | 1 | spec |
 | Poets | 2 to 5 | 2 team poets. Judges pick the theme and watch | spec, demo script |
-| Turn window | 30 s, with the countdown ring | 20 s, with the countdown ring | spec |
+| Turn window | 10 s a line, with the countdown ring | 20 s, with the countdown ring | spec |
 | Ready and mic check | Ready tap, mic check on join | Auto-ready, no mic check | spec |
 | Verdict and scores | Verdict, then scores | Scores count up while Homer speaks the verdict | spec |
 | Best-line re-read and hoard step | Every turn | Off. The best line is carved once, at round end | spec |
@@ -611,7 +611,7 @@ Debate runs on the poetry engine. Anything not listed here works as in sections 
 | Sides | None | Dealt by turn order, alternating (P18). Turn order rotates, so in a two-player battle everyone argues both sides |
 | Hand | Homer's phrases: three, optional | Five moves: at least one each of open, attack, defend and close |
 | Beat | None in battle: free verse. Lessons and the song have it | None |
-| Turn length | One window with a countdown ring: 30 s, 20 s in demo mode | 45 s (suggested), with a "Ten seconds" call |
+| Turn length | One window with a countdown ring: 10 s a line, 20 s in demo mode | 45 s (suggested), with a "Ten seconds" call |
 | Freeze rescue | About 1.5 s of silence (P22); Homer whispers a phrase | About 2 s of silence; Socrates whispers a question to ask |
 | Using a card | A spoken phrase is matched in the transcript and pops "+Craft" | You tap the card as you make the move (P17). The judge checks you made it |
 | Rubric | Flow, Craft, Image, Answer, Range | Claim, Reason, Answer, Craft, Poise |
