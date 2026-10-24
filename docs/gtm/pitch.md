@@ -53,7 +53,7 @@ The new frame raises the ceiling on Most Creative, Hacker's Choice and Meta. It 
 
 ## Booth pitches (Saturday afternoon, 30 seconds each, phone in hand)
 
-Goal: every sponsor judge has played Homer before Sunday. Open the app first and talk second.
+Goal: every sponsor judge has played Homer before Sunday. Open the app first and talk second. **The route, times, booth numbers and what to show at each are in [booths.md](booths.md).** These are the 30-second lines.
 
 **Spacetime** (Tyler Cloutier, Julien)
 > "MeNIN is ancient Greek party games, and SpacetimeDB *is* the arena. Every event runs on one shared state: turn order, scoring and the winner in reducers. Each phone streams its voice at about twenty hertz so the arena's scene moves with whoever's speaking. The client is Swift on iPhone. Want to take a turn?"
@@ -85,7 +85,7 @@ Answer in one breath, then stop.
 | Why poetry in a games app? | "The Greeks didn't separate them. At the Panathenaic Games, poets competed next to the athletes." |
 | How is the AI judge not arbitrary? | "Beat isn't the AI's opinion; a stress scanner counts it. Range comes from the emotion engine. Claude scores Craft, Image and Answer with your hand and the verse you answered in front of it. You always see all five scores and the line it quoted." |
 | Why several events? | "One engine. Each event is a config: who hosts, what's in your hand, how it's judged, beat on or off. Poetry came first; the debate took [hours] on the same engine." *(Only if debate shipped.)* |
-| Isn't this just a game? | "The games are why you come back. Bard mode is where you get good. Five first-timers went from [X] to [Y] in one lesson." |
+| Isn't this just a game? | "The games are why you come back. Bard mode is where you get good. Last night, five first-timers went from [first] to [last] out of 10 on Beat, in one lesson." *(Use the study's real numbers and pm's wording in docs/study.md.)* |
 | Does it work in this noise? | "Headset mic, push-to-talk, captions, and the transcript is always on screen so you can see what Homer heard." *(Only say it if Saturday's hall test passed.)* |
 | How does it hear you over the drum? | "We feed your hand to the recognizer, so it hears the wine-dark sea through the drum. Cartesia ink-2 with keyterms: 3% word error with the drum at full volume in our tests. Without them, 20%." |
 | How did you measure that? | "On test recordings with our drum mixed in at full volume. The real-mic test in the hall is Saturday night." *(If that test ran, give its number instead.)* |
@@ -101,23 +101,9 @@ Answer in one breath, then stop.
 | What's hardest? | "Voices bleeding into each other's mics in one room. We moved the beat into your palm." |
 | What about bad content? | "Homer won't speak it: the turn scores zero and nothing gets quoted. Names are filtered before he says them." |
 
-## Video (2:00; covers Cartesia's "2-minute, demo-first" and Figma's 3-minute cap)
+## Video
 
-Open with the moment, not a title card. Captions burned in. Real footage, nothing mocked. No Nintendo or Activision names on screen.
-
-| Time | Shot |
-| --- | --- |
-| 0:00–0:10 | Cold open: the poet, headset on, spits two lines. The arena scene moves with the voice and its color fields shift, the beat lane fills, a card flips. No narration. |
-| 0:10–0:15 | Title card: **μῆνιν · MeNIN**, with "Rage. The first word of Western literature." underneath, then the event menu: poetry battle lit, the other shipped events lit, the rest locked. |
-| 0:15–0:50 | The poetry battle on the arena, intercut with the phones: the private hand, the haptic beat (close-up), the freeze rescue (the hand comes forward, one card is raised, and Homer whispers). Homer's verdict lands with five scores. |
-| 0:50–1:00 | The round verdict: the best line carved in gold. |
-| 1:00–1:15 | Bard lesson 1: a first-timer misses, gets one note from Homer, lands it. Show the before and after Beat number. |
-| 1:15–1:25 | *Only if shipped:* 5 s of Socrates hosting the debate (a different voice), then 5 s of a discus throw: a phone swing, the arena throw, Homer calls the distance. |
-| 1:25–1:40 | How it's built, in one frame: iPhone mic → on-device onsets (beat lane) and Cartesia STT with your hand as keyterms → SpacetimeDB → arena Metal scene, and the Claude judge with the scanner. One caption: "3% word error with the drum at full volume, in our tests (20% without keyterms)". Use the real-mic number if swift's rerun replaced it. One engine, events as configs. Say "nothing mocked". |
-| 1:40–1:55 | The stitched song over the battle's colors, each line with its poet's name. |
-| 1:55–2:00 | The champion and the TestFlight link or domain. |
-
-**Music:** the video uses only our original score (the menu theme, the event intros, the champion sting) under the narration, and the beat alone under every verse. Because we own the score, YouTube won't mute or claim the video. End card: "Original score by [composer's name]."
+The full plan is in [video.md](video.md): the 2:00 shot list, who records what, when (the main shoot is Sat 5 PM), the capture settings and the 90 s backup video. Open with the moment, not a title card. Real footage only, and no "Wii" anywhere in it, not even spoken.
 
 Thumbnail / Devpost cover: one arena frame with the carved gold line over matte color fields. No neon, no glow.
 
@@ -125,6 +111,6 @@ Thumbnail / Devpost cover: one arena frame with the carved gold line over matte 
 
 - **Discus is the hook** if it passes the Sat 8 PM check. The fanfare from the score sells the throw. Anyone can swing a phone, with no poetry nerves. "Throw the discus, then stay for the battle."
 - Battles at our table on our iPhones, plus the arena. Say "Two minutes, five phrases in your hand, you can't fail" and let the hand do the work.
-- **Karaoke** (Sat night) is a room full of people holding mics in a performing mood. Bring the arena and two phones.
+- **Karaoke** (Sat 8–9:30 PM, Theater) is a room full of people holding mics in a performing mood. Bring the arena and two phones.
 - Film 15-second clips (a discus throw, the scene shifting color during a verse) and post them tagging the sponsors.
 - Never block the build for this. One person, one hour.

@@ -6,7 +6,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 
 | Placeholder | Comes from | When |
 | --- | --- | --- |
-| `[N]`, `[X]`, `[Y]`, poet quotes | The first-timer study and the poet's texts | Sat 6 PM |
+| `[N]`, `[first]`, `[last]`, `[time]`, poet quotes | The first-timer study (`docs/study.md`, run by the poet) and the poet's texts. Use one of pm's line options in study.md. | Sat 8 PM |
 | `[real-mic WER]` | swift's rerun of the keyterm test on a real iPhone mic. If it differs from 3%/20%, it replaces those numbers everywhere. | Once the agent is public (it is now) |
 | `[composer's name]`, `[how the score was made]` | Matus | Today |
 | `[p50]` | The Sat 10 AM judge-latency checkpoint. The first production check read 1.6 s, but that's one sample, not a p50. | Sat 10 AM |
@@ -59,7 +59,7 @@ Other events show as locked tiles, because we only unlock what's solid.
 - The best line of each round is carved in gold across the arena.
 - At the end, Homer becomes a rhapsode, a song-stitcher. He stitches every poet's lines into one song and performs it over the beat while the arena replays the battle's colors. Then he crowns the champion.
 
-**The scene.** Behind everything, a full-screen procedural scene paints the speaker's voice: matte layered color fields, like cut paper. Loudness and pitch move it at 60 fps, and every ~1.5 s an emotion read of your words shifts its colors across eight palettes. Homer never names your emotion; the scene shows it.
+**The scene.** Behind everything, a full-screen procedural scene paints the speaker's voice: matte layered color fields, like cut paper. Loudness and pitch move it at 60 fps, and every ~1.5 s an emotion read of your words and voice shifts its colors across eight palettes. Homer never names your emotion; the scene shows it.
 
 **The score.** MeNIN has an original soundtrack composed by [composer's name], on our team: a hall and menu theme, an intro for each event, the discus throw and its fanfare, a champion sting, and ambience for training. Music never plays while a mic in the room is open. During a turn, only the procedural beat plays, and the music ducks under Homer's and Socrates' voices. [How the score was made: instruments, DAW, and whether any AI tools were used. Write it honestly.]
 
@@ -92,7 +92,7 @@ Other events show as locked tiles, because we only unlock what's solid.
 - **Claude (Anthropic)** is the judge, the coach and the MC.
   - The judge gets your hand, the verse you're answering and the scanner's stress count. It returns five scores, the best line and a one-line verdict.
   - Each judgment is one streamed request to **Claude Opus 5.5**: fast mode, low effort, a cached system prompt and a JSON schema, so the output is always valid. Verdict text lands in about [p50] s.
-  - Claude also names poets and coins epithets, writes Homer's lesson feedback and sparring verses, picks the freeze whisper, and writes the stitched song.
+  - Claude also names poets and coins epithets, writes Homer's lesson feedback, his sparring verses and the round verdicts, and writes the stitched song. The freeze whisper makes no model call: it picks the formula from your hand that fits the line, so it's instant.
 - **The stress scanner** (Python, CMU Pronouncing Dictionary) counts the beat deterministically. The **Beat** score never comes from the model's opinion.
 - **Python + FastAPI** service for the Claude calls, the scanner and the formula bank, in Docker behind Caddy on **DigitalOcean**.
 - **Figma.** Matus drew the first concept in Figma Design. The art session reads frames, exact values and assets straight from the file through the Figma MCP server, so it builds from the design rather than from screenshots. We compared two design directions, "Atelier" and "Cut paper", in a single Figma variable collection with two modes. Every variable carries its Swift name, so one mode switch in Figma matches one launch flag in the app. Full stage log: [Figma Slides].
@@ -120,7 +120,7 @@ Other events show as locked tiles, because we only unlock what's solid.
 
 ## Accomplishments that we're proud of
 
-- [N] first-timers went through lesson one at Cal Hacks. Their Beat score went from **[X] to [Y]** in about four minutes.
+- [N] people who'd never freestyled took lesson one at Cal Hacks. Their Beat score went from **[first] to [last]** out of 10, in about [time] minutes. *(Beat only, first try vs last. If fewer than three landed, drop the time.)*
 - A live battle on iPhones, with a spoken verdict about three seconds after the last word. [Swap in the measured p50.]
 - 3% word error rate with the drum at full volume in our tests, down from 20%, by feeding each poet's hand to the recognizer.
 - The stitched song: the room leaves with one poem it made together.
@@ -163,7 +163,7 @@ swift · swiftui · metal · avfoundation · core-haptics · [core-motion] · sp
 - [ ] Spacetime
 - [ ] Meta: Bringing People Closer Together with AI
 - [ ] Cartesia: Best Use of Cartesia
-- [ ] Anthropic
+- [ ] Anthropic: Claude for Public Benefit
 - [ ] Figma (add the Figma Slides link and the stage log)
 - [ ] MLH: Best Use of Gen AI
 - [ ] MLH: Best .Tech Domain Name (if registered)
