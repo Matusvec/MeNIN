@@ -56,7 +56,7 @@ The criteria are from #0-ask-directors. Every claim below has to be true by Sund
 | Criterion (their words) | Our proof at the table |
 | --- | --- |
 | **Application**: "who they help, what problem they solve, and why people would actually use them" | Spoken-word and slam poets in [the poet's scene] practice alone between weekly open mics. MeNIN gives them a stage every night that hears your beat. Party games are why a room of friends opens it again. **Saturday's first-timer number** goes here. |
-| **Intentionality**: "Every design choice should feel purposeful" | One engine, and every event is a config: host, hand, rubric, beat. One idea carried everywhere in the poetry battle: the formula, in your hand, in the rescue, in the judging, in the stitched song. |
+| **Intentionality**: "Every design choice should feel purposeful" | One engine, and every event is a config: host, cards, rubric, beat. One idea carried everywhere in the poetry battle: Homer's phrases, on your phone, in the rescue, in the judging (Craft), in the stitched song. |
 | **Functionality**: "live demo that runs smoothly... clear, meaningful video demo on devpost" | A live poetry battle on iPhones and the arena, a verdict in about 3 s, a rehearsed fallback to Practice, a 2-minute video. **Only events that pass the checkpoint are unlocked; the rest are locked tiles, never half-working.** |
 | **Creativity**: "unexpected combinations of ideas or technologies" | Greek *agon* as party games: a rap battle judged by Homer, a debate hosted by Socrates, and a discus you throw with your phone, all on a matte paper-cut scene that paints your voice, with an original score by a teammate |
 | **Technical Complexity**: "engineering depth that goes beyond basic implementation" | Streaming STT biased with the poet's hand as keyterms (3% word error with the drum at full volume in our tests, 20% without), on-device onset detection for the beat lane, voice levels at 20 Hz through SpacetimeDB to Metal shaders on the arena, battle logic in server-side reducers, a deterministic stress scanner feeding a Claude judge under 3 s, multiple events from one engine config, Core Motion discus physics, the haptic beat |
@@ -78,7 +78,7 @@ Goal: every sponsor judge has played Homer before Sunday. Open the app first and
 Ask them: "What would make this a top-three Spacetime project for you?" Write down the answer and build toward it.
 
 **Cartesia**
-> "Voice is the whole game. We feed your hand to the recognizer, so it hears the wine-dark sea through the drum: in our tests, 3% word error with the drum at full volume using ink-2 keyterms, 20% without. The final transcript lands about 75 ms after you stop. Homer is Carl on Sonic 3.6, with first audio in about 100 ms. He judges you like a title-fight MC and whispers you a line when you freeze. [If debate shipped:] Socrates hosts the debate in a completely different voice: quick, wry, always asking."
+> "Voice is the whole game. We feed Homer's phrases to the recognizer, so it hears the wine-dark sea through the drum: in our tests, 3% word error with the drum at full volume using ink-2 keyterms, 20% without. The final transcript lands about 75 ms after you stop. Homer is Carl on Sonic 3.6, with first audio in about 100 ms. He judges you like a title-fight MC and whispers you a line when you freeze. [If debate shipped:] Socrates hosts the debate in a completely different voice: quick, wry, always asking."
 Ask them: "How many winners are there, and what does great 'impact and responsibility' look like to you?"
 
 **Anthropic**
@@ -103,18 +103,18 @@ Answer in one breath, then stop.
 | Isn't training persuasion dangerous? | "Homer scores whether you answered the person in front of you, and shows you why with five scores and the quoted line. It trains you to listen and respond, not to manipulate." |
 | What does MeNIN mean? | "*Mēnin*, rage. It's the first word of the Iliad. Homer started Western literature with a fight." |
 | Why poetry in a games app? | "The Greeks didn't separate them. At the Panathenaic Games, poets competed next to the athletes." |
-| How is the AI judge not arbitrary? | "Beat isn't the AI's opinion; a stress scanner counts it. Range comes from the emotion engine. Claude scores Craft, Image and Answer with your hand and the verse you answered in front of it. You always see all five scores and the line it quoted." |
-| Why several events? | "One engine. Each event is a config: who hosts, what's in your hand, how it's judged, beat on or off. Poetry came first; the debate took [hours] on the same engine." *(Only if debate shipped.)* |
+| How is the AI judge not arbitrary? | "Flow isn't the AI's opinion; a stress scanner counts it. Range comes from the emotion engine. Claude scores Craft, Image and Answer with the phrases Homer dealt you and the verse you answered in front of it. You always see all five scores and the line it quoted." |
+| Why several events? | "One engine. Each event is a config: who hosts, what cards you get, how it's judged, beat on or off. Poetry came first; the debate took [hours] on the same engine." *(Only if debate shipped.)* |
 | Isn't this just a game? | "The games are why you come back. Bard mode is where you get good. Last night, five first-timers went from [first] to [last] out of 10 on Beat, in one lesson." *(Use the study's real numbers and pm's wording in docs/study.md.)* |
-| Does it work in this noise? | "Headset mic, push-to-talk, captions, and the transcript is always on screen so you can see what Homer heard." *(Only say it if Saturday's hall test passed.)* |
-| How does it hear you over the drum? | "We feed your hand to the recognizer, so it hears the wine-dark sea through the drum. Cartesia ink-2 with keyterms: 3% word error with the drum at full volume in our tests. Without them, 20%." |
+| Does it work in this noise? | "Headset mic, a mic that opens only on your turn, captions, and the transcript is always on screen so you can see what Homer heard." *(Only say it if Saturday's hall test passed.)* |
+| How does it hear you over the drum? | "We feed Homer's phrases to the recognizer, so it hears the wine-dark sea through the drum. Cartesia ink-2 with keyterms: 3% word error with the drum at full volume in our tests. Without them, 20%." |
 | How did you measure that? | "On test recordings with our drum mixed in at full volume. The real-mic test in the hall is Saturday night." *(If that test ran, give its number instead.)* |
 | Doesn't the beat lane lag behind speech? | "No. The lane runs on syllable onsets detected on the phone itself. It never waits for the transcript." |
 | Isn't this just for poets? | "It's for anyone who has to speak in front of people. Poets are where we start, because they already practice this and have nowhere to do it." |
 | Why Homer and not Shakespeare? | "Shakespeare wrote. Homer improvised. Improvising is the skill." |
-| Is Homer an agent? | "Yes, a live one. In each turn he deals your hand, hears you through Cartesia, scores you with Claude plus our scanner, and speaks the verdict. Then he writes the round into a song. Every step writes to SpacetimeDB, so the whole room sees it." |
+| Is Homer an agent? | "Yes, a live one. Every round he writes a fresh theme and deals you phrases for it, then hears you through Cartesia, scores you with Claude plus our scanner, and speaks the verdict. Then he writes the round into a song. Every step writes to SpacetimeDB, so the whole room sees it." |
 | What's AI and what isn't? | "Deterministic: the beat count, the scoring math and the discus physics. Claude: the judgment, the coaching, Homer's and Socrates' lines and the stitched song. Cartesia: ears and voice. Nothing is mocked." |
-| Why iPhone only? | "Your phone is the mic, the controller and the discus, and the beat lives in your hand through haptics. That needs native. The same app runs the arena on an iPad or a Mac." |
+| Why iPhone only? | "Your phone is the mic, the controller and the discus, and the beat lives in your hand through haptics. That needs native. The big screen is our website, so any laptop at the table becomes the arena." |
 | What happens Monday? | "Tap the TestFlight link on your iPhone. No account, open a room, play." *(Only if the public link is approved. Otherwise: "TestFlight now, App Store next.")* |
 | How fast is the verdict? | "About three seconds from your last word to Homer's voice. The transcript is final 75 ms after you stop, and Homer's voice starts about 100 ms after the verdict is written. The rest is Claude judging." *(Quote the measured p50, not a guess.)* |
 | Is the music AI? | "No. [Composer's name] on our team composed the score. Claude judges your verse; a person wrote the music." *(Only if that's true for every cue. If any cue used AI tools, say which.)* |
@@ -131,7 +131,7 @@ Thumbnail / Devpost cover: one arena frame with the carved gold line over matte 
 ## Hacker's Choice ground game (Saturday night)
 
 - **Discus is the hook** if it passes the Sat 8 PM check. The fanfare from the score sells the throw. Anyone can swing a phone, with no poetry nerves. "Throw the discus, then stay for the battle."
-- Battles at our table on our iPhones, plus the arena. Say "Two minutes, five phrases in your hand, you can't fail" and let the hand do the work.
+- Battles at our table on our iPhones, plus the arena. Say "Two minutes, and Homer's phrases are there if you get stuck" and let the phrases do the work.
 - **Karaoke** (Sat 8–9:30 PM, Theater) is a room full of people holding mics in a performing mood. Bring the arena and two phones.
 - Film 15-second clips (a discus throw, the scene shifting color during a verse) and post them tagging the sponsors.
 - Never block the build for this. One person, one hour.

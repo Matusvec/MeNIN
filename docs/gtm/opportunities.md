@@ -80,7 +80,7 @@ Write down their answer, and tell gtm.
 - [x] Moss retrieval really runs in the dealer (theme in, formulas out), behind `HOMER_DEALER=moss`, with a tested silent fallback
 - [x] Latency measured on the production droplet: p50 13.7 ms, p95 32.2 ms over 60 queries (1.4 ms on a MacBook). It's in the blurb.
 - [x] Account and keys are set on the droplet
-- [x] **Leader's call (Sat ~11 AM): Moss stays on for everything, judging included.** The fallback keeps the SPEC rule. The poets rehearse on Moss hands from [demo-hands.md](demo-hands.md), and the pitch line is "your hand was dealt by Moss".
+- [x] **Leader's call (Sat ~11 AM): Moss stays on for everything, judging included.** The fallback keeps the SPEC rule. Since SPEC 7866476 the themes are fresh every round, so the poets rehearse improvising on unseen themes, and the pitch line is "Homer's phrases were dealt by Moss".
 - [ ] *(Optional; Matus's call)* A social post for their engagement prize. Its rules are unconfirmed, and a hacker's question about it is unanswered.
 
 ## Already entered (for completeness)

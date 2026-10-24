@@ -34,7 +34,7 @@ Every device runs the same TestFlight build. Check under TestFlight, MeNIN, buil
 
 | Device | Held by | Role | Connection | Power |
 | --- | --- | --- | --- | --- |
-| **Mac (arena)** | Operator | **The arena, full screen, with the display turned to face the judges.** Demo config on, operator keys, latency HUD on. A Terminal sits on a second desktop for the demo check. The main room is live, and the **backup room is a second room code the Mac can switch to**. The backup video is paused in a second window. | Ethernet, through the USB-C adapter | **100% at the start.** Wall outlet if the table has one, or a power bank if one can feed it (see Power). |
+| **Mac (arena)** | Operator | **The website, full screen in a browser, with the display turned to face the judges** (SPEC: the website is the only arena people see; the app's arena mode is an emergency fallback behind the Dev screen). Click the page once after loading so the browser lets Homer speak. Demo config on, operator keys, latency HUD on. A Terminal sits on a second desktop for the demo check. The main room is live, and the **backup room is a second room code the Mac can switch to**. The backup video is paused in a second window. | Ethernet, through the USB-C adapter | **100% at the start.** Wall outlet if the table has one, or a power bank if one can feed it (see Power). |
 | **iPhone A** | The poet | Poet 1: mic and hand. | Venue Wi-Fi, with cellular data as plan B | Power bank between runs |
 | **iPhone B** | Matus | Poet 2: mic and hand, and the staged freeze. | Same | Same |
 | **iPhone C** | Operator | **The spare, with duties in priority order:** 1) replaces a dead poet phone; 2) **backup arena** in arena mode, landscape, if the Mac dies (small, but it works); 3) plays the backup video if the Mac is gone; 4) the judge's phone after 2:00, for discus or a rematch. Grippy case. | Same | Same |
@@ -89,8 +89,9 @@ Rough table layout, with the judges in front. There's no external screen, so the
 
 Before every run:
 
-- [ ] The main room is open on the Mac, both poets have joined with their epithets, demo config is on, and the theme is preloaded: **"A ship that never came home"**. If the judge pick is back on, the cards are the live judging set: the ship, the deadline and "The war between two brothers".
-- [ ] Push-to-talk works on both phones, and the haptic beat can be felt.
+- [ ] The main room is open on the website, both poets have joined, and demo config is on. Nothing is preloaded: Homer writes a fresh theme and coins fresh epithets every battle (SPEC 7866476).
+- [ ] The page has been clicked once and Homer's voice plays.
+- [ ] The hands-free mic opens on each phone's turn, and the haptic beat can be felt.
 - [ ] Speaker volume is set and captions are on.
 - [ ] The operator key "replay opening" is ready.
 - [ ] The backup room code is written down, and the backup video is paused at 0:00 on the Mac.
@@ -135,7 +136,7 @@ Each one is decided in advance and has a line to say, so nobody improvises at th
 | **Two failures in a row, or no network at all** | Any time | **Backup video**, 90 s, of the best Saturday-night run. Play it from the Mac's second window, or from any phone (it's saved on all three). Play it with sound. | Operator | Matus: "Here's last night's battle, start to finish." Then quiet. |
 | **No verdict after 4 s** | Automatic | The stall line plays, and Beat and Range show. Keep going. | Nobody | Keep talking. Don't apologize. |
 | **No verdict after 10 s** | Automatic | Beat and Range only. Move on. Never show a canned verdict. | Operator | "Homer's thinking. Let's hear the next one." |
-| **STT keeps mishearing** (noise) | After one retry | Hold the EarPods mic closer to the mouth and use push-to-talk. If it fails again, play the backup video. | Poet | "That's what Homer heard. This hall is loud." |
+| **STT keeps mishearing** (noise) | After one retry | Hold the EarPods mic closer to the mouth. If it fails again, play the backup video. | Poet | "That's what Homer heard. This hall is loud." |
 | **The judge has 60 s, not 120** | At the start | Follow the 60-second cut in [demo-script.md](demo-script.md). | Matus | |
 
 **Practice Spar isn't an offline fallback.** It still needs the network for Claude and Cartesia. It covers a wedged room or a dead Mac, not a dead network. Use the backup video when the network is down.

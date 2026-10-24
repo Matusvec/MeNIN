@@ -71,7 +71,7 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
   - Paying is Matus's call. Startup is the cheapest plan with real headroom (5 at once); Pro adds only one.
   - **Tell leader the answer right away.** If nobody's at the booth, send leader this draft for Matus to post in #spons-cartesia: "Hi Cartesia team! We're building MeNIN, a party game where Homer judges spoken verse live in Sonic 3.6. With a few phones in one room we hit the TTS concurrency limit of 2. Could you lift it for our account for the weekend, or tell us the cheapest plan that does? Happy to show you the demo at the booth."
 - **Show the keyterms live.** With the drum on, the poet speaks a formula from the hand ("the wine-dark sea"), and the live transcript catches it. Then Homer delivers the verdict in Carl's voice.
-- **The line:** "We feed your hand to the recognizer, so it hears the wine-dark sea through the drum. In our tests, with the drum at full volume, that's 3% word error with ink-2 keyterms and 20% without. The final transcript lands about 75 ms after you stop, and Homer's first audio comes in about 100 ms." If debate passed by then, play 10 s of Socrates, the second voice.
+- **The line:** "We feed Homer's phrases to the recognizer, so it hears the wine-dark sea through the drum. In our tests, with the drum at full volume, that's 3% word error with ink-2 keyterms and 20% without. The final transcript lands about 75 ms after you stop, and Homer's first audio comes in about 100 ms." If debate passed by then, play 10 s of Socrates, the second voice.
 - **Ask:**
   - "How many winners are there, and what does great 'impact and responsibility' look like to you?"
   - **"Does Cartesia keep STT audio or transcripts, and can we turn that off?"** The answer fills the privacy line on Devpost.
@@ -96,13 +96,13 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 - **Their brief is "Something that's hard to build without Spacetime!"** (#0-general, Fri 6:52 PM, Spacetime staff). So show the moment that's hard without it: kill the app on one phone mid-battle and reopen it, and the poet takes their seat back with their score. Only show it if it passed the 1:30 PM test.
 - **Stay for their workshop** (4–5 PM, Theater). Spacetime staff judge this track.
 - **Show the Swift client live.** A phone joins the room and the arena reacts at once. Then the scene moving with the poet's voice, which is the 20 Hz stream into one table the arena subscribes to.
-- **The line:** "The whole battle is a phase machine in reducers, from the lobby to the crown, with a scheduled reducer for the turn timer. Your hand is in a private table only your phone can read. The iPhone client is the community Swift SDK, and we patched it. Upstream, every client subscribes to whole tables, so every phone got every room's voice stream. Now each phone subscribes to its own room."
+- **The line:** "The whole battle is a phase machine in reducers, from the lobby to the crown, with a scheduled reducer for the turn timer. The phrases Homer deals you sit in a private table only your phone can read. The iPhone client is the community Swift SDK, and we patched it. Upstream, every client subscribes to whole tables, so every phone got every room's voice stream. Now each phone subscribes to its own room."
 - **The CEO will care about the patches.** Ask whether they'd want them upstream.
 - **Ask:** "What would make this a top-three Spacetime project for you?" Write the answer down and tell leader.
 - **Credits:** `spacetimedb.com/redeem?code=CALHACKS13` (#cohost-spacetime, Sat 12:10 AM, Spacetime staff).
 
 ### Anthropic (sponsor-13, optional)
-- **Show** a verdict, then point at the five scores: "Beat is a deterministic stress scanner, not Claude's opinion. Claude scores the rest with your hand and the verse you answered in front of it."
+- **Show** a verdict, then point at the five scores: "Flow is a deterministic stress scanner, not Claude's opinion. Claude scores the rest with the phrases Homer dealt you and the verse you answered in front of it."
 - **The line:** "For spoken-word and slam poets in [the poet's scene], who practice alone between weekly open mics. Tonight we run a first-timer study for one real number. And the app itself is built by a team of Claude Code sessions."
 - **Ask:** "Is our community narrow enough?" Their track is "Claude for Public Benefit", and it wants a named community, a real problem, a working product with impact measured, and meaningful use of Claude.
 

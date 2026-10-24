@@ -16,9 +16,9 @@ Built at Cal Hacks 13.0 by [team: names and roles], with a team of Claude Code s
 
 ## What it is
 
-One screen is the arena: any laptop browser at [URL], or a Mac or an iPad running the app. Every player's iPhone is their mic and their private hand of cards.
+One screen is the arena: our website at [URL], open in any laptop browser. Every player's iPhone is their mic and their private cards.
 
-- **The poetry battle** (the main event). Homer deals you five stock phrases that fit the beat, the way Homer himself improvised. He drops a slow drum, which you feel in your palm through haptics, and you speak up to four lines. Freeze, and he whispers you a line. About three seconds after your last word, he scores you on five axes and quotes your best line. At the end, he stitches everyone's lines into one song and crowns a champion.
+- **The poetry battle** (the main event). Homer writes a fresh theme every round and coins each poet a fresh epithet. Your phone shows three of Homer's phrases, stock phrases that fit the theme and the beat, the way Homer himself improvised. They're optional: "Stuck? Use one of Homer's phrases. It scores Craft." He drops a slow drum, which you feel in your palm through haptics. 3, 2, 1, SPEAK, and you speak up to four lines into a hands-free mic. Freeze, and he whispers you a phrase that fits. About three seconds after your last word, he scores you on five axes and quotes your best line. At the end, he stitches everyone's lines into one song and crowns a champion.
 - [If it passed] **The Socratic debate**, hosted by Socrates in his own voice.
 - [If it passed] **The discus**: swing your phone and lift your thumb to release.
 - **Bard mode** (lessons) and **Practice mode** (spar with Homer).
@@ -28,12 +28,12 @@ One screen is the arena: any laptop browser at [URL], or a Mac or an iPad runnin
 ## How it works
 
 ```
-iPhone (player)                         browser, Mac or iPad (arena)
+iPhone (player)                         website in a browser (arena)
   mic → on-device syllable onsets ──────► beat lane hits
   mic → Cartesia ink-2 STT (keyterms) ──► live transcript
   loudness + pitch, 20 Hz ──┐
                             ▼
-                     SpacetimeDB (rooms, turns, scores, private hands)
+                     SpacetimeDB (rooms, turns, scores, private cards)
                             ▲
   Agent service (Python, FastAPI, DigitalOcean)
     stress scanner (CMU dictionary) → Beat
@@ -41,7 +41,7 @@ iPhone (player)                         browser, Mac or iPad (arena)
     Cartesia token minting ──────────────► Cartesia TTS (Homer's voice) on the arena
 ```
 
-Four deployables: the iOS app (`ios/`), the website (`web/`, static files served from our droplet), the SpacetimeDB module (`spacetime/`) and the agent service (`homer/`).
+Four deployables: the iOS app (`ios/`), the website (`homer/web/`, static files served from our droplet), the SpacetimeDB module (`spacetime/`) and the agent service (`homer/`).
 
 ## Cartesia: ears and voice
 
@@ -49,7 +49,7 @@ Voice is the whole game: you play by speaking, and Homer answers out loud.
 
 | Feature | How we use it |
 | --- | --- |
-| **ink-2 streaming STT** over WebSocket | The live transcript of every verse. We send the poet's **hand of five formulas as keyterms**, so rare phrases like "rose-fingered Dawn" and "the wine-dark sea" survive the drum. |
+| **ink-2 streaming STT** over WebSocket | The live transcript of every verse. We send **every phrase Homer dealt the poet, plus the theme, as keyterms**, so rare phrases like "rose-fingered Dawn" and "the wine-dark sea" survive the drum. |
 | **sonic-3.6 TTS**, voice Carl ("Steady Storyteller") | Homer: entrances, verdicts, the freeze whisper, lessons and the stitched song |
 | **Short-lived access tokens** | Our server mints a token, and the phone streams straight to Cartesia. No audio passes through our server, and the API key never leaves it. |
 
@@ -62,18 +62,18 @@ Voice is the whole game: you play by speaking, and Homer answers out loud.
 | Final transcript after the poet stops | about 75 ms |
 | Homer's first audio | about 100 ms |
 
-**How we measured:** a four-line verse spoken by a synthetic voice (macOS `say`), mixed digitally with a 90 BPM drum loop at +12, +6 and 0 dB, then run through ink-2 with and without keyterms. These are test recordings, not a real phone mic in a loud room, so treat them as a best case. [real-mic WER: replace or add swift's iPhone-mic numbers.]
+**How we measured:** a four-line verse spoken by a synthetic voice (macOS `say`), mixed digitally with a 90 BPM drum loop at +12, +6 and 0 dB, then run through ink-2 with and without keyterms (five dealt phrases). These are test recordings, not a real phone mic in a loud room, so treat them as a best case. [real-mic WER: replace or add swift's iPhone-mic numbers.]
 
 **The beat lane isn't STT.** Hits come from syllable onsets detected on the phone itself, because STT timing arrives too late to drive a live hit.
 
 **Known limitations:**
-- Loud rooms. Our mitigations: wired headset mics, push-to-talk, the beat moved into haptics, and the arena drum ducked while you speak.
+- Loud rooms. Our mitigations: wired headset mics, a mic that opens only on your turn, the beat moved into haptics, and the arena drum ducked while you speak.
 - Accents, names, slang and loanwords. The transcript is always on screen, so you see what Homer heard, and the stress scanner flags uncertain syllables instead of marking them wrong.
 
 ## SpacetimeDB: the hall
 
 - **The battle is a phase machine in reducers**, server-side: lobby → theme → dealing → ready → speaking → judging → scored → round end → finale → finished. A scheduled reducer closes each turn on time. The rules are in [`spacetime/CONTRACT.md`](spacetime/CONTRACT.md).
-- **Your hand is in a private table** that only your phone can read.
+- **The phrases Homer deals you sit in a private table** that only your phone can read.
 - **Every phone streams loudness and pitch at about 20 Hz** into one table the arena subscribes to, so the arena's scene moves with whoever is speaking.
 - **A phone that dies can rejoin** and take its seat back with its score. [Keep this only if it passed the Sat 1:30 PM test.]
 - **The iPhone client** is the community Swift SDK [avias8/spacetimedb-swift](https://github.com/avias8/spacetimedb-swift) 0.23.0, vendored with two patches (`ios/Vendor/SpacetimeDB/README.md`):
@@ -82,18 +82,18 @@ Voice is the whole game: you play by speaking, and Homer answers out loud.
 
 ## Claude: the judge, the coach, the MC
 
-- **Homer is a live agent doing real work:** he names every poet, judges every verse, coaches you through lessons, hosts the battle and writes the stitched song.
+- **Homer is a live agent doing real work:** he writes every round's theme, coins every poet a fresh epithet, judges every verse, coaches you through lessons, hosts the battle and writes the stitched song.
 - **The judge** is one streamed call to Claude Opus 5.5 (fast mode, low effort) with a cached system prompt and a JSON schema, so the output is always valid. Verdict text in **p50 1.0 s, p95 1.5 s** (10 live calls, Fri Oct 23; `homer/scripts/latency.py`).
-- **Beat is never the model's opinion.** A deterministic stress scanner (CMU Pronouncing Dictionary) counts it, and Claude gets that count with your hand and the verse you're answering. Range comes from an emotion classifier (Claude Haiku 5.5) that reads your words and voice every ~1.5 s.
+- **The beat is never the model's opinion.** A deterministic stress scanner (CMU Pronouncing Dictionary) counts it: **Flow** in battles (a forgiving steady rhythm, weighted below Image, Answer and Craft), strict **Beat** in lessons. Claude gets that count with the phrases Homer dealt you and the verse you're answering. Range comes from an emotion classifier (Claude Haiku 5.5) that reads your words and voice every ~1.5 s.
 - **Built with Claude, too:** the whole app was built by a team of Claude Code sessions (leader, product, art, multiplayer, iOS, agent service and go-to-market), each in its own folder, working from one spec ([`SPEC.md`](SPEC.md)).
 
 ## Apify: Epithet Miner
 
-**Epithet Miner is an Apify Actor, built with AI chat:** Claude Opus 5.5 in Claude Code wrote it from our prompts. It mined part of the stock-phrase bank. The code is in [`apify/`](apify/), and it's on the Apify Store: [apify.com/matusnator/epithet-miner](https://apify.com/matusnator/epithet-miner) (Actor ID `v4i7ItNXjHMmnKzfo`). It reads four public-domain Homer translations from Project Gutenberg and finds noun-epithet formulas with readable rules, no language model. Then it counts their beats with our scanner's rule and ranks them by how often they recur. It mined 150 candidates. A person kept 55, so the bank grew from 158 to 213. It runs at build time only, and the game never calls Apify. How it was built, honestly: [`apify/BUILD_LOG.md`](apify/BUILD_LOG.md).
+**Epithet Miner is an Apify Actor, built with AI chat:** Claude Opus 5.5 in Claude Code wrote it from our prompts. It mined part of the stock-phrase bank. The code is in [`apify/`](apify/), and it's on the Apify Store: [apify.com/matusnator/epithet-miner](https://apify.com/matusnator/epithet-miner) (Actor ID `v4i7ItNXjHMmnKzfo`). It reads four public-domain Homer translations from Project Gutenberg and finds noun-epithet formulas with readable rules, no language model. Then it counts their beats with our scanner's rule and ranks them by how often they recur. It mined 150 candidates. A person kept 55, so the bank grew from 158 to 213 (216 now, with three modern city epithets added by hand). It runs at build time only, and the game never calls Apify. How it was built, honestly: [`apify/BUILD_LOG.md`](apify/BUILD_LOG.md).
 
 ## Moss: dealing that fits the theme
 
-The dealer uses [Moss](https://moss.dev) to rank all 213 formulas by meaning against the theme, then deals your hand from the closest matches. So "My grandmother's kitchen" finds "the high-roofed hall" with no shared word. Measured on our production droplet (2 GB, CPU only): p50 13.7 ms, p95 32.2 ms. It runs behind `HOMER_DEALER=moss`, and if Moss is slow (over 500 ms) or errors, the tag dealer deals instead.
+Homer writes a fresh theme every round, so no tag list can know it in advance. The dealer uses [Moss](https://moss.dev) to rank all 216 formulas by meaning against the theme, then deals Homer's phrases from the closest matches. So "My grandmother's kitchen" finds "the high-roofed hall" with no shared word. Measured on our production droplet (2 GB, CPU only): p50 13.7 ms, p95 32.2 ms. It runs behind `HOMER_DEALER=moss`, and if Moss is slow (over 500 ms) or errors, the tag dealer deals instead.
 
 ## Fetch.ai: Homer on Agentverse
 
@@ -107,7 +107,7 @@ Matus drew the first concept in Figma Design. The art session reads frames, exac
 
 - **Who it's for, and how we measure it:** spoken-word and slam poets in [the poet's scene]. The stress scanner's Beat score is an objective skill measure. At Cal Hacks, [N] people who'd never freestyled took lesson one, and their Beat score went from [first] to [last] out of 10. Next, we track Beat accuracy across a poet's first five sessions.
 - **Accessibility:** captions on everything Homer says. The beat is in your palm as haptics, so you can feel it without hearing it.
-- **Consent:** in battles the mic is push-to-talk, open only while you hold it.
+- **Consent:** the mic is hands-free but opens only on your turn, with a haptic thump, and "I'm done" closes it early.
 - **Privacy:** no audio passes through our server, because phones stream straight to Cartesia. Transcripts, scores and lines live in the room's tables, and Rematch clears them. [Confirm before publishing: how long finished rooms are kept, and Cartesia's retention setting on our account.] No account is required.
 - **Content:** a verse that isn't fit for the hall scores nothing, and Homer won't quote it. Names are filtered before Homer says them.
 - **The emotion read is art, not diagnosis.** It colors the scene, and Homer never names your emotion.
@@ -119,11 +119,11 @@ Matus drew the first concept in Figma Design. The art session reads frames, exac
 ```bash
 cd ios
 xcodegen generate        # Homer.xcodeproj is generated, not committed
-open Homer.xcodeproj     # set your own signing team, then run on an iPhone, an iPad or a Mac ("Designed for iPad")
+open Homer.xcodeproj     # set your own signing team, then run on an iPhone
 ```
 The optional app key goes in `ios/Homer/Support/Secrets.xcconfig` (gitignored).
 
-**Website** (`web/`): [how to build and serve it]. The live one is at [URL].
+**Website** (`homer/web/`): [how to build and serve it]. The live one is at [URL].
 
 **Agent service:** see [`homer/README.md`](homer/README.md). Copy `homer/.env.example` to `homer/.env`, then add your Anthropic and Cartesia keys.
 
@@ -134,7 +134,7 @@ The optional app key goes in `ios/Homer/Support/Secrets.xcconfig` (gitignored).
 | Folder | What's in it |
 | --- | --- |
 | `ios/` | The universal SwiftUI app: audio, haptics, Metal scene, UI, the vendored SpacetimeDB SDK |
-| `web/` | The website: the arena in a browser, on SpacetimeDB's TypeScript SDK |
+| `homer/web/` | The website: the arena in a browser, on SpacetimeDB's TypeScript SDK |
 | `spacetime/` | The SpacetimeDB module (TypeScript) and its contract |
 | `homer/` | The agent service: the judge, the scanner, the dealer, voice tokens |
 | `content/` | Lessons and the formula bank |

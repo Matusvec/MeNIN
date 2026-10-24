@@ -145,7 +145,7 @@ Criteria: Workflow Design, Adoptability ("a measurable before and after"), Outpu
 Their own idea list includes "**Multi-speaker agent**: tutor, debate partner... with distinct voices" and "**Live coach**: low-latency back-and-forth where voice quality matters." That's us, and literally so if the Socratic debate ships. Then Homer and Socrates are two distinct Cartesia voices, and Socrates is a debate host. Homer is Carl, "Steady Storyteller" (older, calm, measured), so pick Socrates' voice to contrast: quicker, wry and conversational. Name both voice choices in the README.
 
 **Our measured numbers (from swift; quote them as they are):**
-- **STT:** ink-2, with the poet's hand of formulas sent as keyterms, gets a **3% word error rate even with the drum at full volume (0 dB)**. Without keyterms it's **20%**. These come from test recordings (a four-line verse with the drum mixed in digitally), not a real iPhone mic. Say "with the drum at full volume in our tests". Asked how we measured: "On test recordings with our drum mixed in at full volume. The real-mic test in the hall is Saturday night." swift reruns on a real iPhone mic once the agent is public, and those numbers replace these if they differ. The line: "We feed your hand to the recognizer, so it hears the wine-dark sea through the drum."
+- **STT:** ink-2, with the phrases Homer dealt the poet sent as keyterms (five in the test), gets a **3% word error rate even with the drum at full volume (0 dB)**. Without keyterms it's **20%**. These come from test recordings (a four-line verse with the drum mixed in digitally), not a real iPhone mic. Say "with the drum at full volume in our tests". Asked how we measured: "On test recordings with our drum mixed in at full volume. The real-mic test in the hall is Saturday night." swift reruns on a real iPhone mic once the agent is public, and those numbers replace these if they differ. The line: "We feed Homer's phrases to the recognizer, so it hears the wine-dark sea through the drum."
 - **The final transcript** arrives about **75 ms** after the poet stops.
 - **Homer's voice** (Carl, sonic-3.6): first audio in about **100 ms**.
 - **The beat lane is not Cartesia.** Its timing comes from onsets detected on the phone, not STT timestamps. Never credit STT for the lane.
@@ -159,7 +159,7 @@ These hit "Voice clear, responsive, and natural?" directly. The keyterm trick is
 
 **Impact and responsibility is our weak quarter. Fix it with true statements:**
 - Captions on everything Homer says (accessibility, and it helps in a loud hall)
-- Push-to-talk, so the mic is only open when you choose
+- A hands-free mic that opens only on your turn (SPEC 971fda0), and "I'm done" ends it early
 - A PG name filter before TTS speaks names (already in ux-flow)
 - What we store: decide it, then say it. My proposal: no audio stored, transcripts kept only for the room's lifetime. Only claim this once it's true.
 
