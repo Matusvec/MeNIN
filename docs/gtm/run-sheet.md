@@ -89,7 +89,7 @@ Rough table layout, with the judges in front. There's no external screen, so the
 
 Before every run:
 
-- [ ] **Keep the arena Mac awake** (leader, Sat 4:24 PM: both phones and the arena dropped in the same second, which looks like the Mac sleeping or the network dropping; when the Mac sleeps, the arena stops driving the battle):
+- [ ] **Keep the arena Mac awake** (leader, Sat 4:24 PM: both phones and the arena dropped in the same second). **A network blip self-recovers:** the arena shows "Reconnecting…" and finishes the battle (builder killed the database mid-battle to test it). **Only a sleeping Mac or a closed tab kills the battle,** because the arena drives it:
   - [ ] In a Terminal, run `caffeinate -dims` and leave it running for the whole session. Or set System Settings → Battery → Options → prevent automatic sleeping on power adapter, plus Lock Screen → turn display off → Never.
   - [ ] **The Mac is plugged in.** `caffeinate -s` only holds off system sleep on AC power.
   - [ ] **The arena tab stays in front** in its own full-screen window. Browsers slow down background tabs.
@@ -133,6 +133,7 @@ Each one is decided in advance and has a line to say, so nobody improvises at th
 
 | What breaks | Trigger | Do this | Owner | Say |
 | --- | --- | --- | --- | --- |
+| **The arena shows "Reconnecting…"** | Any time | **Wait.** It's a network blip, and the arena reconnects and finishes the battle on its own (builder's test). Keep talking. If it doesn't recover, treat it as "The room wedges" below (reload, then Resume). | Operator | "The hall's Wi-Fi is a battle of its own." |
 | **The room wedges.** A turn won't advance, Rematch doesn't reset, or a phone can't rejoin. | Over 10 s stuck | **Reload the website's tab and click "Resume [code]"**: same room, same code, same scores, and the battle carries on from its phase; the phones just wait. If that fails, click **"Open the hall"** for a new room, and the poets type its new code. If the browser itself is hung, force-quit it (⌘⌥⎋), relaunch, and Resume. | Operator | Matus: "Let's move to the other stage." |
 | **One poet phone dies or freezes** | Any time | Hand that poet **iPhone C**. It joins the same room with the room code. | Operator | Matus keeps talking through the how-it-works line. |
 | **The Mac dies** | Any time | **Open the website in Safari on another device** (the iPad, a teammate's laptop, or iPhone C, propped facing the judges) and click "Open the hall" for a **new room**; the poets join its new code. Another device can't take over the Mac's room, since the host identity lives in the Mac's browser. Last resort: the app's emergency arena on iPhone C, behind the Dev screen. The speaker stays on if it's wired to that device, otherwise it's device audio. | Operator | "Same game, smaller box." |

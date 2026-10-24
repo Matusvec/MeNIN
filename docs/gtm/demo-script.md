@@ -99,7 +99,7 @@ Swap the 1:10–1:26 line for theirs. Same length, same spot.
 
 ## Rehearsal
 
-- **Before every rehearsal and every judge: keep the arena Mac awake.** Run `caffeinate -dims` in a Terminal for the whole session, keep the Mac plugged in, keep the arena tab in front, and keep the lid open. On Sat 4:24 PM both phones and the arena dropped in the same second, which looks like the Mac sleeping or the network dropping (leader). The full checklist is in [run-sheet.md](run-sheet.md#before-each-judge-about-2-minutes).
+- **Before every rehearsal and every judge: keep the arena Mac awake.** Run `caffeinate -dims` in a Terminal for the whole session, keep the Mac plugged in, keep the arena tab in front, and keep the lid open. On Sat 4:24 PM both phones and the arena dropped in the same second (leader). A network blip self-recovers (the arena shows "Reconnecting…" and finishes the battle), so only a sleeping Mac or a closed tab kills it. The full checklist is in [run-sheet.md](run-sheet.md#before-each-judge-about-2-minutes).
 - Run it **three times back to back**, because there are 3 judges and they may come one at a time. The operator resets with **Rematch** (same poets, new theme) in under 10 seconds.
 - Do one full rehearsal **in the hall at peak noise on Saturday night**, at demo volume. Battles have no drum now, so the test checks two things: that STT holds up in the hall's noise, and that the arena's rescue whisper is loud enough to hear but doesn't get picked up by the speaking poet's mic. If STT still picks up the room, the fallback is the stage-mic option (ux-flow option A).
 - Time every run. If p50 from turn end to first verdict audio is over 3.5 s, tell the leader before feature freeze.
