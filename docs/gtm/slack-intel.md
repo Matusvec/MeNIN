@@ -6,6 +6,39 @@ A running log from the Cal Hacks Slack, kept by gtm until Sun 9 AM. **Newest fir
 
 Read-only: we never post, reply or react in Slack. Anything we'd need to say there gets drafted and sent to leader for Matus to approve and post. Other teams' names and details stay out of this file.
 
+## What wins each track: the hints in Slack
+
+Read directly from the channels, Sat 9 AM. Each hint is quoted, and each one says what we do about it.
+
+**Spacetime.** Their CEO: "Something that's hard to build without Spacetime!" (#0-general, Fri 6:52 PM). The guide: Spacetime as the core real-time backend, "not just added on the side".
+- **Do:** show a moment that's hard without it. Kill the app on one phone mid-battle and reopen it: the poet takes their seat back with their score, because a new identity with the same name takes over a disconnected seat (spacetime/CONTRACT.md, `join_room`). Show it only if it passes in the 2 PM test.
+- **Do:** say "private hands in a private table, the whole battle as a server-side phase machine, a scheduled reducer for the turn timer".
+- **Do:** go to their workshop, 4–5 PM in the Theater, since Spacetime staff judge the track.
+- Their workshop slides are a Figma deck (#cohost-spacetime, Oct 21). It isn't readable from here, so someone should open it in a browser and skim for what they say they want. They also run a startup program with up to $50k in credits (same post), which is for after the hackathon.
+
+**Anthropic (Claude for Public Benefit).** Track staff (#cohost-anthropic, Fri 4:37 PM):
+- "The narrower, the better."
+- "'Students' is too broad."
+- "we'll prefer if you built things more creative": their example ideas are utilities, so a creative project is welcome.
+- "a fully working product, not a concept of a plan… clear how you plan to measure its impact on your target community".
+- Claude used "meaningfully in the product's development and functioning".
+- **Do:** name the community narrowly: spoken-word and slam poets in [the poet's own scene], who practice alone between weekly open mics. Never "poets" or "anyone".
+- **Do:** state the measurement plan in one line: the Beat score, first try vs last (tonight's study), then Beat accuracy across a poet's first 5 sessions.
+- **Do:** name both kinds of use: Claude in the product (judge, coach, MC, song) and in development (a team of Claude Code sessions).
+
+**Figma.** Figma staff (#spons-figma, Fri 7:48 PM): "Showcase to us how you use Figma products (**Agent, Make, Design**) into your workflow." Best Workflow is "best use of Figma Design, Make, or a Figma agent in a real build". Devpost also lists "Best Use Case of Figma Agent" and "Most Creative Use Case of Figma Agent". Their Friday workshop was about "Using AI as a creative partner while keeping your own point of view… so your work stands out instead of blending in" (#spons-figma, Fri 6:08 PM).
+- **Our story is their workshop's thesis.** Matus told the art agent: "don't treat the figma as the ground truth, use the power of figma to make it better" (stage log).
+- **Gap: we've used Design plus the MCP, but not Make and not Figma's own agent.** Use one of them for something real today, then log it honestly. Candidates: the discus or debate screens, or a third direction. Skip it if it would be fake.
+
+**Cartesia.** Cartesia staff (#spons-cartesia, Fri 9:35 PM): "Voice must be core to the product", judged 25% each on Problem & originality, Use of Cartesia, Execution, and Impact & responsibility.
+- Hackers asked twice (Fri 11:16 PM, Sat 8:25 AM) whether staff would be back, and nobody answered. **The video and the README may be all a Cartesia judge sees,** so both need the keyterm numbers and a clear impact-and-responsibility section: captions, push-to-talk, no audio through our server, the PG name filter.
+
+**Meta.** No staff have posted. Only the guide's criteria apply: human connection, essential use of AI, originality, a working demo.
+
+**The Cal Hacks judges (main prizes).** Judges introducing themselves in #1-introductions (Oct 19–22) are mostly engineers working on "AI agents, LLMs, and full-stack engineering". One is "most excited to see teams make agents do real work".
+- **Do:** frame Homer as an agent doing real work, live: he listens, scores, coaches, MCs and composes a song from the room, all in about 3 seconds per verdict. Say "agent" once in the pitch.
+- **Opportunity:** that same judge (a business-school professor) offers feedback slots on a public calendar before Sunday (#1-introductions, Oct 19). Booking one gets a judge's eyes on MeNIN early. It's Matus's call.
+
 ## Open questions
 
 | Question | Status | Source |
@@ -26,6 +59,8 @@ Read-only: we never post, reply or react in Slack. Anything we'd need to say the
 
 | Time (PDT) | Channel | What it says | Means for us | Action (owner) |
 | --- | --- | --- | --- | --- |
+| Sat 8:43 AM | #0-announcements | Organizer: "All boarding groups can now get breakfast!" | Everyone can eat now | None |
+| Sat 8:25 AM | #spons-cartesia | A hacker asked "Is cartesia gonna be at the hackathon today?"; no staff reply by 8:50 | Cartesia staff may not be at the booth on Saturday | Check #spons-cartesia before the 2:30 visit. If nobody's there, draft the retention question for #spons-cartesia and send it to leader for Matus to post (gtm) |
 | Sat 8:27 AM | Devpost page | The Devpost prize list lacks Spacetime, Anthropic, MLH Gen AI, .Tech and DigitalOcean. Its Figma prizes are the old five, not Figma's doc's four. It also says "three minutes to pitch and two minutes for judges to ask questions" (the guide says two), and that the video is for "sponsors evaluating asynchronously". | We may not be able to tag our two biggest sponsor tracks. Sponsor judges may score from the video alone. | Draft a #0-ask-directors question for Matus to post (sent to leader). Recheck Devpost each sweep (gtm) |
 | Sat 8:23 AM | #0-general | Organizer: breakfast goes out by group: B now, C at 8:40, D at 9:00, A at 9:20 | Group A eats after the posted 9:30 end | Check our group (all) |
 | Sat 8:11–8:20 AM | #1-hardware | Organizer: hardware checkout opens at 8:30. **Reservations were reset overnight** ("we reset it for today!"). The website is less buggy than the app (Fri 6:50 PM). | A Friday ethernet-cable reservation is gone | **Re-reserve the ethernet cable today** at hive.hackberkeley.org/dashboard/hardware (anyone) |

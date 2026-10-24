@@ -68,6 +68,8 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 - **Ask:** "Who judges the Meta track on Sunday?"
 
 ### Spacetime (sponsor-14 or the Theater, 3:30 PM)
+- **Their brief is "Something that's hard to build without Spacetime!"** (#0-general, Fri 6:52 PM, Spacetime staff). So show the moment that's hard without it: kill the app on one phone mid-battle and reopen it, and the poet takes their seat back with their score. Only show it if it passed the 2 PM test.
+- **Stay for their workshop** (4–5 PM, Theater). Spacetime staff judge this track.
 - **Show the Swift client live.** A phone joins the room and the arena reacts at once. Then the scene moving with the poet's voice, which is the 20 Hz stream into one table the arena subscribes to.
 - **The line:** "The whole battle is a phase machine in reducers, from the lobby to the crown, with a scheduled reducer for the turn timer. Your hand is in a private table only your phone can read. The iPhone client is the community Swift SDK, and we patched it. Upstream, every client subscribes to whole tables, so every phone got every room's voice stream. Now each phone subscribes to its own room."
 - **The CEO will care about the patches.** Ask whether they'd want them upstream.
