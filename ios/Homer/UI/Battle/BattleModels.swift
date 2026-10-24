@@ -23,6 +23,8 @@ struct AnswerPrompt: Equatable {
 struct ArenaModel: Equatable {
     var code: String
     var joinURL: String
+    /// Which game: sets the host in the captions and the rubric's labels.
+    var event: EventKind = .poetry
     var round: Int = 0
     var rounds: Int = 3
     var theme: String?
@@ -55,6 +57,15 @@ enum ArenaMoment: Equatable {
     case finale(lines: [String], current: Int)
     /// B7 · The crown.
     case champion(PoetPlate)
+
+    // Socratic debate: the turn without the beat.
+    /// A speaker argues their side; the clock replaces the beat lane.
+    case debating(poet: PoetPlate, side: DebateSide, question: String, transcript: [String], played: [FormulaCard], endsAt: Date?, seconds: Double)
+    /// Any event's judged turn, with its own rubric (debate: Claim, Reason, Answer, Craft, Poise).
+    case ruling(poet: PoetPlate, ruling: Ruling, reveal: Double)
+
+    // Discus.
+    case discus(DiscusArenaModel)
 }
 
 /// What the arena's buttons do. Every closure is optional; a missing one hides its button.
@@ -78,6 +89,7 @@ struct ArenaActions {
 // MARK: - Phone
 
 struct PlayerModel: Equatable {
+    var event: EventKind = .poetry
     var me: PoetPlate?
     var code: String = ""
     var round: Int = 0
@@ -104,6 +116,16 @@ enum PlayerMoment: Equatable {
     case result(card: Scorecard, reveal: Double, coined: String?)
     /// B7 · Where you placed.
     case final(place: Int, of: Int, champion: PoetPlate)
+
+    // Socratic debate.
+    /// Your turn to argue. Tap a move as you make it; `whisperedId` is the move Socrates whispers on a freeze.
+    case debating(side: DebateSide, question: String, transcript: String, moves: [FormulaCard], whisperedId: String?,
+                  talking: Bool, level: Double, endsAt: Date?, seconds: Double)
+    /// Your judged turn in any event.
+    case ruling(Ruling, reveal: Double)
+
+    // Discus.
+    case discus(DiscusPhoneModel)
 }
 
 struct PlayerActions {
@@ -112,13 +134,20 @@ struct PlayerActions {
     var ready: (() -> Void)?
     var setTalking: ((Bool) -> Void)?
     var done: (() -> Void)?
+    /// Debate: a move card tapped as the speaker makes it (the card's id).
+    var playMove: ((String) -> Void)?
+    /// Discus: thumb down (true) and lifted to throw (false).
+    var holdDiscus: ((Bool) -> Void)?
 
     init(join: ((String, String) -> Void)? = nil, imHere: (() -> Void)? = nil, ready: (() -> Void)? = nil,
-         setTalking: ((Bool) -> Void)? = nil, done: (() -> Void)? = nil) {
+         setTalking: ((Bool) -> Void)? = nil, done: (() -> Void)? = nil,
+         playMove: ((String) -> Void)? = nil, holdDiscus: ((Bool) -> Void)? = nil) {
         self.join = join
         self.imHere = imHere
         self.ready = ready
         self.setTalking = setTalking
         self.done = done
+        self.playMove = playMove
+        self.holdDiscus = holdDiscus
     }
 }

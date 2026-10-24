@@ -41,8 +41,9 @@ final class TurnRecorder {
 
     @ObservationIgnored private var stt: CartesiaSTT?
     @ObservationIgnored private var turnId: UInt64 = 0
-    @ObservationIgnored private var finals = ""
-    @ObservationIgnored private var partial = ""
+    /// Observed: the live transcript the screen shows is built from these.
+    private var finals = ""
+    private var partial = ""
     @ObservationIgnored private var tasks: [Task<Void, Never>] = []
     @ObservationIgnored private var flushWaiters: [CheckedContinuation<Void, Never>] = []
     @ObservationIgnored private var pendingLineBreaks = 0

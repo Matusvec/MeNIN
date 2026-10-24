@@ -17,6 +17,8 @@ struct FormulaHandView: View {
     var raisedId: String? = nil
     var forward: Bool = true
     var style: Style = .slips
+    /// Who whispers the raised card on a freeze: the event's host.
+    var whisperer: String = "Homer"
     var onTap: ((FormulaCard) -> Void)? = nil
 
     @Environment(\.stage) private var stage
@@ -31,7 +33,7 @@ struct FormulaHandView: View {
             ForEach(cards) { card in
                 let raised = card.id == raisedId
                 VStack(alignment: .leading, spacing: 2 * k) {
-                    if raised { Text("Homer whispers").tracked(8 * k, color: Palette.onHero2) }
+                    if raised { Text("\(whisperer) whispers").tracked(8 * k, color: Palette.onHero2) }
                     Text(card.text)
                         .font(card.kind == .move ? Typeface.text(14 * k, weight: 600) : Typeface.display((raised ? 21 : 16) * k))
                         .strikethrough(card.used, color: Palette.ink3)
@@ -56,7 +58,7 @@ struct FormulaHandView: View {
             : AnyLayout(VStackLayout(spacing: Metrics.s2 * k))
         layout {
             ForEach(cards) { card in
-                FormulaCardView(card: card, raised: card.id == raisedId)
+                FormulaCardView(card: card, raised: card.id == raisedId, whisperer: whisperer)
                     .onTapGesture { onTap?(card) }
             }
         }
@@ -70,6 +72,7 @@ struct FormulaHandView: View {
 struct FormulaCardView: View {
     let card: FormulaCard
     var raised: Bool = false
+    var whisperer: String = "Homer"
 
     @Environment(\.stage) private var stage
 
@@ -84,7 +87,7 @@ struct FormulaCardView: View {
                 HStack(spacing: Metrics.s2 * k) {
                     Text(kind).tracked(9 * k, color: Palette.ink2)
                     if raised {
-                        Text("Homer whispers").tracked(9 * k, color: Palette.accent)
+                        Text("\(whisperer) whispers").tracked(9 * k, color: Palette.accent)
                             .transition(.opacity)
                     }
                     Spacer(minLength: 0)

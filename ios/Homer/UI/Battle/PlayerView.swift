@@ -15,7 +15,7 @@ struct PlayerView: View {
                 .id(momentKey)
                 .transition(.opacity.combined(with: .move(edge: .bottom)))
             if let homer = model.homer {
-                CaptionView(text: homer.text, spoken: homer.spoken, whisper: homer.whisper)
+                CaptionView(text: homer.text, spoken: homer.spoken, speaker: model.event.host.name, whisper: homer.whisper)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
@@ -35,6 +35,9 @@ struct PlayerView: View {
         case .weighing: "weigh"
         case .result: "result"
         case .final: "final"
+        case .debating: "debate"
+        case .ruling: "ruling"
+        case .discus: "discus"
         }
     }
 
@@ -161,6 +164,48 @@ struct PlayerView: View {
                 }
             }
             .padding(.top, Metrics.s5)
+
+        case .debating(let side, let question, let transcript, let moves, let whisperedId, let talking, let level, let endsAt, let seconds):
+            VStack(spacing: Metrics.s3) {
+                HStack(alignment: .center, spacing: Metrics.s3) {
+                    SideChip(side: side)
+                    Text(question)
+                        .font(Typeface.display(17, italic: true))
+                        .displayLeading(17, 1.15)
+                        .foregroundStyle(Palette.ink)
+                        .lineLimit(3)
+                    Spacer(minLength: 0)
+                    TurnClockView(endsAt: endsAt, seconds: seconds, size: 64)
+                }
+                .padding(Metrics.s3)
+                .paper()
+                if !transcript.isEmpty {
+                    TranscriptView(lines: Array(transcript.split(separator: "\n").map(String.init).suffix(2)), listening: talking, maxLines: 2,
+                                   listener: model.event.host.name)
+                }
+                VStack(alignment: .leading, spacing: Metrics.s2) {
+                    Text("Tap a move as you make it").tracked(9)
+                    MovesHandView(moves: moves, whisperedId: whisperedId) { actions.playMove?($0.id) }
+                }
+                .padding(Metrics.s3)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .paper(Palette.paper2, lifted: false)
+                Spacer(minLength: 0)
+                HoldToTalkView(isHeld: Binding(get: { talking }, set: { actions.setTalking?($0) }), level: level)
+                    .frame(height: 150)
+                if let done = actions.done {
+                    Button("Done", action: done).buttonStyle(.homer(.secondary))
+                }
+            }
+
+        case .ruling(let ruling, let reveal):
+            ScrollView {
+                ScorecardView(ruling: ruling, reveal: reveal, poet: model.me?.fullName)
+            }
+            .scrollIndicators(.hidden)
+
+        case .discus(let discus):
+            DiscusPhoneView(model: discus, onHold: actions.holdDiscus)
         }
     }
 }

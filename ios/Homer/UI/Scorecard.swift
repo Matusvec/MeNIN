@@ -1,60 +1,72 @@
 import SwiftUI
 
-/// The judge's card: all five axes, the total, the verdict, the quoted line.
-/// A bare total never appears alone.
+/// The judge's card: every axis, the total, the verdict, the quoted line.
+/// A bare total never appears alone. Works for any event's rubric (poetry:
+/// Beat, Craft, Image, Answer, Range; debate: Claim, Reason, Answer, Craft, Poise).
 ///
-/// `reveal` (0...1) drives the count-up while Homer speaks the verdict: the
-/// axes fill in order (Beat, Craft, Image, Answer, Range), then the total.
+/// `reveal` (0...1) drives the count-up while the host speaks the verdict: the
+/// axes fill in order, then the total.
 struct ScorecardView: View {
-    let card: Scorecard
+    let ruling: Ruling
     var reveal: Double = 1
     var poet: String? = nil
+
+    init(card: Scorecard, reveal: Double = 1, poet: String? = nil) {
+        self.init(ruling: Ruling(card), reveal: reveal, poet: poet)
+    }
+
+    init(ruling: Ruling, reveal: Double = 1, poet: String? = nil) {
+        self.ruling = ruling
+        self.reveal = reveal
+        self.poet = poet
+    }
 
     @Environment(\.stage) private var stage
 
     var body: some View {
         let k = stage.scale
-        let step = min(1, max(0, reveal)) * Double(Axis.allCases.count + 1)
+        let count = Double(ruling.axes.count)
+        let step = min(1, max(0, reveal)) * (count + 1)
         VStack(alignment: .leading, spacing: Metrics.s4 * k) {
             HStack(alignment: .lastTextBaseline) {
                 VStack(alignment: .leading, spacing: 2 * k) {
                     Text(poet ?? "The judge").tracked(10 * k, color: Palette.ink3)
-                    Text(card.verdict)
+                    Text(ruling.verdict)
                         .font(Typeface.display(20 * k, italic: true))
                         .displayLeading(20 * k, 1.18)
                         .foregroundStyle(Palette.ink)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: Metrics.s4 * k)
-                let totalShown = Int((Double(card.scores.total) * min(1, max(0, step - 5))).rounded())
+                let totalShown = Int((Double(ruling.total) * min(1, max(0, step - count))).rounded())
                 HStack(alignment: .lastTextBaseline, spacing: 2 * k) {
                     Text("\(totalShown)")
                         .font(Typeface.display(56 * k, weight: 500))
                         .foregroundStyle(Palette.ink)
                         .contentTransition(.numericText(value: Double(totalShown)))
-                    Text("/50").font(Typeface.numeral(13 * k, weight: 600)).foregroundStyle(Palette.ink3)
+                    Text("/\(ruling.axes.count * 10)").font(Typeface.numeral(13 * k, weight: 600)).foregroundStyle(Palette.ink3)
                 }
-                .opacity(step > 5 ? 1 : 0.15)
+                .opacity(step > count ? 1 : 0.15)
                 .fixedSize()
             }
 
             VStack(spacing: Metrics.s2 * k) {
-                ForEach(Array(Axis.allCases.enumerated()), id: \.element) { i, axis in
-                    let shown = Int((Double(card.scores[axis]) * min(1, max(0, step - Double(i)))).rounded())
-                    AxisRow(axis: axis, value: shown, k: k)
+                ForEach(Array(ruling.axes.enumerated()), id: \.element.id) { i, axis in
+                    let shown = Int((Double(axis.value) * min(1, max(0, step - Double(i)))).rounded())
+                    AxisRow(name: axis.name, value: shown, k: k)
                 }
             }
 
             HStack(alignment: .top, spacing: Metrics.s3 * k) {
                 Rectangle().fill(Palette.gold).frame(width: 3 * k)
-                Text("“\(card.bestLine)”")
+                Text("“\(ruling.bestLine)”")
                     .font(Typeface.display(22 * k))
                     .displayLeading(22 * k, 1.15)
                     .foregroundStyle(Palette.ink)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .fixedSize(horizontal: false, vertical: true)
-            .opacity(step >= Double(Axis.allCases.count + 1) - 0.01 ? 1 : 0)
+            .opacity(step >= count + 1 - 0.01 && !ruling.bestLine.isEmpty ? 1 : 0)
         }
         .padding(Metrics.s5 * k)
         .frame(maxWidth: 520 * k)
@@ -65,19 +77,19 @@ struct ScorecardView: View {
     }
 
     private var accessibilitySummary: String {
-        let axes = Axis.allCases.map { "\($0.rawValue) \(card.scores[$0])" }.joined(separator: ", ")
-        return "\(card.verdict). \(axes). Total \(card.scores.total) of 50. Best line: \(card.bestLine)"
+        let axes = ruling.axes.map { "\($0.name) \($0.value)" }.joined(separator: ", ")
+        return "\(ruling.verdict). \(axes). Total \(ruling.total) of \(ruling.axes.count * 10). Best line: \(ruling.bestLine)"
     }
 }
 
 private struct AxisRow: View {
-    let axis: Axis
+    let name: String
     let value: Int
     let k: CGFloat
 
     var body: some View {
         HStack(spacing: Metrics.s3 * k) {
-            Text(axis.rawValue).tracked(10 * k, color: Palette.ink2)
+            Text(name).tracked(10 * k, color: Palette.ink2)
                 .frame(width: 64 * k, alignment: .leading)
             HStack(spacing: 3 * k) {
                 ForEach(0..<10, id: \.self) { i in

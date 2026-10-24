@@ -47,6 +47,7 @@ final class AppModel {
         case "player": route = .player(code: defaults.string(forKey: "joinCode") ?? "")
         case "dev", "diagnostics": route = .dev
         case "home": route = .home
+        case "practice": route = .practice
         case "first": route = .firstOpen
         default: break
         }

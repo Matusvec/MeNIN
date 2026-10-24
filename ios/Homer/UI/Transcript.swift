@@ -9,6 +9,8 @@ struct TranscriptView: View {
     var listening: Bool = false
     var formulas: [String] = []
     var maxLines: Int = 4
+    /// Who is listening: the event's host.
+    var listener: String = "Homer"
 
     @Environment(\.stage) private var stage
 
@@ -18,7 +20,7 @@ struct TranscriptView: View {
             if listening {
                 HStack(spacing: Metrics.s2 * k) {
                     LiveDot(size: 8 * k)
-                    Text("Homer hears").tracked(10 * k, color: Palette.onHero2)
+                    Text("\(listener) hears").tracked(10 * k, color: Palette.onHero2)
                 }
             }
             let shown = Array(lines.suffix(maxLines))

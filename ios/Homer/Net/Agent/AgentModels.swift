@@ -118,6 +118,12 @@ enum JudgeEvent: Equatable, Sendable {
     case scorecard(JudgeResult)
 }
 
+struct EmotionRequest: Encodable, Sendable {
+    var text: String
+    var loudness: Double?
+    var pitch: Double?
+}
+
 struct DealRequest: Encodable, Sendable {
     var theme = ""
     var hoard: [String] = []

@@ -332,7 +332,28 @@ extension GallerySample {
         champ.round = 3
         champ.moment = .champion(p[1])
         base.moment = .roundTitle
-        return [lobby, speaking, verdict, end, finale, champ, base]
+        var debate = base
+        debate.event = .debate
+        debate.round = 1
+        debate.theme = nil
+        debate.homer = HomerLine(text: "Matus, you argue for. Define your terms before you swing them.", spoken: 0.6)
+        debate.moment = .debating(poet: p[0], side: .affirm, question: "Is it better to suffer injustice than to do it?",
+                                  transcript: ["Justice isn't a trade you make with the world", "it's the shape of the one who makes it"],
+                                  played: [FormulaCard(id: "m1", text: "Define your terms", kind: .move, used: true)],
+                                  endsAt: Date().addingTimeInterval(23), seconds: 45)
+        var ruling = debate
+        ruling.homer = HomerLine(text: "A clean definition, then you ran from it. Poise kept you standing.", spoken: 1)
+        ruling.moment = .ruling(poet: p[0], ruling: Ruling(event: .debate, values: [8, 6, 7, 7, 9],
+                                                           verdict: "A clean definition, then you ran from it.",
+                                                           bestLine: "Justice is the shape of the one who makes it"), reveal: 1)
+        var discus = base
+        discus.event = .discus
+        discus.homer = HomerLine(text: "Sunya steps into the ring.", spoken: 1)
+        discus.moment = .discus(DiscusArenaModel(thrower: p[1], phase: .flight(progress: 0.7), distance: 47.3, record: 52.1,
+                                                 recordHolder: "Ham", attempt: 2, attempts: 3,
+                                                 board: [DiscusMark(poet: p[0], best: 38.4), DiscusMark(poet: p[1], best: 44.0),
+                                                         DiscusMark(poet: p[2], best: 52.1)]))
+        return [lobby, speaking, verdict, end, finale, champ, base, debate, ruling, discus]
     }
 
     static var phoneMoments: [PlayerModel] {
@@ -347,7 +368,19 @@ extension GallerySample {
         result.moment = .result(card: card, reveal: 1, coined: "storm-throated")
         var final = PlayerModel(me: me, code: "WKRD", round: 3, rounds: 3)
         final.moment = .final(place: 2, of: 3, champion: poets[1])
-        return [join, speak, result, final]
+        var debate = PlayerModel(event: .debate, me: me, code: "WKRD", round: 1, rounds: 3)
+        debate.moment = .debating(side: .affirm, question: "Is it better to suffer injustice than to do it?",
+                                  transcript: "Justice isn't a trade you make with the world",
+                                  moves: [FormulaCard(id: "m1", text: "Define your terms", kind: .move, used: true),
+                                          FormulaCard(id: "m2", text: "Counterexample", kind: .move, used: false),
+                                          FormulaCard(id: "m3", text: "Analogy", kind: .move, used: false),
+                                          FormulaCard(id: "m4", text: "Concede and turn", kind: .move, used: false),
+                                          FormulaCard(id: "m5", text: "Ask a question", kind: .move, used: false)],
+                                  whisperedId: "m2", talking: true, level: 0.5, endsAt: Date().addingTimeInterval(23), seconds: 45)
+        debate.homer = HomerLine(text: "What would a tyrant say to that?", whisper: true)
+        var discus = PlayerModel(event: .discus, me: me, code: "WKRD")
+        discus.moment = .discus(DiscusPhoneModel(phase: .winding(power: 0.62), attemptsLeft: 2))
+        return [join, speak, result, final, debate, discus]
     }
 }
 

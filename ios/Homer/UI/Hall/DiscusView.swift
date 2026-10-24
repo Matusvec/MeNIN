@@ -3,14 +3,20 @@ import SwiftUI
 /// The discus throw on the arena: a matte paper discus flies its arc over a
 /// field marked every 10 m, lands, and the distance stamps in.
 ///
-/// `progress` (0...1) is the flight; the iOS lead drives it from the measured
-/// throw. `record` draws the best mark so far as a gold flag.
+/// `progress` (0...1) is the flight, driven by the discus presenter from the
+/// throw's server time. `record` draws the hall's best as a gold flag; the
+/// legend flag marks Phayllos, whose throw of about 29 m the ancients sang of.
+/// A foul lands "into the crowd": the distance is struck and doesn't count.
 struct DiscusThrowView: View {
     let distance: Double // metres
     var progress: Double = 1
     var record: Double? = nil
     var poet: String? = nil
+    var foul: Bool = false
+    var legend: (label: String, metres: Double)? = ("Phayllos", 29)
     var fieldLength: Double = 80
+    /// The flight area's height before stage scaling.
+    var fieldHeight: CGFloat = 300
 
     @Environment(\.stage) private var stage
 
@@ -38,9 +44,13 @@ struct DiscusThrowView: View {
                         Text("\(m)").font(Typeface.numeral(11 * k, weight: 600)).foregroundStyle(Palette.paper.opacity(0.6))
                             .position(x: mx, y: ground + 28 * k)
                     }
+                    if let legend {
+                        Flag(label: legend.label, color: Palette.paper, k: k)
+                            .position(x: x(for: legend.metres, w) + 18 * k, y: ground - 22 * k)
+                    }
                     if let record {
                         Flag(label: String(format: "%.1f", record), color: Palette.gold, k: k)
-                            .position(x: x(for: record, w), y: ground - 22 * k)
+                            .position(x: x(for: record, w) + 12 * k, y: ground - 22 * k)
                     }
 
                     // The arc so far, dashed like a thrown line drawn in chalk.
@@ -55,21 +65,27 @@ struct DiscusThrowView: View {
                         .position(at)
 
                     if p >= 1 {
-                        Rectangle().fill(Palette.vermilion).frame(width: 3 * k, height: 26 * k)
+                        Rectangle().fill(foul ? Palette.ink3 : Palette.vermilion).frame(width: 3 * k, height: 26 * k)
                             .position(x: land.x, y: ground + 4 * k)
                             .transition(.scale(scale: 0.2, anchor: .bottom))
                     }
                 }
             }
-            .frame(height: 300 * k)
+            .frame(height: fieldHeight * k)
 
             HStack(alignment: .lastTextBaseline, spacing: Metrics.s2 * k) {
                 if let poet { Text(poet).tracked(12 * k, color: Palette.ink2) }
+                if foul && progress >= 1 {
+                    Text("Into the crowd").chip(11 * k, fill: Palette.vermilion, color: Palette.cream)
+                }
                 Spacer()
-                Text(progress >= 1 ? String(format: "%.1f", distance) : "—")
-                    .font(Typeface.display(64 * k, weight: 900))
-                    .foregroundStyle(Palette.ink)
-                    .contentTransition(.numericText(value: progress >= 1 ? distance : 0))
+                // The distance counts up as the discus flies, and lands heavy.
+                let shown = distance * min(1, max(0, progress))
+                Text(progress > 0 ? String(format: "%.1f", shown) : "0.0")
+                    .font(Typeface.display(64 * k, weight: progress >= 1 ? 900 : 500))
+                    .strikethrough(foul && progress >= 1, color: Palette.vermilion)
+                    .foregroundStyle(progress > 0 && !(foul && progress >= 1) ? Palette.ink : Palette.ink3)
+                    .contentTransition(.numericText(value: shown))
                 Text("m").font(Typeface.display(26 * k, weight: 700)).foregroundStyle(Palette.ink2)
             }
             .padding(.horizontal, Metrics.s5 * k)
@@ -78,7 +94,7 @@ struct DiscusThrowView: View {
         }
         .animation(Motion.stamp, value: progress >= 1)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(progress >= 1 ? String(format: "%.1f metres", distance) : "Discus in flight")
+        .accessibilityLabel(progress >= 1 ? (foul ? "Foul, into the crowd" : String(format: "%.1f metres", distance)) : "Discus in flight")
     }
 
     private func x(for metres: Double, _ width: CGFloat) -> CGFloat {

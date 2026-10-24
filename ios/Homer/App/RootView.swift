@@ -52,8 +52,7 @@ struct RootView: View {
             // TODO: Bard lessons 1–3 (/lessons, /lesson/feedback).
             Routed(app: app, title: "Bard") { Text("Lessons are coming.") }
         case .practice:
-            // TODO: Practice (/deal, /judge over SSE, the phone plays the beat).
-            Routed(app: app, title: "Practice") { Text("Sparring is coming.") }
+            Routed(app: app, title: "Practice") { PracticeScreen(app: app) }
         case .dev:
             Routed(app: app, title: "Dev") { DevMenu(app: app) }
         }

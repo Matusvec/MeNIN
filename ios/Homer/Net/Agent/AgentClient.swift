@@ -66,6 +66,14 @@ struct AgentClient: Sendable {
         return try JSONDecoder().decode(Themes.self, from: data).themes
     }
 
+    /// The scene's color layer in solo modes. Weights don't sum to 1; the renderer normalizes.
+    /// 422 (no words yet) and 503 (no reading in time) mean "skip this tick".
+    func emotion(_ request: EmotionRequest) async throws -> EmotionWeights {
+        struct Response: Decodable { var weights: EmotionWeights }
+        let response: Response = try await post("emotion", request)
+        return response.weights
+    }
+
     func deal(_ request: DealRequest) async throws -> DealResponse {
         try await post("deal", request)
     }

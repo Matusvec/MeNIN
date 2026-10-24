@@ -27,7 +27,7 @@ private struct ArenaCanvas: View {
                 .transition(.opacity.combined(with: .scale(scale: 0.98)))
                 .id(momentKey)
             if let homer = model.homer {
-                CaptionView(text: homer.text, spoken: homer.spoken, whisper: homer.whisper)
+                CaptionView(text: homer.text, spoken: homer.spoken, speaker: model.event.host.name, whisper: homer.whisper)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
@@ -50,6 +50,9 @@ private struct ArenaCanvas: View {
         case .roundEnd: "end\(model.round)"
         case .finale: "finale"
         case .champion: "champion"
+        case .debating(let p, _, _, _, _, _, _): "debate\(p.id)"
+        case .ruling(let p, _, _): "ruling\(p.id)"
+        case .discus: "discus"
         }
     }
 
@@ -165,6 +168,38 @@ private struct ArenaCanvas: View {
                 ChampionView(poet: poet, onRematch: actions.rematch, onNewPoets: actions.newPoets)
                 ScoreboardView(poets: model.poets, round: model.rounds, rounds: model.rounds)
             }
+
+        case .debating(let poet, let side, let question, let transcript, let played, let endsAt, let seconds):
+            VStack(spacing: Metrics.s4 * k) {
+                QuestionCard(question: question, round: model.round > 0 ? model.round : nil)
+                HStack(alignment: .top, spacing: Metrics.s5 * k) {
+                    VStack(alignment: .leading, spacing: Metrics.s4 * k) {
+                        HStack(spacing: Metrics.s3 * k) {
+                            poetTag(poet, live: true)
+                            SideChip(side: side)
+                        }
+                        TranscriptView(lines: transcript, listening: true, maxLines: 4, listener: model.event.host.name)
+                        Spacer(minLength: 0)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    VStack(alignment: .trailing, spacing: Metrics.s4 * k) {
+                        TurnClockView(endsAt: endsAt, seconds: seconds, size: 120)
+                        if let move = played.last {
+                            RevealedCardView(card: move, poet: poet.name).id(move.id)
+                        }
+                    }
+                    .frame(width: 300 * k, alignment: .trailing)
+                }
+            }
+
+        case .ruling(let poet, let ruling, let reveal):
+            HStack(alignment: .center, spacing: Metrics.s6 * k) {
+                ScorecardView(ruling: ruling, reveal: reveal, poet: poet.fullName)
+                ScoreboardView(poets: model.poets, round: model.round, rounds: model.rounds)
+            }
+
+        case .discus(let discus):
+            DiscusArenaView(model: discus)
         }
     }
 

@@ -12,8 +12,9 @@ enum ServerConfig {
         let agent: String
     }
 
-    // TODO: the agent's public URL once builder's deploy (Vultr + Cloudflare Tunnel) is up.
-    static let maincloud = Preset(id: "maincloud", url: "https://maincloud.spacetimedb.com", database: "homer-calhacks", agent: "")
+    /// The demo path: Maincloud plus builder's agent on DigitalOcean (Caddy, Let's Encrypt via sslip.io).
+    static let maincloud = Preset(id: "maincloud", url: "https://maincloud.spacetimedb.com", database: "homer-calhacks",
+                                  agent: "https://206.189.237.157.sslip.io")
     /// The laptop that hosts SpacetimeDB and the agent in dev. Simulators and the Mac app
     /// (Designed for iPad) reach it on 127.0.0.1; a phone needs its LAN address.
     static var local: Preset {
