@@ -8,6 +8,8 @@ Logistics for judging day, Sunday Oct 25: what goes where, what gets charged, ho
 
 **The build: TestFlight build 4** (0.1.0, `202610240956`; processing as of Sat ~10 AM). It has lesson 1 (verified live), debate, discus, the force-quit rejoin, the hall and the app key. **Build 4 judges the beat more strictly than build 3,** so the first-timer study, every Beat number in the pitch and Devpost, and every rehearsal run on build 4. Before each study session and each judge, check Settings → About in MeNIN (or the TestFlight app) for build `202610240956`. A later freeze build replaces it only if leader says so, and then the Beat numbers get rechecked.
 
+**The hands: Moss deals them, judging included** (leader, Sat ~11 AM). `HOMER_DEALER=moss` is on in production; the old tag dealer takes over silently only if Moss stalls. So **the poets rehearse on Moss hands: start from [demo-hands.md](demo-hands.md)**, builder's sample Moss hands for the three demo themes. The Sat 2 PM full-battle checkpoint, the Sat 8 PM runs and every rehearsal use Moss hands. Moss ranks by meaning, so the hand for the same theme can vary a little between deals. Rehearse the theme's feel, not a fixed five.
+
 ## Sunday timeline
 
 | Time | What | Who |

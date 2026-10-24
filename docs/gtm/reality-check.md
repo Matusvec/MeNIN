@@ -116,7 +116,7 @@ swift's measurement helps: ink-2 with the hand as keyterms gets 3% word error wi
 | --- | --- | --- |
 | Before anyone sleeps (Fri night) | Two iPhones and the arena in one SpacetimeDB room; turns advance | Debug the Swift client first thing Saturday. Ask the Spacetime booth at 9 AM. |
 | Sat 10 AM | The fast judge path, turn end to verdict text: p50 ≤ 2.5 s, p95 ≤ 4 s | Drop to a smaller model and cut output tokens. Never fake a verdict. |
-| Sat 2 PM | A full demo-mode battle on the arena, end to end, with spoken verdicts. Debate and discus are already in build; this is still the check that matters most. | Freeze features. Everyone on debate and discus moves to the battle until it passes. |
+| Sat 2 PM | A full demo-mode battle on the arena, end to end, with spoken verdicts, **on Moss hands** (the dealer is on for judging). Debate and discus are already in build; this is still the check that matters most. | Freeze features. Everyone on debate and discus moves to the battle until it passes. |
 | Sat 8 PM | Each unlocked extra event (discus, debate) runs 5 times in a row without a failure | That event goes back to a locked tile for the demo |
 | Sat 8 PM | First-timer study done (6–8 PM, run by the poet, `docs/study.md`): Beat score, first try vs last, in Bard lesson 1 | The pitch drops the number line (demo-script.md 1:26) and Devpost drops the accomplishment |
 | Sat 9 PM | Hall noise test at demo volume, with the score's level set alongside the beat | Switch to the stage-mic option (ux-flow option A). Turn the score down until Homer is clear. |

@@ -23,7 +23,7 @@ Setup: iPhones plus a Mac arena, at a shared table with 3 judges in a noisy hall
   - The tally step is skipped
   - The stitched song is capped at 4 lines
   - The crown is one line with no compliments
-- Three theme cards are on screen for the judge to pick from. The poets have rehearsed all three: "A ship that never came home", "The night before the deadline", "A city that never sleeps".
+- Three theme cards are on screen for the judge to pick from. The poets have rehearsed all three, on the Moss hands in [demo-hands.md](demo-hands.md): "A ship that never came home", "The night before the deadline", "A city that never sleeps".
 - Wired EarPods are in, and push-to-talk is checked on both phones. Captions are on for everything Homer says, because judges in that hall won't hear every word.
 - Ethernet is plugged into the Mac (through the USB-C adapter), and the speaker is wired into the Mac's headphone jack. The backup video is open in a second window and saved on all three phones. Phones are on power banks until the judge arrives. Full logistics are in [run-sheet.md](run-sheet.md).
 - Native iOS needs no audio-unlock tap, so the browser autoplay constraint from ux-flow doesn't apply.
@@ -78,7 +78,7 @@ Swap the 1:10–1:26 line for theirs. Same length, same spot.
 | **Anthropic** | "Claude is the judge and the coach. It gets your hand, the verse you're answering, and a beat count from a deterministic scanner, so it never guesses the beat. Every verdict shows five scores and the line it's quoting. Where it can go wrong: taste is contestable, so you see exactly why you lost." |
 | **Meta** | "Two strangers, answering each other in verse, in one room. The judge literally scores how well you answer the person before you. And at the end, Homer stitches everyone's lines into one song. You leave having made something together." |
 | **Apify** | "About a quarter of the phrases Homer deals you were mined by an Apify Actor from four public-domain Homer translations. Our Actor reads the translations with plain rules, no language model, counts every phrase's beat with our own scanner, and a person reviewed every one it found." |
-| **Moss** *(only if the Moss dealer is on for the demo)* | "Your hand was dealt by Moss. It ranks all 213 of our formulas by meaning against the theme in about 14 milliseconds on our server. 'My grandmother's kitchen' finds 'the high-roofed hall' without sharing a word. If Moss ever stalls, the old dealer takes over silently." |
+| **Moss** *(the dealer is on for judging)* | "Your hand was dealt by Moss. It ranks all 213 of our formulas by meaning against the theme in about 14 milliseconds on our server. 'My grandmother's kitchen' finds 'the high-roofed hall' without sharing a word. If Moss ever stalls, the old dealer takes over silently." |
 | **Fetch.ai** *(only if homer-bard is live)* | "Homer is also an agent on Agentverse. From ASI:One you can ask him for a theme, get your five phrases, send a verse and get judged by the same scanner and judge you just watched." |
 | **Figma** | "Every screen and all eight emotion palettes started in Figma, and the agents building the app read the Figma file directly. The stage log in our Devpost shows each handoff, including what broke." |
 
