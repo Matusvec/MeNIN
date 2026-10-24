@@ -1,0 +1,361 @@
+/* Talk to Homer (the coach event) and Bard mode on the website (artist). The poet
+   speaks into their phone; this screen shows it live: Homer up front, his reply
+   big, the poet's words as they come, the conversation as a calm scroll. In
+   HohHamNap's palette. Matte: flat fills, no glow.
+   data-mic: listening = the poet is speaking (phone mic open), thinking = Homer
+   is answering, speaking = Homer's voice is playing, off = waiting for the poet.
+   The class contract (multiplayer builds the pages):
+
+   <div class="coach" data-mic="listening | thinking | speaking | off">
+     <ol class="coach-log">                        the conversation, a calm scroll
+       <li class="turn homer"><b>Homer</b><p>…</p></li>
+       <li class="turn you"><b>You</b><p>…</p></li>
+     </ol>
+     <p class="live-words">{final}<span class="partial">{partial}</span></p>
+     <div class="mic-state"><i class="mic-mark"></i><strong>…</strong><small>…</small></div>
+     <blockquote class="reply"><b>Homer</b><p>…</p></blockquote>   his latest answer, big
+   </div>
+
+   Bard mode adds, inside .coach: .lesson-title (span + h2 + p), .verse-model
+   (b + p per line), .note-card (b + p, small.score), .landed. */
+
+.coach {
+  display: grid;
+  gap: 1rem;
+  color: #2c4b5c;
+}
+
+/* ── The mic state: what's happening right now, unmistakable ─────────────── */
+
+.coach .mic-state {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.9rem;
+  align-items: center;
+  padding: 0.9rem 1.2rem;
+  color: #2c4b5c;
+  background: #edf7f9;
+  border: 1px solid rgb(79 148 171 / 18%);
+  border-radius: 1.1rem;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.coach .mic-state strong {
+  font: 600 clamp(1.25rem, 2vw, 1.6rem)/1.2 Georgia, serif;
+}
+
+.coach .mic-state small {
+  grid-column: 2;
+  color: #4c6b7a;
+  font: 600 0.9rem/1.3 system-ui, sans-serif;
+}
+
+.coach .mic-mark {
+  grid-row: 1 / span 2;
+  position: relative;
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+/* Your turn: the mic is open. A solid live dot with a ring breathing out, on the drum's tempo. */
+.coach[data-mic='listening'] .mic-state {
+  color: #fff;
+  background: #328eaf;
+  border-color: #328eaf;
+}
+
+.coach[data-mic='listening'] .mic-state small {
+  color: rgb(255 255 255 / 85%);
+}
+
+.coach[data-mic='listening'] .mic-mark::before,
+.coach[data-mic='listening'] .mic-mark::after {
+  content: '';
+  position: absolute;
+  inset: 0.35rem;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.coach[data-mic='listening'] .mic-mark::after {
+  inset: 0;
+  background: none;
+  border: 0.18rem solid #fff;
+  animation: coach-ring 1.5s ease-out infinite;
+}
+
+/* Homer is thinking: three beats lighting in turn (80 bpm), the app's language. */
+.coach[data-mic='thinking'] .mic-mark {
+  width: 2.2rem;
+  height: 0.7rem;
+  background:
+    radial-gradient(circle, #328eaf 0 0.3rem, transparent 0.32rem) 0 50% / 0.73rem 0.7rem no-repeat,
+    radial-gradient(circle, rgb(50 142 175 / 30%) 0 0.26rem, transparent 0.28rem) 0 50% / 0.73rem 0.7rem repeat-x;
+  animation: coach-beat 2.25s step-end infinite;
+}
+
+/* Homer speaks: his voice as five bars, on the dark slab of his dialogue card. */
+.coach[data-mic='speaking'] .mic-state {
+  color: #fff;
+  background: #334b5b;
+  border-color: #334b5b;
+}
+
+.coach[data-mic='speaking'] .mic-state small {
+  color: rgb(255 255 255 / 80%);
+}
+
+.coach[data-mic='speaking'] .mic-mark {
+  width: 1.9rem;
+  background:
+    linear-gradient(#fff, #fff) 0 50% / 0.22rem 40% no-repeat,
+    linear-gradient(#fff, #fff) 25% 50% / 0.22rem 75% no-repeat,
+    linear-gradient(#fff, #fff) 50% 50% / 0.22rem 100% no-repeat,
+    linear-gradient(#fff, #fff) 75% 50% / 0.22rem 65% no-repeat,
+    linear-gradient(#fff, #fff) 100% 50% / 0.22rem 35% no-repeat;
+  animation: coach-voice 0.75s ease-in-out infinite alternate;
+}
+
+.coach[data-mic='off'] .mic-state {
+  color: #4c6b7a;
+  background: #f2f6f7;
+}
+
+.coach[data-mic='off'] .mic-mark {
+  border-radius: 50%;
+  background: #b9c7cd;
+  transform: scale(0.6);
+}
+
+/* Homer up front: on the coach screen his stage takes half the room. */
+.mode-layout:has(.coach) {
+  grid-template-columns: minmax(18rem, 1fr) minmax(0, 1.1fr);
+}
+
+/* ── Homer's reply: the caption, big, from across the room ───────────────── */
+
+.coach .reply {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: clamp(1.1rem, 2.4vw, 1.8rem);
+  color: #fff;
+  background: #334b5b;
+  border-radius: 1.3rem;
+  animation: coach-in 0.4s ease-out both;
+}
+
+.coach .reply b {
+  color: #e2bd6c;
+  font: 700 0.85rem/1 system-ui, sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.coach .reply p {
+  margin: 0;
+  font: italic 400 clamp(1.6rem, 2.8vw, 2.6rem)/1.3 Georgia, serif;
+}
+
+/* ── Your live words: big, so you see Homer hears you ────────────────────── */
+
+.coach .live-words {
+  min-height: 2.6em;
+  margin: 0;
+  padding: 0.9rem 1.2rem;
+  color: #2c4b5c;
+  font: 400 clamp(1.7rem, 3vw, 2.8rem)/1.25 Georgia, serif;
+  background: #f7fbfc;
+  border-left: 0.35rem solid #9fcfe0;
+  border-radius: 0.6rem;
+}
+
+.coach .live-words:empty::before {
+  content: 'Your words appear here as you speak';
+  color: #9aaab3;
+  font-style: italic;
+  font-size: 0.6em;
+}
+
+.coach .live-words .partial {
+  color: #7b8d96;
+}
+
+.coach[data-mic='listening'] .live-words {
+  border-left-color: #328eaf;
+}
+
+/* ── The conversation: a calm scroll, newest at the bottom ────────────────── */
+
+.coach .coach-log {
+  display: grid;
+  gap: 0.6rem;
+  max-height: min(40vh, 26rem);
+  margin: 0;
+  padding: 0.5rem 0.2rem 0.2rem;
+  overflow-y: auto;
+  list-style: none;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+  mask-image: linear-gradient(transparent, #000 2.5rem);
+}
+
+.coach .turn {
+  display: grid;
+  gap: 0.25rem;
+  max-width: 85%;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  animation: coach-in 0.35s ease-out both;
+}
+
+.coach .turn b {
+  color: #328eaf;
+  font: 700 0.75rem/1 system-ui, sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.coach .turn p {
+  margin: 0;
+  font: 400 clamp(1.05rem, 1.5vw, 1.25rem)/1.45 Georgia, serif;
+}
+
+.coach .turn.homer {
+  justify-self: start;
+  color: #fff;
+  background: #334b5b;
+}
+
+.coach .turn.homer b {
+  color: #e2bd6c;
+}
+
+.coach .turn.homer p {
+  font-style: italic;
+}
+
+.coach .turn.you {
+  justify-self: end;
+  color: #2c4b5c;
+  background: #e3f1f6;
+}
+
+/* ── Bard mode: the lesson pieces ─────────────────────────────────────────── */
+
+.coach .lesson-title span {
+  color: #2f7f9c;
+  font: 700 0.95rem/1 system-ui, sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.coach .lesson-title h2 {
+  margin: 0.3rem 0 0;
+  color: #2c4b5c;
+  font: 500 clamp(2rem, 3.6vw, 3.2rem)/1.08 Georgia, serif;
+}
+
+.coach .lesson-title p {
+  margin: 0.4rem 0 0;
+  color: #355d72;
+  font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+}
+
+/* Homer's verse, the model to follow. */
+.coach .verse-model {
+  display: grid;
+  gap: 0.25rem;
+  padding: 1rem 1.2rem;
+  background: #fff;
+  border: 1px solid rgb(79 148 171 / 18%);
+  border-radius: 1rem;
+}
+
+.coach .verse-model b {
+  color: #2f7f9c;
+  font: 700 0.8rem/1 system-ui, sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.coach .verse-model p {
+  margin: 0;
+  font: italic 400 clamp(1.3rem, 2.2vw, 1.9rem)/1.3 Georgia, serif;
+}
+
+/* Homer's one note: the dark slab, gold label. */
+.coach .note-card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem 1.2rem;
+  color: #fff;
+  background: #334b5b;
+  border-radius: 1rem;
+  animation: coach-in 0.35s ease-out both;
+}
+
+.coach .note-card b {
+  color: #e2bd6c;
+  font: 700 0.8rem/1 system-ui, sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.coach .note-card p {
+  margin: 0;
+  font: italic 400 clamp(1.25rem, 2vw, 1.7rem)/1.35 Georgia, serif;
+}
+
+.coach .note-card .score {
+  color: rgb(255 255 255 / 75%);
+  font: 600 0.95rem system-ui, sans-serif;
+}
+
+/* The lesson landed: a gold seal that stamps. */
+.coach .landed {
+  justify-self: center;
+  padding: 0.6rem 1.4rem;
+  color: #2c4b5c;
+  font: 700 clamp(1.1rem, 1.8vw, 1.4rem)/1 Georgia, serif;
+  background: #e2bd6c;
+  border-radius: 99rem;
+  animation: coach-stamp 0.4s ease-out both;
+}
+
+@keyframes coach-ring {
+  0% { opacity: 0.9; transform: scale(0.6); }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+
+@keyframes coach-beat {
+  0% { background-position: 0 50%, 0 50%; }
+  33.333% { background-position: 50% 50%, 0 50%; }
+  66.666% { background-position: 100% 50%, 0 50%; }
+}
+
+@keyframes coach-voice {
+  from { background-size: 0.22rem 30%, 0.22rem 90%, 0.22rem 60%, 0.22rem 100%, 0.22rem 45%; }
+  to { background-size: 0.22rem 80%, 0.22rem 45%, 0.22rem 100%, 0.22rem 55%, 0.22rem 90%; }
+}
+
+@keyframes coach-in {
+  from { opacity: 0; transform: translateY(0.4rem); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes coach-stamp {
+  0% { opacity: 0; transform: scale(1.35); }
+  60% { opacity: 1; transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coach .mic-mark,
+  .coach .mic-mark::after,
+  .coach .turn,
+  .coach .note-card,
+  .coach .landed {
+    animation: none;
+  }
+}

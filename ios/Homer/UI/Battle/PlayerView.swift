@@ -28,6 +28,7 @@ struct PlayerView: View {
         case .speaking: "speak"
         case .weighing: "weigh"
         case .closing: "closing"
+        case .answering(let reply, _): reply == nil ? "answering" : "reply"
         case .result: "result"
         case .final: "final"
         case .debating: "debate"
@@ -42,6 +43,7 @@ struct PlayerView: View {
         case .poetry: "Poetry"
         case .debate: "Debate"
         case .discus: "Discus"
+        case .coach: "Talk to Homer"
         }
     }
 
@@ -217,6 +219,45 @@ struct PlayerView: View {
                     LoadingMark()
                     Spacer(minLength: 0)
                 }
+            } action: {
+                EmptyView()
+            }
+
+        case .answering(let reply, let yourTurnAgain):
+            PhoneScaffold(eyebrow: "Talk to Homer", title: model.theme, onBack: actions.leave,
+                          homer: nil, host: model.event.host.name, wait: model.wait) {
+                VStack(spacing: Metrics.s4) {
+                    if let reply, !reply.isEmpty {
+                        // His answer, as a card: the coach, not a judge. No scores.
+                        VStack(alignment: .leading, spacing: Metrics.s2) {
+                            Text("Homer").tracked(10, color: Palette.gold)
+                            Text(reply)
+                                .font(Typeface.display(22, italic: true))
+                                .displayLeading(22, 1.25)
+                                .foregroundStyle(Palette.onHero)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding(Metrics.s5)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .paper(Palette.hero, radius: Metrics.radiusL)
+                        .transition(.scale(scale: 0.96).combined(with: .opacity))
+                    } else {
+                        WaitLine(state: .custom("Homer is answering…"))
+                    }
+                    if yourTurnAgain {
+                        Text("Your turn again. Get ready to speak.")
+                            .font(Typeface.text(15, weight: 600))
+                            .foregroundStyle(Palette.cream)
+                            .padding(.horizontal, Metrics.s4)
+                            .padding(.vertical, Metrics.s3)
+                            .frame(maxWidth: .infinity)
+                            .paper(Palette.sea, radius: Metrics.radiusM)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+                    Spacer(minLength: 0)
+                }
+                .animation(Motion.slide, value: reply)
+                .animation(Motion.slide, value: yourTurnAgain)
             } action: {
                 EmptyView()
             }
@@ -714,7 +755,7 @@ private struct JoinScreen: View {
     private enum Field { case code, name }
 
     var body: some View {
-        PhoneScaffold(eyebrow: "Battle", title: "Join the Agon", onBack: onBack, wait: wait) {
+        PhoneScaffold(eyebrow: "Battle · Talk to Homer", title: "Join the room", onBack: onBack, wait: wait) {
             VStack(alignment: .leading, spacing: Metrics.s3) {
                 VStack(alignment: .leading, spacing: Metrics.s2) {
                     Text("Room code").tracked(10)

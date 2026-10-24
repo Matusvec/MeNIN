@@ -627,6 +627,7 @@ struct EventEntryView: View {
         case .poetry: ("Practice", "Spar with Homer, full judge breakdown")
         case .debate: ("Train with Socrates", "One on one, best of three")
         case .discus: ("Throw", "On your own, no second phone")
+        case .coach: ("Talk to Homer", "Open the website, then join here")
         }
     }
 }
@@ -762,7 +763,7 @@ struct PhoneHomeView: View {
     @FocusState private var typing: Bool
 
     var body: some View {
-        PhoneScaffold(eyebrow: name.map { "Welcome, \($0)" } ?? "Welcome", title: "Battle, or train?", wait: wait) {
+        PhoneScaffold(eyebrow: name.map { "Welcome, \($0)" } ?? "Welcome", title: "Play, or train?", wait: wait) {
             WordmarkView(size: 20)
         } middle: {
             VStack(alignment: .leading, spacing: Metrics.s4) {
@@ -778,7 +779,7 @@ struct PhoneHomeView: View {
                 Spacer(minLength: 0)
             }
         } action: {
-            Button(action: join) { ArrowLabel(title: "Join the battle") }
+            Button(action: join) { ArrowLabel(title: "Join") }
                 .buttonStyle(.homer(wide: true))
                 .disabled(code.count != 4 || actions.join == nil || wait != nil)
         }
@@ -786,8 +787,8 @@ struct PhoneHomeView: View {
 
     private var battleCard: some View {
         VStack(alignment: .leading, spacing: Metrics.s3) {
-            Text("Battle").tracked(11, color: Palette.onHero2)
-            Text("Open the website on a laptop, then join here.")
+            Text("Battle · Talk to Homer").tracked(11, color: Palette.onHero2)
+            Text("Open the website on a laptop, pick Battle or Talk to Homer, then join here.")
                 .font(Typeface.display(22))
                 .displayLeading(22, 1.15)
                 .foregroundStyle(Palette.onHero)

@@ -6,12 +6,16 @@ import Foundation
 
 enum EventKind: String, CaseIterable, Sendable {
     case poetry, debate, discus
+    /// "Talk to Homer": the poet speaks free verse on the phone, Homer answers on
+    /// the website, then the next turn. No scorecard.
+    case coach
 
     var title: String {
         switch self {
         case .poetry: "Poetry Battle"
         case .debate: "Socratic Debate"
         case .discus: "Discus"
+        case .coach: "Talk to Homer"
         }
     }
 
@@ -22,7 +26,7 @@ enum EventKind: String, CaseIterable, Sendable {
         switch self {
         case .poetry: ["Beat", "Craft", "Image", "Answer", "Range"]
         case .debate: ["Claim", "Reason", "Answer", "Craft", "Poise"]
-        case .discus: []
+        case .discus, .coach: []
         }
     }
 

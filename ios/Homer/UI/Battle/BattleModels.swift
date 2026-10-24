@@ -157,6 +157,9 @@ enum PlayerMoment: Equatable {
     /// You reopened the app mid-turn: the mic stays closed and the server's
     /// timer ends the turn with what you already said.
     case closing(transcript: [String])
+    /// Talk to Homer, after your turn: nil while he's answering ("Homer is
+    /// answering…"), then his reply; `yourTurnAgain` once the next turn is waiting.
+    case answering(reply: String?, yourTurnAgain: Bool)
     /// T5–T8 · Your scores (`reveal` 0...1) and anything coined into your hoard.
     case result(card: Scorecard, reveal: Double, coined: String?)
     /// B7 · Where you placed.
