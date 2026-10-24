@@ -33,8 +33,8 @@ Setup: iPhones plus a Mac arena, at a shared table with 3 judges in a noisy hall
 | Time | Who | What happens on the arena | What's said |
 | --- | --- | --- | --- |
 | **0:00–0:04** | Homer | The operator triggers **the first-open line** (demo mode: *replay opening*). The scene stirs to his voice, with captions. | Homer: "The first word of Western literature is *mēnin*. Rage." *(This is SPEC "First open", P12. The TTS must say "MAY-nin", so check the pronunciation.)* |
-| **0:04–0:10** | Matus | **The event menu** over the idling scene: the poetry battle lit, other shipped events lit, the rest locked tiles. | "**MeNIN**. Ancient Greek party games, like Wii Sports, with your iPhone as the controller. The main event is a poetry battle, judged by Homer." *("Wii Sports" is a spoken comparison only and never appears on screen.)* |
-| **0:10–0:14** | Judge | Matus opens the poetry battle. Its intro cue from the original score plays **under** the three theme cards, which appear right away; the cue must never delay them. | Matus: "Pick our battleground." The judge points and the operator taps. *(This is the 10-second judge moment: low pressure, and it proves nothing is pre-scripted. Cut it first if we're over time. If discus shipped, the judge's real moment is the throw after 2:00.)* |
+| **0:04–0:14** | Matus | **The event menu** over the idling scene: the poetry battle lit, other shipped events lit, the rest locked tiles. On "party games", Matus opens the poetry battle. | "AI can write anything now. It can't stand up and move a room for you. The Greeks trained that like a sport. **MeNIN** is their games: party games for your voice, with your iPhone as the controller." *(Matus's thesis, about 10 s. Say it like a fact, not a lecture. It takes the theme-pick slot, so the theme is preloaded. If the judge seems eager, keep the theme pick and drop "The Greeks trained that like a sport".)* |
+| | | *(Theme pick: off by default now. The opener took its 4 s. Put it back only by trimming the opener, as noted above.)* | |
 | **0:14–0:18** | Homer | The theme lands and both phones get their private hands. | Homer, MC voice: "A ship that never came home. **Salt-Tongued** Priya, the sea is yours." *(The epithet is whatever the poet forged in lesson 3; the name here is a placeholder.)* |
 | **0:18–0:33** | Poet | **Turn 1: count-in, then 2 lines with a rest bar after each (15 s).** The beat lane fills as stresses hit pulses and land like drum strikes. The poet's phone pulses the beat in their hand. A formula card flips onto the arena when it's spoken. The scene moves with the poet's voice, and its color fields shift as the feeling turns. | The poet spits. Prepared bones, live delivery. *(The hand gets explained here, in the moment: "Five phrases that already fit the beat. That's how Homer improvised.")* |
 | **0:33–0:39** | Homer | "Hah." at 0.3 s. The verdict starts by about 3 s, with five axes counting up and the best line quoted. | Homer: one knockout line, e.g. "Strong bones. That second line drowned the whole fleet." |
@@ -45,13 +45,14 @@ Setup: iPhones plus a Mac arena, at a shared table with 3 judges in a noisy hall
 | **1:26–1:38** | Poet | Same. | "I do slam in [the poet's scene]. Open mics are once a week, and in between you practice alone in your room. MeNIN is a stage every night that hears your beat. Last night, five people who'd never freestyled took lesson one. Their Beat score went from **[first] to [last]** out of 10, in about **[time]** minutes." *(Fill in the real numbers from Saturday's first-timer study, using one of pm's line options in `docs/study.md`. If fewer than three people landed, drop the time. If there's no number at all, drop the last two sentences.)* |
 | **1:38–1:41** | Homer | Totals roll. | "Before I crown anyone, listen." |
 | **1:41–1:55** | Homer | **The stitched song: 4 lines over the beat.** Each line appears with its poet's name, the gold line returns, and the scene replays each line's colors. *(Generation starts the moment Matus's transcript is final, about 0:54, so it has about 45 s of headroom.)* | Homer performs the battle back as one poem. A rhapsode was a song-stitcher. Let the line land; don't explain it. |
-| **1:55–2:00** | Homer, Matus | The champion, the room code and the **champion sting** from the score. | Homer: "Salt-Tongued takes the hall." Matus: "That's MeNIN. Want to throw the discus?" *(If discus didn't ship: "Want to battle us?")* |
+| **1:55–2:00** | Homer, Matus | The champion, the room code and the **champion sting** from the score. | Homer: "Salt-Tongued takes the hall." Matus: "**Most AI talks for you. Homer makes you talk.** That's MeNIN." *(The line judges repeat afterwards. The discus invitation moves to just after 2:00.)* |
 
 **Total: 2:00.** The 2 minutes stay about 90% poetry battle. Other events get one sentence and a tile.
 
 **Music (SPEC "Music"):** the original score plays on the menu, as each event's intro, under the discus throw and as the champion sting. It never plays under a speaking poet: during turns only the procedural beat plays, and the music ducks under Homer's voice. Set the score's level in the Saturday-night hall test along with the beat.
 
 **After 2:00, if the judge stays (this is where Hacker's Choice gets won):**
+- **First, the invitation:** "Want to throw the discus?" (if it passed at 8 PM), or "Want to battle us?"
 - **Discus (if it passed the Sat 8 PM check):** hand the judge Matus's iPhone. "Swing it like a discus, and lift your thumb to release. Keep hold of the phone." The arena shows the throw over its cue from the score, the fanfare hits, and Homer calls the distance. It takes about 10 seconds, needs zero skill, and gets a laugh.
   - **Safety:** the release is a thumb lift, never opening your hand. Use a phone with a grippy case, and only swing where there's arm room, away from the shared table's laptops.
 - **Or a rematch:** hand them the phone and headset, deal a fresh hand, and run a battle against the poet.
@@ -59,7 +60,7 @@ Setup: iPhones plus a Mac arena, at a shared table with 3 judges in a noisy hall
 
 ## If we run long (cut in this order)
 
-1. Drop the judge's theme pick and preload the theme: −4 s
+1. *(Already done: the opener took the theme pick's slot.)* Next, cut "The Greeks trained that like a sport" from the opener: −3 s
 2. Drop the rest bars in both turns: −12 s. It's the cheapest real saving, but it costs some of the feel.
 3. Cut the round verdict; the carved line appears in the finale instead: −7 s
 4. Cut the how-it-works line to the three names alone ("SpacetimeDB runs the hall, Cartesia gives Homer his voice, Claude judges"): −8 s

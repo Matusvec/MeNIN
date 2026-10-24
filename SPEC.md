@@ -12,6 +12,8 @@ The name: μῆνιν (*mēnin*, "rage", said "MAY-nin") is the first word of th
 
 Homer never memorized the Iliad. He improvised it, using formulas: ready-made phrases that fit the beat ("the wine-dark sea", "swift-footed Achilles"). Every oral tradition that improvises works this way: Homer, Beowulf, freestyle rap. Learn the formulas and the beat, and you can improvise. MeNIN gives you both, with Homer himself as your teacher.
 
+Why it matters: AI can write anything now, but it can't stand up and move a room for you. A powerful voice matters more than ever, and the Greeks trained it like a sport. **Most AI talks for you. MeNIN makes you talk.**
+
 The feel is professional and badass, never academic. Homer is a legendary bard, not a professor. You are learning to spit.
 
 ## Platform

@@ -16,17 +16,34 @@ The table demo is in [demo-script.md](demo-script.md). This file holds everythin
 - **Devpost title (recommended): "MeNIN: Ancient Greek Party Games, Hosted by Homer."** Nobody knows "MeNIN" until it's explained, but everyone knows "Homer", so the title borrows his name to carry the poetry. Leader's version, "MeNIN: Party Games of Ancient Greece", is the fallback if a shorter title is wanted.
 - **Heads-up:** "menin" is also a protein in cancer biology, so a web search won't find us. That's irrelevant at the table; the domain and the TestFlight link are how people find us.
 
+## The thesis (Matus's vision)
+
+**AI can write anything now. What's left, and what matters more than ever, is a human who can stand up and move people.** The Greeks treated that as a skill you train in public, by contest: rhapsodes competing at the Panathenaic Games, citizens arguing in the Assembly, Socrates questioning people in the agora. MeNIN brings the contest back as party games, with AI as the coach and the judge, never the speaker.
+
+- **The contrast that wins the room:** most AI talks *for* you; Homer makes *you* talk. Nearly every other table is building AI that speaks or acts for the user, so this is the one idea nobody else at Cal Hacks is pitching.
+- **The newest idea is the oldest one.** The Iliad is about 2,700 years old. "The future of AI is 2,700 years old" works as a Q&A or Devpost hook. Keep it out of the opener, which already has one history line.
+- **Each event is one part of the voice.** The poetry battle is improvising, the debate with Socrates is persuading, the discus is the fun that gets you in the door.
+- **How it lands per sponsor:**
+  - **Anthropic:** AI that makes people more capable, not replaced: a public-benefit story. The community stays narrow (slam poets in [the poet's scene]), and the vision is why it matters.
+  - **Meta:** people speaking to each other in one room.
+  - **Cartesia:** voice is literally the product, yours and Homer's.
+- **Guardrails:**
+  - Two sentences of vision, then the demo proves it. A thesis without the battle is a TED talk.
+  - Say "move people" or "change minds", never "persuade" or "influence", which sound like manipulation.
+  - Never claim "a totally new way of thinking". Show it.
+  - The proof is tonight's study number: a first lesson measurably improved how people speak.
+
 ## The lines
 
 | Length | Line |
 | --- | --- |
-| **The opener (first 10 s)** | **Homer** (the app's own first-open line, P12): "The first word of Western literature is *mēnin*. Rage." Then **Matus**: "MeNIN. Ancient Greek party games, like Wii Sports, with your iPhone as the controller. The main event is a poetry battle, judged by Homer." If the app can't play it, Matus says Homer's line himself. |
+| **The opener (first 14 s)** | **Homer** (the app's own first-open line, P12): "The first word of Western literature is *mēnin*. Rage." Then **Matus**: "AI can write anything now. It can't stand up and move a room for you. The Greeks trained that like a sport. MeNIN is their games: party games for your voice, with your iPhone as the controller." If the app can't play Homer's line, Matus says it himself. *(The old "like Wii Sports" opener is the fallback for a judge who looks lost: spoken only.)* |
 | 5 s (written) | **MeNIN: ancient Greek party games, hosted by Homer. Battle in verse on one screen, with your iPhone as the controller.** |
 | The second history line (only for Q&A or Devpost, never in the opener) | "The Greeks didn't separate sport and poetry: at the Panathenaic Games, poets competed reciting Homer right next to the athletes." |
 | The hand, in one line (mechanics, not history) | "You're dealt phrases that already fit the beat. That's how Homer improvised, and how freestyle works." |
 | The agent line (once per pitch) | "Homer is a live agent doing real work: he listens, judges, coaches, hosts and writes the song from the room, about three seconds per verdict." Most Cal Hacks judges are agent engineers (#1-introductions). Say it once; more than once and it sounds like buzzwords. |
 | Finale | "A rhapsode was a song-stitcher. So Homer stitches your battle into one song." |
-| Close | "That's MeNIN. Want to throw the discus?" (or, if discus didn't ship, "Want to battle us?") |
+| Close | "**Most AI talks for you. Homer makes you talk.** That's MeNIN." Then the invitation: "Want to throw the discus?" (or "Want to battle us?") |
 
 One history line in the opener, and that line is *mēnin*. The Panathenaic line gets saved for the judge who asks "why poetry in a games app?"
 
@@ -82,6 +99,8 @@ Answer in one breath, then stop.
 
 | They ask | We say |
 | --- | --- |
+| Why does AI make speaking matter more? | "When anyone can generate a perfect paragraph, writing stops being the signal. Standing up and saying it, live, in your own voice, is what's left. The Greeks trained exactly that." |
+| Isn't training persuasion dangerous? | "Homer scores whether you answered the person in front of you, and shows you why with five scores and the quoted line. It trains you to listen and respond, not to manipulate." |
 | What does MeNIN mean? | "*Mēnin*, rage. It's the first word of the Iliad. Homer started Western literature with a fight." |
 | Why poetry in a games app? | "The Greeks didn't separate them. At the Panathenaic Games, poets competed next to the athletes." |
 | How is the AI judge not arbitrary? | "Beat isn't the AI's opinion; a stress scanner counts it. Range comes from the emotion engine. Claude scores Craft, Image and Answer with your hand and the verse you answered in front of it. You always see all five scores and the line it quoted." |

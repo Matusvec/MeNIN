@@ -79,7 +79,9 @@ Owners are roles. Matus decides who.
 
 Frame from SPEC "The games": ancient Greek party games, with the poetry battle as the main event.
 
-> Spoken: **"Ancient Greek party games, like Wii Sports, and the main event is a rap battle judged by Homer."**
+> Thesis (Matus's vision): **"AI can write anything now. It can't stand up and move a room for you. The Greeks trained that like a sport. MeNIN is their games: party games for your voice."**
+> Close: **"Most AI talks for you. Homer makes you talk."**
+> Spoken fallback, for a judge who looks lost: **"Ancient Greek party games, like Wii Sports, and the main event is a rap battle judged by Homer."**
 > Opener: **"The first word of Western literature is *mēnin*. Rage. Homer opened with a fight, and so do we."**
 > Written (Devpost, video, app): **"MeNIN: ancient Greek party games, hosted by Homer. Battle in verse on one screen, with your iPhone as the controller."**
 
