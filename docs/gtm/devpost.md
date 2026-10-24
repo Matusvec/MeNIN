@@ -180,7 +180,7 @@ Every integration below runs behind a switch, off the demo path (SPEC `5a6a8fe`)
 - **How it works:** it finds noun-epithet formulas with readable rules and no language model. It folds Roman names to Greek (Jove becomes Zeus) and merges synonyms. It counts each phrase's beats with the same CMU-dictionary rule as our stress scanner, and ranks phrases by how often and how widely they recur ("aegis-bearing Zeus" appears 60 times across two translations).
 - **What it produced:** 150 candidates. A person reviewed them and kept 55, so the bank grew from 158 to 213 formulas: about a quarter of what Homer can deal you now came from the Actor.
 
-The Actor was written by an AI coding agent (Claude Opus 5.5 in Claude Code) on the Apify SDK and Crawlee, and it's published at [Apify Store link]. It runs at build time; the game never calls Apify live. The full, honest build log is in `apify/BUILD_LOG.md`, including what went wrong: the first list was full of "dear son" and "great wealth".
+The Actor was written by an AI coding agent (Claude Opus 5.5 in Claude Code) on the Apify SDK and Crawlee, and it's published on the Apify Store: https://apify.com/matusnator/epithet-miner It runs at build time; the game never calls Apify live. The full, honest build log is in `apify/BUILD_LOG.md`, including what went wrong: the first list was full of "dear son" and "great wealth".
 
 **Fetch.ai: Homer on Agentverse.** The whole battle turn works inside an ASI:One conversation. Ask Homer for a theme, and he deals you five stock phrases that fit it. Write your verse with them, and he judges it with the same scanner and Claude judge that run our live battles: five scores, your best line quoted and a one-line verdict.  It's an agent registered on Agentverse that speaks the Agent Chat Protocol, running inside our agent service behind a switch, so the battle never depends on it. Agent: `homer-bard` (`agent1qf8cydj43pd7tue06mk9avnp45avcc4ss9gjm98r4lkjczsw0gskzw97edc`). Try it: [ASI:One link].
 
@@ -203,7 +203,7 @@ The Actor was written by an AI coding agent (Claude Opus 5.5 in Claude Code) on 
 - [ ] **Fetch.ai: Best Use of Fetch.ai** (only if Homer's judge is live on Agentverse and usable from ASI:One)
 - [ ] **Moss: Best Use of Moss** (only if theme-fitting dealing really ships behind its switch)
 - [ ] MLH: Best Use of DigitalOcean (the agent service runs there)
-- [ ] **Apify: Best use** and **Best Actor.** The formulas are in the bank (55 of 213, committed). Tag both once the Store link works.
+- [ ] **Apify: Best use** and **Best Actor.** Ready to tag: the formulas are in the bank (55 of 213), and the Actor is live on the Store (https://apify.com/matusnator/epithet-miner).
 
 Main prizes are automatic.
 

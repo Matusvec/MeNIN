@@ -239,7 +239,7 @@ Hacker Guide and Hive add: "One thing done well and usable on Monday beats a bro
 
 **Criteria:** "Project must be using Apify in a meaningful way." Best Actor is "for building an actor for this event".
 
-**Status: real (Sat ~10 AM).** Epithet Miner mined 150 candidates from four public-domain Homer translations (Gutenberg #3059, #1728, #2199, #1727). pm kept 55, so the bank went from 158 to 213. It was built by Claude Opus 5.5 in Claude Code on the Apify SDK and Crawlee (`apify/BUILD_LOG.md`). It's build-time only, the game never calls Apify, and it's off the demo path (SPEC `5a6a8fe`). The Store link is pending Matus's account.
+**Status: real (Sat ~10 AM).** Epithet Miner mined 150 candidates from four public-domain Homer translations (Gutenberg #3059, #1728, #2199, #1727). pm kept 55, so the bank went from 158 to 213. It was built by Claude Opus 5.5 in Claude Code on the Apify SDK and Crawlee (`apify/BUILD_LOG.md`). It's build-time only, the game never calls Apify, and it's off the demo path (SPEC `5a6a8fe`). **Published on the Apify Store:** https://apify.com/matusnator/epithet-miner (build 0.1.2, run on the platform, 150 formulas from 4 books per run, with an output schema; leader checked it loads logged out).
 
 **The line, exactly:** "About a quarter of the phrases Homer deals you were mined by an Apify Actor from four public-domain Homer translations." Never say "every hand": the dealer picks by theme, so some hands have none.
 
