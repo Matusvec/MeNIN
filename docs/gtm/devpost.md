@@ -8,7 +8,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 | --- | --- | --- | --- |
 | `[N]`, `[first]`, `[last]`, `[time]` | **Number** | The first-timer study on the build named in `docs/study.md` (build 11, or build 4 if 11 isn't in TestFlight; lesson 1 scores the same on both), using one of pm's line options. It's a lesson, so it's the strict "Beat" score, not the battle's Flow. | Sat 8 PM |
 | `[real-mic WER]` | **Number** | swift's rerun of the keyterm test on a real iPhone mic. If it differs from 3%/20%, it replaces those numbers everywhere. | When swift runs it |
-| `[turn-to-voice p50]` | **Number** | The measured time from a turn's end to Homer's first word, on the judging build (the 5 PM shoot's latency HUD; the 1:30 PM gate never ran) | Sat 5 PM |
+| `[turn-to-voice p50]` | **Number** | The measured time from a turn's end to Homer's first word, on build 11 (the latency HUD in the 5 PM shoot, which is the full-battle gate) | Sat 5 PM |
 | `[poet's name]`, `[the poet's scene]`, `[poet quote]`, `[composer's name]`, `[how the score was made]`, `[team]` | **A fact only Matus has** | Matus (the list went to leader) | Today |
 | `[If debate passed]`, `[If discus passed]` | Checkpoint | The Sat 8 PM check: 5 runs in a row without a failure. Delete the section if the event failed. | Sat 8 PM |
 | `[URL]` | Link | **The website** (SPEC, Sat 12:20 PM): the arena in a browser at a public HTTPS URL, served from the droplet. It's the first "try it" link. | When it's deployed |
@@ -225,7 +225,7 @@ Main prizes are automatic.
 - [ ] README explains where SpacetimeDB is used (tables, reducers, the 20 Hz stream, the private cards, the SDK patches)
 - [ ] Video, 2:00, opening with the moment ([video.md](video.md))
 - [ ] Figma Slides link, files shared with "Anyone", whole team Edu verified
-- [ ] **Matus submits the judging build for external review (Beta App Review) as soon as it finishes processing: build 11 (0.1.0, `202610241510`)**, or build 4 (`202610240956`) if 11 isn't in TestFlight. Build 11 is the one with SPEC 7866476 (Homer's three phrases, fresh themes, Flow, the hands-free mic). Lesson 1 scores the same on both, so the study numbers hold either way. Leader confirms which build the judges get.
+- [ ] **Matus submits build 11 (0.1.0, `202610241510`) for external review (Beta App Review) as soon as it finishes processing**, so the public TestFlight link works. It's the current build, with SPEC 7866476 (Homer's three phrases, fresh themes, Flow, the hands-free mic). If a later build passes the 8 PM runs instead, submit that one too. Leader confirms the judging build at 11 PM.
 - [ ] TestFlight public link installs on an iPhone that isn't on our internal tester list
 - [ ] **The website opens at [URL]** in a private window on a laptop, and on a phone on cellular with Wi-Fi off, so we know it works off our network. Then an iPhone joins its room
 - [ ] Cover image: an arena frame with the carved gold line, matte, no neon

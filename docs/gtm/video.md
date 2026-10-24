@@ -12,7 +12,7 @@ Two videos, both from real takes. Nothing is mocked, and nothing is shown as liv
 
 ## When
 
-**The main shoot is Sat 5:00–5:30 PM** (leader, Sat ~3:15 PM). The 1:30 PM gate run never happened (Matus deferred it), so there's no earlier footage to build on. The shoot runs on **TestFlight build 11** (0.1.0, `202610241510`) on the phones and **the website, with its live scene, as the arena**, after builder's 4 PM deploy. That's the UI judges will play (SPEC 7866476): Homer's three phrases, fresh themes and epithets, 3, 2, 1, SPEAK, Flow, the hands-free mic and no sound effects. 11 PM is a reshoot only if something's missing.
+**The main shoot is Sat 5:00–5:30 PM, and it's also the full-battle gate** (leader, Sat ~3:15 and 3:25 PM). The 1:30 PM gate run never happened (Matus deferred it), so there's no earlier footage to build on; Matus's earlier real-phone runs count as rehearsal. The shoot runs on **TestFlight build 11** (0.1.0, `202610241510`) on the phones and **the website, with its live scene, as the arena**, after builder's 4 PM deploy. That's the UI judges will play (SPEC 7866476): Homer's three phrases, fresh themes and epithets, 3, 2, 1, SPEAK, Flow, the hands-free mic and no sound effects. 11 PM is a reshoot only if something's missing.
 
 | Time (Sat) | What | Who |
 | --- | --- | --- |
@@ -34,7 +34,9 @@ Two videos, both from real takes. Nothing is mocked, and nothing is shown as liv
 
 ## The 5:00 PM shoot
 
-**Two takes, back to back.** Take 1 is the main footage; take 2 is the safety, and whichever is cleaner becomes the backup video. Homer writes a fresh theme and coins fresh epithets each take, so nothing repeats and nothing needs to match between takes. Cut within one take, never across two.
+**The gate comes first. If any recording slows the arena or the phones, stop recording, not the run.**
+
+**Two takes, back to back.** Take 1 is the main footage; take 2 is the safety, and whichever is cleaner becomes the backup video. **Take 2 also tests the Spacetime rejoin:** mid-battle, poet 1 force-quits MeNIN, reopens it and rejoins, and should get their seat back with their score. The operator notes whether it worked; it goes in the pitch and the README only if it did. Read the turn-to-voice time off the latency HUD in both takes for Devpost's `[turn-to-voice p50]`. Homer writes a fresh theme and coins fresh epithets each take, so nothing repeats and nothing needs to match between takes. Cut within one take, never across two.
 
 **Before 4:45 PM:** check `memory_pressure | grep 'free percentage'` on the Mac and get it to at least 30% free (quit Xcode and the simulators). Make sure every phone has at least 5 GB free and Do Not Disturb on. Load the website full screen in the Mac's browser and click **"Open the hall"**, which also lets the browser play Homer's voice, then check that Homer speaks. Start every recording, then **clap once in view of every camera**. Then the operator starts the battle.
 
@@ -42,7 +44,7 @@ Two videos, both from real takes. Nothing is mocked, and nothing is shown as liv
 | --- | --- | --- | --- | --- |
 | **A** | **The arena screen recording** | The Mac, in **OBS**: macOS Screen Capture → Application → **the browser running the website**, app audio on, mic muted; Apple VT H264 hardware encoder, 60 fps, MKV. Settings are below. | Full arena, nothing else on screen | The whole take: the entrance with the fresh theme and Homer's call, SPEAK filling the arena in each poet's color, both turns over the live scene, both verdicts with scores counting up, the carved line, the stitched song, the crown. Captions on. |
 | **B** | **Over the shoulder** | **iPhone C**, handheld by the free teammate: 1080p at 60 fps, landscape, AE/AF lock on the arena, then drag exposure down a little | From behind and just above a poet's shoulder: the phone's three phrases in the foreground, the arena beyond it, in focus on the phone | **3, 2, 1, SPEAK filling the phone**, then **Matus's freeze rescue:** Homer's phrases come forward, the one that fits is raised, Homer whispers it, Matus uses it and "+Craft" pops. Stay on Matus for turn 2; take poet 1 for turn 1. |
-| **C** | **A wide shot of the table** | **Any spare phone**, such as a teammate's own, propped or on a stand: 1080p at 60 fps, landscape, AE/AF lock on a face | Both poets, the arena screen and the operator in one frame, from about 2 m away at chest height | The human moment: two people battling, a reaction to a verdict, the room listening to the song. **Room audio comes from here.** |
+| **C** | **A wide shot of the table** | **Any spare phone**, such as a teammate's own, propped or on a stand: 1080p at 60 fps, landscape, AE/AF lock on a face | Both poets, the arena screen and the operator in one frame, from about 2 m away at chest height | The human moment: two people battling, a reaction to a verdict, the room listening to the song. In take 2, **the rejoin**: the phone force-quit, reopened, and the seat and score coming back on the arena. **Room audio comes from here.** |
 | *(D)* | *Optional:* the poets' own phone screens | Control Center → Screen Recording, **mic off** (the app has the mic) | The phone screen | Close-ups of Homer's three phrases, SPEAK, and "+Craft". Skip it if either phone is low on battery. |
 
 **If there's no spare phone for C,** iPhone C does B for turn 2 only, then moves to the wide spot for the verdict, the song and the crown. Take 2 can fill whatever C missed.
