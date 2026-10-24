@@ -10,7 +10,9 @@ This log is the main thing Figma judges. Prizes: **Best Stage Log, $2,000** ("th
 - [ ] **Figma Slides** deck (required) showing the work and the workflow. Start from their example and edit it: https://www.figma.com/slides/hViyGFvaHxTBqzYKkaYPho
   - [ ] Stage log in the deck: which Figma product we used and why, **200 words max per stage**
   - [ ] Demo video, **3 min max** (our 2-minute video works)
-  - [x] **A prototype exists to embed:** the "Prototype · Atelier" page in "MeNIN · Directions", with two flows, "1 · First open → Practice" and "2 · Battle: join → arena → champion" (artist, Sat 08:40–09:10)
+  - [x] **A prototype exists to embed:** the "Prototype · Atelier" page in "MeNIN · Directions", with two flows (artist, Sat 08:40–09:10), both Anyone can view:
+    - Flow 1, first open → event menu → Poetry → Practice turn → verdict: https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102
+    - Flow 2, join → arena turn → carved line → champion: https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364
   - [ ] The prototype and the Directions file embedded in the deck, plus the repo link (it works once the repo goes public Sun 8 AM)
 - [x] "MeNIN · Directions" shared as **Anyone with the link → can view** (Matus, Sat AM): https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv
 - [ ] Any new Figma file (the deck, a FigJam diagram) also shared with "Anyone"
