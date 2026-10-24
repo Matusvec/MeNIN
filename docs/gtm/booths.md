@@ -44,7 +44,9 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 - **Show the file, then the app.** Open "MeNIN · Directions" (figma.com/design/qyaXnV3HbIUPIfYVbyqKwv):
   - One variable collection with two modes, Atelier and Cut paper. Flip the mode and the whole screen changes direction.
   - Every variable carries its Swift name (`Palette.hero`), so one mode switch in Figma matches one launch flag in the app.
-  - Then open the app on the phone in the same direction.
+  - Then **play the prototype**: "2 · Battle: join → arena → champion" on the "Prototype · Atelier" page.
+  - Then open the real app on the phone in the same direction.
+  - Ask whether the prototype plus the Design file meets their "embed your Figma files (Make(s) and/or Figma prototypes)" rule.
 - **The line:** "One designer and a team of Claude Code sessions. The art session reads Matus's frames straight from Figma through the MCP, and we log every handoff, including what broke."
 - **Ask:**
   - "What makes a stage log win?"

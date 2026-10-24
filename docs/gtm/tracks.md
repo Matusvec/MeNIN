@@ -80,13 +80,35 @@ Criteria: Workflow Design, Adoptability ("a measurable before and after"), Outpu
 **What to submit:**
 - [ ] Figma Slides (required) with a stage log, 200 words max per stage, covering Ideation, Prototyping, Handoff and Code generation. For each stage: the tool and why, minutes spent, a 1-5 rating, and how the output got into the build.
 - [ ] Demo video, 3 min max
-- [ ] Figma files embedded (Make and/or prototypes), plus the repo link
-- [ ] All files shared with "Anyone"
+- [x] A prototype to embed: "Prototype · Atelier" in "MeNIN · Directions", two flows (artist, Sat AM)
+- [ ] The prototype and the Directions file embedded in the deck, plus the repo link (it works once the repo goes public Sun 8 AM)
+- [x] "MeNIN · Directions" shared as Anyone with the link → can view (Matus, Sat AM)
+- [ ] The deck and any FigJam file also shared with "Anyone"
 - [ ] **Every teammate Edu verified** at figma.com/education/apply
 
 **How MeNIN hits it:** one designer plus a team of Claude Code sessions, with Figma as the source of truth between them. That's a workflow another team could copy, which is what "Adoptability" means.
 
-**The problem today:** the artist's log says no Figma file exists yet, because the session had no Figma connector. **Matus has to design the arena and phone screens in Figma and connect the Figma MCP Saturday morning**, or the Workflow prize is gone. The friction going from Figma to SwiftUI (Dev Mode has SwiftUI snippets; Make outputs React) is honest friction worth logging.
+**Where we are (Sat AM):** the workflow is real now.
+- Matus drew the concept in Figma Design. The art session reads it through the Figma MCP, building from the file rather than from screenshots.
+- "MeNIN · Directions" holds both design directions in one variable collection with two modes, and every variable carries its Swift name.
+- The artist built two clickable prototype flows on the "Prototype · Atelier" page, bound to the same tokens.
+- The file is shared with Anyone. The stage log has seven entries, with honest friction in each.
+
+**The Figma Slides deck plan.** Duplicate Figma's example deck (figma.com/slides/hViyGFvaHxTBqzYKkaYPho). Artist drafts it through the Figma MCP from [figma-stage-log.md](figma-stage-log.md), and Matus edits.
+
+| # | Slide | Content |
+| --- | --- | --- |
+| 1 | Title | MeNIN: ancient Greek party games, hosted by Homer. Team. |
+| 2 | The problem | Poets practice alone between weekly open mics. One sentence. |
+| 3 | The workflow | One designer plus a team of Claude Code sessions, with Figma as the handoff between them. Reuse the FigJam how-it's-built diagram from [video.md](video.md). |
+| 4–7 | The stage log | One slide each for Ideation, Prototyping, Handoff and Code generation, **200 words max each**: the tool and why, minutes, a 1–5 rating, what made it in, and the friction. Pull from the log's entries; keep the dead ends (glow → matte, web → iOS). |
+| 8 | The prototype | **Embed the "Prototype · Atelier" flows**: "1 · First open → Practice" and "2 · Battle: join → arena → champion" |
+| 9 | Two directions, one switch | **Embed the Directions file.** One mode switch flips Atelier ↔ Cut paper, and every token has its Swift name. |
+| 10 | Before and after (Adoptability) | Comparing directions went from two code branches plus a rebuild per screen to one mode switch in Figma or one launch flag in the app. Add minutes from frame to component, and rework rounds, from the log. |
+| 11 | The demo | Embed the 2:00 video (under Figma's 3-minute cap) |
+| 12 | Links | The repo (public from Sun 8 AM), Devpost, TestFlight |
+
+**When:** a draft Sat afternoon, after asking Figma's team at the 11:45 booth visit what makes a stage log win. Final at Sat 11 PM, once the video is embedded. Share the deck as Anyone can view, and link it on Devpost.
 
 **Log:** [figma-stage-log.md](figma-stage-log.md).
 **Booth:** #35, with an activation Sat 10 AM to 2 PM; bring proof of Edu verification. People: Figma's booth team.

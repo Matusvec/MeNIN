@@ -10,8 +10,10 @@ This log is the main thing Figma judges. Prizes: **Best Stage Log, $2,000** ("th
 - [ ] **Figma Slides** deck (required) showing the work and the workflow. Start from their example and edit it: https://www.figma.com/slides/hViyGFvaHxTBqzYKkaYPho
   - [ ] Stage log in the deck: which Figma product we used and why, **200 words max per stage**
   - [ ] Demo video, **3 min max** (our 2-minute video works)
-  - [ ] Figma files embedded (Make and/or prototypes), plus a link to the repo
-- [ ] Every Figma file shared with **"Anyone"**
+  - [x] **A prototype exists to embed:** the "Prototype · Atelier" page in "MeNIN · Directions", with two flows, "1 · First open → Practice" and "2 · Battle: join → arena → champion" (artist, Sat 08:40–09:10)
+  - [ ] The prototype and the Directions file embedded in the deck, plus the repo link (it works once the repo goes public Sun 8 AM)
+- [x] "MeNIN · Directions" shared as **Anyone with the link → can view** (Matus, Sat AM): https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv
+- [ ] Any new Figma file (the deck, a FigJam diagram) also shared with "Anyone"
 - [ ] Figma tagged on Devpost
 - [ ] Booth #35 for the activation, Sat 10 AM to 2 PM; bring proof of Edu verification
 
