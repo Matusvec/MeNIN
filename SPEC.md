@@ -34,7 +34,7 @@ MeNIN is ancient Greek Wii Sports: party games from the Greek *agon* (contest), 
 | --- | --- | --- | --- |
 | Poetry battle | Homer | Spit free verse on a theme; Homer judges | Core. The rest of this spec describes it |
 | Socratic debate | Socrates | Argue a question in timed spoken turns | In build now |
-| Discus | Homer announces | Swing your phone; its motion sensors measure the throw | In build now |
+| Discus | Homer announces | Swing your phone; its motion sensors measure the throw | Unlocked: passed 5 of 5 real-phone runs on the website, Sat 4:49 PM |
 | Other events | | Locked tiles on the event menu | Not building |
 
 - Each event is a config on one engine: host, hand, rubric, turn length, beat on or off.
