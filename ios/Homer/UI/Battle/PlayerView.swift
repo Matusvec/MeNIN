@@ -151,7 +151,7 @@ struct PlayerView: View {
             where (model.handsFree || !pushToTalk) && model.typed == nil:
             // Hands-free: the whole screen is the cue (3-2-1, SPEAK, Breathe), the phrases below.
             VerseStage(lane: lane, lines: transcript.split(separator: "\n").map(String.init), hand: hand, rescueId: rescueId,
-                       level: level, topic: model.theme, ink: model.me?.ink ?? Palette.hero,
+                       level: level, topic: model.theme, ink: model.me?.ink ?? Palette.hero, window: model.verseWindow,
                        onDone: actions.done, onBack: actions.leave)
 
         case .speaking(let lane, let transcript, let hand, let rescueId, let talking, let level, let pushToTalk):
@@ -394,10 +394,10 @@ struct PhrasesHeader: View {
     }
 }
 
-/// The hands-free verse: the whole screen is the cue, read off the beat grid.
-/// The count-in stamps 3-2-1 on the beats; the speaking bar flips the screen to
-/// your seat's color with SPEAK; the rest bar says Breathe, then counts you into
-/// the next line. Homer's phrases sit below, and "+Craft" pops when one lands.
+/// The hands-free verse, no metronome: the count-in stamps 3-2-1 on the drum,
+/// then the whole screen flips to your seat's color with one SPEAK for the whole
+/// verse and a ring counting the seconds down. Your words show as Homer hears
+/// them; Homer's phrases sit below, and "+Craft" pops when one lands.
 private struct VerseStage: View {
     let lane: BeatLane
     let lines: [String]
@@ -406,7 +406,8 @@ private struct VerseStage: View {
     let level: Double
     var topic: String?
     var ink: Color
-    var barsPerLine = 2
+    /// SPEAK from start to end; nil falls back to the lane's start + 20 s.
+    var window: VerseWindow?
     var onDone: (() -> Void)?
     var onBack: (() -> Void)?
 
@@ -415,8 +416,8 @@ private struct VerseStage: View {
     private enum Cue: Equatable {
         case ready
         case count(Int)
-        case speak(line: Int)
-        case breathe
+        /// Seconds left in the verse.
+        case speak(left: Double)
         case done
     }
 
@@ -452,7 +453,7 @@ private struct VerseStage: View {
     private func background(_ cue: Cue) -> some View {
         switch cue {
         case .speak: ink
-        case .count, .breathe: Palette.ink
+        case .count: Palette.ink
         case .done: Palette.hero
         case .ready: Color.clear
         }
@@ -487,10 +488,7 @@ private struct VerseStage: View {
         }
     }
 
-    private func progress(_ cue: Cue) -> String {
-        if case .speak(let line) = cue { return "Line \(line + 1) of \(lane.lines)" }
-        return ""
-    }
+    private func progress(_ cue: Cue) -> String { "" }
 
     @ViewBuilder
     private func word(_ cue: Cue) -> some View {
@@ -504,18 +502,35 @@ private struct VerseStage: View {
                     .foregroundStyle(Palette.cream)
                     .id(n)
                     .transition(.scale(scale: 1.6).combined(with: .opacity))
-                Text(lines.isEmpty ? "Speak on the drum" : "Next line on the drum")
+                Text("Get ready")
                     .font(Typeface.text(16, weight: 600))
                     .foregroundStyle(Palette.cream.opacity(0.8))
-            case .speak:
+            case .speak(let left):
                 Text("SPEAK")
-                    .font(Typeface.display(96, weight: 900))
+                    .font(Typeface.display(88, weight: 900))
                     .foregroundStyle(Palette.cream)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
-                    .sturdy(96)
+                    .sturdy(88)
+                // The whole verse on one clock: a ring emptying, the seconds in it.
+                ZStack {
+                    Circle().stroke(Palette.cream.opacity(0.25), lineWidth: 7)
+                    Circle()
+                        .trim(from: 0, to: max(0, min(1, left / max(span.seconds, 1))))
+                        .stroke(left <= 5 ? Palette.gold : Palette.cream, style: StrokeStyle(lineWidth: 7, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+                    VStack(spacing: 0) {
+                        Text("\(Int(left.rounded(.up)))")
+                            .font(Typeface.display(38, weight: 700))
+                            .foregroundStyle(Palette.cream)
+                            .contentTransition(.numericText(countsDown: true))
+                        Text("sec").tracked(9, color: Palette.cream.opacity(0.75))
+                    }
+                }
+                .frame(width: 104, height: 104)
+                .animation(.linear(duration: 1.0 / 30), value: left)
                 MicLevelView(level: level, tint: Palette.cream)
-                Text("The mic is open")
+                Text("The mic is open. Just go.")
                     .font(Typeface.text(15, weight: 600))
                     .foregroundStyle(Palette.cream.opacity(0.85))
                 if let last = lines.last, !last.isEmpty {
@@ -526,15 +541,8 @@ private struct VerseStage: View {
                         .lineLimit(2)
                         .padding(.top, Metrics.s2)
                 }
-            case .breathe:
-                Text("Breathe")
-                    .font(Typeface.display(64, weight: 600))
-                    .foregroundStyle(Palette.cream)
-                Text("Next line on the drum")
-                    .font(Typeface.text(16, weight: 600))
-                    .foregroundStyle(Palette.cream.opacity(0.8))
             case .done:
-                Text("Last word")
+                Text("Time")
                     .font(Typeface.display(48, weight: 600))
                     .foregroundStyle(Palette.cream)
                 Text("Homer is listening")
@@ -594,22 +602,26 @@ private struct VerseStage: View {
 
     // MARK: The grid
 
+    /// The verse's span in epoch ms, its length, and the count's beat.
+    private var span: (start: Double, end: Double, seconds: Double, beatMs: Double) {
+        if let window {
+            let start = window.start.timeIntervalSince1970 * 1000
+            let end = window.end.timeIntervalSince1970 * 1000
+            return (start, end, (end - start) / 1000, 750) // the count ticks every 0.75 s
+        }
+        return (lane.startedAt, lane.startedAt + 20_000, 20, 60_000 / max(lane.bpm, 1))
+    }
+
+    /// 3-2-1 on the three ticks before the verse, then one SPEAK until the time is up.
     private func cue(at nowMs: Double) -> Cue {
-        let beatMs = 60_000 / max(lane.bpm, 1)
-        let barMs = beatMs * Double(lane.beatsPerLine)
-        let lineMs = barMs * Double(barsPerLine)
-        let elapsed = nowMs - lane.startedAt
+        let s = span
+        let elapsed = nowMs - s.start
         if elapsed < 0 {
-            let left = Int((-elapsed / beatMs).rounded(.up))
+            let left = Int((-elapsed / s.beatMs).rounded(.up))
             return left <= 3 ? .count(left) : .ready
         }
-        let line = Int(elapsed / lineMs)
-        if line >= lane.lines { return .done }
-        let within = elapsed - Double(line) * lineMs
-        if within < barMs { return .speak(line: line) }
-        if line + 1 >= lane.lines { return .done }
-        let left = Int(((lineMs - within) / beatMs).rounded(.up))
-        return left <= 3 ? .count(left) : .breathe
+        let left = (s.end - nowMs) / 1000
+        return left > 0 ? .speak(left: left) : .done
     }
 }
 

@@ -59,6 +59,10 @@ final class TurnRecorder {
     /// turn goes live and stays open for the whole verse. Lines break on the beat grid's rest bars
     /// (debate: a flush every few seconds), and Done still ends early.
     static let handsFree = true
+    /// Free verse (Matus, Sat 3:30: "I just want to spit poetry without the metronome"; SPEC "The
+    /// turn" step 3): a battle poetry turn is a 3-2-1, then one window to ends_at. No beat grid, no
+    /// beat haptics, no per-line count. Lines break on pauses. Lessons and Practice keep the beat.
+    static let freeVerse = true
     @ObservationIgnored private var lastVoiceMs = 0.0
     /// When STT last heard new words. In a loud hall noise keeps the mic's onsets coming, so a
     /// freeze is silence by either signal: no onset, or no new words.
@@ -221,6 +225,9 @@ final class TurnRecorder {
         goAt = turn.beatAt.epochMs + offset
         if room.event == "debate" {
             clock = nil  // no beat, no lane, no haptic beat
+        } else if Self.freeVerse {
+            clock = nil
+            haptics.countIn(toMs: goAt)  // 3, 2, 1, then one strong "speak"
         } else {
             let grid = BeatClock(beatAtMs: turn.beatAt.epochMs + offset, bpm: Double(room.bpm),
                                  barsPerLine: Int(room.barsPerLine), lines: Int(room.linesPerTurn))
@@ -234,7 +241,9 @@ final class TurnRecorder {
         if Self.handsFree {
             talking = true
             mic.engine.muted = false  // the haptic count-in (3, 2, 1, then a strong beat 1) says when
-            tasks.append(Task { [weak self] in await self?.flushLines(clock: clock, endMs: endMs) })
+            if room.event == "debate" || clock != nil {
+                tasks.append(Task { [weak self] in await self?.flushLines(clock: clock, endMs: endMs) })
+            }
         }
 
         // Prosody to the arena: about 20 Hz, fire and forget.
@@ -259,8 +268,11 @@ final class TurnRecorder {
                 }
                 if let clock {
                     self.checkFreeze(now: now, clock: clock)
-                } else {
+                } else if self.battle.room?.event == "debate" {
                     self.checkDebateFreeze(now: now, endMs: endMs)
+                } else {
+                    self.checkVerseFreeze(now: now)
+                    self.breakLineOnPause(now: now)
                 }
                 // Live words on the arena while the poet speaks (partials too), 5 times a second at most.
                 let text = self.transcript
@@ -403,12 +415,38 @@ final class TurnRecorder {
         battle.playCards(spokenIn: finals, turnId: turnId)
     }
 
+    /// Free verse: a freeze is ~1.5 s of silence after SPEAK (by either signal). At most one
+    /// whisper per 6 s, two per turn.
+    private func checkVerseFreeze(now: Double) {
+        guard talking, now > goAt + 1200, now - lastVoiceMs > 1500 || now - lastWordsMs > 1800 else { return }
+        let slot = Int((now - goAt) / 6000)
+        guard rescuedLines.count < 2, !rescuedLines.contains(slot) else { return }
+        rescuedLines.insert(slot)
+        whisperRescue()
+    }
+
+    /// Free verse: a pause of ~0.7 s with words pending ends a line, so the judge sees lines.
+    private func breakLineOnPause(now: Double) {
+        guard !partial.trimmingCharacters(in: .whitespaces).isEmpty, now - lastWordsMs > 700,
+              now - lastPauseBreakMs > 900 else { return }
+        lastPauseBreakMs = now
+        pendingLineBreaks += 1
+        flush()
+    }
+    @ObservationIgnored private var lastPauseBreakMs = 0.0
+
     private func checkFreeze(now: Double, clock: BeatClock) {
         // STT words trail the voice by a few hundred ms, so its silence gets a little longer.
         guard talking, clock.isSpeakingBar(atMs: now), now - lastVoiceMs > 1000 || now - lastWordsMs > 1300 else { return }
         let line = clock.line(atMs: now)
-        guard !rescuedLines.contains(line), let agent, let round = battle.currentRound else { return }
+        guard !rescuedLines.contains(line) else { return }
         rescuedLines.insert(line)
+        whisperRescue()
+    }
+
+    /// Homer whispers one formula from the poet's hand (the agent picks it).
+    private func whisperRescue() {
+        guard let agent, let round = battle.currentRound else { return }
         let request = RescueRequest(transcript: finals + partial, hand: battle.myHand,
                                     played: battle.currentTurn?.played ?? [], theme: round.theme)
         let turnId = turnId

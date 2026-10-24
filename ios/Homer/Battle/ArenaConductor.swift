@@ -144,6 +144,8 @@ final class ArenaConductor {
                 said.insert("ten \(key)")
                 homer.enqueue("Ten seconds.")
             }
+        } else if turn.statusValue == .speaking, TurnRecorder.freeVerse {
+            // Free verse: no drum under the poet (the phone counts them in).
         } else if turn.statusValue == .speaking {
             if beatFor != key, turn.beatAt.isSet {
                 beatFor = key

@@ -48,6 +48,24 @@ final class BeatHaptics {
         try? player?.start(atTime: CHHapticTimeImmediate)
     }
 
+    /// Free verse: 3, 2, 1 ticks on the three counts before `ms`, then one strong "speak" at `ms`.
+    func countIn(toMs ms: Double, nowMs: Double = Date().timeIntervalSince1970 * 1000) {
+        guard let engine else { return }
+        let ticks: [(Double, Float, Float)] = [(-2250, 0.55, 0.7), (-1500, 0.55, 0.7), (-750, 0.55, 0.7), (0, 1.0, 0.8)]
+        let events = ticks.compactMap { offset, intensity, sharpness -> CHHapticEvent? in
+            let relative = (ms + offset - nowMs) / 1000
+            guard relative >= 0 else { return nil }
+            return CHHapticEvent(eventType: .hapticTransient, parameters: [
+                CHHapticEventParameter(parameterID: .hapticIntensity, value: intensity),
+                CHHapticEventParameter(parameterID: .hapticSharpness, value: sharpness),
+            ], relativeTime: relative)
+        }
+        guard !events.isEmpty, let pattern = try? CHHapticPattern(events: events, parameters: []) else { return }
+        try? player?.stop(atTime: CHHapticTimeImmediate)
+        player = try? engine.makePlayer(with: pattern)
+        try? player?.start(atTime: CHHapticTimeImmediate)
+    }
+
     /// A stressed syllable landed on the beat.
     func hit() {
         guard let engine,

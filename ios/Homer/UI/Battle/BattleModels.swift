@@ -133,6 +133,9 @@ struct PlayerModel: Equatable {
     /// The mic opens by itself when your turn goes live and stays open for the
     /// verse: the phone shows what to do now instead of a hold pad.
     var handsFree: Bool = false
+    /// A battle verse with no metronome: SPEAK at `start` (after a 3·2·1 count on
+    /// the 2.25 s before it), until `end`. Nil falls back to the lane's start + 20 s.
+    var verseWindow: VerseWindow? = nil
     /// A wait over the current screen: .findingRoom while joining, .reconnecting,
     /// .warmingUp while Homer's voice loads. Nil when nothing is pending.
     var wait: WaitState? = nil
@@ -166,6 +169,12 @@ enum PlayerMoment: Equatable {
     /// Your judged turn in any event.
     case ruling(Ruling, reveal: Double)
     // Discus on the phone is its own screen: DiscusPhoneView, routed by the discus presenter.
+}
+
+/// When a hands-free verse is open: SPEAK from `start` to `end`.
+struct VerseWindow: Equatable {
+    var start: Date
+    var end: Date
 }
 
 struct PlayerActions {

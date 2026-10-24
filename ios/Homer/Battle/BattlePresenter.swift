@@ -229,6 +229,10 @@ enum BattlePresenter {
                 level: recorder?.mic.prosody.energy ?? 0, endsAt: endsAt(turn), seconds: Double(room.turnSeconds)
             )
         case .speaking:
+            // Free verse: one window from SPEAK (beat_at) to ends_at, on this device's clock (NTP).
+            if TurnRecorder.freeVerse, room.event != "debate", turn.beatAt.isSet, turn.endsAt.isSet {
+                model.verseWindow = VerseWindow(start: turn.beatAt.date, end: turn.endsAt.date)
+            }
             let clock = recorder?.clock
             model.moment = .speaking(
                 lane: lane(room, startedAt: clock?.beatAtMs ?? turn.beatAt.epochMs, words: recorder?.hitMarks ?? []),
