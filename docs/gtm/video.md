@@ -12,13 +12,13 @@ Two videos, both from real takes. Nothing is mocked, and nothing is shown as liv
 
 ## When
 
-**The main shoot is Sat 5:00–5:30 PM, and it's also the full-battle gate** (leader, Sat ~3:15 and 3:25 PM). The 1:30 PM gate run never happened (Matus deferred it), so there's no earlier footage to build on; Matus's earlier real-phone runs count as rehearsal. The shoot runs on **[the first TestFlight build with free verse; leader names it]** on the phones (builds 11 and 12 were cut before the free-verse code landed at 3:28–3:31 PM, so they still show the metronome) and **the website, with its live scene, as the arena**, after builder's 4 PM deploy. That's the UI judges will play (SPEC 7866476, 5fb8baf, 69c5135): Homer's three phrases, fresh themes and epithets, free verse with one SPEAK and a countdown ring, Flow, the hands-free mic, the rescue after about 1.5 s of silence, and no sound effects. 11 PM is a reshoot only if something's missing.
+**The main shoot is Sat 5:00–5:30 PM, and it's also the full-battle gate** (leader, Sat ~3:15 and 3:25 PM). The 1:30 PM gate run never happened (Matus deferred it), so there's no earlier footage to build on; Matus's earlier real-phone runs count as rehearsal. The shoot runs on **TestFlight build 14** (the first build with free verse; [build number from swift]; going to TestFlight now, target processed by about 4:15 PM) on the phones (builds 11 and 12 were cut before the free-verse code landed at 3:28–3:31 PM, so they still show the metronome) and **the website, with its live scene, as the arena**, after builder's 4 PM deploy. That's the UI judges will play (SPEC 7866476, 5fb8baf, 69c5135): Homer's three phrases, fresh themes and epithets, free verse with one SPEAK and a countdown ring, Flow, the hands-free mic, the rescue after about 1.5 s of silence, and no sound effects. 11 PM is a reshoot only if something's missing.
 
 | Time (Sat) | What | Who |
 | --- | --- | --- |
-| Any time before 4:45 PM | B-roll on the free-verse build, 2 minutes at most per shot: the countdown ring closing on a phone, Homer's three phrases on a phone, SPEAK filling a phone in the poet's color, a thumb on the discus button | Whoever has a free minute |
+| Any time before 4:45 PM | B-roll on build 14, 2 minutes at most per shot: the countdown ring closing on a phone, Homer's three phrases on a phone, SPEAK filling a phone in the poet's color, a thumb on the discus button | Whoever has a free minute |
 | 4:00 PM | Builder deploys the website with the live scene | Builder |
-| **4:45 PM** | Set up the capture ([below](#the-500-pm-shoot)). Check that both phones run the free-verse build (Settings → About in MeNIN shows [its build number]) and that the website shows the live scene. **If either isn't true by 4:45, tell leader before rolling:** footage on an older build (with the metronome) or a website without the scene shows a UI judges won't see. | Operator, camera teammate |
+| **4:45 PM** | Set up the capture ([below](#the-500-pm-shoot)). **The go/no-go at 4:45 (leader):** the shoot stays at 5:00 only if (1) **build 14 is on both phones** (Settings → About in MeNIN shows [build 14's number]) and (2) **Cartesia works again**: Homer speaks and the mic transcribes (at 3:40 PM both were dead with HTTP 402 `quota_exceeded`). Also check the website shows the live scene. **If either (1) or (2) is missing, the shoot moves to 5:30 PM, then to 8:20 PM.** Footage on an older build (with the metronome) or with Homer silent shows a game judges won't see. | Operator, camera teammate |
 | **5:00–5:30 PM** | **The main shoot:** two full demo-mode battles back to back (Rematch between them), recorded as arena, over-the-shoulder and wide shots, plus the first-open line on its own. Use the quietest corner you can find. | Everyone needed |
 | 5:30–6:00 PM | Copy the footage to the Mac. Matus checks it against the shot list, marks anything missing for 11 PM, and **exports the backup video from the best take** | Matus, operator |
 | 6–8 PM | **The first-timer shot**, during the study (`docs/study.md`). Film only someone who said yes to consent question 4, and film **the screen and their voice, never their face**. Matus edits in between. | Poet runs the study; a second person films |
@@ -30,7 +30,7 @@ Two videos, both from real takes. Nothing is mocked, and nothing is shown as liv
 | 11:00–11:15 PM | **Reshoot only if a shot is still missing.** Then upload to YouTube, put the link in Devpost, and copy the backup video to every device. | Matus, operator |
 | 11 PM | Feature freeze ([reality-check.md](reality-check.md) checkpoint). The video can still be added to Devpost after this; only the code freezes. | |
 
-**If the 5 PM shoot fails** (the battle breaks mid-take): footage from a failing run is useless. The shoot moves to 8:20 PM if the fix lands by then, and karaoke is dropped.
+**If the shoot fails** (the battle breaks mid-take), or the 4:45 check fails twice: footage from a failing run is useless. The shoot moves to 5:30 PM, then to 8:20 PM if the fix lands by then, and karaoke is dropped.
 
 ## The 5:00 PM shoot
 
