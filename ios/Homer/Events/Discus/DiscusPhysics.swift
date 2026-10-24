@@ -18,8 +18,10 @@ struct DiscusThrow: Equatable, Sendable {
 /// distance. A release from 1.8 m flies as a projectile; the discus's lift moves the best angle
 /// down to 37.5°. Every constant is in `Tuning`, set from a real iPhone with the telemetry strip.
 ///
-/// With the defaults: casual 14 m, decent 23 m, good 32 m (past Phayllos), strong 41 m,
-/// great 56 m, and 71 m at most (the world record is 74).
+/// With the defaults: casual 14 m, decent 24 m, good 33 m (past Phayllos), strong 42 m,
+/// great 56 m, and 71 m at most (the world record is 74). They're set for a first-time
+/// thrower, untuned on a real swing yet: a late thumb still flies (a first-timer lifting as the
+/// swing slows lands 13–24 m), and only a clearly late release goes into the crowd.
 enum DiscusPhysics {
     struct Tuning: Equatable, Sendable {
         /// Rotation rate that gives no power, and the one that gives full power, rad/s.
@@ -31,8 +33,8 @@ enum DiscusPhysics {
         /// The release angle that flies farthest.
         var bestAngle = 37.5
         var releaseHeight = 1.8
-        /// Timing below this is a foul.
-        var foulTiming = 0.55
+        /// Timing below this is a foul: released long after the peak, the discus goes sideways.
+        var foulTiming = 0.35
         /// The field is 80 m; nothing lands past it.
         var longest = 79.9
 

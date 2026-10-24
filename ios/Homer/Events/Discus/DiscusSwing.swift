@@ -31,8 +31,9 @@ struct SwingReading: Equatable, Sendable {
 enum DiscusSwing {
     static let minHold: TimeInterval = 0.5
     static let minTurn = Double.pi
-    /// Speed is the peak over this window before release.
-    static let speedWindow: TimeInterval = 0.3
+    /// Speed is the peak over this window before release; wide enough that a slightly late
+    /// thumb keeps the swing's speed and loses only on timing.
+    static let speedWindow: TimeInterval = 0.5
     /// Timing compares the release with the peak over this window.
     static let timingWindow: TimeInterval = 0.6
     /// A real discus leaves the hand rising out of a mostly flat swing. The release angle is

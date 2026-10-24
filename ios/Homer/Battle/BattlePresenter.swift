@@ -212,8 +212,8 @@ enum BattlePresenter {
         case .waiting:
             model.moment = .onDeck(hand: hand, autoReady: room.autoReady)
         case .speaking where recorder?.phase == .closing:
-            // TODO: a dedicated "the Muse is timing you" moment (art lead); weighing reads closest.
-            model.moment = .weighing
+            // Reopened mid-turn: the server's timer closes it with what was already said.
+            model.moment = .closing(transcript: lines(turn.transcript))
         case .speaking where room.event == "debate":
             let live = recorder?.phase == .live || recorder?.phase == .finishing
             model.moment = .debating(

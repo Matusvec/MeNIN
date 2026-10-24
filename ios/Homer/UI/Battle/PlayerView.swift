@@ -34,6 +34,7 @@ struct PlayerView: View {
         case .onDeck: "deck"
         case .speaking: "speak"
         case .weighing: "weigh"
+        case .closing: "closing"
         case .result: "result"
         case .final: "final"
         case .debating: "debate"
@@ -145,6 +146,25 @@ struct PlayerView: View {
 
         case .weighing:
             WeighingMark().padding(.top, Metrics.s8)
+
+        case .closing(let transcript):
+            VStack(spacing: Metrics.s4) {
+                if !transcript.isEmpty { TranscriptView(lines: transcript, maxLines: 4) }
+                VStack(spacing: Metrics.s2) {
+                    Text("The Muse is timing you.")
+                        .font(Typeface.display(26, italic: true))
+                        .foregroundStyle(Palette.ink)
+                    Text("Your turn closes with what you already said.")
+                        .font(Typeface.text(14))
+                        .foregroundStyle(Palette.ink2)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(Metrics.s5)
+                .frame(maxWidth: .infinity)
+                .paper()
+                WeighingMark()
+            }
+            .padding(.top, Metrics.s5)
 
         case .result(let card, let reveal, let coined):
             ScrollView {

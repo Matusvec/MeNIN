@@ -1,88 +1,66 @@
 import os
 import SwiftUI
 
-/// Practice: one solo turn at a time with the full judge breakdown. Composed from the art
-/// lead's turn components with bare layout; a dedicated PracticeView can replace the body.
+/// Practice: the art lead's PracticeView fed from PracticeSession. Pick one of three themes
+/// (or a random one), take the turn, get the full judge breakdown.
 struct PracticeScreen: View {
     let app: AppModel
     @State private var session: PracticeSession?
+    @State private var themes: [String] = []
 
     var body: some View {
         ZStack {
             Color.clear
-            if let session { content(session) }
+            if let session { PracticeView(model: model(session), actions: actions(session)) }
         }
+        .toolbar(.hidden, for: .navigationBar)
         .task {
             let session = PracticeSession(agent: AgentClient.configured, scene: app.scene, hoard: app.hoard) { app.coin($0) }
             self.session = session
-            await session.deal()
-            // Dev: `-autopilot practice` begins the turn without a tap and logs the result.
-            if DevAutopilot.mode == "practice", session.phase == .ready {
-                await session.begin()
-                while session.phase != .verdict { try? await Task.sleep(for: .milliseconds(200)) }
-                let log = Logger(subsystem: "com.matusvec.homer", category: "autopilot")
-                let transcript = session.transcript.replacingOccurrences(of: "\n", with: " | ")
-                let scores = session.result.map { "\($0.scorecard.scores)" } ?? "none"
-                log.notice("practice transcript: \(transcript, privacy: .public)")
-                log.notice("practice scores: \(scores, privacy: .public) verdict: \(session.verdictText ?? "", privacy: .public)")
+            themes = (try? await AgentClient.configured?.themes(n: 3, demo: false)) ?? []
+            // Dev: `-autopilot practice` deals a random theme and begins without a tap.
+            if DevAutopilot.mode == "practice" {
+                await session.deal()
+                if session.phase == .ready { await session.begin() }
             }
         }
         .onDisappear { session?.stop() }
     }
 
-    @ViewBuilder
-    private func content(_ s: PracticeSession) -> some View {
-        VStack(spacing: Metrics.s4) {
-            if !s.theme.isEmpty {
-                AnswerLineView(line: s.theme)
+    private func model(_ s: PracticeSession) -> PracticeModel {
+        var m = PracticeModel(theme: s.theme, hand: s.hand,
+                              transcript: BattlePresenter.lines(s.transcript), listening: s.phase == .live,
+                              level: s.level, rescueId: s.rescueCard, homer: BattlePresenter.homerLine(s.homer),
+                              typed: s.voiceNote == nil ? nil : s.typed)
+        m.lane = s.clock.map { BeatLane(bpm: $0.bpm, beatsPerLine: 4, lines: $0.lines, startedAt: $0.beatAtMs, words: s.hitMarks) }
+        switch s.phase {
+        case .idle: m.phase = .idle(themes: themes)
+        case .dealing: m.phase = .dealing
+        case .ready: m.phase = .ready
+        case .announcing: m.phase = .announcing
+        case .live: m.phase = .live
+        case .judging: m.phase = .judging
+        case .verdict:
+            if let r = s.result {
+                m.phase = .verdict(card: r.scorecard, reveal: s.homer.isSpeaking ? s.homer.spoken : 1,
+                                   coined: r.coined.flatMap { $0.isEmpty ? nil : $0 })
+            } else {
+                m.phase = .failed(s.verdictText ?? "Homer is silent on this one.")
             }
-            switch s.phase {
-            case .idle, .dealing:
-                ProgressView()
-            case .failed(let why):
-                Text(why).multilineTextAlignment(.center)
-                Button("Try again") { Task { await s.deal() } }.buttonStyle(.borderedProminent)
-            case .ready:
-                FormulaHandView(cards: s.hand)
-                Button("Begin") { Task { await s.begin() } }.buttonStyle(.borderedProminent)
-                Button("Another theme") { Task { await s.deal() } }
-            case .announcing, .live:
-                if let clock = s.clock {
-                    BeatLaneView(lane: BeatLane(bpm: clock.bpm, beatsPerLine: 4, lines: clock.lines,
-                                                startedAt: clock.beatAtMs, words: s.hitMarks),
-                                 barsPerLine: clock.barsPerLine)
-                }
-                TranscriptView(lines: BattlePresenter.lines(s.transcript), listening: s.phase == .live,
-                               formulas: s.hand.map(\.text))
-                FormulaHandView(cards: s.hand, raisedId: s.rescueCard)
-                MicLevelView(level: s.level)
-                if let note = s.voiceNote {
-                    Text(note).font(.caption).foregroundStyle(.secondary)
-                    TextField("Your verse, one line per row", text: Binding(get: { s.typed }, set: { s.typed = $0 }), axis: .vertical)
-                        .lineLimit(2...6)
-                        .textFieldStyle(.roundedBorder)
-                }
-                Button("Done") { Task { await s.finish() } }
-            case .judging:
-                TranscriptView(lines: BattlePresenter.lines(s.transcript))
-                Text("Homer is weighing it.").italic()
-            case .verdict:
-                if let card = s.result?.scorecard {
-                    ScorecardView(card: card, reveal: s.homer.isSpeaking ? s.homer.spoken : 1, poet: app.poetName.isEmpty ? nil : app.poetName)
-                }
-                if let coined = s.result?.coined, !coined.isEmpty {
-                    Text("Into your hoard: \(coined)").italic()
-                }
-                HStack {
-                    Button("Again") { Task { await s.begin() } }.buttonStyle(.borderedProminent)
-                    Button("New hand") { Task { await s.deal() } }
-                }
-            }
-            Spacer(minLength: 0)
-            if let line = s.homer.caption {
-                CaptionView(text: line.text, spoken: s.homer.spoken, whisper: line.whisper)
-            }
+        case .failed(let why): m.phase = .failed(why)
         }
-        .padding(Metrics.s4)
+        return m
+    }
+
+    private func actions(_ s: PracticeSession) -> PracticeActions {
+        PracticeActions(
+            pickTheme: { theme in Task { await s.deal(theme: theme) } },
+            randomTheme: { Task { await s.deal() } },
+            start: { Task { await s.begin() } },
+            done: { Task { await s.finish() } },
+            again: { Task { await s.begin() } },
+            retry: { Task { await s.deal(theme: s.theme) } },
+            type: { s.typed = $0 }
+        )
     }
 }
