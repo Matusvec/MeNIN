@@ -39,6 +39,10 @@ struct PlayerScreen: View {
                 try? await Task.sleep(for: .milliseconds(300))
                 if !Task.isCancelled, waitCandidate == wait { slowWait = wait }
             }
+            .onChange(of: recorder?.draftFromVoice) { _, heard in
+                // Voice failed mid-verse: the typed field starts with what was already heard.
+                if let heard, !heard.isEmpty, draft.isEmpty { draft = heard }
+            }
             .onChange(of: battle.room?.phase) { _, _ in
                 // The hall stays open after a battle (P16), and join_room takes a same-device reconnect
                 // even in `finished`: keep the way back fresh while the room lives. Leave, or "no such

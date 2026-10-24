@@ -92,10 +92,52 @@ final class TurnRecorder {
         cancel()
     }
 
+    /// When this phone first saw each turn attempt go to speaking (epoch ms), whatever the recorder
+    /// was doing then. go-live can come later (voice still preparing), and the beat grid must not
+    /// slide by that delay (LPTK, 15:22: the grid ran ~3 s late, so line 1 was lost and the phone never ended the turn).
+    @ObservationIgnored private var speakingSeenMs: [String: Double] = [:]
+    @ObservationIgnored private var cachedToken: VoiceToken?
+    @ObservationIgnored private var loggedFirstWords = false
+    /// Words heard before speech-to-text failed mid-verse; the typed fallback starts from them.
+    private(set) var draftFromVoice = ""
+
+    /// Cartesia's messages, in words a poet can act on.
+    private static func plain(_ message: String) -> String {
+        let m = message.lowercased()
+        if m.contains("credit") || m.contains("quota") || m.contains("limit") || m.contains("402") || m.contains("429") {
+            return "Homer can't hear right now (voice service limit). Type your lines."
+        }
+        return "Homer can't hear you right now. Type your lines."
+    }
+    @ObservationIgnored private var tokenTask: Task<VoiceToken?, Never>?
+
+    /// A voice token for this poet, fetched ahead (on join and up next) and reused while it has a minute left.
+    private func voiceToken() async -> VoiceToken? {
+        let now = Date().timeIntervalSince1970 * 1000
+        if let t = cachedToken, t.expiresAt - now > 60_000 { return t }
+        if let tokenTask { return await tokenTask.value }
+        guard let agent else { return nil }
+        let request = VoiceTokenRequest(role: .phone, roomCode: battle.room?.code, playerId: battle.me?.id)
+        let task = Task { try? await agent.voiceToken(request) }
+        tokenTask = task
+        let token = await task.value
+        tokenTask = nil
+        if let token { cachedToken = token }
+        return token
+    }
+
     private func sync() async {
+        if battle.me != nil, cachedToken == nil, tokenTask == nil, agent != nil {
+            Task { _ = await voiceToken() }  // warm, so "up next" doesn't wait on the network
+        }
         guard let turn = battle.currentTurn, battle.isMyTurn, let room = battle.room, room.event != "discus" else {
             if phase == .ready || phase == .preparing { cancel() }
             return
+        }
+        let attemptKey = "\(turn.id)-\(turn.attempt)"
+        if turn.statusValue == .speaking, speakingSeenMs[attemptKey] == nil {
+            speakingSeenMs[attemptKey] = Date().timeIntervalSince1970 * 1000
+            if phase != .ready { Self.log.info("turn went live while voice was \(String(describing: self.phase), privacy: .public)") }
         }
         switch (turn.statusValue, phase) {
         case (.waiting, .idle), (.waiting, .done):
@@ -109,6 +151,10 @@ final class TurnRecorder {
             phase = .done
         case (.speaking, .ready):
             goLive(turn: turn, room: room)
+        case (.judging, .live), (.scored, .live), (.skipped, .live), (.declined, .live):
+            // The server closed the turn first (its timer): stop listening, nothing more to send.
+            teardown()
+            phase = .done
         default:
             break
         }
@@ -125,11 +171,9 @@ final class TurnRecorder {
             phase = .unavailable("No agent service on this server yet")
             return
         }
-        let token: VoiceToken
-        do {
-            token = try await agent.voiceToken(.init(role: .phone, roomCode: battle.room?.code, playerId: battle.me?.id))
-        } catch {
-            phase = .unavailable("Voice is offline: \(error.localizedDescription)")
+        let prepStart = Date()
+        guard let token = await voiceToken() else {
+            phase = .unavailable("Voice is offline")
             return
         }
         let keyterms = battle.myHand + (battle.me?.hoard ?? []) + [battle.currentRound?.theme].compactMap { $0 }
@@ -153,6 +197,7 @@ final class TurnRecorder {
         haptics.prepare()
         if battle.room?.event == "debate" { await prepareWhispers(for: turn) }
         phase = .ready
+        Self.log.info("voice ready in \(Int(Date().timeIntervalSince(prepStart) * 1000)) ms")
     }
 
     /// The turn flipped to speaking: lock the beat grid to this device's clock and go live.
@@ -161,7 +206,13 @@ final class TurnRecorder {
         let nowMs = Date().timeIntervalSince1970 * 1000
         // The offset is measured as the turn flips to speaking; a late join can't, so it uses
         // the device clock (NTP-close to the server's).
-        let offset = lateJoin ? 0 : BeatClock.offset(localReceiveMs: nowMs, serverStartedAtMs: turn.startedAt.epochMs)
+        // The grid comes from the server's times on this device's clock. Phones and the server are
+        // NTP-synced (tens of ms), so trust the device clock; measure an offset only if the clocks
+        // clearly disagree (> 3 s at the moment the speaking row first arrived).
+        let seen = speakingSeenMs["\(turn.id)-\(turn.attempt)"] ?? nowMs
+        let arrival = BeatClock.offset(localReceiveMs: seen, serverStartedAtMs: turn.startedAt.epochMs)
+        let offset = lateJoin || abs(arrival) < 3000 ? 0 : arrival
+        Self.log.info("go live \(Int(nowMs - turn.startedAt.epochMs)) ms after start (row arrived +\(Int(arrival)) ms), offset \(Int(offset))")
         if lateJoin, !turn.transcript.isEmpty {
             finals = turn.transcript.hasSuffix("\n") ? turn.transcript : turn.transcript + "\n"
         }
@@ -296,6 +347,11 @@ final class TurnRecorder {
         switch event {
         case .partial(let text):
             if text != partial { lastWordsMs = Date().timeIntervalSince1970 * 1000 }
+            if phase == .live, !loggedFirstWords, !text.isEmpty {
+                loggedFirstWords = true
+                let late = Int(Date().timeIntervalSince1970 * 1000 - goAt)
+                Self.log.info("first words \(late) ms after beat 1")
+            }
             partial = text
         case .final(let text, _):
             if !text.trimmingCharacters(in: .whitespaces).isEmpty { lastWordsMs = Date().timeIntervalSince1970 * 1000 }
@@ -314,7 +370,10 @@ final class TurnRecorder {
                 flushWaiters.removeAll()
             }
         case .error(let message):
-            if phase == .preparing || phase == .ready { phase = .unavailable(message) }
+            // Never a silent SPEAK: if speech-to-text fails, even mid-verse (out of credits, socket
+            // dropped), the phone says so and offers the typed verse, keeping the words heard so far.
+            if phase == .live { draftFromVoice = finals + partial; teardown() }
+            if [.preparing, .ready, .live].contains(phase) { phase = .unavailable(Self.plain(message)) }
         case .closed:
             break
         }
@@ -440,6 +499,7 @@ final class TurnRecorder {
         pendingLineBreaks = 0
         pendingFlushes = 0
         sentTranscript = ""
+        loggedFirstWords = false
         clock = nil
     }
 }

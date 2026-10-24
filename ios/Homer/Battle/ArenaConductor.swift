@@ -77,11 +77,17 @@ final class ArenaConductor {
     }
 
     /// A reveal landed on screen (ArenaView fires each cue once, on its frame): play its sound now.
+    /// SPEC: no sound effects beyond the beat and a soft strike. The cues stay visual (the scene answers
+    /// the crown); the procedural sounds are kept behind `cueSounds` in case a design wants them back.
+    static let cueSounds = false
+
     func play(_ cue: ArenaCue) {
-        let key = "\(cue)"
-        let buffer = cueBuffers[key] ?? BeatSynth.cue(cue, sampleRate: StageAudio.sampleRate)
-        cueBuffers[key] = buffer
-        audio.playSound(buffer)
+        if Self.cueSounds {
+            let key = "\(cue)"
+            let buffer = cueBuffers[key] ?? BeatSynth.cue(cue, sampleRate: StageAudio.sampleRate)
+            cueBuffers[key] = buffer
+            audio.playSound(buffer)
+        }
         if cue == .crown { scene?.strike(1.4) }
     }
 
