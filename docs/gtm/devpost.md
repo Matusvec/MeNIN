@@ -196,22 +196,22 @@ Voice games have to answer while the room is still listening, and Moss keeps the
 
 ## Tracks to tag on Devpost
 
-**As of Sat 12:20 PM, Devpost lists "[Spacetime] Best Use of Spacetime" and "[Anthropic] Claude for Public Benefit". Tag both** (leader). It still has no MLH Gen AI, .Tech or DigitalOcean (Hive has all three; Devpost lists Vultr instead). **As of Sat 2:20 PM, Figma's five old entries are one: "[Figma] Best Figma Workflow Hack".** MLH: "you can opt in to multiple prize categories at time of submission!" An organizer: "Devpost will also be updated soon!" (#0-ask-directors, Sat 10:40–10:50 AM). Tag every track below that Devpost offers on Sunday morning. **How:** tracks are picked on the submission form ("step 3 or 4"), after joining the Cal Hacks 13.0 Devpost (MLH, #0-ask-directors, Sat 12:24 PM). A hacker reported that Step 4 lists individual prize names, such as "1st place from Microsoft", so tick every prize line under each track we enter.
+**Rechecked Sat 4:17 PM:** Devpost splits Apify into two entries again (tag both), merges Microsoft's two prizes into one entry, and still has no MLH Gen AI, .Tech or DigitalOcean. **As of Sat 12:20 PM, Devpost lists "[Spacetime] Best Use of Spacetime" and "[Anthropic] Claude for Public Benefit". Tag both** (leader). It still has no MLH Gen AI, .Tech or DigitalOcean (Hive has all three; Devpost lists Vultr instead). **As of Sat 2:20 PM, Figma's five old entries are one: "[Figma] Best Figma Workflow Hack".** MLH: "you can opt in to multiple prize categories at time of submission!" An organizer: "Devpost will also be updated soon!" (#0-ask-directors, Sat 10:40–10:50 AM). Tag every track below that Devpost offers on Sunday morning. **How:** tracks are picked on the submission form ("step 3 or 4"), after joining the Cal Hacks 13.0 Devpost (MLH, #0-ask-directors, Sat 12:24 PM). A hacker reported that Step 4 lists individual prize names, such as "1st place from Microsoft", so tick every prize line under each track we enter.
 
 - [ ] **Spacetime: Best Use of Spacetime** (on Devpost since Sat ~12 PM)
-- [ ] Meta: Bringing People Closer Together with AI
+- [ ] **Meta: "[Meta] Meta/Facebook: Bringing People Closer Together with AI"**: an "Invitation to advance to the Round 2 Hackathon hosted at Meta's Menlo Park campus. Travel and accommodations provided." (Devpost, Sat 4:17 PM)
 - [ ] Cartesia: Best Use of Cartesia
 - [ ] **Anthropic: Claude for Public Benefit** (on Devpost since Sat ~12 PM)
 - [ ] **Figma: "[Figma] Best Figma Workflow Hack"** (one entry since Sat ~2 PM; add the Figma Slides link and the stage log). Devpost shows "$1,000 in cash, 1 winner" in Amazon gift cards, but Figma's brief still lists four prizes: Best Figma Workflow $2,000, Best Stage Log $2,000, Best Design $500, Most Creative $500. The booth activation ended at 2 PM, so Matus can ask in #spons-figma (draft in [slack-intel.md](slack-intel.md)). We submit the same three deliverables either way: the video (3 minutes max), the stage log and the Figma Slides deck.
 - [ ] MLH: Best Use of Gen AI
 - [ ] MLH: Best .Tech Domain Name (if registered)
 - [ ] MLH: Commit Fellowship (if we want it)
-- [ ] **Microsoft: Built for the Real World** and the Customer Impact Award ([opportunities.md](opportunities.md) #3)
+- [ ] **Microsoft: "[Microsoft] Built for the Real World (1st), Customer Impact Award (2nd)"**, one entry since Sat ~4 PM ([opportunities.md](opportunities.md) #3)
 - [ ] MLH: Best Domain Name from GoDaddy Registry (only if we register one)
 - [ ] **Fetch.ai: Best Use of Fetch.ai** (only if Homer's judge is live on Agentverse and usable from ASI:One)
 - [ ] **Moss: Best Use of Moss.** Shipped: `HOMER_DEALER=moss` is live on the droplet, p50 13.7 ms, with a tested fallback. Tag it.
 - [ ] MLH: Best Use of DigitalOcean (the agent service runs there)
-- [ ] **Apify: "[Apify] Best Use of Apify".** Devpost now has one Apify entry with 6 winners, covering Best Use and "Best Actor Built with AI Chat (make sure to tag in your submission that is an actor)". So tag it, and the Apify blurb says outright that **Epithet Miner is an Apify Actor, built with AI chat** (leader, Sat 12:30 PM). Ready: 55 of the bank's 180 formulas came from it, and it's live on the Store (https://apify.com/matusnator/epithet-miner). Apify staff: "in your submission just share the link and id for us" (#spons-apify, Sat 1:13 PM), so the blurb gives both: Actor ID `v4i7ItNXjHMmnKzfo`.
+- [ ] **Apify, two entries again (Devpost, Sat 4:17 PM): tag both.** "[Apify] Best Use of Apify" (5 winners: $2,000 / $1,000 / $800 / $400 / $400) and **"[Apify] Best Actor sponsored by Apify"** ($400, 1 winner: "a Best Actor award for building an actor for this event. Project must be using Apify in a meaningful way."). Epithet Miner was built at this event and mined 55 of the bank's 180 formulas. The blurb still says **Epithet Miner is an Apify Actor, built with AI chat**, and gives the Store link and Actor ID `v4i7ItNXjHMmnKzfo`, as Apify staff asked ("in your submission just share the link and id for us", #spons-apify, Sat 1:13 PM).
 
 Main prizes are automatic.
 
