@@ -12,12 +12,16 @@
     "publish:local": "spacetime publish -s local -y homer",
     "publish:local:reset": "spacetime publish -s local --delete-data=always -y homer",
     "publish:test": "spacetime publish -s local -y homer-test",
-    "logs": "spacetime logs -s local homer"
+    "logs": "spacetime logs -s local homer",
+    "bindings": "spacetime generate -l typescript -p . -o scripts/bindings -y > /dev/null",
+    "soak": "npm run -s bindings && STDB_DB=${STDB_DB:-homer-test} tsx scripts/hall-soak.ts",
+    "watch": "npm run -s bindings && STDB_URL=${STDB_URL:-https://maincloud.spacetimedb.com} STDB_DB=${STDB_DB:-homer-calhacks} tsx scripts/watch.ts"
   },
   "dependencies": {
     "spacetimedb": "2.13.0"
   },
   "devDependencies": {
+    "tsx": "^4.20.6",
     "typescript": "~5.6.2"
   }
 }
