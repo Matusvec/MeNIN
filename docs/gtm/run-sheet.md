@@ -156,6 +156,7 @@ Optional, but each one fixes a real risk at a loud, shared table:
 - [ ] Speaker and its cable, charged
 - [ ] Wired EarPods ×3 (two poets plus a spare), checked against each phone's port
 - [ ] Power banks, all at 100%, plus short USB-C cables for every device
+- [ ] **A power strip and an extension cord.** Hackers reported dead outlets at two tables Friday, and an organizer advised bringing an extension cord (#0-ask-directors, Fri). Check our table's outlet in the 9:20 hall check.
 - [ ] A grippy case or wrist strap, for discus
 - [ ] Gaffer tape, for the cables and the room codes on the backs of the phones
 - [ ] The backup video, saved locally on the Mac and all three phones (not streamed)

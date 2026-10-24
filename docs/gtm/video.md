@@ -103,7 +103,7 @@ The video uses **only our original score** under the narration, and only the bea
 
 **Export:** 1080p, H.264, AAC, under 2:00 exactly.
 
-**Upload:** YouTube, titled **"MeNIN: Ancient Greek Party Games, Hosted by Homer (Cal Hacks 13.0)"**. The description gets the Devpost tagline, the repo link and "Original score by [composer's name]". Neither the Hacker Guide nor Slack gives a video length limit, hosting rules, or whether the video is required. Check Devpost's submission form for all three before uploading; **unlisted** is the safe default if it allows it. Cartesia's 2-minute brief and Figma's 3-minute cap are confirmed.
+**Upload:** YouTube, titled **"MeNIN: Ancient Greek Party Games, Hosted by Homer (Cal Hacks 13.0)"**. The description gets the Devpost tagline, the repo link and "Original score by [composer's name]". The Devpost page says submissions "should also include a clear, meaningful video demo on devpost **for sponsors evaluating asynchronously**". So the video is effectively required, and **some sponsor judges may score us from the video alone**: it has to carry every sponsor's story without us in the room. No length limit is stated. Devpost's video field generally takes YouTube or Vimeo links, so upload as **unlisted** unless the form says otherwise. Cartesia's 2-minute brief and Figma's 3-minute cap are confirmed.
 
 ## The backup video (90 s)
 
