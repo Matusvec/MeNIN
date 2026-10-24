@@ -11,7 +11,7 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 | **9:45 AM** | **MLH**, upstairs on the Mezzanine (map sponsor-46) | MLH's coach: "I'm at the MLH table upstairs!" (#1-ask-mlh, Sat 6:50 AM) | Right after the 9:15–9:35 discus tuning. Quick, and no demo needed. |
 | 10:00–11:30 AM | *Matus is at the Microsoft workshop (10:00–10:45), then the coffee chat (11:00).* | | |
 | **11:45 AM** | **Figma, Booth #35**: the coffee cart activation, 10 AM–2 PM | Figma's team | **Matus goes**, since the designer shows the workflow best, and it's before the 12 PM lunch rush. Bring every teammate's Edu verification proof. Their stage log is worth $2,000 on its own. |
-| 1–2 PM *(optional)* | Anthropic workshop, Theater: "Building Agents & Multi-Agent Teams with Claude" | Anthropic's track team | Our build is literally a multi-agent team. Catch the track lead afterwards. |
+| **12:45–2 PM** | Anthropic workshop, Theater: "Building Multi-Agent Teams & Systems". **Limited giveaways for the first 20 people in the room, so arrive by 12:45.** | Anthropic's track team | Our build is literally a multi-agent team of Claude Code sessions. Catch the track lead afterwards and show a verdict. |
 | **2 PM** | *The battle checkpoint (reality-check.md).* The tour below only shows the battle if it passed. If it failed, show Practice Spar on one phone, or skip the tour. | | |
 | **2:30 PM** | **Cartesia**, main floor (sponsor-11), "near the big stairs", beside Meta | Cartesia's team | After the checkpoint, so they hear Homer judge a real turn. Hours are unconfirmed; check #spons-cartesia first. |
 | 2:45 PM *(optional)* | Meta, main floor (sponsor-06), right next to Cartesia | No staff named. Their workshop is 2–3 PM at Gate 4. | Two booths in one stop |

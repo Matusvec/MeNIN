@@ -16,6 +16,8 @@ Read directly from the channels, Sat 9 AM. Each hint is quoted, and each one say
 - **Do:** go to their workshop, 4–5 PM in the Theater, since Spacetime staff judge the track.
 - Their workshop slides are a Figma deck (#cohost-spacetime, Oct 21). It isn't readable from here, so someone should open it in a browser and skim for what they say they want. They also run a startup program with up to $50k in credits (same post), which is for after the hackathon.
 
+**Anthropic, new (Sat 10:07 AM, #cohost-anthropic):** their 1 PM workshop is on multi-agent teams in Claude Code, which is how MeNIN was built. Bring one concrete line about our setup (one spec, one folder per session, a leader that commits) to the Anthropic pitch, and go to the workshop.
+
 **Anthropic (Claude for Public Benefit).** Track staff (#cohost-anthropic, Fri 4:37 PM):
 - "The narrower, the better."
 - "'Students' is too broad."
@@ -59,6 +61,12 @@ Read directly from the channels, Sat 9 AM. Each hint is quoted, and each one say
 
 | Time (PDT) | Channel | What it says | Means for us | Action (owner) |
 | --- | --- | --- | --- | --- |
+| Sat 10:07 AM | #cohost-anthropic, #0-general | Anthropic staff: the workshop "Building Multi-Agent Teams & Systems", 1–2 PM in the Theater, with "limited giveaways for the first 20 people in the room, so come early!" Its talks: how many Claude agents a project needs, six multi-agent problems with fixes "you can use in Claude Code tonight", and Anthropic's multi-agent research. | A giveaway, plus face time with Anthropic's track team, on the exact topic of how MeNIN was built (a team of Claude Code sessions) | Someone is in the Theater by 12:45. Use one line from it in the Anthropic pitch (gtm, Matus) |
+| Sat 10:08 AM | #cohost-anthropic | Anthropic staff are fixing credit problems now: "DM me the email you signed up with" | A missing or rejected $50 can be fixed today. No top-ups have been offered. | Any teammate with a missing credit DMs staff their signup email (that teammate) |
+| Sat 10:05 AM | #0-announcements | Organizer: Moss workshop now at Gate 4 | What Moss wants from retrieval | Optional (builder, if free) |
+| Sat 10:00 AM | #0-ask-directors, #0-general | MLH: "4 pm distro tonight will be the last time to pick up merch!" The first drop started at 10 AM in Annapurna Labs. | | Optional |
+| Sat 10:02 AM | #spons-capital-one | Capital One staff: Smash tournament sign-up closes at 11 AM; 32 entrants picked at random, swag prize | Low value | Optional (anyone) |
+| Sat 9:56 AM | #0-announcements | Organizer: "don't forget your badges. You will NEED it to get into the venue. We will not be handing out extras." | A lost badge on Sunday means a teammate can't get in, and the whole team must be present to be judged | **Badges on the packing list** (run sheet) (all) |
 | Sat 9:49 AM | #cohost-spacetime | A hacker asked: "Do we need to submit anything on devpost if we do the scrabble bot challenge?" No answer yet. | The same open question applies to our bot | Forwarded to the scrabble session; watch the thread (gtm) |
 | Sat 9:42 AM | #0-ask-directors | Organizer: "two opportunities for merch distribution today" | Free merch later today | None |
 | Sat 9:28 AM | #1-ask-mlh | MLH, on its giveaway: "only one way to find out" | MLH is still handing out items at its table | Ask at the MLH table (anyone passing) |
