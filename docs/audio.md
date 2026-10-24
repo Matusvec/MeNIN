@@ -29,7 +29,7 @@ Instruments that fit: the lyre or kithara (plucked strings), the aulos (a double
 
 ## The cues
 
-Eleven cues, each its own file. The file name is the name in the first column.
+Ten cues, each its own file. The file name is the name in the first column.
 
 | File name | Plays when | Length | Loops |
 | --- | --- | --- | --- |
@@ -38,7 +38,6 @@ Eleven cues, each its own file. The file name is the name in the first column.
 | `poetry-intro` | A poetry battle starts, just before Homer opens it | 3–4 s | No |
 | `debate-intro` | A debate starts, just before Socrates opens it | 3–5 s | No |
 | `discus-intro` | The discus event starts | 3–5 s | No |
-| `discus-whoosh` | The discus leaves the hand and flies | about 2 s | No |
 | `discus-fanfare` | The throw's distance appears | 2–3 s | No |
 | `round-end` | A round ends and the scores appear | 2–4 s | No |
 | `champion` | The winner is revealed | 4–6 s | No |
@@ -66,12 +65,12 @@ The poetry battle's title card. It plays as the battle begins, then Homer opens:
 
 The same job for the debate. Socrates is dry, ironic and amused: a boxing announcer who has read too much. His intro can have a wink, like something plucked and a little sly.
 
-### discus-intro, discus-whoosh, discus-fanfare
+### discus-intro, discus-fanfare
 
 Discus is the most physical event. You swing your phone and lift your thumb to throw.
 
 - `discus-intro`: athletic and bright, the opening of the games.
-- `discus-whoosh`: a sound effect, not music. It's a spinning disc cutting through air. It starts on the release and fades as the discus flies off (the flight lasts about 4 s).
+- **No whoosh.** MeNIN has no sound effects beyond the beat and a soft strike on a hit (SPEC.md: weird effects are worse than silence). The flight is silent, so `discus-whoosh` is cut. If you've already made it, keep it, but we won't use it.
 - `discus-fanfare`: the distance appears. It's short, and Homer calls the distance right after it ("Strong arm.").
 
 ### round-end
@@ -110,7 +109,7 @@ This matters more than any single cue. The beat plays under every turn and every
 - **Dry:** no reverb or echo, so each hit stays crisp in a loud hall and when hits overlap.
 - **Trimmed tight:** the hit starts on the very first sample. The lyre notes ring for about 1.5 s, and the drums stop as soon as they've decayed.
 - **Even:** play all six lyre notes at the same strength, and keep them in tune (A = 440).
-- **Together:** when a poet's stressed word lands on the beat, the app plays the kick and the rim at once as a "drum strike", so check that the two sound good together.
+- **Together:** when a poet's stressed word lands on the beat, the app plays the kick and the rim at once as a soft strike, so check that the two sound good together when played gently.
 - **Format:** WAV, 48 kHz, 24-bit, mono, with peaks around -6 dB. The app sets the mix, so you don't need to match loudness for these.
 
 The lyre notes make D Dorian (D, F, G, A, C, D). Music and the beat never play at the same time, so you don't need to match the tempo. But writing the poetry cues in D (D minor or D Dorian) will make the whole app feel like one piece.
@@ -142,7 +141,7 @@ A rough version with the right length and file name is worth more early than a p
 | --- | --- | --- |
 | 1 | `hall-theme`, `first-open-bed`, `poetry-intro`, `round-end`, `champion`, `rematch` | The judges hear all of them in the 2-minute demo |
 | 2 | The beat's sounds: the six `lyre-` notes, `drum-kick`, `drum-rim` | They play under every turn and lesson |
-| 3 | `discus-intro`, `discus-whoosh`, `discus-fanfare`, `debate-intro` | The other events, if they make the demo |
+| 3 | `discus-intro`, `discus-fanfare`, `debate-intro` | The other events, if they make the demo |
 | 4 | `training-ambience` | Lessons and practice, which the judges don't see live |
 
 **Suggested deadlines** (Matus confirms):
@@ -156,7 +155,6 @@ A rough version with the right length and file name is worth more early than a p
 
 Only after everything above:
 
-- `discus-crowd`: a crowd that builds while the thrower winds up, 1–4 s, cut off at the release.
 - `discus-fanfare-big`: a bigger fanfare for a new record.
 - `lesson-landed`: a 1–2 s sting when a player lands a lesson.
 - `drum-kick-soft` and `drum-rim-soft`: the same hits played gently. While a poet speaks, the beat plays quietly, and a soft hit sounds more natural than a loud one turned down.
