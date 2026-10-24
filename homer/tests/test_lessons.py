@@ -98,6 +98,12 @@ def test_lesson_three(transcript, craft, miss):
         assert f.title == "Breaker of Deadlines" and f.line.startswith("Breaker of Deadlines. Good.")
 
 
+def test_a_short_try_is_told_how_many_lines():
+    f = say("beat", "the road was long, the night was cold")
+    assert (f.landed, f.miss) == (False, "Fewer lines than the exercise asks for")
+    assert f.line == "You stopped short. I asked for two lines. Finish it."
+
+
 def test_later_lessons_are_not_built_yet():
     with pytest.raises(NotImplementedError):
         say("turn", "we broke their gates")

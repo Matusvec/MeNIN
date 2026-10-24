@@ -120,7 +120,7 @@ An untimed verse (Homer's own, or typed text) is laid on the grid: each beat on 
 ```
 
 - `judge` is `off`, `warming`, `warm` or `failed`. At startup, one real judge call caches the prompt, so wait for `warm` before a demo.
-- `stdb` is `off`, `claimed` or `failed`: whether this service registered with SpacetimeDB.
+- `stdb` is `off`, `claimed`, `failed` or `unreachable`: whether this service can write to SpacetimeDB. It's checked with a no-op call, since a rotated service key doesn't unregister a claimed identity.
 
 ### `POST /voice/token`
 

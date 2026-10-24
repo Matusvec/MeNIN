@@ -262,8 +262,9 @@ async def feedback(a: Attempt, craft: CraftCheck | None = None) -> Feedback:
         if fills is not None:
             return Feedback(False, _fill(line, fills), miss, scan)
 
-    if len(scan.lines) < expected:  # TODO(spec): lessons.md has no line for a short try
-        return Feedback(False, "One more.", "Too few lines", scan)
+    if len(scan.lines) < expected:
+        short = "Fewer lines than the exercise asks for"
+        return Feedback(False, _fill(common()[short], {"lines": spell(expected).lower()}), short, scan)
     title = title_of(a, scan) if a.lesson == "epithet" else ""
     return Feedback(True, _fill(lesson.success, {"title": title}), None, scan, title=title)
 

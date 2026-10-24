@@ -63,3 +63,17 @@ class Stdb:
     async def claim_service(self) -> None:
         """Register this identity for the agent-only reducers. Idempotent."""
         await self.call("claim_service", self.cfg.service_key)
+
+    async def is_service(self) -> bool:
+        """Whether this identity may call the agent reducers, without changing anything.
+
+        set_scene on turn 0 is dropped silently for a service and refused for
+        anyone else. The key can rotate after a claim (each smoke run sets a
+        new one) while the identity stays registered, so a refused claim alone
+        doesn't mean we can't write.
+        """
+        try:
+            await self.call("set_scene", 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        except Refused:
+            return False
+        return True

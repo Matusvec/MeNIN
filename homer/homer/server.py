@@ -87,13 +87,18 @@ async def lifespan(_: FastAPI):
     cfg = settings()
     if os.environ.get("HOMER_WARM", "1") not in ("0", "false") and os.environ.get("ANTHROPIC_API_KEY"):
         asyncio.get_running_loop().create_task(_warm_judge())
-    if cfg.stdb_token and cfg.service_key:
+    if cfg.stdb_token:
+        db = arena().db
         try:
-            await arena().db.claim_service()
-            status["stdb"] = "claimed"
+            if cfg.service_key:
+                try:
+                    await db.claim_service()
+                except Refused as exc:  # a rotated key; we may well be registered already
+                    log.warning("%s", exc)
+            status["stdb"] = "claimed" if await db.is_service() else "failed"
         except StdbError as exc:
-            status["stdb"] = "failed"
-            log.warning("claim_service failed: %s", exc)
+            status["stdb"] = "unreachable"
+            log.warning("spacetimedb: %s", exc)
     yield
 
 
@@ -183,7 +188,7 @@ async def health() -> dict[str, Any]:
         "judgeEffort": cfg.judge_effort,
         "judgeSpeed": cfg.judge_speed or "standard",
         "judge": status["judge"],  # off | warming | warm | failed: the prompt cache before the first turn
-        "stdb": status["stdb"],  # off | claimed | failed
+        "stdb": status["stdb"],  # off | claimed | failed | unreachable
         "stdbDb": cfg.stdb_db,
         "events": list(events.EVENTS),
     }
