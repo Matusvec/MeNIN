@@ -133,6 +133,15 @@ enum Typeface {
         return f
     }
 
+    /// Display type sized for a stage. On the arena the optical size follows how
+    /// big the type looks from the judges' table (about 2 m off a laptop, where a
+    /// 22 pt name reads like 10 pt type on a phone), not its point size, so
+    /// Bodoni's hairlines (the arm of a "y", the diagonal of an "N") survive the
+    /// distance. On a phone it's `display(base)`.
+    static func display(_ base: CGFloat, on stage: Stage, weight: CGFloat = 400, italic: Bool = false) -> Font {
+        display(base * stage.scale, weight: weight, italic: italic, opticalSize: stage.isArena ? base * 0.45 : nil)
+    }
+
     /// Body and interface text.
     static func text(_ size: CGFloat, weight: CGFloat = 400) -> Font {
         let key = "t\(size)-\(weight)"
@@ -254,6 +263,38 @@ private struct ArenaStage: ViewModifier {
             content
                 .frame(width: geo.size.width, height: geo.size.height)
                 .environment(\.stage, Stage(kind: .arena, scale: min(2.2, max(1, fit))))
+        }
+    }
+}
+
+extension View {
+    /// Type that holds from 2 m (SPEC "Platform"): on the arena, copies of the
+    /// text in a tight ring under it thicken every stroke by about 1% of the
+    /// type size, a flat synthetic bold that keeps Bodoni's hairlines (the arm
+    /// of a "y", the thin verticals of an "N") from vanishing across the room.
+    /// Matte, never a glow. `base` is the unscaled size, as in `display(_:on:)`.
+    /// A no-op on phones. Put it right after the font and color.
+    func sturdy(_ base: CGFloat) -> some View { modifier(Sturdy(base: base)) }
+}
+
+private struct Sturdy: ViewModifier {
+    let base: CGFloat
+    @Environment(\.stage) private var stage
+
+    func body(content: Content) -> some View {
+        if stage.isArena {
+            let r = base * stage.scale * 0.009
+            content.background {
+                ZStack {
+                    ForEach(0..<8, id: \.self) { i in
+                        let a = Double(i) * .pi / 4
+                        content.offset(x: cos(a) * r, y: sin(a) * r)
+                    }
+                }
+                .accessibilityHidden(true)
+            }
+        } else {
+            content
         }
     }
 }

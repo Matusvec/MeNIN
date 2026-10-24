@@ -10,6 +10,7 @@ struct WordmarkView: View {
     var size: CGFloat = 31
     var showsGreek: Bool = false
     var color: Color = Palette.brand
+    @Environment(\.stage) private var stage
 
     var body: some View {
         VStack(alignment: .leading, spacing: size * 0.06) {
@@ -17,7 +18,9 @@ struct WordmarkView: View {
                 Image("icon-feather-nav").renderingMode(.template).resizable()
                     .frame(width: size * 0.74, height: size * 0.74)
                 Text("MeNIN")
-                    .font(Typeface.display(size))
+                    // On the arena `size` arrives scaled; set the optical size for the distance so the N's diagonals hold.
+                    .font(Typeface.display(size, opticalSize: stage.isArena ? size / stage.scale * 0.45 : nil))
+                    .sturdy(size / max(stage.scale, 1))
             }
             .foregroundStyle(color)
             if showsGreek {
@@ -298,7 +301,7 @@ struct EventTileView: View {
             .clipped()
             VStack(alignment: .leading, spacing: 2 * k) {
                 Text(event.title)
-                    .font(Typeface.display(22 * k))
+                    .font(Typeface.display(22, on: stage))
                     .foregroundStyle(event.locked ? Palette.ink3 : Palette.ink)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)

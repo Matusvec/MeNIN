@@ -104,7 +104,7 @@ struct PracticeView: View {
             VStack(alignment: .leading, spacing: 2 * k) {
                 Text("Practice  /  Spar with Homer").tracked(10 * k, color: Palette.accent)
                 Text(model.theme.isEmpty ? "Choose a theme" : model.theme)
-                    .font(Typeface.display(24 * k))
+                    .font(Typeface.display(24, on: stage))
                     .displayLeading(24 * k, 1.12)
                     .foregroundStyle(Palette.ink)
                     .fixedSize(horizontal: false, vertical: true)
@@ -125,7 +125,7 @@ struct PracticeView: View {
                 ForEach(themes, id: \.self) { theme in
                     Button { actions.pickTheme?(theme) } label: {
                         HStack {
-                            Text(theme).font(Typeface.display(21 * k)).foregroundStyle(Palette.ink)
+                            Text(theme).font(Typeface.display(21, on: stage)).foregroundStyle(Palette.ink)
                                 .multilineTextAlignment(.leading)
                             Spacer()
                             Image("icon-chevron-right").renderingMode(.template).resizable()
@@ -163,7 +163,7 @@ struct PracticeView: View {
             VStack(spacing: Metrics.s3 * k) {
                 Text("The theme").tracked(12 * k, color: Palette.onHero2)
                 Text(model.theme)
-                    .font(Typeface.display(34 * k))
+                    .font(Typeface.display(34, on: stage))
                     .displayLeading(34 * k, 1.1)
                     .foregroundStyle(Palette.onHero)
                     .multilineTextAlignment(.center)
@@ -188,7 +188,7 @@ struct PracticeView: View {
                 }
                 if let typed = model.typed, let type = actions.type {
                     TextField("Your lines, one per row", text: Binding(get: { typed }, set: { type($0) }), axis: .vertical)
-                        .font(Typeface.display(20 * k))
+                        .font(Typeface.display(20, on: stage))
                         .lineLimit(2...4)
                         .padding(Metrics.s4 * k)
                         .paper()

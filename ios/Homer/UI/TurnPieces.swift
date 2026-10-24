@@ -21,7 +21,7 @@ struct AnswerLineView: View {
             VStack(alignment: .leading, spacing: Metrics.s1 * k) {
                 Text(poet.map { "Answer \($0)" } ?? "The theme").tracked(10 * k, color: Palette.accent)
                 Text(poet == nil ? line : "“\(line)”")
-                    .font(Typeface.display(21 * k, italic: poet != nil))
+                    .font(Typeface.display(21, on: stage, italic: poet != nil))
                     .displayLeading(21 * k, 1.15)
                     .foregroundStyle(Palette.ink)
                     .fixedSize(horizontal: false, vertical: true)
@@ -136,7 +136,7 @@ private struct CardBack: View {
                 .stroke(Palette.gold.opacity(0.8), lineWidth: 2 * k)
                 .frame(height: 12 * k)
                 .padding(.horizontal, Metrics.s3 * k)
-            Text("MeNIN").font(Typeface.display(16 * k, weight: 500)).foregroundStyle(Palette.cream)
+            Text("MeNIN").font(Typeface.display(16, on: stage, weight: 500)).foregroundStyle(Palette.cream)
                 .padding(.horizontal, Metrics.s2 * k)
                 .background(Palette.wine)
         }

@@ -105,7 +105,7 @@ struct LessonView: View {
         return HStack(alignment: .center, spacing: Metrics.s3 * k) {
             VStack(alignment: .leading, spacing: 2 * k) {
                 Text("Bard  /  Lesson \(model.number)").tracked(10 * k, color: Palette.accent)
-                Text(model.title).font(Typeface.display(26 * k)).foregroundStyle(Palette.ink)
+                Text(model.title).font(Typeface.display(26, on: stage)).foregroundStyle(Palette.ink)
                 Text(model.move).font(Typeface.text(13 * k)).foregroundStyle(Palette.ink2)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -135,9 +135,9 @@ struct LessonView: View {
         case .title:
             VStack(spacing: Metrics.s3 * k) {
                 Text("Lesson").tracked(12 * k, color: Palette.onHero2)
-                Text(roman(model.number)).font(Typeface.display(110 * k, weight: 500)).foregroundStyle(Palette.onHero)
-                Text(model.title).font(Typeface.display(34 * k)).foregroundStyle(Palette.onHero)
-                Text(model.move).font(Typeface.display(18 * k, italic: true)).foregroundStyle(Palette.onHero2)
+                Text(roman(model.number)).font(Typeface.display(110, on: stage, weight: 500)).foregroundStyle(Palette.onHero)
+                Text(model.title).font(Typeface.display(34, on: stage)).foregroundStyle(Palette.onHero)
+                Text(model.move).font(Typeface.display(18, on: stage, italic: true)).foregroundStyle(Palette.onHero2)
                     .multilineTextAlignment(.center)
             }
             .padding(.vertical, Metrics.s7 * k)
@@ -174,7 +174,7 @@ struct LessonView: View {
                 }
                 if let typed = model.typed, let type = actions.type {
                     TextField("Your lines, one per row", text: Binding(get: { typed }, set: { type($0) }), axis: .vertical)
-                        .font(Typeface.display(20 * k))
+                        .font(Typeface.display(20, on: stage))
                         .lineLimit(2...4)
                         .padding(Metrics.s4 * k)
                         .paper()
@@ -229,7 +229,7 @@ struct VerseCard: View {
             Text(title).tracked(10 * k, color: Palette.accent)
             ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
                 Text(line)
-                    .font(Typeface.display(21 * k, italic: true))
+                    .font(Typeface.display(21, on: stage, italic: true))
                     .displayLeading(21 * k, 1.18)
                     .foregroundStyle(Palette.ink)
                     .fixedSize(horizontal: false, vertical: true)
@@ -255,7 +255,7 @@ private struct NoteCard: View {
                 Text("Homer's note").tracked(10 * k, color: Palette.accent)
                 if let note {
                     Text(note)
-                        .font(Typeface.display(22 * k, italic: true))
+                        .font(Typeface.display(22, on: stage, italic: true))
                         .displayLeading(22 * k, 1.18)
                         .foregroundStyle(Palette.ink)
                         .fixedSize(horizontal: false, vertical: true)
@@ -264,7 +264,7 @@ private struct NoteCard: View {
             Spacer(minLength: 0)
             if let beatScore {
                 VStack(spacing: 0) {
-                    Text("\(beatScore)").font(Typeface.display(34 * k, weight: 500)).foregroundStyle(beatScore >= 8 ? Palette.goldDeep : Palette.ink)
+                    Text("\(beatScore)").font(Typeface.display(34, on: stage, weight: 500)).foregroundStyle(beatScore >= 8 ? Palette.goldDeep : Palette.ink)
                     Text("Beat").tracked(9 * k, color: Palette.ink3)
                 }
             }
@@ -286,7 +286,7 @@ private struct LandedSeal: View {
             Circle().fill(Palette.gold)
             Circle().strokeBorder(Palette.cream.opacity(0.85), lineWidth: 2 * k).padding(6 * k)
             VStack(spacing: 0) {
-                Text("Landed").font(Typeface.display(26 * k, weight: 600)).foregroundStyle(Palette.ink)
+                Text("Landed").font(Typeface.display(26, on: stage, weight: 600)).foregroundStyle(Palette.ink)
                 Text("It's yours now").tracked(8 * k, color: Palette.ink2)
             }
         }

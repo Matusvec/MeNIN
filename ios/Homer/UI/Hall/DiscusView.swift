@@ -82,11 +82,11 @@ struct DiscusThrowView: View {
                 // The distance counts up as the discus flies, and lands heavy.
                 let shown = distance * min(1, max(0, progress))
                 Text(progress > 0 ? String(format: "%.1f", shown) : "0.0")
-                    .font(Typeface.display(64 * k, weight: progress >= 1 ? 900 : 500))
+                    .font(Typeface.display(64, on: stage, weight: progress >= 1 ? 900 : 500))
                     .strikethrough(foul && progress >= 1, color: Palette.vermilion)
                     .foregroundStyle(progress > 0 && !(foul && progress >= 1) ? Palette.ink : Palette.ink3)
                     .contentTransition(.numericText(value: shown))
-                Text("m").font(Typeface.display(26 * k, weight: 700)).foregroundStyle(Palette.ink2)
+                Text("m").font(Typeface.display(26, on: stage, weight: 700)).foregroundStyle(Palette.ink2)
             }
             .padding(.horizontal, Metrics.s5 * k)
             .padding(.vertical, Metrics.s3 * k)

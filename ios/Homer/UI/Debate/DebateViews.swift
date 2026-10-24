@@ -24,7 +24,7 @@ struct QuestionCard: View {
             VStack(alignment: .leading, spacing: Metrics.s1 * k) {
                 Text(round.map { "Socrates asks · Round \(roman($0))" } ?? "Socrates asks").tracked(10 * k, color: Palette.olive)
                 Text(question)
-                    .font(Typeface.display(26 * k, italic: true))
+                    .font(Typeface.display(26, on: stage, italic: true))
                     .displayLeading(26 * k, 1.12)
                     .foregroundStyle(Palette.ink)
                     .fixedSize(horizontal: false, vertical: true)

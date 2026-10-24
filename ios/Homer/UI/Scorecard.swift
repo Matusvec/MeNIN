@@ -37,7 +37,7 @@ struct ScorecardView: View {
                 VStack(alignment: .leading, spacing: 2 * k) {
                     Text(poet ?? "The judge").tracked(10 * k, color: Palette.ink3)
                     Text(ruling.verdict)
-                        .font(Typeface.display(20 * k, italic: true))
+                        .font(Typeface.display(20, on: stage, italic: true))
                         .displayLeading(20 * k, 1.18)
                         .foregroundStyle(Palette.ink)
                         .fixedSize(horizontal: false, vertical: true)
@@ -46,7 +46,7 @@ struct ScorecardView: View {
                 let totalShown = Int((Double(ruling.total) * min(1, max(0, step - count))).rounded())
                 HStack(alignment: .lastTextBaseline, spacing: 2 * k) {
                     Text("\(totalShown)")
-                        .font(Typeface.display(64 * k, weight: 600))
+                        .font(Typeface.display(64, on: stage, weight: 600))
                         .foregroundStyle(Palette.ink)
                         .contentTransition(.numericText(value: Double(totalShown)))
                         // The total lands heavy.
@@ -73,7 +73,7 @@ struct ScorecardView: View {
             HStack(alignment: .top, spacing: Metrics.s3 * k) {
                 Rectangle().fill(Palette.gold).frame(width: 3 * k)
                 Text("“\(ruling.bestLine)”")
-                    .font(Typeface.display(22 * k))
+                    .font(Typeface.display(22, on: stage))
                     .displayLeading(22 * k, 1.15)
                     .foregroundStyle(Palette.ink)
                     .fixedSize(horizontal: false, vertical: true)
@@ -112,6 +112,7 @@ private struct AxisRow: View {
     /// Flips true when the axis finishes counting: the row takes the knock.
     var landed = false
     let k: CGFloat
+    @Environment(\.stage) private var stage
 
     var body: some View {
         HStack(spacing: Metrics.s3 * k) {
@@ -126,7 +127,7 @@ private struct AxisRow: View {
                 }
             }
             Text("\(value)")
-                .font(Typeface.display(20 * k, weight: 600))
+                .font(Typeface.display(20, on: stage, weight: 600))
                 .foregroundStyle(Palette.ink)
                 .frame(width: 24 * k, alignment: .trailing)
                 .contentTransition(.numericText(value: Double(value)))

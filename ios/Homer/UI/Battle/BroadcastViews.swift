@@ -45,17 +45,18 @@ struct EntranceView: View {
             Text(label).tracked(13 * k, color: Palette.cream.opacity(0.85))
                 .opacity(hit ? 1 : 0)
             Text(poet.name)
-                // A lower optical size keeps Bodoni's hairlines (the arm of a "y") visible from across the room.
-                .font(Typeface.display(84 * k, weight: 800, opticalSize: 36))
+                .font(Typeface.display(84, on: stage, weight: 800))
                 .foregroundStyle(Palette.cream)
+                .sturdy(84)
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
                 .scaleEffect(hit ? 1 : 1.5, anchor: .leading)
                 .opacity(hit ? 1 : 0)
             if !poet.epithet.isEmpty {
                 Text(poet.epithet)
-                    .font(Typeface.display(32 * k, weight: 600, italic: true))
+                    .font(Typeface.display(32, on: stage, weight: 600, italic: true))
                     .foregroundStyle(Palette.ink)
+                    .sturdy(32)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, Metrics.s4 * k)
                     .padding(.vertical, Metrics.s2 * k)
@@ -179,7 +180,7 @@ struct RoundTitleView: View {
         VStack(spacing: Metrics.s4 * k) {
             Text("Round \(roman(round)) of \(roman(rounds))").chip(13 * k)
             Text(theme.isEmpty ? "Homer is choosing the theme…" : theme)
-                .font(Typeface.display(54 * k, weight: theme.isEmpty ? 400 : 900, italic: theme.isEmpty))
+                .font(Typeface.display(54, on: stage, weight: theme.isEmpty ? 400 : 900, italic: theme.isEmpty))
                 .displayLeading(54 * k, 1.05)
                 .foregroundStyle(theme.isEmpty ? Palette.ink3 : Palette.ink)
                 .multilineTextAlignment(.center)
@@ -211,11 +212,11 @@ struct ThemeCardsView: View {
                 Button { onPick?(i) } label: {
                     VStack(alignment: .leading, spacing: Metrics.s4 * k) {
                         Text(roman(i + 1))
-                            .font(Typeface.display(40 * k, weight: 500))
+                            .font(Typeface.display(40, on: stage, weight: 500))
                             .foregroundStyle(isPicked ? Palette.onHero2 : Palette.accent)
                         Spacer(minLength: 0)
                         Text(theme)
-                            .font(Typeface.display(25 * k))
+                            .font(Typeface.display(25, on: stage))
                             .displayLeading(25 * k, 1.12)
                             .foregroundStyle(isPicked ? Palette.onHero : Palette.ink)
                             .multilineTextAlignment(.leading)
@@ -255,18 +256,19 @@ struct ScoreboardView: View {
                     Rectangle().fill(poet.ink).frame(width: 6 * k)
                     VStack(alignment: .leading, spacing: 0) {
                         HStack(spacing: Metrics.s2 * k) {
-                            Text(poet.name).font(Typeface.display(23 * k, weight: 700)).foregroundStyle(Palette.cream)
+                            Text(poet.name).font(Typeface.display(23, on: stage, weight: 700)).foregroundStyle(Palette.cream).sturdy(23)
                             if poet.id == liveId { LiveDot(size: 8 * k) }
                         }
                         if !poet.epithet.isEmpty {
                             Text(poet.epithet)
-                                .font(Typeface.display(14 * k, weight: 500, italic: true))
+                                .font(Typeface.display(14, on: stage, weight: 500, italic: true))
+                                .sturdy(14)
                                 .foregroundStyle(Palette.cream.opacity(0.65))
                         }
                     }
                     Spacer(minLength: Metrics.s4 * k)
                     Text("\(poet.total)")
-                        .font(Typeface.display(34 * k, weight: 900))
+                        .font(Typeface.display(34, on: stage, weight: 900))
                         .foregroundStyle(place == 0 && poet.total > 0 ? Palette.gold : Palette.paper)
                         .contentTransition(.numericText(value: Double(poet.total)))
                 }
@@ -313,7 +315,8 @@ extension JoinCardView {
         VStack(alignment: .leading, spacing: Metrics.s2 * k) {
             Text("Join the Agon").tracked(12 * k, color: Palette.ink2)
             Text(code)
-                .font(Typeface.display(72 * k, weight: 500))
+                // Scaled by `k` (smaller when compact), with the arena's distance optical size.
+                .font(Typeface.display(72 * k, weight: 500, opticalSize: stage.isArena ? 72 * k / stage.scale * 0.45 : nil))
                 .tracking(8 * k)
                 .foregroundStyle(Palette.accent)
                 .lineLimit(1)
@@ -381,16 +384,18 @@ struct ChampionView: View {
                     .background { ShardBurst(inks: [Palette.gold, Palette.cream, poet.ink], trigger: crowned, k: k) }
                 Text("Champion of the Agon").chip(12 * k, fill: Palette.cream, color: Palette.ink)
                 Text(poet.name)
-                    .font(Typeface.display(96 * k, weight: 800, opticalSize: 36))
+                    .font(Typeface.display(96, on: stage, weight: 800))
                     .foregroundStyle(Palette.cream)
+                    .sturdy(96)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
                     .scaleEffect(named ? 1 : 1.35)
                     .opacity(named ? 1 : 0)
                 if !poet.epithet.isEmpty {
                     Text(poet.epithet)
-                        .font(Typeface.display(30 * k, weight: 600, italic: true))
+                        .font(Typeface.display(30, on: stage, weight: 600, italic: true))
                         .foregroundStyle(Palette.cream)
+                        .sturdy(30)
                         .opacity(named ? 1 : 0)
                 }
                 Text("\(poet.total) points")

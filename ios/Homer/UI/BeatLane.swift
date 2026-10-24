@@ -74,7 +74,7 @@ struct BeatLaneView: View {
 
                     // The pause in the middle of the line.
                     Text("/")
-                        .font(Typeface.display(18 * k))
+                        .font(Typeface.display(18, on: stage))
                         .foregroundStyle(Palette.ink3)
                         .position(x: cell * CGFloat(lane.beatsPerLine) / 2, y: mid)
 
@@ -111,7 +111,7 @@ struct BeatLaneView: View {
             .frame(height: 34 * k)
 
             Text(lineText(words))
-                .font(Typeface.display(19 * k))
+                .font(Typeface.display(19, on: stage))
                 .foregroundStyle(Palette.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
@@ -150,7 +150,7 @@ struct BeatLaneView: View {
                     BeatPad(state: c.padState(line: line, beat: beat), pulse: c.pulse(line: line, beat: beat), size: 44 * k)
                         .frame(maxWidth: .infinity)
                     if beat == lane.beatsPerLine / 2 - 1 {
-                        Text("/").font(Typeface.display(30 * k)).foregroundStyle(Palette.ink3)
+                        Text("/").font(Typeface.display(30, on: stage)).foregroundStyle(Palette.ink3)
                     }
                 }
             }

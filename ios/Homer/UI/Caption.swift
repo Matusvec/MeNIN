@@ -19,7 +19,7 @@ struct CaptionView: View {
                 .tracked(10 * k, color: Palette.accent)
                 .fixedSize()
             Text(attributed)
-                .font(Typeface.display((whisper ? 20 : 23) * k, italic: true))
+                .font(Typeface.display((whisper ? 20 : 23), on: stage, italic: true))
                 .displayLeading((whisper ? 20 : 23) * k, 1.18)
                 .lineSpacing(2 * k)
                 .fixedSize(horizontal: false, vertical: true)

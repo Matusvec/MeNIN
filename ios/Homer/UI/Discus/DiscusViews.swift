@@ -141,7 +141,7 @@ struct DiscusArenaView: View {
                 VStack(alignment: .leading, spacing: Metrics.s4 * k) {
                     HStack(spacing: Metrics.s3 * k) {
                         if let thrower = model.thrower {
-                            Text(thrower.name).font(Typeface.display(26 * k, weight: 700)).foregroundStyle(Palette.cream)
+                            Text(thrower.name).font(Typeface.display(26, on: stage, weight: 700)).foregroundStyle(Palette.cream)
                                 .padding(.horizontal, Metrics.s4 * k).padding(.vertical, Metrics.s2 * k)
                                 .paper(thrower.ink, radius: Metrics.radiusM * k)
                         }
@@ -184,7 +184,7 @@ struct DiscusArenaView: View {
             ForEach(Array(ranked.enumerated()), id: \.element.id) { place, mark in
                 HStack(spacing: Metrics.s3 * k) {
                     Capsule().fill(mark.poet.ink).frame(width: 4 * k, height: 22 * k)
-                    Text(mark.poet.name).font(Typeface.display(19 * k, weight: 600)).foregroundStyle(Palette.onHero)
+                    Text(mark.poet.name).font(Typeface.display(19, on: stage, weight: 600)).foregroundStyle(Palette.onHero)
                     Spacer()
                     Text(mark.best.map { String(format: "%.1f m", $0) } ?? "—")
                         .font(Typeface.numeral(15 * k))
@@ -213,7 +213,7 @@ private struct DiscusChampion: View {
         VStack(spacing: Metrics.s2 * k) {
             Text("The discus goes to").chip(12 * k, fill: Palette.cream, color: Palette.ink)
             Text(poet.name)
-                .font(Typeface.display(80 * k, weight: 900))
+                .font(Typeface.display(80, on: stage, weight: 900))
                 .foregroundStyle(Palette.cream)
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)

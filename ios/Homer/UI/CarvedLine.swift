@@ -19,7 +19,7 @@ struct CarvedLineView: View {
             Text("Carved")
                 .tracked(12 * k, color: Palette.gold)
             Text(line)
-                .font(Typeface.display(54 * k, weight: 700, italic: true))
+                .font(Typeface.display(54, on: stage, weight: 700, italic: true))
                 .displayLeading(54 * k, 1.06)
                 .multilineTextAlignment(.center)
                 .minimumScaleFactor(0.6)
@@ -28,7 +28,7 @@ struct CarvedLineView: View {
                 .overlay { if p > 0 && p < 1 { ChiselFront(progress: p, k: k) } }
             if let poet {
                 Text("— \(poet)")
-                    .font(Typeface.display(19 * k, italic: true))
+                    .font(Typeface.display(19, on: stage, italic: true))
                     .foregroundStyle(Palette.onHero2)
                     .opacity(p >= 1 ? 1 : 0)
             }

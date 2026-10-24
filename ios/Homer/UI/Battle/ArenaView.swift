@@ -279,9 +279,9 @@ private struct ArenaCanvas: View {
                 HStack(spacing: Metrics.s3 * k) {
                     Capsule().fill(poet.ink).frame(width: 4 * k, height: 28 * k)
                     VStack(alignment: .leading, spacing: 0) {
-                        Text(poet.name).font(Typeface.display(22 * k, weight: 600)).foregroundStyle(Palette.onHero)
+                        Text(poet.name).font(Typeface.display(22, on: stage, weight: 600)).foregroundStyle(Palette.onHero).sturdy(22)
                         if !poet.epithet.isEmpty {
-                            Text(poet.epithet).font(Typeface.display(14 * k, italic: true)).foregroundStyle(Palette.onHero2)
+                            Text(poet.epithet).font(Typeface.display(14, on: stage, italic: true)).foregroundStyle(Palette.onHero2).sturdy(14)
                         }
                     }
                 }
@@ -309,7 +309,7 @@ private struct ArenaCanvas: View {
                     .frame(width: 64 * k, height: 64 * k)
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Join").tracked(10 * k, color: Palette.ink2)
-                    Text(model.code).font(Typeface.display(34 * k, weight: 500)).tracking(4 * k).foregroundStyle(Palette.accent)
+                    Text(model.code).font(Typeface.display(34, on: stage, weight: 500)).tracking(4 * k).foregroundStyle(Palette.accent)
                 }
             }
             .padding(Metrics.s3 * k)
@@ -318,9 +318,9 @@ private struct ArenaCanvas: View {
                 HStack(spacing: Metrics.s2 * k) {
                     ForEach(model.poets) { poet in
                         HStack(spacing: Metrics.s2 * k) {
-                            Text(poet.name).font(Typeface.display(19 * k, weight: 600))
+                            Text(poet.name).font(Typeface.display(19, on: stage, weight: 600)).sturdy(19)
                             if !poet.epithet.isEmpty {
-                                Text(poet.epithet).font(Typeface.display(14 * k, italic: true)).opacity(0.85)
+                                Text(poet.epithet).font(Typeface.display(14, on: stage, italic: true)).sturdy(14).opacity(0.85)
                             }
                         }
                         .foregroundStyle(Palette.cream)
@@ -349,9 +349,9 @@ private struct ArenaCanvas: View {
         let k = stage.scale
         return HStack(spacing: Metrics.s3 * k) {
             if live { LiveDot(size: 9 * k) }
-            Text(poet.name).font(Typeface.display(26 * k, weight: 700)).foregroundStyle(Palette.cream)
+            Text(poet.name).font(Typeface.display(26, on: stage, weight: 700)).foregroundStyle(Palette.cream).sturdy(26)
             if !poet.epithet.isEmpty {
-                Text(poet.epithet).font(Typeface.display(17 * k, italic: true)).foregroundStyle(Palette.cream.opacity(0.85))
+                Text(poet.epithet).font(Typeface.display(17, on: stage, italic: true)).foregroundStyle(Palette.cream.opacity(0.85)).sturdy(17)
             }
         }
         .padding(.horizontal, Metrics.s4 * k)
@@ -401,7 +401,7 @@ struct SongView: View {
                     let d = i - current
                     if abs(d) <= 2 {
                         Text(line)
-                            .font(Typeface.display((d == 0 ? 40 : 24) * k, weight: d == 0 ? 600 : 400, italic: d != 0))
+                            .font(Typeface.display((d == 0 ? 40 : 24), on: stage, weight: d == 0 ? 600 : 400, italic: d != 0))
                             .displayLeading((d == 0 ? 40 : 24) * k, 1.1)
                             .foregroundStyle(d == 0 ? Palette.onHero : Palette.onHero2)
                             .opacity(d == 0 ? 1 : (abs(d) == 1 ? 0.7 : 0.35))
@@ -451,7 +451,7 @@ private struct ArenaStartCanvas: View {
             VStack(alignment: .leading, spacing: Metrics.s4 * k) {
                 WordmarkView(size: 54 * k, showsGreek: true)
                 Text("The Agon")
-                    .font(Typeface.display(30 * k, italic: true))
+                    .font(Typeface.display(30, on: stage, italic: true))
                     .foregroundStyle(Palette.ink)
                 Text("Poets join from their phones. Homer judges. The best line is carved.")
                     .font(Typeface.text(15 * k))

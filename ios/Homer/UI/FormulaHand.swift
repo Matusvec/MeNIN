@@ -35,7 +35,7 @@ struct FormulaHandView: View {
                 VStack(alignment: .leading, spacing: 2 * k) {
                     if raised { Text("\(whisperer) whispers").tracked(8 * k, color: Palette.onHero2) }
                     Text(card.text)
-                        .font(card.kind == .move ? Typeface.text(14 * k, weight: 600) : Typeface.display((raised ? 21 : 16) * k))
+                        .font(card.kind == .move ? Typeface.text(14 * k, weight: 600) : Typeface.display((raised ? 21 : 16), on: stage))
                         .strikethrough(card.used, color: Palette.ink3)
                         .foregroundStyle(raised ? Palette.onHero : (card.used ? Palette.ink3 : Palette.ink))
                 }
@@ -98,7 +98,7 @@ struct FormulaCardView: View {
                 }
                 Text(card.text)
                     // Verse formulas are set in the bard's serif; debate moves are argument, set plain.
-                    .font(card.kind == .move ? Typeface.text(16 * k, weight: 600) : Typeface.display(22 * k))
+                    .font(card.kind == .move ? Typeface.text(16 * k, weight: 600) : Typeface.display(22, on: stage))
                     .displayLeading(22 * k, 1.12)
                     .foregroundStyle(card.used ? Palette.ink3 : Palette.ink)
                     .strikethrough(card.used, color: Palette.ink3)

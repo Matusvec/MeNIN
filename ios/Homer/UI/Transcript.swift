@@ -27,7 +27,7 @@ struct TranscriptView: View {
             ForEach(Array(shown.enumerated()), id: \.offset) { i, line in
                 let current = i == shown.count - 1
                 Text(marked(line))
-                    .font(Typeface.display((current ? 25 : 19) * k))
+                    .font(Typeface.display((current ? 25 : 19), on: stage))
                     .displayLeading((current ? 25 : 19) * k, 1.15)
                     .foregroundStyle(current ? Palette.onHero : Palette.onHero2)
                     .fixedSize(horizontal: false, vertical: true)
