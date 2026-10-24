@@ -10,6 +10,7 @@
 
 services:
   homer:
+    image: menin-agent:latest  # the fetch sidecar runs this same image
     build:
       context: .
       additional_contexts:
@@ -42,6 +43,26 @@ services:
     command: tunnel --no-autoupdate run
     environment:
       TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      homer:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Side quest, off unless switched on: Homer as a Fetch.ai Agentverse agent (Agent Chat Protocol, ASI:One).
+  # Same image, a separate process; it calls homer's /judge, so the same limits and budget apply.
+  # Mailbox mode needs no open port; 8001 is bound to the droplet's localhost only, for the one-time
+  # "Connect" through an SSH tunnel (DEPLOY.md).
+  fetch:
+    profiles: [fetch]
+    image: menin-agent:latest
+    pull_policy: never
+    command: ["python", "-m", "homer.fetch_agent"]
+    env_file: .env
+    environment:
+      HOMER_URL: http://homer:8000
+    ports: ["127.0.0.1:8001:8001"]
+    healthcheck:
+      disable: true
     depends_on:
       homer:
         condition: service_healthy

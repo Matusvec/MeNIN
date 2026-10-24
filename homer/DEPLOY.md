@@ -110,6 +110,36 @@ rsync … (as in phase 3) && ssh matus@<ip> 'cd ~/menin/homer && docker compose 
 
 Caddy keeps its certificate in a volume, so restarts don't ask Let's Encrypt again. In-memory state (dealt hands, emotion samples) resets on restart: don't redeploy mid-battle.
 
+## Side quests (off unless switched on)
+
+Both are sponsor integrations behind switches (SPEC "Not building"). The demo never depends on them, and switching either off restores today's behaviour.
+
+### Fetch.ai: Homer on Agentverse and ASI:One
+
+A sidecar container from the same image (`fetch` profile). It speaks the Agent Chat Protocol and forwards each chatted verse to this service's `/judge`, so the same rate limits and hourly budget apply. `FETCH_AGENT_SEED` in `.env` fixes its identity, and so its `agent1…` address.
+
+```bash
+docker compose --profile caddy --profile fetch up -d --build   # switch on
+docker compose logs --tail=40 fetch                            # look for "Manifest published successfully: AgentChatProtocol"
+docker compose stop fetch                                      # switch off
+# update the sidecar alone, leaving the game's agent running: `fetch` has no build of its own,
+# so build the shared image through `homer`, then recreate only `fetch`
+docker compose build homer && docker compose --profile fetch up -d --no-deps fetch
+```
+
+**One-time mailbox connection** (needs an Agentverse account at agentverse.ai):
+
+1. On the laptop: `ssh -N -L 8001:127.0.0.1:8001 matus@<ip>`. Port 8001 is bound to the droplet's localhost only, so this tunnel is the way in.
+2. In `docker compose logs fetch`, copy the inspector link: `https://agentverse.ai/inspect/?uri=http%3A//127.0.0.1%3A8001&address=agent1…`.
+3. Open it in a browser logged in to Agentverse, click **Connect**, choose **Mailbox**. The log then shows "Successfully registered as mailbox agent in Agentverse".
+4. In the agent's Agentverse profile, set the handle (for example `@homer-bard`) and keywords (poetry, verse, judge, rap, improv), then **Chat with Agent** to try it from ASI:One. The README shown there is `AGENTVERSE.md`.
+
+After that, no tunnel is needed: messages reach the agent through its Agentverse mailbox.
+
+### Moss: deal formulas by meaning
+
+`HOMER_DEALER=moss` with `MOSS_PROJECT_ID` and `MOSS_PROJECT_KEY` (from the Moss portal) in `.env`, then restart. On startup the agent builds the bank's index once per bank version and loads it in the background. `/health` shows `"dealer": "moss"` once it's ready. Until then, and on any error or a query slower than `HOMER_MOSS_TIMEOUT_MS` (500), hands are dealt by tags as before. Remove `HOMER_DEALER` to switch it off.
+
 ## If it breaks
 
 | Symptom | Fix |

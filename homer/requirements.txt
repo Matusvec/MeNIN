@@ -2,3 +2,6 @@ anthropic>=2.3.0
 pronouncing>=0.2.0
 fastapi>=0.115
 uvicorn>=0.30
+# Sponsor side quests, both behind switches (SPEC "Not building"): the Fetch.ai sidecar and the Moss dealer.
+uagents>=0.25.5
+moss>=1.9

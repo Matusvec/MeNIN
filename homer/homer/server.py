@@ -25,7 +25,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
-from . import debate, events, formulas
+from . import debate, events, formulas, moss_dealer
 from .arena import Arena, BattleTurn, NotFound, Poet
 from .config import settings
 from .deal import Card, deal, pick_theme, rescue, themes
@@ -103,6 +103,8 @@ async def lifespan(_: FastAPI):
     cfg = settings()
     if os.environ.get("HOMER_WARM", "1") not in ("0", "false") and os.environ.get("ANTHROPIC_API_KEY"):
         asyncio.get_running_loop().create_task(_warm_judge())
+    if (moss := moss_dealer.dealer()) is not None:  # HOMER_DEALER=moss: load the index in the background
+        asyncio.get_running_loop().create_task(moss.start())
     if cfg.stdb_token:
         db = arena().db
         try:
@@ -250,6 +252,7 @@ async def health() -> dict[str, Any]:
         "stdbDb": cfg.stdb_db,
         "events": list(events.EVENTS),
         "budget": {k: f"{n}/{budget().caps[k]}" for k, n in budget().used().items()},  # calls in the last hour / cap
+        "dealer": "moss" if (m := moss_dealer.dealer()) and m.ready else "tags",
     }
 
 
@@ -370,7 +373,8 @@ async def deal_hand(req: DealRequest) -> dict[str, Any]:
             raise HTTPException(404, f"no question {req.theme}")
         return {"theme": q.ask, "question": question_json(q), "hand": [move_json(m) for m in debate.deal(n, exclude=req.exclude)]}
     theme = req.theme.strip() or pick_theme()
-    return {"theme": theme, "hand": [card_json(c) for c in deal(theme, req.hoard, n=n, exclude=req.exclude)]}
+    ranked = await moss_dealer.ranked_formulas(theme)  # None unless HOMER_DEALER=moss and Moss answers in time
+    return {"theme": theme, "hand": [card_json(c) for c in deal(theme, req.hoard, n=n, exclude=req.exclude, ranked=ranked)]}
 
 
 class RescueRequest(Model):

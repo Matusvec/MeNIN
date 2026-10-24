@@ -20,7 +20,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import TypeVar
 
-from . import debate, events
+from . import debate, events, moss_dealer
 from .emotion import EMOTIONS, Classifier
 from .deal import CANDIDATES, deal, pick_theme
 from .host import Host, Verse
@@ -146,9 +146,10 @@ class Arena:
                     hands.append([p.player_id, [m.text for m in moves]])
             else:
                 t = theme.strip() or pick_theme(avoid=used)
+                ranked = await moss_dealer.ranked_formulas(t)  # None unless HOMER_DEALER=moss and Moss answers in time
                 offered: set[str] = set()  # poets in one round get different cards
                 for p in poets:
-                    cards = deal(t, p.hoard, n=CANDIDATES, exclude=[*self.dealt.get(p.player_id, []), *offered])
+                    cards = deal(t, p.hoard, n=CANDIDATES, exclude=[*self.dealt.get(p.player_id, []), *offered], ranked=ranked)
                     texts = [c.text for c in cards]
                     offered.update(texts)
                     hands.append([p.player_id, texts])

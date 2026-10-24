@@ -16,6 +16,7 @@ RUN pip install -r requirements.txt \
 COPY --from=content . /app/content
 COPY homer ./homer
 COPY scripts ./scripts
+COPY AGENTVERSE.md ./
 
 RUN useradd --create-home --uid 10001 homer && chown -R homer /app
 USER homer

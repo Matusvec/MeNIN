@@ -106,12 +106,15 @@ def deal(
     n: int = HAND_SIZE,
     exclude: Iterable[str] = (),
     rng: random.Random | None = None,
+    ranked: list[Formula] | None = None,
 ) -> list[Card]:
     """n cards for a theme: up to two from the poet's hoard, the rest from the bank.
 
     Cards fitting more of the theme's tags come first, with a mix of kinds so
     a hand can fill a half-line, name a hero and name a thing. `exclude` holds
-    card texts already dealt or held.
+    card texts already dealt or held. `ranked` is the bank in order of fit from
+    Moss (homer/moss_dealer.py); when given, it replaces the tag order, with a
+    light shuffle among the best so hands vary.
     """
     rng = rng or random.Random()
     want = tags(theme)
@@ -127,6 +130,12 @@ def deal(
     pool = [f for f in formulas.bank() if formulas.key(f.text) not in skip]
     rng.shuffle(pool)
     pool.sort(key=lambda f: -len(want & set(f.themes)))
+    if ranked:
+        best = [f for f in ranked if formulas.key(f.text) not in skip]
+        head = best[: 3 * n]
+        rng.shuffle(head)
+        seen = {f.id for f in best}
+        pool = head + best[3 * n :] + [f for f in pool if f.id not in seen]
     kinds_needed = ["half_line", "epithet", "kenning"]
     for kind in kinds_needed:
         if len(hand) >= n:
