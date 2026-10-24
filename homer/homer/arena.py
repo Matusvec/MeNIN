@@ -35,6 +35,7 @@ T = TypeVar("T")
 log = logging.getLogger("homer")
 
 WORN = 5  # a poet's last epithets that a fresh one may not repeat
+HOSTS = frozenset({"homer", "socrates"})  # the hosts' names; a poet who types one becomes "Poet {seat}"
 RECENT_THEMES = 20  # themes a generated one may not repeat
 THEME_WAIT = 4.0  # seconds a deal waits for a theme still being coined, then takes a written one
 
@@ -231,7 +232,10 @@ class Arena:
                 return n, e
             event = await self.event_of(row["room_id"])
             worn, last = await self._past(row)
+            stand_in = f"Poet {int(row.get('seat') or 0) + 1}"  # seats count from 0
+            n = stand_in if n.strip().lower() in HOSTS else n  # old builds prefill the host's name
             n, e, _ = await self.host.name_poet(n, e or "", event, worn=worn, last_verse=last)
+            n = stand_in if n.strip().lower() in HOSTS else n
             await self.db.call("name_poet", player_id, n, e)
             if event.hand == "formulas":  # the lobby: get the first round's theme coming
                 self.prefetch_theme(row["room_id"])

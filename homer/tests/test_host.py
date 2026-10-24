@@ -248,6 +248,19 @@ def test_name_poet_seeds_a_fresh_epithet_with_the_poets_past_battles():
     assert BO.transcript.splitlines()[0] in sent  # their last verse (turn 2, player 20)
 
 
+def test_a_poet_named_like_a_host_gets_a_seat_name():
+    players = (["id", "room_id", "name", "epithet", "seat", "named"], [[50, 1, "homer", "", 1, False]])
+    a, db = arena({"name": "Poet 2", "epithet": "Keeper of Keys", "alternatives": []})
+    old = TABLES["player"]
+    TABLES["player"] = players
+    try:
+        assert run(a.name_poet(50)) == ("Poet 2", "Keeper of Keys")
+    finally:
+        TABLES["player"] = old
+    assert "Poet 2" in a.host.client.calls[0]["messages"][0]["content"]
+    assert db.calls[0] == ("name_poet", [50, "Poet 2", "Keeper of Keys"])
+
+
 def test_name_poet_reads_the_player_row():
     a, db = arena({"name": "Bo", "epithet": "Storm-Throated", "coined": True})
     assert run(a.name_poet(20)) == ("Bo", "Storm-Throated")
