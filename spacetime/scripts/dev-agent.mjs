@@ -8,6 +8,7 @@
 //
 //   HOMER_DEV_AGENT=1 npm run dev-agent
 //   HOMER_DEV_AGENT=1 HOMER_DEV_ROOM=ABCD npm run dev-agent   # one room only
+//   HOMER_DEV_SKIP_HOSTS=<hex>,<hex> ...   # skip rooms these arenas host
 //
 // Needs the `spacetime` CLI logged in as the database owner (to register as
 // a service). Stop it before the real agent service takes over.
@@ -19,6 +20,14 @@ if (process.env.HOMER_DEV_AGENT !== '1') {
   process.exit(2);
 }
 const ONLY_ROOM = process.env.HOMER_DEV_ROOM?.toUpperCase();
+// Rooms hosted by these identities belong to the real agent service; leave them alone.
+const SKIP_HOSTS = new Set(
+  (process.env.HOMER_DEV_SKIP_HOSTS ?? '')
+    .split(',')
+    .map(h => h.trim().toLowerCase().replace(/^0x/, ''))
+    .filter(Boolean)
+    .map(h => `0x${h}`)
+);
 
 const THEMES = ['A ship that never came home', 'The last fire in the hall', 'A city under siege'];
 const CARDS = [
@@ -149,7 +158,7 @@ async function finale(r) {
 
 async function tick() {
   const rooms = (await sql(null, 'SELECT * FROM room')).filter(
-    r => r.phase !== 'finished' && (!ONLY_ROOM || r.code === ONLY_ROOM)
+    r => r.phase !== 'finished' && (!ONLY_ROOM || r.code === ONLY_ROOM) && !SKIP_HOSTS.has(r.host[0])
   );
   const live = new Set(rooms.map(r => r.id));
   for (const p of await sql(null, 'SELECT * FROM player WHERE named = false')) {

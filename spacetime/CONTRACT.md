@@ -70,7 +70,7 @@ All public tables carry `room_id`, so a client subscribes to exactly one room. *
 | phase | String | see the phase machine |
 | round_no | u32 | 0 in the lobby, then 1..rounds |
 | rounds | u32 | 3 by default; 1 in demo |
-| turn_seconds | u32 | speaking time after the count-in |
+| turn_seconds | u32 | derived: lines_per_turn × bars_per_line × one bar (4 × 60/bpm s), rounded up. Use it for display only; ends_at is exact. |
 | lines_per_turn | u32 | 4 by default; 2 in demo |
 | bpm | u32 | the beat's tempo |
 | form | String | `four_beat` or `hexameter` |
@@ -81,6 +81,7 @@ All public tables carry `room_id`, so a client subscribes to exactly one room. *
 | next_theme | String | the theme the judges picked, until it is dealt |
 | current_turn_id | u64 | the turn that is up, live or being judged; 0 between rounds |
 | created_at | Timestamp | |
+| bars_per_line | u32 | 2: each line is a speaking bar plus a rest bar (SPEC). 1: no rest bars (demo may drop them). It is the last column, appended so live databases migrate without a reset. |
 
 ### `player` (public). Writers: phone, agent.
 
@@ -137,7 +138,7 @@ Row-level security: a client only receives the hand rows of its own players. `SE
 | rescues | u32 | goes up by one per whisper; the arena whispers when it changes |
 | started_at | Timestamp | when Ready was tapped; the count-in starts here |
 | beat_at | Timestamp | beat 1 of line 1 = started_at + one bar (4 × 60/bpm s) |
-| ends_at | Timestamp | beat_at + turn_seconds. The scheduler closes the turn at ends_at + 2 s if the phone hasn't. |
+| ends_at | Timestamp | beat_at + lines_per_turn × bars_per_line bars. The scheduler closes the turn at ends_at + 2 s if the phone hasn't. |
 
 ### `score` (public). Writer: agent.
 
@@ -181,7 +182,7 @@ Every `set_scene` also appends `id, room_id, turn_id, ms` (milliseconds since `s
 
 | Reducer | Args | When | Effect |
 | --- | --- | --- | --- |
-| `create_room` | event String, rounds u32, turn_seconds u32, lines_per_turn u32, bpm u32 (40–160), form String, auto_ready bool, theme_choice bool, demo bool | Tap "Start a battle". The demo is `("poetry", 1, 30, 2, 80, "four_beat", true, false, true)`. | A new room in `lobby`. demo forces 1 round, 2 lines, 2 poets and auto-ready. Any older lobby of this host is closed, so a double tap leaves one room. Find yours with `SELECT * FROM room WHERE host = <your identity>` and take the highest id. |
+| `create_room` | event String, rounds u32, bars_per_line u32 (1 or 2), lines_per_turn u32, bpm u32 (40–160), form String, auto_ready bool, theme_choice bool, demo bool | Tap "Start a battle". The demo is `("poetry", 1, 2, 2, 80, "four_beat", true, false, true)`; pass 1 bar per line to drop the rests. The turn may not exceed 120 s. | A new room in `lobby`. demo forces 1 round, 2 lines, 2 poets and auto-ready. Any older lobby of this host is closed, so a double tap leaves one room. Find yours with `SELECT * FROM room WHERE host = <your identity>` and take the highest id. |
 | `start_battle` | room_id | Begin (2+ poets) | `lobby` → `dealing` (or `theme`), with round_no = 1 |
 | `choose_theme` | room_id, theme | A judge taps a card in `theme` | Sets `next_theme` and moves to `dealing`. The 3 cards come from the content bank on the arena. |
 | `start_turn` | turn_id | auto_ready, or after the 5 s step-up wait | Same as the phone's Ready tap |
@@ -223,7 +224,7 @@ All of these require the caller to be a registered service identity (or the owne
 | Reducer | Args | Who | Effect |
 | --- | --- | --- | --- |
 | `set_service_key` | key (16+ characters) | owner, from the CLI | Stores the key the agent registers with |
-| `claim_service` | key | agent, once at startup | Registers the caller's identity as a service |
+| `claim_service` | key | agent, once at startup | Registers the caller's identity as a service. The registration lasts until a data reset, so changing the key later (smoke sets a random one each run) doesn't affect identities already registered. |
 | `turn_timeout` | — | scheduler only | Closes a turn still `speaking` at ends_at + 2 s, with the last transcript it got |
 
 ## Calling it from the agent service (Python, no SDK)
@@ -255,14 +256,14 @@ spacetime call -s local homer set_service_key <random 32-char key>    # as the o
 
 `spacetime/scripts/smoke.mjs` does all of this end to end and is the reference client.
 
-### Agent HTTP endpoints the arena calls (proposal; the FastAPI owner decides)
+### Agent HTTP endpoints the arena calls (final version: homer/API.md)
 
 The arena calls these and ignores the response body; results arrive through SpacetimeDB. Every reducer refuses duplicates, so the arena can retry safely.
 
 | Endpoint | Arena calls it when | Agent then calls |
 | --- | --- | --- |
 | `POST /battle/poet` {player_id, name, epithet} | A player has `named` = false | `name_poet` |
-| `POST /battle/deal` {room_id, round_no, theme or "", form, poets: [{player_id, name, epithet, hoard}]} | `dealing`, or early in `round_end` | `deal_round` |
+| `POST /battle/deal` {room_id, round_no, theme or ""}. The agent reads event, demo, form, timing and each poet's hoard from SQL. | `dealing`, or early in `round_end` | `deal_round` |
 | `POST /battle/emotion` {turn_id, transcript} | Every ~1.5 s while `speaking` | `set_scene` |
 | `POST /battle/judge` {turn_id, form, theme, transcript, played, rescues, previous_best_line} | The turn reaches `judging` | `post_score` or `decline_turn` |
 | `POST /battle/verdict` {round_id, theme, verses: [{turn_id, name, transcript, score}]} | `round_end` | `post_verdict` |
@@ -273,7 +274,7 @@ The hand is private, so the judge sees `played` (the cards actually spoken), not
 
 ## Timing and rates
 
-- **Beat grid.** Beat *k* of the turn falls at `beat_at + k × 60/bpm`, and line *n* is bar *n*. Each device estimates its offset from server time when `status` flips to `speaking` (offset = local receive time − `started_at`). That is good to a network one-way trip (~50–150 ms), which is fine at ~80 bpm.
+- **Beat grid.** Beat *k* (0–3) of line *n* (0-based) falls at `beat_at + (4 × bars_per_line × n + k) × 60/bpm`. With rest bars (bars_per_line = 2) that's `(8n + k)`: bar 2n is line n, and bar 2n+1 is its rest. Each device estimates its offset from server time when `status` flips to `speaking` (offset = local receive time − `started_at`). That is good to a network one-way trip (~50–150 ms), which is fine at ~80 bpm.
 - **Prosody**, about 20 Hz: fine for SpacetimeDB, since each call is one small transaction. Keep **at most one `set_prosody` in flight** and drop frames rather than queue them, so a bad network can't build lag. The arena interpolates. Expect 100–200 ms phone-to-arena.
 - **Transcript**: on each STT partial (a few per second). `end_turn` carries the final.
 - **Scene**: about every 1.5 s, from the agent.
@@ -285,13 +286,13 @@ spacetime start                          # local server on :3000 (all interfaces
 cd spacetime && npm install
 npm run typecheck
 npm run publish:local                    # keeps data; publish:local:reset wipes it
-npm run smoke                            # full two-round battle over HTTP, 52 checks
+npm run smoke                            # full two-round battle over HTTP, 56 checks
 npm run logs
 ```
 
 If the CLI's login isn't the database owner (for example, after logging in to Maincloud), point `smoke` and `dev-agent` at the owner's config: `STDB_CLI_CONFIG=/path/to/owner/cli.toml`.
 
-**Dev stand-in agent (never in the demo path).** `HOMER_DEV_AGENT=1 npm run dev-agent` watches the database and does the agent's job with placeholders: it names poets, deals stock cards, posts patterned scores, drifts the scene, and writes the verdict and song. Every theme and verdict it writes starts with `[dev]`. It refuses to run without the flag. Add `HOMER_DEV_ROOM=ABCD` to limit it to one room. Stop it before the real agent service runs, and don't run `smoke` alongside it (they would both act as the agent).
+**Dev stand-in agent (never in the demo path).** `HOMER_DEV_AGENT=1 npm run dev-agent` watches the database and does the agent's job with placeholders: it names poets, deals stock cards, posts patterned scores, drifts the scene, and writes the verdict and song. Every theme and verdict it writes starts with `[dev]`. It refuses to run without the flag. Add `HOMER_DEV_ROOM=ABCD` to limit it to one room, or `HOMER_DEV_SKIP_HOSTS=<hex>,…` to leave alone the rooms hosted by those arena identities (for example the real agent's test rooms). Stop it before the real agent service runs, and don't run `smoke` alongside it (they would both act as the agent).
 
 Clients: in dev, `ws://<mac LAN IP>:3000` with database `homer`. **Maincloud** (live, 2.13.0): `https://maincloud.spacetimedb.com` with database `homer-calhacks`. Run smoke there with `STDB_URL=https://maincloud.spacetimedb.com STDB_DB=homer-calhacks STDB_SERVER=maincloud npm run smoke`. The demo runs on Maincloud; see HOSTING.md.
 

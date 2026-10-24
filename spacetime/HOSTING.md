@@ -6,7 +6,7 @@ Phones at the venue must reach SpacetimeDB. A laptop on venue WiFi is the fragil
 
 - Database `homer-calhacks`, owned by Matus's Maincloud login. Dashboard: https://spacetimedb.com/homer-calhacks
 - Maincloud runs SpacetimeDB **2.13.0** (`GET /v1/health`), the same version as our CLI and module.
-- `npm run smoke` against it: all 52 checks pass, including the scheduled turn timer and row-level security on hands.
+- `npm run smoke` against it: all 56 checks pass (after the in-place bars_per_line migration), including the scheduled turn timer and row-level security on hands.
 - HTTP round trip from the venue laptop: p50 about 73 ms.
 - Clients: server URL `https://maincloud.spacetimedb.com` (the WebSocket is `wss://`), database `homer-calhacks`.
 - Development stays on the local `homer` for now.

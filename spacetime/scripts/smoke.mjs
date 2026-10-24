@@ -42,14 +42,20 @@ const [arena, ada, bo, agent, stranger] = await Promise.all([
 ]);
 check(await fails(stranger, 'claim_service', 'not-the-key-not-the-key'), 'wrong service key is refused');
 
-await call(arena, 'create_room', 'poetry', 2, 10, 2, 120, 'four_beat', false, false, false);
+// 2 rounds, 2 bars a line (speak + rest), 2 lines, 120 bpm: a bar is 2 s, a turn 8 s.
+await call(arena, 'create_room', 'poetry', 2, 2, 2, 120, 'four_beat', false, false, false);
 const rooms = (await sql(null, 'SELECT * FROM room')).filter(r => r.host[0] === `0x${arena.hex}`);
 const R = rooms.sort((a, b) => b.id - a.id)[0];
 check(R.phase === 'lobby' && R.code.length === 4 && R.event === 'poetry', `room ${R.code} is in the lobby`);
 check(
-  await fails(arena, 'create_room', 'chariots', 1, 30, 2, 80, 'four_beat', true, false, true),
+  await fails(arena, 'create_room', 'chariots', 1, 2, 2, 80, 'four_beat', true, false, true),
   'unknown events are refused'
 );
+check(
+  await fails(arena, 'create_room', 'poetry', 1, 30, 2, 80, 'four_beat', true, false, true),
+  'bars per line is 1 or 2'
+);
+check(R.turn_seconds === 8 && R.bars_per_line === 2, 'turn length comes from lines x bars x bar');
 
 await call(ada, 'join_room', R.code.toLowerCase(), 'Ada', '', []);
 await call(bo, 'join_room', R.code, 'Bo', 'Breaker of Deadlines', ['storm-throated']);
@@ -97,6 +103,7 @@ await call(ada, 'start_turn', T.id);
 T = await turn(T.id);
 check(T.status === 'speaking' && (await room(R.id)).phase === 'speaking', 'Ada is speaking');
 check(T.beat_at[0] - T.started_at[0] === 2_000_000, 'one bar of count-in at 120 bpm');
+check(T.ends_at[0] - T.beat_at[0] === 8_000_000, 'two lines of speak + rest bars');
 
 await call(ada, 'set_prosody', R.id, 0.7, 180, 1);
 await call(bo, 'set_prosody', R.id, 0.9, 90, 9); // not the speaker: dropped

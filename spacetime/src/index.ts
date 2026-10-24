@@ -39,6 +39,8 @@ const room = table(
     nextTheme: t.string(),
     currentTurnId: t.u64(),
     createdAt: t.timestamp(),
+    // Appended with a default so existing databases migrate without a reset.
+    barsPerLine: t.u32().default(2),
   }
 );
 
@@ -285,6 +287,16 @@ function after(ts: Timestamp, micros: bigint): Timestamp {
   return new Timestamp(ts.microsSinceUnixEpoch + micros);
 }
 
+// Four beats a bar.
+function barMicros(bpm: number): bigint {
+  return BigInt(Math.round((4 * 60_000_000) / bpm));
+}
+
+// Each line is one speaking bar, plus a rest bar when barsPerLine is 2.
+function speakingMicros(lines: number, barsPerLine: number, bpm: number): bigint {
+  return BigInt(lines * barsPerLine) * barMicros(bpm);
+}
+
 function getRoom(ctx: Ctx, roomId: bigint): Room {
   const r = ctx.db.room.id.find(roomId);
   if (!r) throw new SenderError('no such room');
@@ -469,7 +481,7 @@ export const createRoom = spacetimedb.reducer(
   {
     event: t.string(),
     rounds: t.u32(),
-    turnSeconds: t.u32(),
+    barsPerLine: t.u32(),
     linesPerTurn: t.u32(),
     bpm: t.u32(),
     form: t.string(),
@@ -481,8 +493,8 @@ export const createRoom = spacetimedb.reducer(
     if (!EVENTS[args.event]) throw new SenderError('unknown event');
     if (!FORMS.includes(args.form)) throw new SenderError('unknown form');
     if (args.bpm < 40 || args.bpm > 160) throw new SenderError('bpm must be 40 to 160');
-    if (args.turnSeconds < 10 || args.turnSeconds > 120) {
-      throw new SenderError('turnSeconds must be 10 to 120');
+    if (args.barsPerLine !== 1 && args.barsPerLine !== 2) {
+      throw new SenderError('barsPerLine is 1 (no rest bar) or 2 (a rest bar after each line)');
     }
     if (!args.demo && (args.rounds < 1 || args.rounds > 5)) {
       throw new SenderError('rounds must be 1 to 5');
@@ -490,6 +502,9 @@ export const createRoom = spacetimedb.reducer(
     if (!args.demo && (args.linesPerTurn < 1 || args.linesPerTurn > 8)) {
       throw new SenderError('linesPerTurn must be 1 to 8');
     }
+    const lines = args.demo ? 2 : args.linesPerTurn;
+    const turnSeconds = Math.ceil(Number(speakingMicros(lines, args.barsPerLine, args.bpm)) / 1e6);
+    if (turnSeconds > 120) throw new SenderError('a turn cannot run past 120 seconds');
 
     // A host has one open lobby at a time; a double tap must not leave two.
     for (const old of [...ctx.db.room.iter()]) {
@@ -504,8 +519,8 @@ export const createRoom = spacetimedb.reducer(
       phase: 'lobby',
       roundNo: 0,
       rounds: args.demo ? 1 : args.rounds,
-      turnSeconds: args.turnSeconds,
-      linesPerTurn: args.demo ? 2 : args.linesPerTurn,
+      turnSeconds,
+      linesPerTurn: lines,
       bpm: args.bpm,
       form: args.form,
       maxPlayers: args.demo ? DEMO_PLAYERS : MAX_PLAYERS,
@@ -515,6 +530,7 @@ export const createRoom = spacetimedb.reducer(
       nextTheme: '',
       currentTurnId: 0n,
       createdAt: ctx.timestamp,
+      barsPerLine: args.barsPerLine,
     });
     ctx.db.scene.insert({
       roomId: r.id,
@@ -692,9 +708,8 @@ export const startTurn = spacetimedb.reducer({ turnId: t.u64() }, (ctx, { turnId
     throw new SenderError('this turn is not up');
   }
 
-  const barMicros = BigInt(Math.round((4 * 60_000_000) / r.bpm)); // one bar of count-in
-  const beatAt = after(ctx.timestamp, barMicros);
-  const endsAt = after(beatAt, BigInt(r.turnSeconds) * 1_000_000n);
+  const beatAt = after(ctx.timestamp, barMicros(r.bpm)); // one bar of count-in
+  const endsAt = after(beatAt, speakingMicros(r.linesPerTurn, r.barsPerLine, r.bpm));
   ctx.db.turn.id.update({ ...tr, status: 'speaking', startedAt: ctx.timestamp, beatAt, endsAt });
   ctx.db.turnTimer.insert({
     scheduledId: 0n,
