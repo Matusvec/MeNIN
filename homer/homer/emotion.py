@@ -9,6 +9,15 @@ stands in, one sample per line.
 from __future__ import annotations
 
 import re
+from functools import cache
+from pathlib import Path
+from typing import Any
+
+import anthropic
+
+from . import claude
+from .config import Settings, settings as load_settings
+from .prompts import block
 
 EMOTIONS = ("anger", "grief", "joy", "awe", "tenderness", "fear", "defiance", "longing")
 
@@ -47,22 +56,67 @@ def lexicon_weights(text: str) -> dict[str, float] | None:
 
 
 def range_score(history: list[dict[str, float]], lines: list[str] | None = None) -> int:
-    """The Range axis, 1 to 10.
+    """The Range axis, 1 to 10. One feeling held is about 2; two feelings about 5; a real turn 9 or 10.
 
-    Two parts, equally weighted:
-    - breadth: how many emotions led a sample or reached 0.35 of one (1 to 4+)
-    - travel: how far the mix moved from sample to sample (half the L1 distance, summed)
+    Two parts:
+    - breadth (55%): emotions that led a sample or reached 0.5 in one (one to four or more)
+    - travel (45%): how far the mix moved from sample to sample (half the L1 distance, summed)
     """
-    samples = [normalize(h) for h in history if h]
-    if not samples and lines:
-        samples = [w for w in (lexicon_weights(line) for line in lines) if w]
-    if not samples:
+    raw = [h for h in history if h]
+    if not raw and lines:
+        raw = [w for w in (lexicon_weights(line) for line in lines) if w]
+    if not raw:
         return 1
+    samples = [normalize(h) for h in raw]
     present = set()
-    for s in samples:
+    for h, s in zip(raw, samples):
         present.add(max(s, key=s.get))
-        present.update(e for e, v in s.items() if v >= 0.35)
+        present.update(e for e in EMOTIONS if float(h.get(e, 0.0) or 0.0) >= 0.5)
     travel = sum(0.5 * sum(abs(b[e] - a[e]) for e in EMOTIONS) for a, b in zip(samples, samples[1:]))
     breadth = min(len(present) - 1, 3) / 3
-    moved = min(travel, 1.5) / 1.5
-    return max(1, min(10, round(1 + 9 * (0.5 * breadth + 0.5 * moved))))
+    moved = min(travel, 1.0)
+    return max(1, min(10, round(2 + 8 * (0.55 * breadth + 0.45 * moved))))
+
+
+# ----- The live classifier -----------------------------------------------
+
+CLASSIFY_TIMEOUT = 2.5  # seconds; a sample that arrives later than the next one is useless
+WINDOW_WORDS = 40  # the latest words are what the scene should show
+
+
+@cache
+def _system() -> str:
+    return (Path(__file__).parent / "prompts" / "emotion.md").read_text(encoding="utf-8").strip() + "\n"
+
+
+def schema() -> dict[str, Any]:
+    return claude.obj({e: {"type": "number"} for e in EMOTIONS})
+
+
+class Classifier:
+    """Weights over the eight emotions for the latest stretch of speech (SPEC "The scene")."""
+
+    def __init__(self, client: Any | None = None, cfg: Settings | None = None) -> None:
+        self.cfg = cfg or load_settings()
+        self.client = client if client is not None else anthropic.AsyncAnthropic(timeout=CLASSIFY_TIMEOUT)
+
+    def request(self, text: str, loudness: float | None, pitch: float | None) -> dict[str, Any]:
+        kw = claude.options(self.cfg.emotion_model, "low", schema(), thinking="off", fallbacks=self.cfg.fallbacks, max_tokens=512)
+        kw["system"] = claude.system(_system())
+        window = " ".join(text.split()[-WINDOW_WORDS:])
+        prosody = []
+        if loudness is not None:
+            prosody.append(f"loudness: {max(0.0, min(1.0, loudness)):.2f}")
+        if pitch is not None:
+            prosody.append(f"pitch: {max(0.0, pitch):.0f}")
+        kw["messages"] = [{"role": "user", "content": "\n".join([*prosody, block("window", window)])}]
+        return kw
+
+    async def classify(self, text: str, loudness: float | None = None, pitch: float | None = None) -> dict[str, float] | None:
+        """Weights 0 to 1 per emotion, or None when there's nothing to read or Claude didn't answer in time."""
+        if not text.strip():
+            return None
+        data = await claude.ask(self.client, self.request(text, loudness, pitch), CLASSIFY_TIMEOUT)
+        if data is None:
+            return None
+        return {e: round(max(0.0, min(1.0, float(data.get(e, 0.0) or 0.0))), 3) for e in EMOTIONS}

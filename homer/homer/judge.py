@@ -30,7 +30,7 @@ from typing import Any
 
 import anthropic
 
-from . import emotion, events, formulas
+from . import claude, emotion, events, formulas
 from .config import Settings, settings as load_settings
 from .events import Event
 from .formulas import Formula
@@ -39,19 +39,12 @@ from .scanner import TimedWord, VerseScan, scan_verse, strong_hits
 
 log = logging.getLogger("homer")
 
-FALLBACK_BETA = "server-side-fallback-2026-07-01"
-FAST_BETA = "fast-mode-2026-02-01"
-MAX_TOKENS = 2048  # a backstop; the reply itself is under ~100 tokens
 SCORES = list(range(1, 11))
 COIN_MIN_CRAFT = 7  # SPEC "Hoard": a coined formula joins only if the judge rated the verse well
 
 VERDICT_RE = re.compile(r'"verdict"\s*:\s*"((?:[^"\\]|\\.)*)"')
 UNFIT_RE = re.compile(r'"fit"\s*:\s*false')
 MARKUP_RE = re.compile(r"[*_#`~<>\[\]{}|]")
-
-# Models that take server-side refusal fallbacks ("default" form) and fast mode.
-FALLBACK_MODELS = ("claude-opus-5-5", "claude-opus-5", "claude-fable-5-1", "claude-sonnet-5-5")
-FAST_MODELS = ("claude-opus-5-5", "claude-opus-5", "claude-opus-4-8")
 
 OnVerdict = Callable[[str], Awaitable[None] | None]
 
@@ -106,21 +99,7 @@ def output_schema(event: Event) -> dict[str, Any]:
     for axis in event.claude_axes:
         props[axis.key] = {"type": "integer", "enum": SCORES}
     props["coined"] = {"type": "string"}
-    return {"type": "object", "properties": props, "required": list(props), "additionalProperties": False}
-
-
-def thinking_for(model: str, mode: str) -> dict[str, str] | None:
-    """The `thinking` setting, or None to omit it.
-
-    Claude Opus 5.5 can't turn thinking off; low effort keeps it short.
-    """
-    if mode != "off":
-        return {"type": "adaptive"}
-    if model == "claude-sonnet-5-5":
-        return {"type": "between_tools"}
-    if model in ("claude-haiku-5-5", "claude-sonnet-5", "claude-opus-5"):
-        return {"type": "disabled"}
-    return None
+    return claude.obj(props)
 
 
 def clean_verdict(text: str) -> str:
@@ -191,31 +170,17 @@ class Judge:
         )
 
     def request(self, turn: Turn, event: Event, scan: VerseScan) -> dict[str, Any]:
-        cfg, model = self.cfg, self.cfg.judge_model
-        kwargs: dict[str, Any] = {
-            "model": model,
-            "max_tokens": MAX_TOKENS,
-            "system": [
-                {"type": "text", "text": judge_system(event), "cache_control": {"type": "ephemeral", "ttl": "1h"}}
-            ],
-            "messages": [{"role": "user", "content": self.user_content(turn, scan)}],
-            "output_config": {
-                "effort": cfg.judge_effort,
-                "format": {"type": "json_schema", "schema": output_schema(event)},
-            },
-        }
-        thinking = thinking_for(model, cfg.judge_thinking)
-        if thinking:
-            kwargs["thinking"] = thinking
-        betas = []
-        if cfg.fallbacks and model in FALLBACK_MODELS:
-            betas.append(FALLBACK_BETA)
-            kwargs["fallbacks"] = "default"
-        if cfg.judge_speed == "fast" and model in FAST_MODELS:
-            betas.append(FAST_BETA)
-            kwargs["speed"] = "fast"
-        if betas:
-            kwargs["betas"] = betas
+        cfg = self.cfg
+        kwargs = claude.options(
+            cfg.judge_model,
+            cfg.judge_effort,
+            output_schema(event),
+            speed=cfg.judge_speed,
+            thinking=cfg.judge_thinking,
+            fallbacks=cfg.fallbacks,
+        )
+        kwargs["system"] = claude.system(judge_system(event))
+        kwargs["messages"] = [{"role": "user", "content": self.user_content(turn, scan)}]
         return kwargs
 
     # ----- Judging ---------------------------------------------------------
@@ -270,38 +235,23 @@ class Judge:
         return j
 
     async def _call(self, kwargs: dict[str, Any], j: Judgment, t0: float, on_verdict: OnVerdict | None):
-        """Fast mode has its own rate limit: on a 429 go straight to standard speed, no backoff."""
-        if kwargs.get("speed") == "fast":
-            fast = self.client.with_options(max_retries=0) if hasattr(self.client, "with_options") else self.client
-            try:
-                return await self._stream(fast, kwargs, j, t0, on_verdict)
-            except anthropic.RateLimitError:
-                log.warning("fast mode rate-limited; judging at standard speed")
-                kwargs = {k: v for k, v in kwargs.items() if k != "speed"}
-                kwargs["betas"] = [b for b in kwargs["betas"] if b != FAST_BETA]
-                if not kwargs["betas"]:
-                    del kwargs["betas"]
-        return await self._stream(self.client, kwargs, j, t0, on_verdict)
+        sent = False
 
-    async def _stream(self, client: Any, kwargs: dict[str, Any], j: Judgment, t0: float, on_verdict: OnVerdict | None):
-        text, sent = "", False
-        async with client.beta.messages.stream(**kwargs) as stream:
-            async for ev in stream:
-                if ev.type == "content_block_start" and ev.content_block.type == "text":
-                    text = ""  # a fresh text block (after a fallback) starts over
-                elif ev.type == "content_block_delta" and ev.delta.type == "text_delta":
-                    j.timing.setdefault("first_token", _ms(t0))
-                    text += ev.delta.text
-                    if not sent and (m := VERDICT_RE.search(text)):
-                        sent = True
-                        j.timing["verdict"] = _ms(t0)
-                        verdict = clean_verdict(json.loads(f'"{m.group(1)}"'))
-                        if on_verdict and verdict and not UNFIT_RE.search(text):
-                            result = on_verdict(verdict)
-                            if asyncio.iscoroutine(result):
-                                await result
-            final = await stream.get_final_message()
-        return text, final
+        async def watch(text: str) -> None:
+            """Send the verdict on as soon as its string closes in the stream."""
+            nonlocal sent
+            j.timing.setdefault("first_token", _ms(t0))
+            if sent or not (m := VERDICT_RE.search(text)):
+                return
+            sent = True
+            j.timing["verdict"] = _ms(t0)
+            verdict = clean_verdict(json.loads(f'"{m.group(1)}"'))
+            if on_verdict and verdict and not UNFIT_RE.search(text):
+                result = on_verdict(verdict)
+                if asyncio.iscoroutine(result):
+                    await result
+
+        return await claude.complete(self.client, kwargs, watch)
 
     @staticmethod
     def _best_line(quoted: str, lines: list[str], scan: VerseScan) -> str:

@@ -25,9 +25,11 @@ from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 from . import events, formulas
-from .arena import Arena, BattleTurn, Poet
+from .arena import Arena, BattleTurn, NotFound, Poet
 from .config import settings
 from .deal import Card, deal, pick_theme, rescue, themes
+from .host import Host
+from .lessons import Attempt, demo_lane, feedback as lesson_feedback, lessons, spoken_demo
 from .judge import EmptyVerse, Judge, Judgment, Turn
 from .scanner import TimedWord, VerseScan, beat_lane, scan_verse
 from .stdb import Refused, Stdb, StdbError
@@ -51,6 +53,22 @@ def arena() -> Arena:
     if _arena is None:
         _arena = Arena(judge(), Stdb())
     return _arena
+
+
+def host() -> Host:
+    return arena().host
+
+
+async def written(work):
+    """Run battle work that ends in a reducer call; map its failures to HTTP."""
+    try:
+        return await work
+    except NotFound as exc:
+        raise HTTPException(404, str(exc)) from None
+    except Refused as exc:
+        raise HTTPException(409, str(exc)) from None
+    except StdbError as exc:
+        raise HTTPException(502, str(exc)) from None
 
 
 # What /health reports: the judge's prompt cache and the SpacetimeDB claim.
@@ -395,6 +413,144 @@ async def voice_token(req: VoiceTokenRequest, request: Request) -> dict[str, Any
         return await mint(VoiceConfig.from_env(), req.role, _voice_http)
     except VoiceError as exc:
         raise HTTPException(503, str(exc)) from None
+
+
+class BattlePoetRequest(Model):
+    player_id: int
+    name: str | None = None  # read from SQL when absent
+    epithet: str | None = None
+
+
+@app.post("/battle/poet")
+async def battle_poet(req: BattlePoetRequest) -> dict[str, Any]:
+    """A player row has named = false: PG-check the name, coin an epithet if empty, call name_poet."""
+    name, epithet = await written(arena().name_poet(req.player_id, req.name, req.epithet))
+    return {"name": name, "epithet": epithet}
+
+
+class BattleVerdictRequest(Model):
+    round_id: int
+
+
+@app.post("/battle/verdict")
+async def battle_verdict(req: BattleVerdictRequest) -> dict[str, Any]:
+    """In round_end: Homer calls the round and the best line is carved (post_verdict)."""
+    verdict, best_turn, line = await written(arena().round_verdict(req.round_id))
+    return {"verdict": verdict, "bestTurnId": best_turn, "bestLine": line}
+
+
+class BattleSongRequest(Model):
+    room_id: int
+
+
+@app.post("/battle/song")
+async def battle_song(req: BattleSongRequest) -> dict[str, Any]:
+    """Stitch every scored verse so far into the song (post_song). Call after round 1 to pre-stitch, then at the end."""
+    lines = await written(arena().song(req.room_id))
+    return {"lines": [{"turnId": t, "text": text} for t, text in lines]}
+
+
+class EmotionRequest(Model):
+    text: str  # the transcript so far; the latest ~40 words are read
+    loudness: float | None = None  # 0 to 1
+    pitch: float | None = None  # Hz, 0 = unvoiced
+    turn_id: int = 0  # battle only
+
+
+@app.post("/emotion")
+async def emotion_now(req: EmotionRequest) -> dict[str, Any]:
+    """Weights over the eight emotions, for Practice and Bard. Keep them and send them to /judge as emotionHistory."""
+    if not req.text.strip():
+        raise HTTPException(422, "nothing to read")
+    weights = await arena().classifier.classify(req.text, req.loudness, req.pitch)
+    if weights is None:
+        raise HTTPException(503, "no reading in time")
+    return {"weights": weights}
+
+
+@app.post("/battle/emotion")
+async def battle_emotion(req: EmotionRequest) -> dict[str, Any]:
+    """Every ~1.5 s while a battle turn is speaking: classify, keep the sample for Range, call set_scene."""
+    if not req.turn_id:
+        raise HTTPException(400, "turnId is required")
+    weights = await written(arena().scene(req.turn_id, req.text, req.loudness, req.pitch))
+    return {"weights": weights}
+
+
+@app.get("/lessons")
+async def get_lessons(bpm: float = 80) -> dict[str, Any]:
+    """The Bard path from content/lessons.md: what Homer says, the demo verse and its beat lane."""
+    return {
+        "lessons": [
+            {
+                "id": l.id,
+                "n": l.n,
+                "title": l.title,
+                "move": l.move,
+                "exercise": l.exercise,
+                "demo": l.demo,
+                "demoSpoken": spoken_demo(l),
+                "demoLane": demo_lane(l, bpm),
+                "success": l.success,
+                "feedback": l.id in ("beat", "formula", "epithet"),
+            }
+            for l in lessons().values()
+        ]
+    }
+
+
+class LessonFeedbackRequest(Model):
+    lesson: str
+    transcript: str = ""
+    words: list[Word] | None = None
+    bpm: float | None = None
+    hand: list[str] = Field(default_factory=list)
+    rescue: str = ""  # the card Homer whispered on this try, if he did
+    name: str = ""  # the poet's name (lesson 3 finds the title after it)
+    lines_expected: int | None = None
+
+
+@app.post("/lesson/feedback")
+async def lesson_feedback_endpoint(req: LessonFeedbackRequest) -> dict[str, Any]:
+    """Homer's one line for a try: the first miss in the lesson's table, or its success line."""
+    if req.lesson not in lessons():
+        raise HTTPException(404, f"no lesson {req.lesson}")
+    attempt = Attempt(req.lesson, req.transcript, _words(req), req.bpm, req.hand, req.rescue, req.name, req.lines_expected)
+
+    async def craft(a: Attempt) -> int:
+        j = await judge().judge(Turn(a.transcript, mode="lesson", theme="the poet's own battle title"))
+        return j.scores["craft"] if not j.silent else 10  # a silent judge doesn't fail the poet
+
+    try:
+        f = await lesson_feedback(attempt, craft)
+    except NotImplementedError as exc:
+        raise HTTPException(501, str(exc)) from None
+    return {
+        "landed": f.landed,
+        "line": f.line,
+        "miss": f.miss,
+        "title": f.title,
+        "scan": scan_json(f.scan, req.bpm) if f.scan else None,
+    }
+
+
+class SparRequest(Model):
+    theme: str = ""
+    lines: int = 4
+    answer_to: str = ""  # the poet's verse Homer answers
+    hand: list[str] | None = None  # formulas to build from; dealt from the theme when absent
+    bpm: float | None = None
+    started_at: float = 0.0
+
+
+@app.post("/spar")
+async def spar(req: SparRequest) -> dict[str, Any]:
+    """Homer's own verse (Practice spar, lesson demos), built from formulas and checked by the scanner."""
+    theme = req.theme.strip() or pick_theme()
+    verse, scan = await host().spar(theme, req.lines, req.answer_to, req.hand)
+    if not verse:
+        raise HTTPException(503, "Homer is silent on this one")
+    return {"theme": theme, "lines": verse, "scan": scan_json(scan, req.bpm, req.started_at)}
 
 
 @app.exception_handler(ValueError)

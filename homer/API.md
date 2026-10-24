@@ -2,7 +2,7 @@
 
 The Python service in `homer/`. This file is the contract between the service and its callers; `spacetime/CONTRACT.md` is the contract for the battle database.
 
-**Status:** live means built and tested; planned means the shape is settled but the endpoint isn't built yet.
+**Status:** every endpoint here is built and tested. Lesson feedback covers lessons 1 to 3; lessons 4 to 6 return 501 until they're built (they're in the cut order).
 
 | Endpoint | Caller | Status |
 | --- | --- | --- |
@@ -15,12 +15,14 @@ The Python service in `homer/`. This file is the contract between the service an
 | `POST /rescue` | phone, any mode | live |
 | `POST /battle/deal` | arena | live |
 | `POST /battle/judge` | arena | live |
-| `POST /battle/poet` | arena | planned |
-| `POST /emotion`, `POST /battle/emotion` | app / arena | planned |
-| `POST /battle/verdict` | arena | planned |
-| `POST /battle/song` | arena | planned |
-| `POST /spar` | app (Practice) | planned |
-| `POST /lesson/feedback` | app (Bard) | planned |
+| `POST /emotion` | app (Practice, Bard) | live |
+| `POST /spar` | app (Practice, lesson demos) | live |
+| `GET /lessons` | app (Bard) | live |
+| `POST /lesson/feedback` | app (Bard) | live, lessons 1 to 3 |
+| `POST /battle/poet` | arena | live |
+| `POST /battle/emotion` | arena | live |
+| `POST /battle/verdict` | arena | live |
+| `POST /battle/song` | arena | live |
 
 ## Conventions
 
@@ -227,13 +229,93 @@ The arena calls this when a turn reaches `judging`. The agent then calls `post_s
 
 `previousBestLine` is accepted instead of `previous`, but send the whole previous verse when you have it, since Answer is judged against it. The agent remembers the hand it dealt each poet. Returns `{"posted": "post_score" | "decline_turn", ...Scorecard}`; `posted` tells you which reducer was called.
 
-### Planned
+### `POST /emotion`
 
-These shapes may still change; they'll be confirmed here when built.
+The scene's color layer for Practice and Bard. Call it about every 1.5 s while the poet speaks.
 
-- **`POST /battle/poet`** `{playerId, name, epithet}` calls `name_poet`, with a PG-checked name and an epithet coined if it's empty.
-- **`POST /emotion`** `{text, loudness?, pitch?}` returns the 8 weights. **`POST /battle/emotion`** `{turnId, text, loudness?, pitch?}` calls `set_scene` and keeps the sample for Range. Call either about every 1.5 s while speaking.
-- **`POST /battle/verdict`** `{roundId, theme, verses: [{turnId, name, transcript, total, bestLine}]}` calls `post_verdict`.
-- **`POST /battle/song`** `{roomId, demo, verses: [{turnId, name, transcript}]}` calls `post_song`. The song is capped at 4 lines in demo mode.
-- **`POST /spar`** `{theme, previous?, lines}` returns Homer's verse, built by the formula engine and checked by the scanner.
-- **`POST /lesson/feedback`** `{lesson, transcript, words, bpm}` → `{"landed": bool, "line": "Homer's one line"}`, using the miss tables in `content/lessons.md`.
+```json
+{"text": "the transcript so far", "loudness": 0.7, "pitch": 180}
+```
+
+Returns `{"weights": {"anger": 0.1, "grief": 0.8, "joy": 0, "awe": 0.1, "tenderness": 0.2, "fear": 0.1, "defiance": 0, "longing": 0.6}}`.
+
+- Only the latest ~40 words are read. `loudness` (0 to 1) and `pitch` (Hz) are hints.
+- Weights run 0 to 1 each and don't sum to 1. The renderer normalizes and smooths them.
+- Keep every sample in order and send them to `/judge` as `emotionHistory`; Range is scored from them.
+- The classifier is Claude Haiku 5.5 with thinking off: about 1.1 s warm.
+- 422 means there was no text; 503 means no reading within 2.5 s. Skip that tick.
+
+### `POST /spar`
+
+Homer's own verse, for a Practice spar or to show a move. It is built from a hand of formulas, checked by the scanner, and lines that miss four hits get one fix-up pass.
+
+```json
+{"theme": "A storm on the open sea", "lines": 4, "answerTo": "the poet's verse Homer answers", "hand": ["…"], "bpm": 80}
+```
+
+- `hand` is optional; without it, cards are dealt from the theme. An empty `theme` gets a random one.
+- Returns `{"theme": "…", "lines": ["…"], "scan": VerseScan}`. The scan has a `beatLane` when `bpm` is sent.
+- Lines are lowercase and plain, ready for TTS. 503 means Claude didn't answer.
+
+### `GET /lessons?bpm=80`
+
+The Bard path, parsed from `content/lessons.md`, so pm's edits show up without an app build.
+
+```json
+{"lessons": [{"id": "beat", "n": 1, "title": "The beat",
+  "move": "Four hits a line. A breath in the middle.",
+  "exercise": "Two lines about the road that brought you here. …",
+  "demo": ["the WIND was COLD / the WAVES were GREY", "…"],
+  "demoSpoken": "the wind was cold the waves were grey\n…",
+  "demoLane": BeatLane, "success": "Four and four. …", "feedback": true}]}
+```
+
+- `demoSpoken` is the demo verse for TTS. `demoLane` puts its hits on the pulses.
+- `feedback` is true where `/lesson/feedback` works.
+
+### `POST /lesson/feedback`
+
+Homer's one line after a try: the first miss in the lesson's table that applies, or the success line.
+
+```json
+{"lesson": "formula", "transcript": "…", "words": [Word], "bpm": 80,
+ "hand": ["the whale-road", "…"], "rescue": "the whale-road", "name": "Matus"}
+```
+
+- `hand` and `rescue` (the card Homer whispered on this try, if he did) are for lesson 2. `name` is for lesson 3, which reads the title after it on the first line.
+- `words` and `bpm` let lesson 1 hear "rushing the drum".
+
+Returns `{"landed": false, "line": "Three hits. I need four. Add a word with weight.", "miss": "Three hits or fewer", "title": "", "scan": VerseScan}`.
+
+- `miss` is the table row that applied, or `null` when the try landed. With no words it is `"No speech heard"`.
+- On lesson 3, `title` is the coined epithet when it lands: put it in the hoard and use it as the battle name. Lesson 3's "generic" check is a judge call (about 1 s); the other checks are instant.
+
+### `POST /battle/poet`
+
+The arena sees a player with `named` = false. The agent PG-checks the name, coins an epithet if the poet brought none, and calls `name_poet`.
+
+`{"playerId": 12}` is all that's needed: the name and epithet are read from SQL, or can be sent as `name` and `epithet`. Returns `{"name": "Matus", "epithet": "Breaker of Deadlines"}`.
+
+### `POST /battle/emotion`
+
+Call about every 1.5 s while a battle turn is speaking. The agent classifies the speech, calls `set_scene [turn_id, 8 weights]`, and keeps the sample for that turn's Range.
+
+`{"turnId": 42, "text": "turn.transcript", "loudness": 0.7, "pitch": 180}` returns `{"weights": {…}}`, or `{"weights": null}` when there was nothing to read. A call made while one for the same turn is still running shares its result, so slow replies don't pile up.
+
+### `POST /battle/verdict`
+
+In `round_end`. The agent reads the round's scored verses from SQL, Homer calls the round, the best line is chosen, and `post_verdict` is called.
+
+`{"roundId": 5}` returns `{"verdict": "Bo takes the round, …", "bestTurnId": 21, "bestLine": "I stand on the shore with salt in my teeth"}`.
+
+- The carved line is always a real line from a scored verse; an invented one is never carved.
+- If Claude fails, `verdict` is `""` and the carved line is the top-scoring verse's best line.
+
+### `POST /battle/song`
+
+Stitches every scored verse so far into one poem and calls `post_song`. Call it after round 1 to pre-stitch, and again after the last round.
+
+`{"roomId": 10}` returns `{"lines": [{"turnId": 21, "text": "the wine dark sea took my brother's ship"}, …]}`.
+
+- Demo rooms (`room.demo`) get at most 4 lines; others get at most 16.
+- Song lines keep the poets' own words and cite their turn. If Claude fails, the song is each verse's best line, in order.

@@ -63,3 +63,13 @@ def test_judge_rejects_an_empty_verse_and_unknown_events(client):
     assert client.post("/judge", json={"transcript": "  "}).status_code == 422
     assert client.post("/judge", json={"transcript": VERSE, "event": "discus"}).status_code == 400
     assert client.post("/scan", json={"transcript": VERSE, "event": "discus"}).status_code == 400
+
+
+def test_lessons_and_feedback(client):
+    ls = client.get("/lessons?bpm=80").json()["lessons"]
+    assert [l["id"] for l in ls][:3] == ["beat", "formula", "epithet"] and ls[0]["feedback"] and not ls[3]["feedback"]
+    assert ls[0]["demoLane"]["words"][1] == {"text": "wind", "t": 0.0, "stressed": True, "onBeat": True, "formulaId": None}
+    body = client.post("/lesson/feedback", json={"lesson": "beat", "transcript": "the cat sat on the mat\nthe road was long, the night was cold"}).json()
+    assert body["landed"] is False and body["line"].startswith("Three hits.")
+    assert client.post("/lesson/feedback", json={"lesson": "turn", "transcript": "we broke their gates"}).status_code == 501
+    assert client.post("/lesson/feedback", json={"lesson": "nope"}).status_code == 404

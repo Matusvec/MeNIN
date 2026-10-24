@@ -2,8 +2,9 @@
 
 The room is hosted by the agent's own identity, so the dev stand-in agent
 skips it (HOMER_DEV_SKIP_HOSTS). Two throwaway phone identities join and
-speak. The agent deals with the real dealer and judges with the real judge:
-two Claude calls, about two cents.
+speak. The agent names them, deals, colors the scene, judges, calls the round,
+carves the best line and stitches the song, all for real: about a dozen
+Claude calls, under ten cents.
 
     .venv/bin/python scripts/battle_live.py
 """
@@ -59,6 +60,9 @@ async def main() -> None:
         poets.append(p)
     players = {r["name"]: r for r in await agent.sql(f"SELECT * FROM player WHERE room_id = {room['id']}")}
     by_id = {players[n]["id"]: poets[i] for i, n in enumerate(("Ada", "Bo"))}
+    for pid in by_id:
+        name, epithet = await arena.name_poet(pid)
+        print(f"Enter {name}, {epithet}!")
 
     await agent.call("start_battle", room["id"])
     theme, hands = await arena.deal_round(room["id"], 1, "")
@@ -73,7 +77,13 @@ async def main() -> None:
         speaker = by_id[turn["player_id"]]
         if turn["status"] == "waiting":
             await speaker.call("start_turn", turn["id"])
-        await speaker.call("update_transcript", turn["id"], verse.split("\n")[0])
+        first = verse.split("\n")[0]
+        await speaker.call("update_transcript", turn["id"], first)
+        for text, loud in ((first, 0.6), (verse, 0.8)):
+            te = time.perf_counter()
+            w = await arena.scene(turn["id"], text, loud, 160)
+            top = sorted(w.items(), key=lambda kv: -kv[1])[:2] if w else None
+            print(f"  scene in {(time.perf_counter() - te) * 1000:.0f} ms: {top}")
         await speaker.call("end_turn", turn["id"], verse)
         tj = time.perf_counter()
         posted, j = await arena.judge_turn(
@@ -87,8 +97,15 @@ async def main() -> None:
         await agent.call("advance", room["id"])
 
     room = (await agent.sql(f"SELECT * FROM room WHERE id = {room['id']}"))[0]
+    rnd = (await agent.sql(f"SELECT * FROM round WHERE room_id = {room['id']}"))[0]
+    verdict, best_turn, line = await arena.round_verdict(rnd["id"])
+    print(f"round verdict: {verdict}\n  carved (turn {best_turn}): {line}")
+    for t, text in await arena.song(room["id"]):
+        print(f"  song [{t}]: {text}")
     totals = {r["name"]: r["total"] for r in await agent.sql(f"SELECT * FROM player WHERE room_id = {room['id']}")}
     print(f"phase {room['phase']}, totals {totals}, {time.perf_counter() - t0:.1f} s end to end")
+    verse, scan = await arena.host.spar(theme, lines=2, answer_to=VERSES[1])
+    print("spar:", " / ".join(verse), f"(beat {scan.beat})")
 
 
 if __name__ == "__main__":

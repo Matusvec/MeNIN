@@ -40,12 +40,15 @@ In the Cloudflare dashboard, give the tunnel a public hostname `api.<domain>` po
 | --- | --- |
 | `homer/scanner.py` | The four-beat scanner (CMU dictionary, no model): hits per line, the break, on-beat timing, the beat lane. The Beat axis comes from here. |
 | `homer/judge.py` | The turn verdict: one streamed Claude call with the scan inlined, strict JSON, a cached prompt, and the verdict streamed first. |
+| `homer/host.py` | Homer's other lines: naming poets, the round verdict and carved line, the stitched song, spar verses. |
+| `homer/claude.py` | Shared Claude plumbing: request options, streaming, strict JSON, fast-mode fallback. |
 | `homer/events.py` | Per-event config: host persona, hand source, rubric axes, beat on or off. Poetry today. |
-| `homer/prompts/` | Homer's character (`homer.md`) and the judge's rubric (`judge_poetry.md`). Plain markdown; edit freely. |
+| `homer/prompts/` | Homer's character (`homer.md`), one file per task (`judge_poetry.md`, `poet.md`, `verdict.md`, `song.md`, `spar.md`), and the classifier (`emotion.md`). Plain markdown; edit freely. |
 | `homer/deal.py` | Themes, hands and the freeze rescue. No model calls. |
 | `homer/formulas.py` | The formula bank (`content/formulas.json`) and spotting formulas in a verse. |
-| `homer/emotion.py` | The eight emotions and the Range axis. |
-| `homer/arena.py` | Battle work for the arena: deal, judge, then write it with the agent reducers. |
+| `homer/emotion.py` | The eight emotions, the live classifier (Haiku 5.5), and the Range axis. |
+| `homer/lessons.py` | The Bard path from `content/lessons.md`, and Homer's one line of feedback per try. |
+| `homer/arena.py` | Battle work for the arena: name, deal, scene, judge, round verdict, song, each written with the agent reducers. |
 | `homer/stdb.py` | SpacetimeDB over HTTP. |
 | `homer/voice.py` | Short-lived Cartesia tokens. |
 | `homer/server.py` | FastAPI: the endpoints in API.md. |

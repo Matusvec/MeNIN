@@ -106,6 +106,7 @@ class _Syl:
     word: int
     weight: int
     fixed: bool  # an unstressed syllable inside a content word
+    tail: bool = False  # in a compound's second part ("dark" in WINE-dark)
 
 
 @dataclass
@@ -327,7 +328,7 @@ def _scan_line(
         digits, known = stress(t.text)
         first_syl.append(len(syls))
         for weight, fixed in _weights(t.norm, digits, i in tails):
-            syls.append(_Syl(i, weight, fixed))
+            syls.append(_Syl(i, weight, fixed, tail=i in tails))
         words.append(WordScan(t.text, len(digits), known, t=t.t0, joined=t.joined))
 
     # Breaks: a marked " / " or a heard pause is hard; a comma or a new phrase is soft.
@@ -371,15 +372,30 @@ def _scan_line(
             absorbed[half] = 1
         else:
             extras.append(x)
+    def heard(x: int) -> bool:
+        """Whether a beat lands on a syllable a listener hears as a hit.
+
+        A compound's second part never is (one hit per compound). A small
+        word is, unless it leans into the stressed word after it ("my SHIP").
+        """
+        s = syls[x]
+        if s.weight == STRONG:
+            return True
+        if s.weight == SECONDARY:
+            return not s.tail
+        if s.weight == LIGHT:
+            return not (x + 1 < len(syls) and syls[x + 1].weight == STRONG)
+        return False
+
     weak = [x for x in beats if syls[x].weight == WEAK]
-    hits = sum(1 for x in beats if syls[x].weight > WEAK) + len(extras)
+    hits = sum(1 for x in beats if heard(x)) + len(extras)
 
     for x in beats:
         w = words[syls[x].word]
         w.beat = True
-        if syls[x].weight > WEAK:
+        if heard(x):
             w.hit = True
-        else:
+        elif syls[x].weight == WEAK:
             w.weak_beat = True
     for x in extras:
         words[syls[x].word].hit = True
@@ -437,7 +453,7 @@ def _pattern(text: str, toks: list[_Token], words: list[WordScan], break_after: 
     for i, (t, w) in enumerate(zip(toks, words)):
         if i:
             out.append("-" if t.joined else " / " if i - 1 == break_after or i in marks else " ")
-        out.append(t.text.upper() if w.hit or w.beat else t.text.lower())
+        out.append(t.text.upper() if w.hit else t.text.lower())
     return "".join(out)
 
 

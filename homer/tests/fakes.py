@@ -55,14 +55,23 @@ class FakeStream:
 
 
 class FakeClient:
-    """Streams a fixed reply (a dict is sent as JSON, in key order)."""
+    """Streams a fixed reply (a dict is sent as JSON, in key order).
 
-    def __init__(self, data: dict | str, stop_reason: str = "end_turn", chunk: int = 9, delay: float = 0.0):
-        self.text = data if isinstance(data, str) else json.dumps(data)
+    Pass a list to script one reply per call; the last one repeats.
+    """
+
+    def __init__(self, data: dict | str | list, stop_reason: str = "end_turn", chunk: int = 9, delay: float = 0.0):
+        replies = data if isinstance(data, list) else [data]
+        self.texts = [r if isinstance(r, str) else json.dumps(r) for r in replies]
         self.stop_reason, self.chunk, self.delay = stop_reason, chunk, delay
         self.calls: list[dict[str, Any]] = []
         self.beta = SimpleNamespace(messages=SimpleNamespace(stream=self._stream))
 
+    @property
+    def text(self) -> str:
+        return self.texts[0]
+
     def _stream(self, **kwargs: Any) -> FakeStream:
+        text = self.texts[min(len(self.calls), len(self.texts) - 1)]
         self.calls.append(kwargs)
-        return FakeStream(self.text, self.stop_reason, self.chunk, self.delay, kwargs["model"])
+        return FakeStream(text, self.stop_reason, self.chunk, self.delay, kwargs["model"])

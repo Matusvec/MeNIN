@@ -26,12 +26,23 @@ def judge_system(event: Event) -> str:
     return f"{_read(event.persona)}\n\n{task}\n"
 
 
+@cache
+def host_system(event: Event, task: str) -> str:
+    """The host's persona plus one task section (poet, verdict, song, spar)."""
+    return f"{_read(event.persona)}\n\n{_read(task)}\n"
+
+
 def quote_untrusted(text: str) -> str:
     """Neutralise anything in user text that could pose as our own markup.
 
     Only angle brackets are touched, so apostrophes and quotes in verse survive.
     """
     return text.replace("<", "&lt;").replace(">", "&gt;")
+
+
+def attr(text: str) -> str:
+    """User text made safe inside an attribute value."""
+    return quote_untrusted(text).replace('"', "&quot;")
 
 
 def block(tag: str, text: str) -> str:

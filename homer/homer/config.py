@@ -37,6 +37,11 @@ class Settings:
     judge_thinking: str  # "off" where the model allows it, else "adaptive"
     judge_timeout: float  # seconds before Homer is silent on Craft, Image and Answer
     fallbacks: bool  # server-side refusal fallbacks where the model supports them
+    model: str  # everything else Homer writes: names, round verdicts, the song, spar verses
+    effort: str
+    speed: str
+    timeout: float
+    emotion_model: str  # the classifier that colors the scene every ~1.5 s
     stdb_url: str
     stdb_db: str
     stdb_token: str
@@ -53,6 +58,11 @@ def settings() -> Settings:
         judge_thinking=_env("HOMER_JUDGE_THINKING", "off"),
         judge_timeout=float(_env("HOMER_JUDGE_TIMEOUT", "10")),
         fallbacks=_env("HOMER_FALLBACKS", "1") not in ("0", "false", "no"),
+        model=_env("HOMER_MODEL", "claude-opus-5-5"),
+        effort=_env("HOMER_EFFORT", "low"),
+        speed=_env("HOMER_SPEED", "fast"),
+        timeout=float(_env("HOMER_TIMEOUT", "15")),
+        emotion_model=_env("HOMER_EMOTION_MODEL", "claude-haiku-5-5"),
         stdb_url=_env("STDB_URL", "http://127.0.0.1:3000").rstrip("/"),
         stdb_db=_env("STDB_DB", "homer"),
         stdb_token=_env("STDB_TOKEN"),

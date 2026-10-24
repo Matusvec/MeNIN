@@ -6,7 +6,8 @@ from fakes import FakeClient, reply
 
 from homer import events
 from homer.config import settings
-from homer.judge import EmptyVerse, Judge, Turn, clean_verdict, output_schema, thinking_for
+from homer.claude import thinking_for
+from homer.judge import EmptyVerse, Judge, Turn, clean_verdict, output_schema
 from homer.prompts import judge_system
 
 VERSE = "the wind was cold, the waves were grey\nthe sea kept time and so did I"
