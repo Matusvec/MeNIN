@@ -286,7 +286,7 @@ final class TurnRecorder {
         tasks.append(Task { [weak self] in
             while !Task.isCancelled {
                 guard let self, self.phase == .live else { return }
-                let p = self.mic.prosody
+                let p = self.mic.latest  // full rate, so the arena's scene follows the voice at 20 Hz
                 self.battle.setProsody(loudness: Float(p.energy), pitch: Float(p.pitch ?? 0), hits: self.hits)
                 try? await Task.sleep(for: .milliseconds(50))
             }
@@ -448,6 +448,11 @@ final class TurnRecorder {
         guard phase == .live, talking else { return }
         lastVoiceMs = onset.epochMs
         if onset.epochMs >= goAt { voiceSinceFlush = true }
+        if clock == nil, onset.epochMs >= goAt, loudSyllable(onset) {
+            // Free verse and debate have no beat, so `hits` counts loud syllables: the arena's scene
+            // pulses on each (the same prominence rule as the beat gate, without the beat).
+            hits += 1
+        }
         guard let clock else { return }
         let t = onset.epochMs - StressGate.heardLatencyMs - clock.beatAtMs  // as heard, on the beat's timeline
         switch gate.judge(onset, on: clock) {
@@ -500,6 +505,15 @@ final class TurnRecorder {
         }
     }
     @ObservationIgnored private var voiceSinceFlush = false
+    @ObservationIgnored private var recentOnsets: [(ms: Double, energy: Double)] = []
+
+    /// A stressed syllable: about as loud as the loudest of the last 2.5 s (StressGate's rule).
+    private func loudSyllable(_ onset: MicEngine.Onset) -> Bool {
+        recentOnsets.removeAll { onset.epochMs - $0.ms > StressGate.window * 1000 }
+        recentOnsets.append((onset.epochMs, onset.energy))
+        let loudest = recentOnsets.map(\.energy).max() ?? onset.energy
+        return onset.energy >= StressGate.floor && onset.energy >= StressGate.prominence * loudest
+    }
     @ObservationIgnored private var lastPauseBreakMs = 0.0
 
     private func checkFreeze(now: Double, clock: BeatClock) {

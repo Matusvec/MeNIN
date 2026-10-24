@@ -8,6 +8,8 @@ import Observation
 @MainActor
 final class MicProsody {
     private(set) var prosody = Prosody.silent
+    /// The latest reading at full rate (~60 Hz), unobserved: for streaming (set_prosody), not views.
+    @ObservationIgnored private(set) var latest = Prosody.silent
     private(set) var isRunning = false
     private(set) var error: String?
 
@@ -50,6 +52,7 @@ final class MicProsody {
             while !Task.isCancelled {
                 guard let self else { return }
                 if let p = self.engine.latestProsody() {
+                    self.latest = p
                     self.onProsody?(p)  // the scene: every frame
                     // Views read `prosody` (the level meter): 10 Hz is plenty, and 60 Hz re-rendered whole
                     // phone screens for as long as the mic was open.
