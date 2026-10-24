@@ -2,7 +2,7 @@
 
 This doc is for Matus to design against. It covers the flow, the states, the timing and what each screen shows. Visual design is Matus's, so this doc describes what is shown and what changes, never how it looks. Words like "large" or "pinned" describe hierarchy.
 
-`SPEC.md` (as of commit 7866476) is the source of truth. Anything not in it is marked **Proposal Pn** and waits on Matus.
+`SPEC.md` (as of commit 9a6cfdc) is the source of truth. Anything not in it is marked **Proposal Pn** and waits on Matus.
 
 MeNIN is ancient Greek Wii Sports, with Homer as the host: party events on one shared screen, with phones as controllers. The poetry battle is the core (sections 1 to 6). Socratic debate and discus are in build now (sections 8 and 9). The event menu ties them together (section 7), and section 10 says where the music plays.
 
@@ -75,11 +75,9 @@ Leader approved these as delegator, and Matus can veto any of them. Approved ite
 | P19 | **Demo mode music.** At the judging table, the hall theme stays at its ducked level the whole time, because we talk over the menu. An operator key mutes all music (sections 6 and 10). | Approved, and in SPEC.md "Music" |
 | P20 | **Score number in lessons.** After each try in a lesson, your scanner score (1 to 10) shows small beside Homer's note, so you can watch it climb. The first-timer study (`docs/study.md`) and the video's before-and-after shot both read it off the screen (L4). Builds 4 and 5 label it "Beat". If the lesson screen is renamed to Flow, the study names it the same way. | Approved |
 | P21 | **The call to step up.** As each turn starts, the host calls the speaker by name. The round's first poet gets the theme's call ("Priya, Salt-Tongued. The sea is yours."). Every later poet gets "Answer that.", since they answer the line before (P7). In debate, the host says your side (T1 in sections 5 and 8). | Approved, built in the app and the website |
-| P21b | **A call for a fresh theme.** Only the written themes have a call, so with fresh themes the first poet nearly always hears "The floor is yours." Homer writes a call of five words or fewer in the same step as the theme ("The text you never sent" → "Send it now."). | Proposed |
+| P21b | **A call for a fresh theme.** Only the written themes have a call, so with fresh themes the first poet nearly always hears "The floor is yours." Homer writes a call of five words or fewer in the same step as the theme ("The text you never sent" → "Send it now."). | Approved, in builder's plan: the theme and its call come from one call |
 
 P1 to P6 were approved by Matus and are listed above.
-
-**Two lines in SPEC.md that predate the 7866476 changes (flagged to the leader):** the battle section still says "you can save your best formula for the last round", and the curriculum still says the lesson-3 epithet "becomes your battle name". This doc follows the newer lines: Homer's phrases are dealt fresh each round (B2), and the lesson-3 epithet is the fallback (J2).
 
 ---
 
@@ -410,7 +408,7 @@ Practice and Battle share this. The spec's order is theme, hand, speak, freeze r
 - **Arena:** The poet's name and epithet. With P7, the previous poet's best line is pinned and labeled as the line to answer; for the first poet of a round, the theme is pinned instead. The beat lane resets to 4 lines of 4 beats.
 - **Phone:** A **Ready** button, Homer's phrases, and the theme.
 - **Homer (P21):** calls the poet up in MC voice, using the name and this battle's epithet.
-  - **The round's first poet:** "{name}, {title}." and then the theme's call, like "Matus, Breaker of Deadlines. The floor is yours." A fresh theme gets "The floor is yours." (or, with P21b, the call Homer wrote with it). A written fallback theme gets its call from the table below.
+  - **The round's first poet:** "{name}, {title}." and then the theme's call, like "Matus, Breaker of Deadlines. Send it now." A fresh theme gets the call Homer wrote with it (P21b). A written fallback theme gets its call from the table below, and anything else gets "The floor is yours."
   - **Every later poet:** "{name}. Answer that." Their job is to answer the line pinned on the arena (P7), and the call says so.
   - The count-in (T2) waits until Homer finishes, even in auto-ready, so his voice never runs into an open mic.
 
