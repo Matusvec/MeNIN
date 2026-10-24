@@ -175,6 +175,7 @@ The script is `docs/gtm/demo-script.md`.
 - Generated images per line.
 - Required accounts. An account only keeps your rank and hoard.
 - A web app. Three deployables: the iOS app, SpacetimeDB, one Python service.
+- A demo that depends on a side quest. Sponsor side integrations (an Apify Actor that mines the formula bank at build time; a Fetch.ai agent and Moss retrieval inside the agent service) are allowed only behind switches, with today's path as the fallback, and the demo never needs them.
 
 ## Cut order
 
