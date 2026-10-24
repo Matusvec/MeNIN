@@ -27,8 +27,8 @@ MeNIN is ancient Greek Wii Sports: party games from the Greek *agon* (contest), 
 | Event | Host | What you do | Status |
 | --- | --- | --- | --- |
 | Poetry battle | Homer | Improvise verse over the beat | Core. The rest of this spec describes it |
-| Socratic debate | Socrates | Argue a question in timed spoken turns | After the poetry demo passes the Sat 2 PM checkpoint |
-| Discus | Homer announces | Swing your phone; its motion sensors measure the throw | After the same checkpoint |
+| Socratic debate | Socrates | Argue a question in timed spoken turns | In build now |
+| Discus | Homer announces | Swing your phone; its motion sensors measure the throw | In build now |
 | Other events | | Locked tiles on the event menu | Not building |
 
 - Each event is a config on one engine: host, hand, rubric, turn length, beat on or off.
@@ -36,6 +36,10 @@ MeNIN is ancient Greek Wii Sports: party games from the Greek *agon* (contest), 
 - **Discus** is a self-contained motion minigame: no voice, no Claude. Core Motion measures the swing and the release, and the arena shows the throw. You hold a button with your thumb while you swing and release by lifting your thumb; you never let go of the phone.
 - The 2-minute demo stays at least 80% poetry battle. An extra event that can't run 5 times in a row without failing by Sat 8 PM stays a locked tile for the demo. All checkpoints are in `docs/gtm/reality-check.md`.
 - Bard mode and Practice mode are the training, like Wii Sports Training.
+
+## Music
+
+MeNIN has an original soundtrack composed by a teammate: a hall and menu theme, an intro per event, the discus throw and fanfare, a champion sting, and training ambience. Music never plays under a speaking poet; during poetry turns only the procedural beat plays, and music ducks under Homer's voice. The brief for the composer (cue list, lengths, formats, loudness, loop points) is `docs/audio.md`.
 
 ## First open
 
