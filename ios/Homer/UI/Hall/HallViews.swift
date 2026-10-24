@@ -785,11 +785,20 @@ struct PhoneHomeView: View {
     private var battleCard: some View {
         VStack(alignment: .leading, spacing: Metrics.s3) {
             Text("Battle").tracked(11, color: Palette.onHero2)
-            Text(site.map { "Open \($0) on a laptop, then join here." } ?? "Open the website on a laptop, then join here.")
+            Text("Open the website on a laptop, then join here.")
                 .font(Typeface.display(22))
                 .displayLeading(22, 1.15)
                 .foregroundStyle(Palette.onHero)
                 .fixedSize(horizontal: false, vertical: true)
+            if let site {
+                // The address on its own line, shrinking to fit: it can be long.
+                Text(site)
+                    .font(Typeface.text(15, weight: 600))
+                    .foregroundStyle(Palette.cream)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .textSelection(.enabled)
+            }
             TextField("CODE", text: $code)
                 .font(Typeface.display(38, weight: 500))
                 .tracking(10)
