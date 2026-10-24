@@ -127,18 +127,21 @@ docker compose stop fetch                                      # switch off
 docker compose build homer && docker compose --profile fetch up -d --no-deps fetch
 ```
 
-**One-time mailbox connection** (needs an Agentverse account at agentverse.ai):
+**One-time mailbox connection** (needs an Agentverse account at agentverse.ai). The Agentverse Inspector's **Connect** button can't do it here: uagents takes `POST /connect` only from 127.0.0.1 inside the agent's container, and anything from outside (an SSH tunnel, a browser, Caddy) arrives from the Docker bridge and gets 403. So connect with an API key instead:
 
-1. On the laptop: `ssh -N -L 8001:127.0.0.1:8001 matus@<ip>`. Port 8001 is bound to the droplet's localhost only, so this tunnel is the way in.
-2. In `docker compose logs fetch`, copy the inspector link: `https://agentverse.ai/inspect/?uri=http%3A//127.0.0.1%3A8001&address=agent1…`.
-3. Open it in a browser logged in to Agentverse, click **Connect**, choose **Mailbox**. The log then shows "Successfully registered as mailbox agent in Agentverse".
-4. In the agent's Agentverse profile, set the handle (for example `@homer-bard`) and keywords (poetry, verse, judge, rap, improv), then **Chat with Agent** to try it from ASI:One. The README shown there is `AGENTVERSE.md`.
+1. In Agentverse: profile → **API Keys** → **New API Key** (shortest expiry, default permissions). Put it in `homer/.env` on the laptop as `AGENTVERSE_API_KEY=…`. Never paste it into a chat.
+2. From the repo root: `python3 homer/scripts/agentverse_connect.py matus@<ip>`. It sends the key into the `fetch` container over SSH stdin and makes the Inspector's call from there. It prints `{"success": true, …}`, and `docker compose logs fetch` shows "Successfully registered as mailbox agent in Agentverse". The key can be revoked afterwards; the mailbox stays registered.
+3. In the agent's Agentverse profile, set the handle (for example `@homer-bard`) and keywords (poetry, verse, judge, rap, improv), then **Chat with Agent** to try it from ASI:One. The README shown there is `AGENTVERSE.md`.
 
-After that, no tunnel is needed: messages reach the agent through its Agentverse mailbox.
+After that, messages reach the agent through its Agentverse mailbox; port 8001 stays bound to the droplet's localhost.
 
 ### Moss: deal formulas by meaning
 
 `HOMER_DEALER=moss` with `MOSS_PROJECT_ID` and `MOSS_PROJECT_KEY` (from the Moss portal) in `.env`, then restart. On startup the agent builds the bank's index once per bank version and loads it in the background. `/health` shows `"dealer": "moss"` once it's ready. Until then, and on any error or a query slower than `HOMER_MOSS_TIMEOUT_MS` (500), hands are dealt by tags as before. Remove `HOMER_DEALER` to switch it off.
+
+- **The project holds at most three indexes.** At the cap, a build fails with "The project's usage limit has been reached", which reads like billing but isn't. So on a new bank version the agent first deletes its own older `menin-formulas-*` indexes (never anyone else's), then builds. Run Moss from one place (the droplet), or two different banks will keep evicting each other's index.
+- If Moss can't start (a limit, a network blip), the agent deals by tags and retries in the background (30 s, 1, 2, 5, then every 10 minutes), so it comes back without a redeploy.
+- To spare the droplet the build (8–22 s on tags), build from the laptop before deploying a bank change: start a `MossDealer` once with the new `content/`, as `scripts/` runs do.
 
 ## If it breaks
 

@@ -104,7 +104,7 @@ async def lifespan(_: FastAPI):
     if os.environ.get("HOMER_WARM", "1") not in ("0", "false") and os.environ.get("ANTHROPIC_API_KEY"):
         asyncio.get_running_loop().create_task(_warm_judge())
     if (moss := moss_dealer.dealer()) is not None:  # HOMER_DEALER=moss: load the index in the background
-        asyncio.get_running_loop().create_task(moss.start())
+        asyncio.get_running_loop().create_task(moss.keep_starting())
     if cfg.stdb_token:
         db = arena().db
         try:

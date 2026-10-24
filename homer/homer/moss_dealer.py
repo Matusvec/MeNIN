@@ -27,13 +27,15 @@ from .formulas import Formula
 log = logging.getLogger("homer")
 
 MODEL = "moss-minilm"
+PREFIX = "menin-formulas-"
 TOP_K = 48
+RETRY_S = (30, 60, 120, 300, 600)  # between start attempts; then every 10 minutes
 
 
 def index_name() -> str:
     """One index per bank version, so a bank edit builds a fresh index instead of querying a stale one."""
     raw = json.dumps([f.__dict__ for f in formulas.bank()], sort_keys=True, default=list)
-    return f"menin-formulas-{hashlib.sha256(raw.encode()).hexdigest()[:10]}"
+    return f"{PREFIX}{hashlib.sha256(raw.encode()).hexdigest()[:10]}"
 
 
 def documents() -> list[dict[str, Any]]:
@@ -65,6 +67,9 @@ class MossDealer:
                 self.client = MossClient(self.project_id, self.project_key)
             names = {getattr(i, "name", None) for i in await self.client.list_indexes()}
             if self.name not in names:
+                for old in sorted(n for n in names if n and n.startswith(PREFIX)):  # the plan caps indexes per project
+                    await self.client.delete_index(old)
+                    log.info("moss: deleted %s (an older bank)", old)
                 await self.client.create_index(self.name, documents(), MODEL)
                 log.info("moss: built %s (%d formulas)", self.name, len(formulas.bank()))
             await self.client.load_index(self.name)
@@ -73,6 +78,17 @@ class MossDealer:
         except Exception as exc:  # any failure leaves the tag dealer in charge
             self.ready = False
             log.warning("moss unavailable, dealing by tags: %s: %s", type(exc).__name__, exc)
+
+    async def keep_starting(self) -> None:
+        """start() until it works: a Moss hiccup at boot (a usage limit, a network blip) shouldn't leave
+        it off until the next deploy. Hands are dealt by tags in the meantime."""
+        attempt = 0
+        while True:
+            await self.start()
+            if self.ready:
+                return
+            await asyncio.sleep(RETRY_S[min(attempt, len(RETRY_S) - 1)])
+            attempt += 1
 
     async def ranked(self, theme: str) -> list[Formula] | None:
         """The bank's formulas ranked by fit to the theme, or None to fall back to the tag dealer."""

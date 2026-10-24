@@ -89,7 +89,7 @@ Rough table layout, with the judges in front. There's no external screen, so the
 
 Before every run:
 
-- [ ] The main room is open on the Mac, both poets have joined with their epithets, demo config is on, and the three theme cards are up.
+- [ ] The main room is open on the Mac, both poets have joined with their epithets, demo config is on, and the theme is preloaded: **"A ship that never came home"**. If the judge pick is back on, the cards are the ship, the deadline and "The war between two brothers", never the city card until pm's fix is resampled.
 - [ ] Push-to-talk works on both phones, and the haptic beat can be felt.
 - [ ] Speaker volume is set and captions are on.
 - [ ] The operator key "replay opening" is ready.

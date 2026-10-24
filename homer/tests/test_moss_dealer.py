@@ -19,6 +19,10 @@ class FakeMoss:
             raise RuntimeError("network down")
         return [SimpleNamespace(name=n) for n in self.existing]
 
+    async def delete_index(self, name):
+        self.existing.discard(name)
+        return True
+
     async def create_index(self, name, docs, model):
         self.created.append((name, len(docs), model))
         self.existing.add(name)
@@ -57,6 +61,13 @@ def test_start_builds_once_per_bank_version_then_loads():
     assert again.created == [] and again.loaded == [d.name]
 
 
+def test_a_new_bank_replaces_only_its_own_older_indexes():
+    fake = FakeMoss(existing=["menin-formulas-0ld0ld0ld0", "on-device-context"])
+    d = MossDealer("p", "k", client=fake)
+    run(d.start())
+    assert d.ready and fake.existing == {d.name, "on-device-context"}
+
+
 def test_ranked_follows_moss_and_drops_unknown_ids():
     d = MossDealer("p", "k", client=FakeMoss())
     run(d.start())
@@ -74,6 +85,21 @@ def test_any_trouble_falls_back_to_the_tag_dealer():
     failing = MossDealer("p", "k", client=FakeMoss(fail="query"))
     run(failing.start())
     assert run(failing.ranked("the sea")) is None
+
+
+def test_a_failed_start_retries_until_moss_answers(monkeypatch):
+    fake = FakeMoss(fail="list")
+    naps = []
+
+    async def nap(s):
+        naps.append(s)
+        if len(naps) == 3:
+            fake.fail = None  # the usage limit lifts
+
+    monkeypatch.setattr(moss_dealer.asyncio, "sleep", nap)
+    d = MossDealer("p", "k", client=fake)
+    run(d.keep_starting())
+    assert d.ready and naps == list(moss_dealer.RETRY_S[:3]) and fake.loaded == [d.name]
 
 
 def test_off_unless_switched_on_with_credentials(monkeypatch):
