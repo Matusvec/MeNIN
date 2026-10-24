@@ -31,17 +31,17 @@ def run(c):
 
 
 def test_name_poet_keeps_a_fine_name_and_coins_an_epithet():
-    h = host({"name": "Matus", "epithet": "Breaker of Deadlines", "coined": True})
-    assert run(h.name_poet("Matus", "")) == ("Matus", "Breaker of Deadlines", True)
+    h = host({"name": "Matus", "epithet": "Breaker of Horses", "coined": True})
+    assert run(h.name_poet("Matus", "")) == ("Matus", "Breaker of Horses", True)
     sent = h.client.calls[0]
     assert "<name>\nMatus\n</name>" in sent["messages"][0]["content"]
     assert sent["system"][0]["cache_control"]["ttl"] == "1h"
 
 
 def test_a_coined_epithet_that_misses_the_half_line_gives_way_to_one_that_fills_it():
-    h = host({"name": "Ana", "epithet": "Lord of the Endless Respawn", "coined": True,
-              "alternatives": ["Breaker of Controllers", "Respawn-Queen"]})
-    assert run(h.name_poet("Ana", "")) == ("Ana", "Breaker of Controllers", True)
+    h = host({"name": "Ana", "epithet": "Lord of the Endless Wine-Dark Sea", "coined": True,
+              "alternatives": ["Breaker of Horses", "Sea-Queen"]})
+    assert run(h.name_poet("Ana", "")) == ("Ana", "Breaker of Horses", True)
 
 def test_a_fresh_epithet_never_repeats_one_they_have_worn():
     h = host({"name": "Priya", "epithet": "the Salt-Tongued", "alternatives": ["Breaker of Waves", "Keeper of Tides"]})
@@ -54,7 +54,7 @@ def test_a_fresh_epithet_never_repeats_one_they_have_worn():
 
 
 def test_a_coined_theme_keeps_to_six_fresh_words():
-    assert run(host({"theme": "the text you never sent.", "call": "Say it now"}).coin_theme()) == ("The text you never sent", "Say it now.")
+    assert run(host({"theme": "the ship that left without you.", "call": "Call it back"}).coin_theme()) == ("The ship that left without you", "Call it back.")
     assert run(host({"theme": "A ship that never came home", "call": "Go."}).coin_theme(["A ship that never came home"])) is None
     assert run(host({"theme": "A very long theme that runs on past six words", "call": "Go."}).coin_theme()) is None
     assert run(host({"theme": "Your mother's hands", "call": "Tell me about them now, poet, please."}).coin_theme()) == ("Your mother's hands", "")
@@ -273,3 +273,11 @@ def test_a_round_where_nobody_spoke_still_gets_a_call_to_close_it():
     h = host({"verdict": "unused", "best_turn": 0, "best_line": ""})
     assert run(h.round_verdict("the sea", [])) == (SILENT_ROUND, 0, "")
     assert h.client.calls == []  # nothing to judge, no Claude call
+
+
+
+def test_a_coined_theme_or_epithet_from_after_the_bronze_age_is_refused():
+    assert run(host({"theme": "A stranger's umbrella in the rain", "call": "Open it."}).coin_theme()) is None
+    assert run(host({"theme": "A shield left on the beach", "call": "Take the train."}).coin_theme()) == ("A shield left on the beach", "")
+    h = host({"name": "Ada", "epithet": "Weaver of Engines", "alternatives": ["Gear-Throated", "Tamer of Horses"]})
+    assert run(h.name_poet("Ada", ""))[1] == "Tamer of Horses"

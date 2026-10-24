@@ -24,6 +24,7 @@ from .events import Event
 from .judge import clean_verdict, sentences
 from .prompts import attr, block, host_system, quote_untrusted
 from .scanner import VerseScan, scan_verse, strong_hits
+from .style import modern
 
 NAME_MAX, EPITHET_MAX = 24, 32
 THEME_WORDS, CALL_WORDS = 6, 6
@@ -135,7 +136,7 @@ class Host:
         new_name = clean_verdict(str(data.get("name", ""))).strip(".!?")[:NAME_MAX] or kept[0]
         seen = {_title_key(w) for w in worn}
         options = [clean_verdict(str(e)).strip(".!?")[:EPITHET_MAX] for e in [data.get("epithet", ""), *data.get("alternatives", [])]]
-        options = [e for e in options if e and _title_key(e) not in seen]
+        options = [e for e in options if e and _title_key(e) not in seen and not modern(e)]  # Homer's world only
         if not options:
             return new_name, kept[1], False
         # It must fill half a line: the first the scanner hears as two hits.
@@ -159,6 +160,10 @@ class Host:
         call = " ".join(clean_verdict(str(data.get("call", ""))).split())
         if not theme or len(theme.split()) > THEME_WORDS or _title_key(theme) in {_title_key(t) for t in recent}:
             return None
+        if modern(theme):  # nothing invented after the Bronze Age
+            return None
+        if modern(call):
+            call = ""
         if not call or len(call.split()) > CALL_WORDS:
             call = ""
         elif call[-1] not in ".!":

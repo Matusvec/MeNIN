@@ -8,6 +8,8 @@ get lines. Battle only: lessons scan exactly what they are given.
 
 from __future__ import annotations
 
+import re
+
 from .scanner import stresses
 
 LONG = 12  # words: a longer line is split
@@ -17,6 +19,7 @@ SMALL = frozenset(
 )
 OPENERS = frozenset("and but so then or when while till until because".split())
 PUNCT = ",.;:!?—–-"
+SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
 
 
 def break_lines(text: str, long: int = LONG) -> str:
@@ -24,9 +27,23 @@ def break_lines(text: str, long: int = LONG) -> str:
     out: list[str] = []
     for raw in (text or "").splitlines():
         words = raw.split()
-        if words:
-            out.extend(_split(words, long))
+        if len(words) <= long:
+            out.extend([" ".join(words)] if words else [])
+            continue
+        for sentence in _sentences(raw):  # a full stop is a breath: cut there before weighing stresses
+            out.extend(_split(sentence.split(), long))
     return "\n".join(out)
+
+
+def _sentences(line: str) -> list[str]:
+    """A long line's sentences, with any fragment under three words joined to the one before."""
+    out: list[str] = []
+    for part in SENTENCE_END.split(line.strip()):
+        if out and (len(part.split()) < 3 or len(out[-1].split()) < 3):
+            out[-1] = f"{out[-1]} {part}"
+        else:
+            out.append(part)
+    return out
 
 
 def _split(words: list[str], long: int) -> list[str]:

@@ -120,5 +120,7 @@ def test_a_ranked_hand_keeps_the_mix_of_kinds_and_the_hoard():
     hand = deal("the sea", ["storm-throated"], n=5, rng=random.Random(1), ranked=ranked)
     assert hand[0].hoard and len(hand) == 5
     assert {c.kind for c in hand[1:]} >= {"half_line", "epithet", "kenning"}
-    sea = [c for c in hand[1:] if c.id in SEA_FIRST]
-    assert len(sea) >= 2  # Moss's best fits lead
+    # Moss's best fits lead: across seeds, at least one dealt card in five is one of its top picks
+    # (one seed's shuffle is luck; pm measured 49-58% of seeds giving two or more).
+    dealt = [c for seed in range(50) for c in deal("the sea", ["storm-throated"], n=5, rng=random.Random(seed), ranked=ranked)[1:]]
+    assert sum(c.id in SEA_FIRST for c in dealt) >= len(dealt) / 5

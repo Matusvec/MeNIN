@@ -52,7 +52,7 @@ POETRY = Event(
     persona="homer",
     judge_prompt="judge_poetry",
     axes=(
-        Axis("beat", "Flow", "A steady rhythm, about three to five stresses a line", "scanner"),
+        Axis("beat", "Flow", "A steady rhythm, about three to five stresses a line", "scanner", 0),  # not scored: content only
         Axis(
             "craft",
             "Craft",
@@ -68,7 +68,7 @@ POETRY = Event(
             "Strength of the imagery: concrete, surprising, seen and heard. Abstract words "
             "(love, pain, life) with nothing to see are weak; a single sharp picture is strong.",
             "claude",
-            3,
+            4,
         ),
         Axis(
             "answer",
@@ -76,9 +76,9 @@ POETRY = Event(
             "How well the verse responds to the previous verse: takes up its image, turns it, tops it, "
             "or hits back at it. With no previous verse, how well it answers the theme.",
             "claude",
-            3,
+            4,
         ),
-        Axis("range", "Range", "How much emotional ground the verse covered", "emotion"),
+        Axis("range", "Range", "How much emotional ground the verse covered", "emotion", 0),  # paints the scene, not scored
     ),
     hand="formulas",
     beat=True,

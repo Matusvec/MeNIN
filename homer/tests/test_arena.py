@@ -55,6 +55,19 @@ def test_post_score_sends_the_axes_in_rubric_order():
     assert args == [42, [j.scores["beat"], 6, 7, 5, j.scores["range"]], j.verdict, j.best_line, ""]
 
 
+def test_a_verse_with_no_breath_breaks_gets_a_neutral_flow():
+    arena, db = make()
+    arena.db.sql = lambda q: _one_line(q)  # the phone sent one long line, no pause breaks
+    posted, j = asyncio.run(arena.judge_turn(BattleTurn(turn_id=42, transcript="")))
+    assert posted == "post_score" and j.scores["beat"] == 5
+    assert db.calls[0][1][1][0] == 5  # posted as the first axis
+
+
+async def _one_line(q):
+    said = "the sea came grey against the hull at dawn and my father waved from a ship that never came home"
+    return [{"id": 42, "status": "judging", "transcript": said, "played": [], "rescues": 0}]
+
+
 def test_unfit_verse_declines_the_turn():
     arena, db = make(reply(fit=False, verdict="", best_line=""))
     posted, _ = asyncio.run(arena.judge_turn(BattleTurn(turn_id=7, transcript=VERSE)))
@@ -136,8 +149,8 @@ def test_deal_reads_poets_from_sql_and_picks_a_theme():
 
 def test_a_coined_theme_is_dealt_with_its_own_call_and_the_next_one_is_coined_meanwhile():
     db = SqlDb()
-    client = FakeClient([{"theme": "the text you never sent", "call": "Say it now"},
-                         {"theme": "Last train out of the city", "call": "The platform is yours."}])
+    client = FakeClient([{"theme": "the ship that left without you", "call": "Call it back"},
+                         {"theme": "A shield left on the beach", "call": "The beach is yours."}])
     arena = Arena(Judge(client=client, cfg=cfg()), Stdb(cfg(), httpx2.AsyncClient(transport=httpx2.MockTransport(db.handler))))
 
     async def battle():
@@ -148,11 +161,11 @@ def test_a_coined_theme_is_dealt_with_its_own_call_and_the_next_one_is_coined_me
         return first, second
 
     first, second = asyncio.run(battle())
-    assert first == "The text you never sent" and arena.call_for(first) == "Say it now."
-    assert second == "Last train out of the city" and arena.call_for(second) == "The platform is yours."
-    assert arena.call_for("The night before the deadline") == "The clock is yours."  # a written theme keeps its call
+    assert first == "The ship that left without you" and arena.call_for(first) == "Call it back."
+    assert second == "A shield left on the beach" and arena.call_for(second) == "The beach is yours."
+    assert arena.call_for("The night before the battle") == "The watch is yours."  # a written theme keeps its call
     sent = client.calls[1]["messages"][0]["content"]
-    assert "The text you never sent" in sent  # never repeats a recent theme
+    assert "The ship that left without you" in sent  # never repeats a recent theme
 
 
 def test_a_failed_coin_deals_a_written_theme():
@@ -240,3 +253,14 @@ def test_free_verse_is_judged_a_line_per_breath_and_long_lines_split():
     assert all(len(line.split()) <= 13 for line in lines) and len(lines) >= 3
     assert " ".join(lines).split() == said.split()  # nothing lost, nothing added
     assert not any(line.split()[-1] in ("the", "a", "of") for line in lines)
+
+
+def test_a_long_breath_splits_at_its_full_stops_first():
+    from homer.lines import break_lines
+
+    said = "Okay, I'll try A kite went through a big cold storm. The storm destroyed its once felt swoop at dawn. It could not recover from its"
+    assert break_lines(said).splitlines() == [
+        "Okay, I'll try A kite went through a big cold storm.",
+        "The storm destroyed its once felt swoop at dawn.",
+        "It could not recover from its",
+    ]

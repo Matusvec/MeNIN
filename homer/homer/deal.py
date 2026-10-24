@@ -17,6 +17,7 @@ from functools import cache
 from . import formulas
 from .formulas import CONTENT_DIR, Formula
 from .scanner import stresses, strong_hits
+from .style import modern
 
 HAND_SIZE = 5
 CANDIDATES = 8  # deal_round tops each hand up to 5 from this list, skipping cards already held
@@ -25,38 +26,39 @@ CANDIDATES = 8  # deal_round tops each hand up to 5 from this list, skipping car
 # three are the judging theme cards (/themes?demo=true; hands in docs/gtm/demo-hands.md).
 DEFAULT_THEMES = (
     "A ship that never came home",
-    "The night before the deadline",
+    "The night before the battle",
     "The war between two brothers",
-    "A city that never sleeps",
-    "The last train out",
+    "The city that fell in one night",
+    "The ship that left without you",
     "A feast for a returning hero",
     "The forge at midnight",
     "A storm on the open sea",
     "The road that brought you here",
-    "A letter never sent",
+    "The words you never said",
     "Dawn after the long battle",
     "The wolf at the edge of the wood",
-    "A crown nobody wanted",
+    "A throne nobody wanted",
     "The fire that took the hall",
     "The gods are watching",
     "The house you grew up in",
 )
 
 # Homer's call to the round's first poet, after "{name}, {title}." (docs/ux-flow.md, T1 / P21).
+# All from Homer's world (SPEC 961bc37; Matus: "Umbrellas did not exist"); tests/test_style.py pins it.
 THEME_CALLS = {
     "A ship that never came home": "The sea is yours.",
-    "The night before the deadline": "The clock is yours.",
+    "The night before the battle": "The watch is yours.",
     "The war between two brothers": "Pick a brother.",
-    "A city that never sleeps": "The streets are yours.",
-    "The last train out": "The platform is yours.",
+    "The city that fell in one night": "The walls are yours.",
+    "The ship that left without you": "Call it back.",
     "A feast for a returning hero": "Raise the cup.",
     "The forge at midnight": "Strike while it's hot.",
     "A storm on the open sea": "The storm is yours.",
     "The road that brought you here": "The road is yours.",
-    "A letter never sent": "Send it now.",
+    "The words you never said": "Say them now.",
     "Dawn after the long battle": "The dawn is yours.",
     "The wolf at the edge of the wood": "Mind the wolf.",
-    "A crown nobody wanted": "The crown is yours.",
+    "A throne nobody wanted": "The throne is yours.",
     "The fire that took the hall": "The fire is yours.",
     "The gods are watching": "Give them a show.",
     "The house you grew up in": "Take us home.",
@@ -74,9 +76,9 @@ TAG_WORDS = {
     "sea": "sea ocean ship ships sail sailor wave waves harbor harbour shore boat tide island",
     "war": "war battle fight sword spear army enemy brothers siege soldier",
     "home": "home house mother father family hearth return returning grew",
-    "love": "love heart kiss lover wedding beloved letter",
-    "loss": "never lost gone death dead grief goodbye last sent",
-    "journey": "road journey train travel leave came brought wander path out",
+    "love": "love heart kiss lover wedding beloved letter said words",
+    "loss": "never lost gone death dead grief goodbye last sent fell left",
+    "journey": "road journey train travel leave left came brought wander path out",
     "night": "night midnight dark sleep sleeps sleepless moon",
     "dawn": "dawn morning sunrise after",
     "storm": "storm thunder rain lightning wind",
@@ -86,7 +88,7 @@ TAG_WORDS = {
     "city": "city street streets town subway tower",
     "wild": "wolf wood woods forest mountain wild beast",
     "time": "time clock deadline years age before last",
-    "glory": "glory win hero champion crown victory king",
+    "glory": "glory win hero champion crown victory king throne",
 }
 WORD_RE = re.compile(r"[a-z']+")
 
@@ -148,17 +150,17 @@ def deal(
     skip = {formulas.key(t) for t in exclude}
     hand: list[Card] = []
 
-    own = [formulas.card(t) for t in hoard if formulas.key(t) and formulas.key(t) not in skip]
+    own = [formulas.card(t) for t in hoard if formulas.key(t) and formulas.key(t) not in skip and not modern(t)]
     rng.shuffle(own)
     for f in own[: min(2, n)]:
         hand.append(_card(f, hoard=True))
         skip.add(formulas.key(f.text))
 
-    pool = [f for f in formulas.bank() if formulas.key(f.text) not in skip]
+    pool = [f for f in formulas.bank() if formulas.key(f.text) not in skip and not modern(f.text)]  # Homer's world only
     rng.shuffle(pool)
     pool.sort(key=lambda f: -len(want & set(f.themes)))
     if ranked:
-        best = [f for f in ranked if formulas.key(f.text) not in skip]
+        best = [f for f in ranked if formulas.key(f.text) not in skip and not modern(f.text)]
         head = best[: 3 * n]
         rng.shuffle(head)
         seen = {f.id for f in best}

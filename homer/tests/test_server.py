@@ -45,7 +45,7 @@ def test_scan_takes_timed_words_in_snake_or_camel_case(client):
 def test_judge_returns_a_scorecard(client):
     body = client.post("/judge", json={"transcript": VERSE, "theme": "the sea", "linesExpected": 2}).json()
     assert set(body["scores"]) == {"beat", "craft", "image", "answer", "range"}
-    w = {"beat": 1, "craft": 2, "image": 3, "answer": 3, "range": 1}  # Image and Answer decide it (out of 100)
+    w = {"beat": 0, "craft": 2, "image": 4, "answer": 4, "range": 0}  # content only (out of 100): Flow and Range unscored
     assert body["total"] == sum(v * w[k] for k, v in body["scores"].items())
     assert body["verdict"] and body["bestLine"] == "the sea kept time and so did I"
     assert body["silent"] is False and body["declined"] is False
@@ -97,8 +97,8 @@ def test_themes_carry_homers_call_and_debate_has_a_demo_question():
     from fastapi.testclient import TestClient
     with TestClient(server.app) as c:
         demo = c.get("/themes?demo=true").json()
-        assert demo["themes"][:3] == ["A ship that never came home", "The night before the deadline", "The war between two brothers"]
-        assert demo["calls"] == ["The sea is yours.", "The clock is yours.", "Pick a brother."]
+        assert demo["themes"][:3] == ["A ship that never came home", "The night before the battle", "The war between two brothers"]
+        assert demo["calls"] == ["The sea is yours.", "The watch is yours.", "Pick a brother."]
         some = c.get("/themes?n=5").json()
         assert len(some["calls"]) == len(some["themes"]) == 5 and all(some["calls"])
         debate = c.get("/themes?event=debate&demo=true").json()

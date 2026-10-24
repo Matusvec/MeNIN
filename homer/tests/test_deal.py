@@ -20,10 +20,11 @@ def test_hand_fits_the_theme_with_a_mix_of_kinds():
 
 
 def test_hand_draws_from_the_hoard_and_skips_exclusions():
-    hand = deal("The forge at midnight", ["storm-throated", "Breaker of Deadlines", "the code-whisperer"],
+    hand = deal("The forge at midnight", ["storm-throated", "Breaker of Horses", "the code-whisperer"],
                 exclude=["the wine-dark sea"], rng=random.Random(2))
     own = [c for c in hand if c.hoard]
     assert len(own) == 2 and all(1 <= c.beats <= 2 for c in own)
+    assert "the code-whisperer" not in {c.text for c in own}  # a hoard card from after the Bronze Age stays home
     assert "the wine-dark sea" not in {c.text for c in hand}
 
 

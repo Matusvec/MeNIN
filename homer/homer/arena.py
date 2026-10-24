@@ -35,6 +35,7 @@ T = TypeVar("T")
 log = logging.getLogger("homer")
 
 WORN = 5  # a poet's last epithets that a fresh one may not repeat
+FLOW_NEUTRAL = 5  # Flow for a verse with no breath breaks from the phone: no lines of its own to judge
 HOSTS = frozenset({"homer", "socrates"})  # the hosts' names; a poet who types one becomes "Poet {seat}"
 RECENT_THEMES = 20  # themes a generated one may not repeat
 THEME_WAIT = 4.0  # seconds a deal waits for a theme still being coined, then takes a written one
@@ -125,6 +126,9 @@ class Arena:
                 spoken_seconds=bt.spoken_seconds,
             )
             j = await self.judge.judge(turn)
+            if event.hand == "formulas" and "\n" not in said.strip():
+                # The splitter cuts lines to about four stresses, so Flow on its lines is a free 10.
+                j.scores["beat"] = FLOW_NEUTRAL
             if j.declined:
                 await self.db.call("decline_turn", bt.turn_id)
                 return "decline_turn", j

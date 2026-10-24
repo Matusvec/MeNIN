@@ -9,6 +9,7 @@ stands in, one sample per line.
 from __future__ import annotations
 
 import re
+from collections import Counter
 from functools import cache
 from pathlib import Path
 from typing import Any
@@ -20,6 +21,9 @@ from .config import Settings, settings as load_settings
 from .prompts import block
 
 EMOTIONS = ("anger", "grief", "joy", "awe", "tenderness", "fear", "defiance", "longing")
+NEUTRAL = 5  # Range with nothing to measure: no samples and no feeling words
+FELT = 0.3  # a sample whose strongest feeling is weaker heard nothing yet (silence, "okay, I'll try")
+LEAD = 0.6  # one sample this strong is enough to count a feeling as present
 
 # A starter lexicon for the no-history fallback. Stems match word starts.
 LEXICON = {
@@ -59,20 +63,27 @@ def range_score(history: list[dict[str, float]], lines: list[str] | None = None)
     """The Range axis, 1 to 10. One feeling held is about 2; two feelings about 5; a real turn 9 or 10.
 
     Two parts:
-    - breadth (55%): emotions that led a sample or reached 0.5 in one (one to four or more)
-    - travel (45%): how far the mix moved from sample to sample (half the L1 distance, summed)
+    - breadth (55%): emotions that led two samples or reached LEAD in one (one to four or more)
+    - travel (45%): how far the mix moved from the verse's beginning to its middle to its end
+
+    Samples come every ~1.5 s from a classifier that wobbles between neighbours (longing, fear);
+    counting every wobble gave any 20 s verse a 10. Samples that heard nothing are dropped, and
+    with nothing at all to measure the score is a neutral 5, never a gift or a penalty.
     """
-    raw = [h for h in history if h]
+    raw = [h for h in history if h and max(float(v or 0.0) for v in h.values()) >= FELT]
     if not raw and lines:
         raw = [w for w in (lexicon_weights(line) for line in lines) if w]
     if not raw:
-        return 1
+        return NEUTRAL
     samples = [normalize(h) for h in raw]
-    present = set()
-    for h, s in zip(raw, samples):
-        present.add(max(s, key=s.get))
-        present.update(e for e in EMOTIONS if float(h.get(e, 0.0) or 0.0) >= 0.5)
-    travel = sum(0.5 * sum(abs(b[e] - a[e]) for e in EMOTIONS) for a, b in zip(samples, samples[1:]))
+    leads = Counter(max(s, key=s.get) for s in samples)
+    present = {e for e, n in leads.items() if n >= 2 or len(samples) == 1}
+    present.update(e for h in raw for e in EMOTIONS if float(h.get(e, 0.0) or 0.0) >= LEAD)
+    present = present or {leads.most_common(1)[0][0]}
+    k = min(3, len(samples))  # beginning, middle, end
+    parts = [samples[i * len(samples) // k : (i + 1) * len(samples) // k] for i in range(k)]
+    means = [{e: sum(s[e] for s in part) / len(part) for e in EMOTIONS} for part in parts]
+    travel = sum(0.5 * sum(abs(b[e] - a[e]) for e in EMOTIONS) for a, b in zip(means, means[1:]))
     breadth = min(len(present) - 1, 3) / 3
     moved = min(travel, 1.0)
     return max(1, min(10, round(2 + 8 * (0.55 * breadth + 0.45 * moved))))

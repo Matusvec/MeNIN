@@ -27,9 +27,20 @@ def test_a_verse_that_travels_scores_high():
 
 
 def test_range_is_always_one_to_ten():
-    assert range_score([]) == 1
-    assert range_score([{}]) >= 1
-    assert range_score([one_hot(e) for e in EMOTIONS] * 3) == 10
+    assert range_score([]) == 5  # nothing to measure: neutral, never a gift or a penalty
+    assert 1 <= range_score([{}]) <= 10
+    assert 1 <= range_score([one_hot(e) for e in EMOTIONS] * 3) <= 10
+
+
+def test_a_classifier_wobbling_between_two_feelings_is_not_range():
+    wobble = [one_hot("longing"), one_hot("fear")] * 5  # JZRE: ten samples, longing and fear in turn
+    quiet = {e: 0.1 for e in EMOTIONS}  # the samples before any words
+    assert range_score([quiet, quiet] + wobble) <= 6
+
+
+def test_a_verse_that_moves_from_grief_to_anger_to_awe_scores_high():
+    arc = [one_hot("grief")] * 4 + [one_hot("anger")] * 4 + [one_hot("awe")] * 4
+    assert range_score(arc) >= 8
 
 
 def test_lexicon_stands_in_without_history():

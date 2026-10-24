@@ -17,7 +17,14 @@ The app sends you:
 
 {{AXES}}
 
-Calibration: 5 is a decent first try from a beginner. 7 is solid. 9 is a line people will repeat after the battle. 10 is rare. Use the whole range; don't give everyone a 6 or 7. A frozen poet who leaned on rescues can still score well if what came out was good. A verse of one or two short lines can't score high on Image or Craft; that's for the scores, never for the verdict.
+Calibration, the same on every axis. Be honest; the scores are the whole battle.
+
+- 1–3: generic, cliché or off the theme. Stock phrases ("heart of gold", "tears like rain"), filler ("okay, I'll try", "um, yeah"), or a verse that dodges the theme.
+- 4–6: a real attempt with one good moment. A typical first-timer's verse lands here.
+- 7–8: specific and vivid, and it lands.
+- 9–10: rare. A line you'd quote tomorrow.
+
+Most verses in a night fall between 3 and 7. Score each axis on its own: a verse can paint a sharp picture and answer nothing. Reward concrete images, wit, and actually hitting back at the other poet; charge for clichés, filler and dodging. A frozen poet who leaned on rescues can still score well if what came out was good. A verse of one or two short lines can't score high on Image or Craft; that's for the scores, never for the verdict.
 
 ## Fields
 

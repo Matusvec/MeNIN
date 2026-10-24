@@ -49,3 +49,50 @@ def test_the_verdict_quotes_first_and_never_talks_rules(prompt):
 def test_a_miss_is_half_a_line_never_the_verdict():
     text = (PROMPT_DIR / "judge_poetry.md").read_text(encoding="utf-8")
     assert "at most half a line of gentle roast. The miss is never the whole verdict." in text
+
+
+# ----- Homer's world (Matus: "Umbrellas did not exist") -------------------
+
+
+def quoted(name: str, skip: str = "") -> list[str]:
+    import re
+
+    text = (PROMPT_DIR / f"{name}.md").read_text(encoding="utf-8")
+    return [q for line in text.splitlines() if not (skip and skip in line) for q in re.findall(r'"([^"]+)"', line)]
+
+
+def test_the_written_themes_and_calls_are_from_homers_world():
+    from homer.deal import DEFAULT_THEMES, THEME_CALLS
+    from homer.style import modern
+
+    assert set(THEME_CALLS) == set(DEFAULT_THEMES)
+    for theme, call in THEME_CALLS.items():
+        assert not modern(theme) and not modern(call), (theme, call)
+        assert len(theme.split()) <= 8, theme
+
+
+def test_the_theme_and_epithet_prompts_only_show_homeric_examples():
+    from homer.style import modern
+
+    examples = quoted("theme") + quoted("poet", skip="break it")
+    assert examples and not [e for e in examples if modern(e)]
+
+
+def test_modern_words_are_caught():
+    from homer.style import modern
+
+    for bad in ["A stranger's umbrella in the rain", "Gear-Throated", "Weaver of Engines", "The last train out",
+                "The night before the deadline", "Grandmother's kitchen radio still playing"]:
+        assert modern(bad), bad
+    for good in ["A shield left on the beach", "Breaker of Horses", "swift-footed", "Wine poured out for the dead"]:
+        assert not modern(good), good
+
+
+
+def test_no_card_from_after_the_bronze_age_is_dealt():
+    from homer.deal import deal, themes
+    from homer.style import modern
+
+    for theme in themes():
+        for _ in range(20):
+            assert not [c.text for c in deal(theme) if modern(c.text)], theme
