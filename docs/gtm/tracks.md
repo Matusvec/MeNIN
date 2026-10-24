@@ -209,7 +209,7 @@ Hacker Guide and Hive add: "One thing done well and usable on Monday beats a bro
    - Development: the app is built by a team of Claude Code sessions: leader, pm, artist, multiplayer, iOS and gtm.
 5. **Failure modes** (state them in the Devpost):
    - STT misses in noise. Keyterms from Homer's phrases cut word errors from 20% to 3% in our tests, with a drum at full volume as test noise, and the transcript is always shown
-   - Taste is contestable, so we show five axes and the quoted line
+   - Taste is contestable, so we show all three scores and the quoted line, on an anchored scale
    - Emotion reading is approximate, so the scene is art, not a diagnosis, and never names your emotion
    - English stress has edge cases with names and slang, so the scanner flags uncertain syllables instead of marking them wrong
    - A judge that roasts could sting a nervous beginner, so roasts stay gentle and only in Battle; Bard is a calm coach
@@ -239,9 +239,9 @@ Hacker Guide and Hive add: "One thing done well and usable on Monday beats a bro
 
 **Criteria:** "Project must be using Apify in a meaningful way." Best Actor is "for building an actor for this event".
 
-**Status: real (Sat ~10 AM).** Epithet Miner mined 150 candidates from four public-domain Homer translations (Gutenberg #3059, #1728, #2199, #1727). pm kept 55, so the bank went from 158 to 213. It was built by Claude Opus 5.5 in Claude Code on the Apify SDK and Crawlee (`apify/BUILD_LOG.md`). It's build-time only, the game never calls Apify, and it's off the demo path (SPEC `5a6a8fe`). **Published on the Apify Store:** https://apify.com/matusnator/epithet-miner (build 0.1.2, run on the platform, 150 formulas from 4 books per run, with an output schema; leader checked it loads logged out).
+**Status: real (Sat ~10 AM).** Epithet Miner mined 150 candidates from four public-domain Homer translations (Gutenberg #3059, #1728, #2199, #1727). pm kept 55, so the bank went from 158 to 213 (180 now, after modern phrases were cut for Homer's world: 55 of 180 mined). It was built by Claude Opus 5.5 in Claude Code on the Apify SDK and Crawlee (`apify/BUILD_LOG.md`). It's build-time only, the game never calls Apify, and it's off the demo path (SPEC `5a6a8fe`). **Published on the Apify Store:** https://apify.com/matusnator/epithet-miner (build 0.1.2, run on the platform, 150 formulas from 4 books per run, with an output schema; leader checked it loads logged out).
 
-**The line, exactly:** "About a quarter of the phrases Homer deals you were mined by an Apify Actor from four public-domain Homer translations." Never say "every hand": the dealer picks by theme, so some hands have none.
+**The line, exactly:** "Nearly a third of the phrases Homer deals you were mined by an Apify Actor from four public-domain Homer translations." Never say "every hand": the dealer picks by theme, so some hands have none.
 
 **Best Actor caveat:** their prize says "built with AI Chat", and ours was built by an AI coding agent. Say so honestly, and ask Apify's staff whether it counts.
 

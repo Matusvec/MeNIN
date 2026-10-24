@@ -2,11 +2,11 @@
 
 Paste this into Devpost. **Never submit a claim that isn't true on Sunday morning.** The guide recommends submitting a draft Saturday night and editing it until 9:00 AM.
 
-**State: Sat Oct 24, 3:20 PM (SPEC 7866476 and 9a6cfdc: fresh themes and epithets, Homer's three phrases, Flow, the website as the only arena).** Everything outside `[brackets]` is true now. What's left:
+**State: Sat Oct 24, 4:15 PM (SPEC through b37e419: fresh Homeric themes and epithets, Homer's three phrases, free verse, content-only scoring, the website as the only arena).** Everything outside `[brackets]` is true now. What's left:
 
 | Placeholder | Kind | Comes from | When |
 | --- | --- | --- | --- |
-| `[N]`, `[first]`, `[last]`, `[time]` | **Number** | The first-timer study on the build named in `docs/study.md` (build 11, or build 4 if 11 isn't in TestFlight; lesson 1 scores the same on both), using one of pm's line options. It's a lesson, so it's the strict "Beat" score, not the battle's Flow. | Sat 8 PM |
+| `[N]`, `[first]`, `[last]`, `[time]` | **Number** | The first-timer study on the build named in `docs/study.md` (build 18, 0.1.0 (202610241606); if it's missing, the newest of builds 14, 11 and 4), using one of pm's line options. It's a lesson, so it's the strict "Beat" score, not the battle's Flow. | Sat 8 PM |
 | `[real-mic WER]` | **Number** | swift's rerun of the keyterm test on a real iPhone mic. If it differs from 3%/20%, it replaces those numbers everywhere. | When swift runs it |
 | `[turn-to-voice p50]` | **Number** | The measured time from a turn's end to Homer's first word, on the 5 PM shoot's build (its latency HUD; the shoot is the full-battle gate) | Sat 5 PM |
 | `[poet's name]`, `[the poet's scene]`, `[poet quote]`, `[composer's name]`, `[how the score was made]`, `[team]` | **A fact only Matus has** | Matus (the list went to leader) | Today |
@@ -53,13 +53,13 @@ One screen is the arena: our website at [URL], open in any laptop browser. Every
 Other events show as locked tiles, because we only unlock what's solid.
 
 **The poetry battle.** Two to five poets in one room, three rounds. Each poet's iPhone is their mic and their private cards.
-- Homer announces each poet with a fresh epithet he coins for this battle: "Enter Matus, Breaker of Deadlines!"
-- Homer writes a fresh theme every round, six words or fewer, like "The text you never sent".
+- Homer announces each poet with a fresh epithet he coins for this battle: "Enter Matus, Breaker of Horses!"
+- Homer writes a fresh theme every round, six words or fewer and always from Homer's world, like "The ship that left without you". Nothing in a theme or an epithet was invented after the Bronze Age; the feeling can be modern, the objects can't.
 - Your phone shows three of **Homer's phrases**, stock phrases that fit the theme and the beat ("the whale-road", "grey-eyed Athena"), under one line: "Stuck? Use one of Homer's phrases. It scores Craft." They're optional help, not homework.
 - **No metronome. The beat is how Homer trains you; in battle you spit free.** It lives in the Bard lessons and comes back under Homer's stitched song.
 - A 3, 2, 1 with a haptic tick, then SPEAK fills your phone and the arena in your color, once, for the whole verse. The mic is hands-free: you get one window with a countdown ring (10 s a line, 20 s in demo mode), and "I'm done" ends it early. A line is whatever you say between breaths. Use one of Homer's phrases and it pops "+Craft" and flips onto the arena.
 - Freeze for a second and Homer's phrases come forward, the one that fits raised, while Homer whispers it to you.
-- About three seconds after your last word, Homer delivers the verdict like a title-fight MC: five scores and your best line, quoted.
+- About three seconds after your last word, Homer delivers the verdict like a title-fight MC: three scores, Image, Answer and Craft, adding up to a total out of 100, and your best line, quoted. The scale is honest: a typical first verse lands at 4 to 6 out of 10, and a 9 or 10 is a line you'd quote tomorrow.
 - The best line of each round is carved in gold across the arena.
 - At the end, Homer becomes a rhapsode, a song-stitcher. He stitches every poet's lines into one song and performs it over the beat while the arena replays the battle's colors. Then he crowns the champion.
 
@@ -95,10 +95,10 @@ Other events show as locked tiles, because we only unlock what's solid.
   - The phone streams straight to Cartesia with a short-lived token from our server, so no audio passes through us.
   - Cartesia TTS is Homer (**sonic-3.6**, the voice Carl, "Steady Storyteller"), with first audio in about **100 ms**: lessons, entrances, verdicts, the freeze whisper and the stitched song.
 - **Claude (Anthropic)** is the judge, the coach and the MC.
-  - The judge gets the phrases Homer dealt you, the verse you're answering and the scanner's stress count. It returns five scores, the best line and a one-line verdict.
+  - The judge reads content, not rhythm. It gets the phrases Homer dealt you, the verse you're answering and the scanner's output, and returns Image, Answer and Craft (1 to 10 each, anchored so a typical first-timer verse lands at 4 to 6), the best line and a one-line verdict. The total is out of 100: Image ×4, Answer ×4, Craft ×2.
   - Each judgment is one streamed request to **Claude Opus 5.5**: fast mode, low effort, a cached system prompt and a JSON schema, so the output is always valid. Verdict text lands in **p50 1.0 s, p95 1.5 s** (10 live calls, Fri Oct 23, `homer/scripts/latency.py`).
   - Claude also writes each round's fresh theme and Homer's call to the first poet, coins a fresh epithet for every poet each battle, writes Homer's lesson feedback, his sparring verses and the round verdicts, and writes the stitched song. The freeze whisper makes no model call: it picks the dealt phrase that fits the line, so it's instant.
-- **The stress scanner** (Python, CMU Pronouncing Dictionary) counts the beat deterministically. The beat score (**Flow** in battles: does the verse move, judged from the words alone, with no drum timing; **Beat** in lessons, strict) never comes from the model's opinion.
+- **The stress scanner** (Python, CMU Pronouncing Dictionary) counts the beat deterministically. It scores **Beat** in the lessons, where Homer teaches it, and it never comes from the model's opinion. Battles aren't scored on rhythm at all.
 - **Python + FastAPI** service for the Claude calls, the scanner and the formula bank, in Docker behind Caddy on **DigitalOcean**.
 - **Figma.** Matus drew the first concept in Figma Design. The art session reads frames, exact values and assets straight from the file through the Figma MCP server, so it builds from the design rather than from screenshots. We compared two design directions, "Atelier" and "Cut paper", in a single Figma variable collection with two modes. Every variable carries its Swift name, so one mode switch in Figma matches one launch flag in the app. Matus picked Atelier by flipping the same frames between modes, and it's the look that ships. The art session built two clickable prototype flows through the MCP, bound to the same tokens: [first open to practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102), and [a full battle from join to champion](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364). Design file: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv · Full stage log: [Figma Slides].
 - **Original score by [composer's name].**
@@ -108,11 +108,12 @@ Other events show as locked tiles, because we only unlock what's solid.
 
 | Axis | What it measures | Scored by |
 | --- | --- | --- |
-| Flow | Did the verse move: a natural rhythm of roughly four stresses a line, judged from the words with no drum timing. It counts for less than Image, Answer and Craft. | Stress scanner (deterministic) |
-| Craft | Used Homer's phrases, varied them, coined new ones | Claude |
-| Image | Strength of the imagery | Claude |
-| Answer | Responded to the last verse | Claude |
-| Range | How much emotional ground you covered | Emotion engine |
+| Image (×4) | Strength of the imagery | Claude |
+| Answer (×4) | Responded to the last verse (or the theme, if first) | Claude |
+| Craft (×2) | Used Homer's phrases, varied them, coined new ones | Claude, with the scanner's output |
+| Range (not scored) | How much emotional ground you covered. It paints the scene. | Emotion engine |
+
+The total is out of 100. Clichés and dodging the theme cost. In the lessons, **Beat** (did your stresses land on the drum) is scored by the stress scanner, deterministically.
 
 ## Challenges we ran into
 
@@ -123,7 +124,7 @@ Other events show as locked tiles, because we only unlock what's solid.
 - **We switched from web to iOS mid-build.** On Friday night the scene was already written for the web in React, Three.js and GLSL. The palette and motion lived in plain math tables, so they carried over to Metal almost line for line. The React code didn't survive. On Saturday we brought the arena back to the browser: the website is now the only arena, so anyone can open it at a public URL.
 - **Six AI sessions on one 24 GB laptop.** The whole team of Claude Code sessions, plus Xcode and the simulators, shared one MacBook Air. We set a memory budget (keep 25% free, one simulator at a time, shut everything down after each screenshot) so the machine never ran out mid-build.
 - **An agent the Agentverse button couldn't reach.** Our Fetch.ai agent runs inside Docker on the server, where the Inspector's Connect button can't reach it, so we register its mailbox with an API key from inside the container instead.
-- **Meaning-based dealing can skew.** With Moss, "A city that never sleeps" kept dealing Troy epithets, the Iliad's city. We retagged the Troy cards and added three modern city epithets, and Troy cards in city hands dropped to 0%. The first list our Apify Actor mined was full of "dear son" and "great wealth" before we restricted it to Homer's fixed epithets.
+- **Meaning-based dealing can skew.** With Moss, any theme about a city kept dealing Troy epithets, the Iliad's city. We retagged the Troy cards and added three modern city epithets, and Troy cards in city hands dropped to 0%. Then we cut those three again, with 33 other modern phrases, when Homer's world became the rule: nothing in a theme or a phrase invented after the Bronze Age. The first list our Apify Actor mined was full of "dear son" and "great wealth" before we restricted it to Homer's fixed epithets.
 
 ## Accomplishments that we're proud of
 
@@ -160,7 +161,7 @@ Other events show as locked tiles, because we only unlock what's solid.
 ## Where it can go wrong (and what we do about it)
 
 - **Speech recognition misses in noisy rooms.** Keyterms from Homer's phrases cut word errors from 20% to 3% in our tests, with a drum at full volume as test noise, but those were recorded test mixes, and a loud hall with a real phone mic is harder. The live transcript is always on screen, so you see what Homer heard, and the hands-free mic opens only on your turn.
-- **Taste is contestable.** Every verdict shows five scores and the quoted line, so you can see why you lost.
+- **Taste is contestable.** Every verdict shows all three scores and the quoted line, so you can see why you lost, and the scale is anchored, so a 5 means the same thing every time.
 - **Emotion reading is approximate.** The scene is art, not a diagnosis, and Homer never names your emotion.
 - **English stress has edge cases** with names, slang and loanwords. The scanner flags uncertain syllables instead of marking them wrong.
 - **A roast can sting a beginner.** Roasts stay gentle and only in Battle; in lessons Homer is a calm coach.
@@ -181,15 +182,15 @@ Every integration below runs behind a switch, off the demo path (SPEC `5a6a8fe`)
 **Apify: Epithet Miner.** **Epithet Miner is an Apify Actor, built with AI chat:** Claude Opus 5.5 in Claude Code wrote it from our prompts, on the Apify SDK and Crawlee. Homer improvised with stock phrases, and so can you: every round, Homer deals you phrases that fit the theme and the beat. The Actor mined part of that bank:
 - **Sources:** four public-domain Homer translations on Project Gutenberg, 3.2 million characters in all: Lang, Leaf and Myers's Iliad, Butcher and Lang's Odyssey, and Samuel Butler's Iliad and Odyssey.
 - **How it works:** it finds noun-epithet formulas with readable rules and no language model. It folds Roman names to Greek (Jove becomes Zeus) and merges synonyms. It counts each phrase's beats with the same CMU-dictionary rule as our stress scanner, and ranks phrases by how often and how widely they recur ("aegis-bearing Zeus" appears 60 times across two translations).
-- **What it produced:** 150 candidates. A person reviewed them and kept 55, so the bank grew from 158 to 213 formulas (216 now, after three modern city epithets were added by hand): about a quarter of what Homer can deal you came from the Actor.
+- **What it produced:** 150 candidates. A person reviewed them and kept 55, so the bank grew from 158 to 213 formulas. It's 180 now, after modern phrases were cut for Homer's world, so nearly a third of what Homer can deal you (55 of 180) came from the Actor.
 
 It's published on the Apify Store: https://apify.com/matusnator/epithet-miner (Actor ID `v4i7ItNXjHMmnKzfo`). It runs at build time; the game never calls Apify live. The full, honest build log is in `apify/BUILD_LOG.md`, including what went wrong: the first list was full of "dear son" and "great wealth".
 
 **Fetch.ai: Homer on Agentverse.** The whole battle turn works inside an ASI:One conversation. Ask Homer for a theme, and he deals you five stock phrases that fit it. Write your verse with them, and he judges it with the same scanner and Claude judge that run our live battles: five scores, your best line quoted and a one-line verdict. It's an agent registered on Agentverse that speaks the Agent Chat Protocol, running inside our agent service behind a switch, so the battle never depends on it. Agentverse's Inspector button can't reach an agent inside Docker, so we register its mailbox with an Agentverse API key from inside the container (`homer/scripts/agentverse_connect.py`). Agent: `homer-bard` (`agent1qf8cydj43pd7tue06mk9avnp45avcc4ss9gjm98r4lkjczsw0gskzw97edc`). Try it: [ASI:One link].
 
-**Moss: dealing that fits the theme, in milliseconds.** Homer writes a fresh theme every round, so no tag list can know it in advance. When he announces it, every poet's phone shows three of Homer's phrases that fit it. Moss ranks our whole bank of 216 formulas by meaning against the theme, including the 55 our Apify Actor mined, and the dealer draws from the closest matches. Before Moss, the dealer matched tags.
-- **Before and after:** "The war between two brothers" used to deal "breaker of horses". Now it deals "the battle-light" and "the battle-sweat". "My grandmother's kitchen" finds "in my mother's kitchen" and "the high-roofed hall", which shares no word with the theme.
-- **Measured on our production server** (a 2 GB DigitalOcean droplet, CPU only), over 60 queries across 20 themes: Moss retrieval p50 **13.7 ms**, p95 32.2 ms (1.4 ms p50 on a MacBook). The whole deal request takes p50 43 ms.
+**Moss: dealing that fits the theme, in milliseconds.** Homer writes a fresh theme every round, so no tag list can know it in advance. When he announces it, every poet's phone shows three of Homer's phrases that fit it. Moss ranks our whole bank of 180 formulas by meaning against the theme, including the 55 our Apify Actor mined, and the dealer draws from the closest matches. Before Moss, the dealer matched tags.
+- **Before and after:** "The war between two brothers" used to deal "breaker of horses". Now it deals "the battle-light" and "the battle-sweat". Meaning search even finds phrases that share no word with the query: in our tests, "my grandmother's kitchen" (a test query, not a game theme) finds "the high-roofed hall".
+- **Measured on our production server** (a 2 GB DigitalOcean droplet, CPU only), over 60 queries across 20 themes, on the earlier 213-formula bank: Moss retrieval p50 **13.7 ms**, p95 32.2 ms (1.4 ms p50 on a MacBook). The whole deal request takes p50 43 ms.
 
 Voice games have to answer while the room is still listening, and Moss keeps the deal instant. It runs behind a switch: if Moss is ever slower than 500 ms or errors, our old tag dealer deals instead, silently. We tested both failures live.
 
@@ -210,7 +211,7 @@ Voice games have to answer while the room is still listening, and Moss keeps the
 - [ ] **Fetch.ai: Best Use of Fetch.ai** (only if Homer's judge is live on Agentverse and usable from ASI:One)
 - [ ] **Moss: Best Use of Moss.** Shipped: `HOMER_DEALER=moss` is live on the droplet, p50 13.7 ms, with a tested fallback. Tag it.
 - [ ] MLH: Best Use of DigitalOcean (the agent service runs there)
-- [ ] **Apify: "[Apify] Best Use of Apify".** Devpost now has one Apify entry with 6 winners, covering Best Use and "Best Actor Built with AI Chat (make sure to tag in your submission that is an actor)". So tag it, and the Apify blurb says outright that **Epithet Miner is an Apify Actor, built with AI chat** (leader, Sat 12:30 PM). Ready: 55 of the bank's 216 formulas came from it, and it's live on the Store (https://apify.com/matusnator/epithet-miner). Apify staff: "in your submission just share the link and id for us" (#spons-apify, Sat 1:13 PM), so the blurb gives both: Actor ID `v4i7ItNXjHMmnKzfo`.
+- [ ] **Apify: "[Apify] Best Use of Apify".** Devpost now has one Apify entry with 6 winners, covering Best Use and "Best Actor Built with AI Chat (make sure to tag in your submission that is an actor)". So tag it, and the Apify blurb says outright that **Epithet Miner is an Apify Actor, built with AI chat** (leader, Sat 12:30 PM). Ready: 55 of the bank's 180 formulas came from it, and it's live on the Store (https://apify.com/matusnator/epithet-miner). Apify staff: "in your submission just share the link and id for us" (#spons-apify, Sat 1:13 PM), so the blurb gives both: Actor ID `v4i7ItNXjHMmnKzfo`.
 
 Main prizes are automatic.
 
@@ -225,7 +226,7 @@ Main prizes are automatic.
 - [ ] README explains where SpacetimeDB is used (tables, reducers, the 20 Hz stream, the private cards, the SDK patches)
 - [ ] Video, 2:00, opening with the moment ([video.md](video.md))
 - [ ] Figma Slides link, files shared with "Anyone", whole team Edu verified
-- [ ] **Matus submits build 11 (0.1.0, `202610241510`) for external review (Beta App Review) as soon as it finishes processing**, so the public TestFlight link works. It's the current build, with SPEC 7866476 (Homer's three phrases, fresh themes, Flow, the hands-free mic). If a later build passes the 8 PM runs instead, submit that one too. Leader confirms the judging build at 11 PM.
+- [ ] **Matus submits build 18 (0.1.0, `202610241606`) for external review (Beta App Review) as soon as it finishes processing**, so the public TestFlight link works. `docs/study.md` calls it the build the judges will see: free verse, content-only scoring, and the fix for silent turns. If a later build passes the 8 PM runs instead, submit that one too. Leader confirms the judging build at 11 PM.
 - [ ] TestFlight public link installs on an iPhone that isn't on our internal tester list
 - [ ] **The website opens at [URL]** in a private window on a laptop, and on a phone on cellular with Wi-Fi off, so we know it works off our network. Then an iPhone joins its room
 - [ ] Cover image: an arena frame with the carved gold line, matte, no neon

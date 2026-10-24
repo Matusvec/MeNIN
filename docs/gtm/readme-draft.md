@@ -18,7 +18,7 @@ Built at Cal Hacks 13.0 by [team: names and roles], with a team of Claude Code s
 
 One screen is the arena: our website at [URL], open in any laptop browser. Every player's iPhone is their mic and their private cards.
 
-- **The poetry battle** (the main event). Homer writes a fresh theme every round and coins each poet a fresh epithet. Your phone shows three of Homer's phrases, stock phrases that fit the theme and the beat, the way Homer himself improvised. They're optional: "Stuck? Use one of Homer's phrases. It scores Craft." There's no metronome: the beat is how Homer trains you, and in battle you spit free. 3, 2, 1, SPEAK, and you get one window with a countdown ring, into a hands-free mic. Go quiet for about a second and a half, and he whispers you a phrase that fits. About three seconds after your last word, he scores you on five axes and quotes your best line. At the end, he stitches everyone's lines into one song and crowns a champion.
+- **The poetry battle** (the main event). Homer writes a fresh theme every round and coins each poet a fresh epithet. Your phone shows three of Homer's phrases, stock phrases that fit the theme and the beat, the way Homer himself improvised. They're optional: "Stuck? Use one of Homer's phrases. It scores Craft." There's no metronome: the beat is how Homer trains you, and in battle you spit free. 3, 2, 1, SPEAK, and you get one window with a countdown ring, into a hands-free mic. Go quiet for about two and a half seconds, and he whispers you a phrase that fits. About three seconds after your last word, he scores you on five axes and quotes your best line. At the end, he stitches everyone's lines into one song and crowns a champion.
 - [If it passed] **The Socratic debate**, hosted by Socrates in his own voice.
 - [If it passed] **The discus**: swing your phone and lift your thumb to release.
 - **Bard mode** (lessons) and **Practice mode** (spar with Homer).
@@ -36,8 +36,8 @@ iPhone (player)                         website in a browser (arena)
                      SpacetimeDB (rooms, turns, scores, private cards)
                             ▲
   Agent service (Python, FastAPI, DigitalOcean)
-    stress scanner (CMU dictionary) → Beat
-    Claude → Craft, Image, Answer, the verdict, the song
+    stress scanner (CMU dictionary) → Beat (lessons)
+    Claude → Image, Answer, Craft (out of 100), the verdict, the song
     Cartesia token minting ──────────────► Cartesia TTS (Homer's voice) on the arena
 ```
 
@@ -84,16 +84,16 @@ Voice is the whole game: you play by speaking, and Homer answers out loud.
 
 - **Homer is a live agent doing real work:** he writes every round's theme, coins every poet a fresh epithet, judges every verse, coaches you through lessons, hosts the battle and writes the stitched song.
 - **The judge** is one streamed call to Claude Opus 5.5 (fast mode, low effort) with a cached system prompt and a JSON schema, so the output is always valid. Verdict text in **p50 1.0 s, p95 1.5 s** (10 live calls, Fri Oct 23; `homer/scripts/latency.py`).
-- **The beat is never the model's opinion.** A deterministic stress scanner (CMU Pronouncing Dictionary) counts it: **Flow** in battles (does the verse move, judged from the words with no drum timing, weighted below Image, Answer and Craft), strict **Beat** in lessons. Claude gets that count with the phrases Homer dealt you and the verse you're answering. Range comes from an emotion classifier (Claude Haiku 5.5) that reads your words and voice every ~1.5 s.
+- **Battles are judged on content:** Image ×4, Answer ×4 and Craft ×2, out of 100, on an anchored scale where a typical first-timer verse lands at 4 to 6 out of 10. Claude gets the phrases Homer dealt you, the verse you're answering and the stress scanner's output. **The beat is never the model's opinion:** in the lessons, a deterministic stress scanner (CMU Pronouncing Dictionary) scores Beat. Range comes from an emotion classifier (Claude Haiku 5.5) that reads your words and voice every ~1.5 s; it paints the scene and isn't scored.
 - **Built with Claude, too:** the whole app was built by a team of Claude Code sessions (leader, product, art, multiplayer, iOS, agent service and go-to-market), each in its own folder, working from one spec ([`SPEC.md`](SPEC.md)).
 
 ## Apify: Epithet Miner
 
-**Epithet Miner is an Apify Actor, built with AI chat:** Claude Opus 5.5 in Claude Code wrote it from our prompts. It mined part of the stock-phrase bank. The code is in [`apify/`](apify/), and it's on the Apify Store: [apify.com/matusnator/epithet-miner](https://apify.com/matusnator/epithet-miner) (Actor ID `v4i7ItNXjHMmnKzfo`). It reads four public-domain Homer translations from Project Gutenberg and finds noun-epithet formulas with readable rules, no language model. Then it counts their beats with our scanner's rule and ranks them by how often they recur. It mined 150 candidates. A person kept 55, so the bank grew from 158 to 213 (216 now, with three modern city epithets added by hand). It runs at build time only, and the game never calls Apify. How it was built, honestly: [`apify/BUILD_LOG.md`](apify/BUILD_LOG.md).
+**Epithet Miner is an Apify Actor, built with AI chat:** Claude Opus 5.5 in Claude Code wrote it from our prompts. It mined part of the stock-phrase bank. The code is in [`apify/`](apify/), and it's on the Apify Store: [apify.com/matusnator/epithet-miner](https://apify.com/matusnator/epithet-miner) (Actor ID `v4i7ItNXjHMmnKzfo`). It reads four public-domain Homer translations from Project Gutenberg and finds noun-epithet formulas with readable rules, no language model. Then it counts their beats with our scanner's rule and ranks them by how often they recur. It mined 150 candidates. A person kept 55, so the bank grew from 158 to 213 (180 now, after modern phrases were cut for Homer's world: 55 of 180 are mined, nearly a third). It runs at build time only, and the game never calls Apify. How it was built, honestly: [`apify/BUILD_LOG.md`](apify/BUILD_LOG.md).
 
 ## Moss: dealing that fits the theme
 
-Homer writes a fresh theme every round, so no tag list can know it in advance. The dealer uses [Moss](https://moss.dev) to rank all 216 formulas by meaning against the theme, then deals Homer's phrases from the closest matches. So "My grandmother's kitchen" finds "the high-roofed hall" with no shared word. Measured on our production droplet (2 GB, CPU only): p50 13.7 ms, p95 32.2 ms. It runs behind `HOMER_DEALER=moss`, and if Moss is slow (over 500 ms) or errors, the tag dealer deals instead.
+Homer writes a fresh theme every round, always from his own world (nothing invented after the Bronze Age), so no tag list can know it in advance. The dealer uses [Moss](https://moss.dev) to rank all 180 formulas by meaning against the theme, then deals Homer's phrases from the closest matches. So in our tests the query "my grandmother's kitchen" (a test, not a game theme) finds "the high-roofed hall" with no shared word. Measured on our production droplet (2 GB, CPU only), on the earlier 213-formula bank: p50 13.7 ms, p95 32.2 ms. It runs behind `HOMER_DEALER=moss`, and if Moss is slow (over 500 ms) or errors, the tag dealer deals instead.
 
 ## Fetch.ai: Homer on Agentverse
 

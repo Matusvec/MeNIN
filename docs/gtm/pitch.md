@@ -100,10 +100,10 @@ Answer in one breath, then stop.
 | They ask | We say |
 | --- | --- |
 | Why does AI make speaking matter more? | "When anyone can generate a perfect paragraph, writing stops being the signal. Standing up and saying it, live, in your own voice, is what's left. The Greeks trained exactly that." |
-| Isn't training persuasion dangerous? | "Homer scores whether you answered the person in front of you, and shows you why with five scores and the quoted line. It trains you to listen and respond, not to manipulate." |
+| Isn't training persuasion dangerous? | "Homer scores whether you answered the person in front of you, and shows you why with three scores and the quoted line. It trains you to listen and respond, not to manipulate." |
 | What does MeNIN mean? | "*Mēnin*, rage. It's the first word of the Iliad. Homer started Western literature with a fight." |
 | Why poetry in a games app? | "The Greeks didn't separate them. At the Panathenaic Games, poets competed next to the athletes." |
-| How is the AI judge not arbitrary? | "Flow isn't the AI's opinion; a stress scanner counts it. Range comes from the emotion engine. Claude scores Craft, Image and Answer with the phrases Homer dealt you and the verse you answered in front of it. You always see all five scores and the line it quoted." |
+| How is the AI judge not arbitrary? | "It judges content only: Image, Answer and Craft, on an anchored scale where a typical first verse is a 4 to 6, with the phrases Homer dealt you and the verse you answered in front of it. You always see all three scores and the line it quoted. The emotion read paints the scene but never scores you. In the lessons, the beat is counted by a stress scanner, not the model." |
 | Why several events? | "One engine. Each event is a config: who hosts, what cards you get, how it's judged, beat on or off. Poetry came first; the debate took [hours] on the same engine." *(Only if debate shipped.)* |
 | Isn't this just a game? | "The games are why you come back. Bard mode is where you get good. Last night, five first-timers went from [first] to [last] out of 10 on Beat, in one lesson." *(Use the study's real numbers and pm's wording in docs/study.md.)* |
 | Does it work in this noise? | "Headset mic, a mic that opens only on your turn, captions, and the transcript is always on screen so you can see what Homer heard." *(Only say it if Saturday's hall test passed.)* |
@@ -125,7 +125,7 @@ Answer in one breath, then stop.
 
 ## Video
 
-The full plan is in [video.md](video.md): the 2:00 shot list, who records what, when (the main shoot is Sat 5:00–5:30 PM, on build 11 and the website), the capture settings and the 90 s backup video. Open with the moment, not a title card. Real footage only, and no "Wii" anywhere in it, not even spoken.
+The full plan is in [video.md](video.md): the 2:00 shot list, who records what, when (the main shoot is Sat 5:00–5:30 PM, on build 14 and the website), the capture settings and the 90 s backup video. Open with the moment, not a title card. Real footage only, and no "Wii" anywhere in it, not even spoken.
 
 Thumbnail / Devpost cover: one arena frame with the carved gold line over matte color fields. No neon, no glow.
 

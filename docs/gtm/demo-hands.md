@@ -1,6 +1,6 @@
 # Demo hands: what Moss deals for the demo themes
 
-> **Superseded (Sat 3:20 PM, SPEC 7866476):** Homer now writes a fresh theme every round, and the phone shows three of Homer's phrases. The fixed judging set below is gone, so this file isn't a rehearsal plan any more. The poets rehearse improvising on themes they haven't seen. The notes on how Moss deals still hold.
+> **Superseded (Sat 3:20 PM, SPEC 7866476):** Homer now writes a fresh theme every round, and the phone shows three of Homer's phrases. The fixed judging set below is gone, so this file isn't a rehearsal plan any more. The poets rehearse improvising on themes they haven't seen. The notes on how Moss deals still hold. The sample hands below also predate SPEC 961bc37 (Homer's world only), so modern cards like "breaker of deadlines" are gone (the bank is 180 now). The demo theme cards (`/themes?demo=true`) are now "A ship that never came home" ("The sea is yours."), **"The night before the battle" ("The watch is yours.")** and "The war between two brothers" ("Pick a brother.") (builder, Sat 4:10 PM). The deadline and city sections below are history.
 
 Sampled from the production dealer (`HOMER_DEALER=moss` on the droplet, the 216-formula bank) on Oct 24 at 10:41 AM PT, for the three judging theme cards (ship, deadline, war: what `/themes?demo=true` serves) and the city theme, which is off the judging cards. Rehearse on these, and flag any hand that reads badly to the leader. Rates come from 200 sampled rounds per theme.
 

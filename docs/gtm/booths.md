@@ -82,7 +82,7 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 
 ### Apify (ground floor, left; a teammate goes, since the 11 AM workshop clashes with Matus's coffee chat)
 - **Show** the Actor's output, then a hand on the phone with a mined formula in it, like "aegis-bearing Zeus".
-- **The line:** "About a quarter of the phrases Homer deals you were mined by an Apify Actor from four public-domain Homer translations. No language model: readable rules, and our own stress scanner's beat count. A person reviewed every one."
+- **The line:** "Nearly a third of the phrases Homer deals you were mined by an Apify Actor from four public-domain Homer translations. No language model: readable rules, and our own stress scanner's beat count. A person reviewed every one."
 - **Ask:**
   - **"Does an Actor built by an AI coding agent count for Best Actor?"** Ours was written by Claude Code on your SDK and Crawlee, not in Apify's AI Chat.
   - "Does it have to be published on the Store, and public?"
@@ -104,7 +104,7 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 - **Credits:** `spacetimedb.com/redeem?code=CALHACKS13` (#cohost-spacetime, Sat 12:10 AM, Spacetime staff).
 
 ### Anthropic (sponsor-13, optional)
-- **Show** a verdict, then point at the five scores: "Flow is a deterministic stress scanner, not Claude's opinion. Claude scores the rest with the phrases Homer dealt you and the verse you answered in front of it."
+- **Show** a verdict, then point at the three scores: "Claude judges content only, Image, Answer and Craft, on an anchored scale, with the phrases Homer dealt you and the verse you answered in front of it. In the lessons, a deterministic stress scanner scores the beat, not Claude."
 - **The line:** "For spoken-word and slam poets in [the poet's scene], who practice alone between weekly open mics. Tonight we run a first-timer study for one real number. And the app itself is built by a team of Claude Code sessions."
 - **Ask:** "Is our community narrow enough?" Their track is "Claude for Public Benefit", and it wants a named community, a real problem, a working product with impact measured, and meaningful use of Claude.
 
