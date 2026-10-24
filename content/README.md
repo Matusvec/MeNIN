@@ -5,7 +5,7 @@ Lesson scripts and the formula bank. The agent service and the app both read the
 | File | What it is |
 | --- | --- |
 | `lessons.md` | The six Bard lesson scripts: demo verse, spoken lines, feedback, and when each lesson lands. The conventions are at the top of the file. |
-| `formulas.json` | The formula bank: 213 entries, dealt into hands and whispered by the freeze rescue. 158 were written by hand, and 55 were mined from public-domain Homer translations (see "Mined entries" below). |
+| `formulas.json` | The formula bank: 216 entries, dealt into hands and whispered by the freeze rescue. 161 were written by hand, and 55 were mined from public-domain Homer translations (see "Mined entries" below). |
 | `debate.md` | The Socratic debate event: Socrates' persona, 22 questions, the five-axis rubric, the freeze rescue, the move table, and shared lines. |
 | `moves.json` | 40 rhetorical-move cards for the debate hand. Same schema as `formulas.json`, with `kind: "move"`, `beats: 0`, and empty `themes`, plus a `role` field. See `moves.json` below. |
 
