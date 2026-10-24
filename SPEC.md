@@ -112,18 +112,18 @@ Shared by practice and battle. This is the core loop; get it right first.
 3. **Speak.** In a battle you spit free, with no metronome behind you (Matus, Sat 3:30 PM: "I just want to spit poetry without the metronome"). A 3-2-1 with a haptic tick, then SPEAK fills the phone and the arena in the poet's color, once, for the whole verse. No drum, no beat haptics, no per-line Speak/Breathe while a poet speaks: you get one window (20 seconds in demo mode) with a countdown ring, and "I'm done" ends early. Your words show live on the arena; the scene answers your voice's loudness and feeling. A phrase card lights up when you use it. Lines are whatever you say between breaths. The beat lives in Bard lessons, which teach it, and under Homer's stitched song.
 4. **Freeze rescue.** If you go silent for about 2.5 seconds mid-turn (never in the first 3 seconds after SPEAK; lessons: about a second inside a speaking bar), your phrases glow and Homer whispers one that fits; at most twice a turn, so an ordinary breath never triggers it.
 5. **Scene.** Reacts as you speak (see below).
-6. **Judge.** Scores 1 to 10 on five axes, speaks a one-line verdict, quotes your best line.
+6. **Judge.** Judges the content, honestly (Matus, Sat 4:05 PM: "judge more on content"): Image, Answer and Craft, 1 to 10 each, out of 100 (Image ×4, Answer ×4, Craft ×2). Scores are anchored: a typical first-timer verse lands at 4 to 6, and 9 or 10 is rare, a line you'd quote tomorrow. Clichés and dodging the theme cost. It speaks a one-line verdict that quotes your best line.
 7. **Hoard.** A new formula you coin that scans and that the judge rates well joins your hoard.
 
 ### Judge axes
 
 | Axis | What it measures | Source |
 | --- | --- | --- |
-| Flow (shown as Flow; key `beat`) | Did the verse move: a natural rhythm of roughly four stresses a line, judged from the words with no drum timing | Meter scanner, not Claude's guess. Weighted below Image, Answer and Craft in the total |
+| Beat (lessons only; key `beat`) | Did the stresses land on the drum | Meter scanner, not Claude's guess. Not scored in battle or Practice |
 | Craft | Used formulas, varied them, coined new ones | Claude, with the hand and the scanner output |
 | Image | Strength of the imagery | Claude |
 | Answer | Responded to the last verse (or the theme, if first) | Claude, with the previous verse |
-| Range | How much emotional ground the verse covered | Emotion engine |
+| Range (not scored) | How much emotional ground the verse covered | Emotion engine; it paints the scene but isn't part of the score |
 
 Scores per axis and the quoted line are always shown, so a verdict is explainable.
 
