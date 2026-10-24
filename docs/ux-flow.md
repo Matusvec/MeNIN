@@ -2,9 +2,9 @@
 
 This doc is for Matus to design against. It covers the flow, the states, the timing and what each screen shows. Visual design is Matus's, so this doc describes what is shown and what changes, never how it looks. Words like "large" or "pinned" describe hierarchy.
 
-`SPEC.md` (as of commit 41bece4) is the source of truth. Anything not in it is marked **Proposal Pn** and waits on Matus.
+`SPEC.md` (as of commit 2fb21bf) is the source of truth. Anything not in it is marked **Proposal Pn** and waits on Matus.
 
-MeNIN is ancient Greek Wii Sports, with Homer as the host: party events on one shared screen, with phones as controllers. The poetry battle is the core (sections 1 to 6). Socratic debate and discus come after the poetry demo passes the Saturday 2 PM checkpoint (sections 8 and 9). The event menu ties them together (section 7).
+MeNIN is ancient Greek Wii Sports, with Homer as the host: party events on one shared screen, with phones as controllers. The poetry battle is the core (sections 1 to 6). Socratic debate and discus are in build now (sections 8 and 9). The event menu ties them together (section 7), and section 10 says where the music plays.
 
 ## How to read this
 
@@ -21,6 +21,7 @@ MeNIN is one universal iOS app (iPhone and iPad), distributed through TestFlight
 - **Arena**: what the shared screen shows
 - **Phone**: what the poet's phone shows
 - **Homer**: what Homer says. Sample lines set the voice; the prompts own the final copy.
+- **Music**: the cue that starts or stops here, if any (section 10). Most states have none.
 - **Next**: what moves it to the next state
 - The duration is in each state's heading.
 
@@ -33,6 +34,7 @@ MeNIN is one universal iOS app (iPhone and iPad), distributed through TestFlight
 - A score always comes with all five axes and the quoted line. A bare total never appears alone.
 - There are no dead ends. Every finished state offers *again* and *next*.
 - Only one voice at a time: Homer never talks over a poet. In battle, Homer's voice and the beat come from the arena.
+- Music never plays under an open mic or with the beat, and it ducks under Homer's voice (section 10).
 
 ## Decided and proposed
 
@@ -45,7 +47,7 @@ MeNIN is one universal iOS app (iPhone and iPad), distributed through TestFlight
 - **Carved line:** the best line of each round is carved in gold across the arena.
 - **The stitched song:** at the finale Homer stitches every verse into one poem and performs it over the beat while the scene replays the battle's colors, then crowns the champion.
 
-**Proposals P7 to P18**
+**Proposals P7 to P19**
 
 Leader approved these as delegator, and Matus can veto any of them. Approved items keep their Pn tag in the body, so a veto is easy to trace.
 
@@ -63,6 +65,7 @@ Leader approved these as delegator, and Matus can veto any of them. Approved ite
 | P16 | **The hall stays open between events.** When an event ends, the arena goes back to the event menu with everyone still joined, so nobody rejoins to switch events (section 7). | Approved, and in SPEC.md |
 | P17 | **Tap to play a move.** In debate, you tap a move card on your phone as you make the move. It lands on the arena, and the judge checks that you really made it (section 8). | Approved, and in SPEC.md |
 | P18 | **Sides are dealt.** In debate, sides alternate by turn order, so you often argue a side you don't hold (section 8). | Approved, and in SPEC.md |
+| P19 | **Demo mode music.** At the judging table, the hall theme stays at its ducked level the whole time, because we talk over the menu. An operator key mutes all music (sections 6 and 10). | Proposed |
 
 P1 to P6 were approved by Matus and are listed above.
 
@@ -77,6 +80,7 @@ Approved by Matus (SPEC.md, "First open"). This runs on the first launch only: H
 - **Arena:** The scene comes up and idles. Nothing else.
 - **Phone:** Same.
 - **Homer:** Silent, for one breath.
+- **Music:** `first-open-bed` starts at launch. Homer's line enters 1 s into it.
 - **Next:** Automatic.
 
 #### F1 · Homer speaks · ~5 s
@@ -84,6 +88,7 @@ Approved by Matus (SPEC.md, "First open"). This runs on the first launch only: H
 - **Arena:** The scene moves with Homer's voice. His words are captioned as he speaks.
 - **Phone:** Same.
 - **Homer:** "The first word of Western literature is mēnin. Rage. Give me one line." The audio ships inside the app, so it starts at once. Check how TTS pronounces mēnin: it should sound like MAY-nin.
+- **Music:** The bed continues under him, with a hit on "Rage" (about 3.9 s into his line). It's the one cue written to sit under Homer, so it isn't ducked. It ends before the mic opens.
 - **Next:** He finishes. iOS shows its mic permission prompt right after "Give me one line", so the request comes with its reason.
 
 #### F2 · Your line · up to 8 s
@@ -105,6 +110,7 @@ Approved by Matus (SPEC.md, "First open"). This runs on the first launch only: H
 - **Arena:** The event menu (section 7), with the poetry tile open on **Learn** (Bard), **Train** (Practice) and **Fight** (Battle). **Learn** (Bard lesson 1) is the suggested pick, so "let me show you how I did it" pays off. Decided by leader; Matus can veto.
 - **Phone:** Same, stacked.
 - **Homer:** Silent. He just spoke.
+- **Music:** `hall-theme` starts.
 - **Next:** A tap. Closing the poetry tile shows the whole event menu.
 
 The mic opens about 6 s after launch.
@@ -139,6 +145,7 @@ The "You try" and "It lands when" columns are suggestions; the numbers get tuned
 - **Arena:** The six lessons, with landed ones marked and the next one suggested. From lesson 3 on, your epithet and hoard are shown too.
 - **Phone:** Same, vertical.
 - **Homer:** One line pointing at the next lesson, e.g. "Next, the formula. Half the line is already written."
+- **Music:** `training-ambience`. It continues through L0.
 - **Next:** Pick a lesson. See open question 8 on whether lessons are free-pick or in order.
 
 How the path connects to the rest of the app: after lesson 3 Homer offers battle ("You have a name now. Go fight."). After lesson 6 he offers a spar ("You're a bard. Come spar with me.").
@@ -159,6 +166,7 @@ Lesson 1 is used as the example. A lesson runs 2 to 5 minutes, which fits about 
 - **Arena:** Homer performs a verse that demonstrates the move, over the beat, while the scene moves with his voice. The parts that show the move are marked on the lane; in lesson 1, that's the four hits and the break.
 - **Phone:** Same.
 - **Homer:** A four-line verse that does the move.
+- **Music:** The ambience fades out as the beat comes in, and stays out from L1 to L4.
 - **Next:** The verse ends.
 
 #### L2 · Homer names it · ~4 s
@@ -189,6 +197,7 @@ Lesson 1 is used as the example. A lesson runs 2 to 5 minutes, which fits about 
 - **Arena:** The lesson is marked landed on the path, and your landing line is shown as your best line. In lesson 3, the epithet is set into your hoard and labeled as your battle name.
 - **Phone:** Same.
 - **Homer:** Short hype. "That's the beat. It's yours now." In lesson 3: "Breaker of Deadlines. Good. That's how my hall will know you."
+- **Music:** The ambience comes back.
 - **Next:** **Again**, **Next lesson** or **Spar**. It waits; nothing auto-advances.
 
 ---
@@ -202,6 +211,7 @@ Practice has two ways to play. **Reps** is one turn at a time with the full brea
 - **Arena:** Reps or Spar. A theme: three theme cards plus "Random". A Homer mode (hexameter) toggle, if it ships.
 - **Phone:** Same, stacked.
 - **Homer:** "Pick your ground. Or let me pick it."
+- **Music:** `training-ambience`. In Reps it fades out at the count-in and comes back at the breakdown (R1).
 - **Next:** Start.
 
 ### Reps
@@ -224,6 +234,7 @@ Each round Homer goes first and you answer him. First to two rounds wins.
 - **Arena:** "Round N", the theme, and the round score (Homer 0, you 0).
 - **Phone:** Same, plus your hand.
 - **Homer:** "Round one. A ship that never came home. I go first."
+- **Music:** In round one, the ambience stops and `poetry-intro` plays, then Homer speaks.
 - **Next:** Automatic.
 - **Timing:** Homer's verse is generated during this state. In round 1, generation starts as soon as the theme is chosen. In rounds 2 and 3 Homer answers your last verse, so generation starts the moment your transcript is final and runs under your verdict.
 
@@ -250,6 +261,7 @@ The full turn. The line you answer (P7) is Homer's best line from S2.
 - **Arena:** Your total against his, and the round score updates. Tapping opens the full breakdown (R1).
 - **Phone:** Same.
 - **Homer:** If you won: "Hah. Fine. Take it." If he won: "Close. Not close enough."
+- **Music:** `round-end` as the result appears, before Homer speaks.
 - **Next:** Someone has two rounds → S6. Otherwise → S1.
 
 #### S6 · Match end · until you move on
@@ -257,6 +269,7 @@ The full turn. The line you answer (P7) is Homer's best line from S2.
 - **Arena:** The final round score, each round's best line, and the formulas you added to your hoard.
 - **Phone:** Same.
 - **Homer:** If you won, hype: "You beat Homer. Tell no one. I'll deny it." If you lost, a gentle roast plus one thing to work on.
+- **Music:** `champion` if you won. Nothing if Homer won.
 - **Next:** **Rematch**, **New theme** or **Battle real poets**.
 
 How strong Homer should play is open question 9.
@@ -281,6 +294,7 @@ Two to five poets in one room, with the arena and their phones.
 - **Arena:** The room code and a QR code, large enough to scan from across a table. The poets who have joined, each by name and epithet. A **Begin** button once two or more have joined.
 - **Phone:** See J1 to J3.
 - **Homer:** Silent between entrances.
+- **Music:** `hall-theme` continues from the menu. It ducks under each entrance, and goes silent while any phone's mic is open (J2).
 - **Next:** The host taps Begin. The limit is five poets; a sixth person joins as a spectator.
 
 #### J1 · Join (phone) · ~10 s
@@ -294,6 +308,7 @@ Two to five poets in one room, with the arena and their phones.
 - **Phone:** The iOS mic permission prompt (first time only), then "Say your name. Loud." with a level meter. If you have no epithet yet, Homer coins one during the check and the phone shows it: "Homer names you: Priya, Keeper of the Rubric." With P15 there is one **Ask again**; otherwise it is kept after 2 s.
 - **Arena:** Your name and epithet arrive, and when your voice comes through, the scene answers it.
 - **Homer (from the arena):** "Enter Priya, Keeper of the Rubric!"
+- **Music:** The arena's hall theme goes silent while this phone's mic is open, so it stays out of the name clip that discus reuses. It ducks under the entrance.
 - **Next:** Your voice is heard → J3. The mic fails → retry, with tips.
 - **Notes:** Generating the epithet is a fast Claude call that runs during the mic check. Names and epithets are spoken aloud, so filter them for PG content first.
 
@@ -309,6 +324,7 @@ Two to five poets in one room, with the arena and their phones.
 - **Arena:** The poets in turn order, and "Three rounds."
 - **Phone:** Your place in the order.
 - **Homer:** "Three rounds. Every poet speaks. I judge. Highest total takes the hall."
+- **Music:** The hall theme stops at Begin and `poetry-intro` plays. Homer speaks as it ends. From here to B7 there's no music, only stings, and in turns only the beat.
 - **Next:** Automatic.
 
 ### Each round
@@ -330,6 +346,7 @@ Two to five poets in one room, with the arena and their phones.
 - **Arena:** Every poet's round score, then the best line of the round, quoted and attributed and carved in gold across the arena. It stays there for the rest of the battle. The scoreboard re-sorts.
 - **Phone:** Your round score and your position, plus "You're up first next round" if you are.
 - **Homer:** Reads the round verdict and quotes the best line. "The round goes to the line that sank the ship:" and then he says it.
+- **Music:** `round-end` as the scores appear. Homer starts the verdict as it ends.
 - **Next:** Rounds left → B2. Otherwise → the finale.
 
 ### Finale
@@ -353,6 +370,7 @@ Two to five poets in one room, with the arena and their phones.
 - **Arena:** The winner, with epithet and total, then the full standings. If ranks ship, also the winner's title and rank change.
 - **Phone:** The winner sees "You took the hall." Everyone else sees their place, their best line and the formulas added to their hoard.
 - **Homer:** A short proclamation for the winner, then one quick, sincere compliment for each poet.
+- **Music:** `champion` as the winner appears. Its big moment is in the first 2 s, and Homer's proclamation starts over its tail, ducked. **Rematch** plays `rematch` during the reset. **New event** brings back the hall theme.
 - **Next:** **Rematch** (same poets, new themes), **New hall** or **Leave**. Ties are open question 6.
 
 ### Edge cases
@@ -506,6 +524,7 @@ Demo mode is in SPEC.md. Rows marked P14 are extras, approved by leader.
 | Push-to-talk (P13) | On in battles | On, with wired headsets | spec |
 | Replay opening | n/a | An operator key replays Homer's first-open line on the arena | demo script |
 | Operator keys | None | Replay opening, advance, retry the turn, skip, rematch | P14 |
+| Music | Every cue (section 10) | The same cues. The replayed opening brings its bed. The hall theme stays at its ducked level because we talk over the menu, and an operator key mutes all music | P19 |
 
 ---
 
@@ -524,9 +543,10 @@ This is the home screen, Wii Sports style: one tile per event, and each tile ope
   | Discus | Homer announces | Swing your phone. Let go of the button, not the phone. | Throw, Fight |
   | Chariot race, Javelin, Wrestling | none | Locked | nothing |
 
-  Debate and discus stay locked tiles until they pass the Saturday 2 PM checkpoint (spec). Turning them on is a config switch.
+  Debate and discus are in build now. Either one that can't run 5 times in a row without failing by Saturday 8 PM stays a locked tile for the demo (spec). Turning a tile on or off is a config switch.
 - **Phone:** The same tiles in two columns. In a hall (P16), the phone shows the tiles read-only with "The arena is picking", and the arena's pick opens on every phone.
 - **Homer:** On a later launch: "Pick your event." On a locked tile: "Not yet. Those games are still being built."
+- **Music:** `hall-theme`. In a hall it plays from the arena only.
 - **Next:** Tap a live tile → E1. In a hall, the arena picks.
 
 #### E1 · Event choices · until a pick
@@ -542,7 +562,7 @@ This is the home screen, Wii Sports style: one tile per event, and each tile ope
 
 ## 8. Socratic debate
 
-Gated behind the Saturday 2 PM checkpoint (spec). The persona, questions, rubric, rescue, moves and lines are in `content/debate.md`.
+In build now (spec). The persona, questions, rubric, rescue, moves and lines are in `content/debate.md`.
 
 Debate runs on the poetry engine. Anything not listed here works as in sections 3 to 5.
 
@@ -564,6 +584,7 @@ Debate runs on the poetry engine. Anything not listed here works as in sections 
 | Round end | The best line is carved | Same |
 | Finale | The stitched song | Socrates' last question, about 10 s. He quotes the strongest point of the night, then asks the one question nobody answered |
 | Practice | Reps, and spar with Homer | Spar with Socrates, best of three. He takes the other side and argues mostly by asking you questions |
+| Music | `poetry-intro` opens a battle or spar. Only the beat plays in turns | `debate-intro` opens a battle or spar. Nothing plays in turns. The round-end and champion stings are shared |
 
 ### The debate turn
 
@@ -603,7 +624,7 @@ Skipped.
 
 ## 9. Discus
 
-Gated behind the same checkpoint. It's a self-contained motion minigame: no voice and no Claude (spec). The phone's motion sensors measure the swing and the release, and the arena shows the throw. A throw takes about 20 s.
+In build now, under the same Saturday 8 PM rule (spec). It's a self-contained motion minigame: no voice and no Claude (spec). The phone's motion sensors measure the swing and the release, and the arena shows the throw. A throw takes about 20 s.
 
 **Safety comes first.** The release is your thumb lifting off the screen, never your hand opening. You hold the phone the whole time. The first throw on any device starts with the safety card.
 
@@ -621,6 +642,7 @@ Gated behind the same checkpoint. It's a self-contained motion minigame: no voic
 - **Arena:** The field from the throwing circle, the thrower's name, their best so far, and the distance markers. One marker is the Phayllos line at 29 m, the ancient legend's throw (suggested).
 - **Phone:** One large target: "Press and hold to pick up the discus." A firm haptic on press.
 - **Homer:** "{name} steps into the circle." These lines are pre-recorded; the name reuses the clip recorded when the player joined.
+- **Music:** On the event's first throw, `discus-intro` plays before Homer's line.
 - **Next:** The player presses and holds.
 
 #### D2 · Wind-up · 1 to 4 s
@@ -628,6 +650,7 @@ Gated behind the same checkpoint. It's a self-contained motion minigame: no voic
 - **Arena:** The thrower winds up in time with the phone's motion, and the speed builds. The scene's instant layer follows the swing speed, so it moves with the throw as it does with a voice.
 - **Phone:** Only the held target. Haptics build with the speed.
 - **Homer:** Silent. The crowd builds.
+- **Music:** None. The crowd is the optional `discus-crowd` cue. If it isn't delivered, this state is silent.
 - **Next:** The thumb lifts → D3.
   - A lift before a real swing (under 0.5 s, or under about half a turn) is a drop, not a throw. "That's a drop, not a throw." One retry.
   - Holding for more than 6 s resets to D1: "The crowd is getting old. Throw."
@@ -636,6 +659,7 @@ Gated behind the same checkpoint. It's a self-contained motion minigame: no voic
 
 - **Arena:** The discus leaves the hand.
 - **Phone:** A heavy haptic, and "Look up."
+- **Music:** `discus-whoosh` starts on the release and fades through the flight (D4).
 - **Measured at release:**
   - the speed, from peak rotation in the last 0.3 s or so
   - the angle, from the phone's tilt; about 35 to 40 degrees flies farthest
@@ -661,6 +685,7 @@ Gated behind the same checkpoint. It's a self-contained motion minigame: no voic
   - The hall's best: "New mark. Remember that name."
   - Past the Phayllos line: "Past Phayllos. They'll carve that one."
   - A foul: "Into the crowd. They'll live."
+- **Music:** `discus-fanfare` as the distance appears, then Homer's line. No fanfare on a foul.
 - **Next:** Automatic.
 
 #### D6 · Leaderboard · ~3 s
@@ -668,9 +693,43 @@ Gated behind the same checkpoint. It's a self-contained motion minigame: no voic
 - **Arena:** Everyone's best throw, sorted, with the throws each has left.
 - **Phone:** Your place, your throws left, and "You're up" if you're next.
 - **Homer:** Silent between throws. After the last throw: "The discus goes to {name}."
+- **Music:** After the last throw, `champion`, with Homer's line over its tail.
 - **Next:** The next thrower's D1. After the last throw, the champion (one line, as in demo mode), then **New event** (P16).
 
 **Solo (Throw):** on one iPhone, the phone is both arena and discus. After the release, the phone shows the flight and the distance, and keeps your best on this device.
+
+---
+
+## 10. Music
+
+MeNIN has an original soundtrack by a teammate (spec, "Music"). The composer's brief, with each cue's length, format and loudness, is `docs/audio.md`. This section covers where each cue plays and the rules the app follows.
+
+**Rules**
+
+- **Never under an open mic.** Music fades out over about 0.3 s before any mic in the room opens, and stays out until it closes. That includes the mic check (J2) and the line in first open (F2). Music bleeding into a phone's mic hurts STT the same way the beat does (see "Risk" below).
+- **Never with the beat.** In poetry turns and lessons, only the procedural drum-and-lyre beat plays (spec). Music fades out before the beat starts.
+- **Ducks under a host** (spec). When Homer or Socrates speaks, music drops about 12 dB and comes back about 0.5 s after he stops. The exception is the first-open bed, which is written to sit under Homer and plays at full level.
+- **The arena plays it.** In a hall, only the arena plays music. Phones never do, since they're the mics. In solo modes the one device plays it.
+- **Stings start on their cue, with no delay,** and play once. A host line can start over a sting's tail, ducked.
+- **Loops fade out.** `hall-theme` and `training-ambience` loop until their screen ends, then fade out over about 1 s.
+
+**Where each cue plays**
+
+| Cue | Starts | Ends | States |
+| --- | --- | --- | --- |
+| `first-open-bed` | At launch, 1 s before Homer's first line | Before the mic opens | F0, F1, and the demo's replay opening |
+| `hall-theme` | The event menu after first open, or at launch | When an event starts | F4, E0, E1, H1, J1 to J3 (on the arena) |
+| `training-ambience` | The Bard path, Practice setup | At the count-in or Homer's demo verse, and back after the try | Path, L0, L5, R0, R1 |
+| `poetry-intro` | A poetry battle or spar begins | Before Homer's opening line | B1, S1 (round one) |
+| `debate-intro` | A debate battle or spar begins | Before Socrates' opening line | Debate B1 and S1 |
+| `discus-intro` | The event's first throw | Before Homer's line | D1 |
+| `discus-whoosh` | The release | As the discus flies off | D3, D4 |
+| `discus-fanfare` | The distance appears | Before Homer's distance line | D5 |
+| `round-end` | The round's scores appear | Before Homer's verdict | B4, S5 |
+| `champion` | The winner appears | Under the crown line | B7, S6 (if you won), D6 (after the last throw), the debate crown |
+| `rematch` | Rematch is tapped | During the reset | B7, then B2 |
+
+Everything else has no music: the turn (T0 to T8), round titles (B2), the tally (B5) and the song (B6). In poetry, the beat carries them.
 
 ---
 
