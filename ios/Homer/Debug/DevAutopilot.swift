@@ -1,0 +1,104 @@
+import Foundation
+import os
+
+/// Dev only: drives a battle through the real BattleClient so a multi-device smoke test
+/// runs without taps. Off unless the app is launched with `-autopilot arena|player`.
+///   arena:  creates a demo room, begins at 2 poets, advances each reveal after a pause
+///   player: joins `-joinCode` as `-poetName`, passes the mic check, types a verse on its turn
+@MainActor
+final class DevAutopilot {
+    static var mode: String? { UserDefaults.standard.string(forKey: "autopilot") }
+
+    private let battle: BattleClient
+    private let log = Logger(subsystem: "com.matusvec.homer", category: "autopilot")
+    private var task: Task<Void, Never>?
+    private var done = Set<String>()
+
+    init?(battle: BattleClient) {
+        guard let mode = Self.mode, mode == battle.role.rawValue else { return nil }
+        self.battle = battle
+    }
+
+    func start() {
+        task = Task { [weak self] in
+            while !Task.isCancelled {
+                self?.tick()
+                try? await Task.sleep(for: .milliseconds(300))
+            }
+        }
+    }
+
+    func stop() { task?.cancel() }
+
+    /// Runs `action` once per key.
+    private func once(_ key: String, _ action: () -> Void) {
+        guard !done.contains(key) else { return }
+        done.insert(key)
+        log.info("autopilot: \(key, privacy: .public)")
+        print("AUTOPILOT \(key)")
+        action()
+    }
+
+    private func tick() {
+        guard battle.connection == .connected else { return }
+        switch battle.role {
+        case .arena: arenaTick()
+        case .player: playerTick()
+        }
+    }
+
+    private func arenaTick() {
+        guard let room = battle.room else {
+            once("create") { battle.createRoom(.demoMode) }
+            return
+        }
+        once("room \(room.code)") {}
+        switch room.phaseValue {
+        case .lobby where battle.players.count >= 2:
+            once("begin \(room.id)") { battle.startBattle() }
+        case .scored, .roundEnd, .finale:
+            let key = "advance \(room.phase) \(room.currentTurnId) \(room.roundNo)"
+            guard !done.contains(key) else { return }
+            done.insert(key)
+            print("AUTOPILOT \(key)")
+            Task {
+                try? await Task.sleep(for: .seconds(2))
+                battle.advance()
+            }
+        case .finished:
+            once("finished \(room.id)") {
+                let standings = battle.players.sorted { $0.total > $1.total }.map { "\($0.name)=\($0.total)" }
+                print("AUTOPILOT standings \(standings.joined(separator: " "))")
+            }
+        default:
+            break
+        }
+    }
+
+    private func playerTick() {
+        let defaults = UserDefaults.standard
+        guard let code = defaults.string(forKey: "joinCode"), let name = defaults.string(forKey: "poetName") else { return }
+        guard let me = battle.me else {
+            once("join \(code)") { battle.join(code: code, name: name) }
+            return
+        }
+        if !me.entered { once("enter") { battle.enter() } }
+        guard let turn = battle.currentTurn, battle.isMyTurn, let room = battle.room else { return }
+        switch turn.statusValue {
+        case .waiting where !room.autoReady:
+            once("ready \(turn.id)-\(turn.attempt)") { battle.startTurn(turn.id) }
+        case .speaking:
+            once("verse \(turn.id)") {
+                let verse = ["The wine-dark sea took my brother's ship", "and grey-eyed Athena would not hear his cry"]
+                    .prefix(Int(room.linesPerTurn)).joined(separator: "\n")
+                battle.updateTranscript(turn.id, verse)
+                Task {
+                    try? await Task.sleep(for: .seconds(1))
+                    battle.endTurn(turn.id, verse)
+                }
+            }
+        default:
+            break
+        }
+    }
+}

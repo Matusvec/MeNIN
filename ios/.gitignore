@@ -1,0 +1,7 @@
+Homer.xcodeproj/
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+.env
+Homer/Support/Secrets.xcconfig

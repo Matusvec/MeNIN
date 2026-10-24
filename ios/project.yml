@@ -1,0 +1,96 @@
+# Homer iOS app. Generate the Xcode project with `xcodegen generate` in this folder.
+# Homer.xcodeproj is generated and gitignored: change this file, not the project.
+name: Homer
+
+options:
+  bundleIdPrefix: com.matusvec
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+
+packages:
+  # Vendored community SDK with local patches; see Vendor/SpacetimeDB/README.md.
+  SpacetimeDB:
+    path: Vendor/SpacetimeDB
+
+settings:
+  base:
+    DEVELOPMENT_TEAM: 52T9D2MTQ2
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+targets:
+  Homer:
+    type: application
+    platform: iOS
+    sources:
+      - path: Homer
+        excludes:
+          - "UI/Fonts/*.txt"
+    dependencies:
+      - package: SpacetimeDB
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.matusvec.homer
+        PRODUCT_NAME: Homer
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SUPPORTS_MACCATALYST: NO
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ENABLE_PREVIEWS: YES
+    info:
+      path: Homer/Support/Info.plist
+      properties:
+        CFBundleDisplayName: MeNIN  # product name; the target and bundle id stay Homer
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSRequiresIPhoneOS: true
+        UILaunchScreen: {}
+        UIApplicationSupportsIndirectInputEvents: true
+        NSMicrophoneUsageDescription: Homer listens to your verses so he can keep the beat and judge them.
+        ITSAppUsesNonExemptEncryption: false
+        NSLocalNetworkUsageDescription: Homer connects to the battle server on this network.
+        # QR codes on the arena encode homer://join/<ROOM>; the Camera app opens the app directly.
+        CFBundleURLTypes:
+          - CFBundleURLName: com.matusvec.homer
+            CFBundleURLSchemes: [homer]
+        # Font files from Homer/UI/Fonts/ (art lead), listed by file name.
+        UIAppFonts:
+          - Fraunces.ttf
+          - Fraunces-Italic.ttf
+          - Inter.ttf
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+
+  HomerTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: HomerTests
+    dependencies:
+      - target: Homer
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.matusvec.homer.tests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  Homer:
+    build:
+      targets:
+        Homer: all
+        HomerTests: [test]
+    test:
+      targets:
+        - HomerTests
