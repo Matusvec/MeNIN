@@ -124,7 +124,7 @@ Answer in one breath, then stop.
 
 ## Video
 
-The full plan is in [video.md](video.md): the 2:00 shot list, who records what, when (the main footage is the Sat 1:30 PM gate run), the capture settings and the 90 s backup video. Open with the moment, not a title card. Real footage only, and no "Wii" anywhere in it, not even spoken.
+The full plan is in [video.md](video.md): the 2:00 shot list, who records what, when (the main shoot is Sat 5:00–5:30 PM, on build 11 and the website), the capture settings and the 90 s backup video. Open with the moment, not a title card. Real footage only, and no "Wii" anywhere in it, not even spoken.
 
 Thumbnail / Devpost cover: one arena frame with the carved gold line over matte color fields. No neon, no glow.
 

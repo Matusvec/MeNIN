@@ -6,7 +6,7 @@ Logistics for judging day, Sunday Oct 25: what goes where, what gets charged, ho
 
 **Our gear (Matus's list):** one Mac (a MacBook Air), three iPhones and power banks. There's no iPad and no portable monitor. gtm checked the venue items against the Hacker Guide and the Cal Hacks announcements on Fri Oct 23, and marks them **(confirmed)** or **(not in the guide)**.
 
-**The build: TestFlight build 4** (0.1.0, `202610240956`; processing as of Sat ~10 AM). It has lesson 1 (verified live), debate, discus, the force-quit rejoin, the hall and the app key. **Build 4 judges the beat more strictly than build 3,** so the first-timer study, every Beat number in the pitch and Devpost, and every rehearsal run on build 4. Before each study session and each judge, check Settings → About in MeNIN (or the TestFlight app) for build `202610240956`. A later freeze build replaces it only if leader says so, and then the Beat numbers get rechecked.
+**The build: TestFlight build 11** (0.1.0, `202610241510`) once it's in TestFlight, and build 4 (0.1.0, `202610240956`) until then. Build 11 is the one with SPEC 7866476: Homer's three phrases, fresh themes and epithets, 3, 2, 1, SPEAK, Flow in battle and the hands-free mic. **Lesson 1 scores the same on both** (swift and builder confirmed), so the first-timer study's Beat numbers hold on either; `docs/study.md` names the build it ran on. Before each study session and each judge, check Settings → About in MeNIN (or the TestFlight app) for the build number. Leader confirms the judging build.
 
 **The hands: Moss deals them, judging included** (leader, Sat ~11 AM). `HOMER_DEALER=moss` is on in production; the old tag dealer takes over silently only if Moss stalls. So **the poets rehearse on Moss hands: start from [demo-hands.md](demo-hands.md)**, builder's sample Moss hands for the three demo themes. The Sat 1:30 PM full-battle checkpoint, the Sat 8 PM runs and every rehearsal use Moss hands. Moss ranks by meaning, so the hand for the same theme can vary a little between deals. Rehearse the theme's feel, not a fixed five.
 
@@ -25,7 +25,7 @@ Logistics for judging day, Sunday Oct 25: what goes where, what gets charged, ho
 | 8:45 | Devpost submitted, every track tagged. The hard deadline is 9:00. | Matus |
 | 9:00–9:20 | **Get our judging table number and move there.** The Hacker Guide: "Shortly after the 9:00 AM submission deadline, all projects will be assigned a table number. You will need to move to your assigned table by 10:30 AM." Watch #0-announcements and the app. The table may not be where we hacked. | Matus |
 | 9:20–10:00 | Hall check **at the assigned table**: find the nearest hardline switch (there's one every 3 tables, per the announcements), plug in ethernet, and **run the demo check until it says GO with no no-go warnings** (see Before each judge). Then set sound at demo volume, run the noise test, and do two full warm-up runs. If no switch reaches, tell a director immediately. Two teams had dead table ethernet on Friday night: one got no DHCP address, and one had a tripped cable. If the Mac shows no IP address on ethernet, tell a director right away and use venue Wi-Fi meanwhile. | All |
-| 10:15 | Table set: demo config loaded, the main room open, **the backup room created on the Mac** (code written down), and the backup video cued. | Operator |
+| 10:15 | Table set: demo config loaded, the main room open, the website's hall open ("Open the hall" clicked, Homer heard), and the backup video cued. | Operator |
 | 10:30–12:30 | Judging. The whole team stays at the table. The guide: "If your entire team is not present while a judge comes, you will not be judged!" Take bathroom breaks one at a time, never two at once. Reset with the rematch drill between judges. | All |
 
 ## Device roles
@@ -34,10 +34,10 @@ Every device runs the same TestFlight build. Check under TestFlight, MeNIN, buil
 
 | Device | Held by | Role | Connection | Power |
 | --- | --- | --- | --- | --- |
-| **Mac (arena)** | Operator | **The website, full screen in a browser, with the display turned to face the judges** (SPEC: the website is the only arena people see; the app's arena mode is an emergency fallback behind the Dev screen). Click the page once after loading so the browser lets Homer speak. Demo config on, operator keys, latency HUD on. A Terminal sits on a second desktop for the demo check. The main room is live, and the **backup room is a second room code the Mac can switch to**. The backup video is paused in a second window. | Ethernet, through the USB-C adapter | **100% at the start.** Wall outlet if the table has one, or a power bank if one can feed it (see Power). |
+| **Mac (arena)** | Operator | **The website, full screen in a browser, with the display turned to face the judges** (SPEC: the website is the only arena people see; the app's arena mode is an emergency fallback behind the Dev screen). Click **"Open the hall"** (or **"Resume"** after a reload), which also lets the browser play sound, then check Homer speaks. Demo config on, operator keys, latency HUD on. A Terminal sits on a second desktop for the demo check. The main room is live. **There's no second backup room:** the website allows one driving tab per browser, so recovery is a reload and "Resume" (see Fallbacks). The backup video is paused in a second window. | Ethernet, through the USB-C adapter | **100% at the start.** Wall outlet if the table has one, or a power bank if one can feed it (see Power). |
 | **iPhone A** | The poet | Poet 1: mic and hand. | Venue Wi-Fi, with cellular data as plan B | Power bank between runs |
 | **iPhone B** | Matus | Poet 2: mic and hand, and the staged freeze. | Same | Same |
-| **iPhone C** | Operator | **The spare, with duties in priority order:** 1) replaces a dead poet phone; 2) **backup arena** in arena mode, landscape, if the Mac dies (small, but it works); 3) plays the backup video if the Mac is gone; 4) the judge's phone after 2:00, for discus or a rematch. Grippy case. | Same | Same |
+| **iPhone C** | Operator | **The spare, with duties in priority order:** 1) replaces a dead poet phone; 2) **backup arena** if the Mac dies: the website in Safari (one column under 900 px), or the app's Dev-screen arena as the last resort; 3) plays the backup video if the Mac is gone; 4) the judge's phone after 2:00, for discus or a rematch. Grippy case. | Same | Same |
 
 If iPhone C is already covering for a dead poet phone, the judge's phone after 2:00 is Matus's iPhone B, once his turn is done.
 
@@ -90,11 +90,11 @@ Rough table layout, with the judges in front. There's no external screen, so the
 Before every run:
 
 - [ ] The main room is open on the website, both poets have joined, and demo config is on. Nothing is preloaded: Homer writes a fresh theme and coins fresh epithets every battle (SPEC 7866476).
-- [ ] The page has been clicked once and Homer's voice plays.
+- [ ] "Open the hall" is clicked, and Homer speaks.
 - [ ] The hands-free mic opens on each phone's turn, and the haptic beat can be felt.
 - [ ] Speaker volume is set and captions are on.
 - [ ] The operator key "replay opening" is ready.
-- [ ] The backup room code is written down, and the backup video is paused at 0:00 on the Mac.
+- [ ] The backup video is paused at 0:00 on the Mac.
 - [ ] **Run the demo check** on the Mac, from the repo root, in a Terminal on a second desktop (never over the arena while a judge is looking):
   `python3 homer/scripts/demo_check.py https://206.189.237.157.sslip.io` *(the agent service on its DigitalOcean server)*
   It takes about 5 s. It checks the agent's health, times one real judged turn (Practice mode, so nothing is written to the room), and checks the themes, the freeze rescue and the voice token. **Read the lines, not just the last one.** It prints GO whenever nothing FAILs.
@@ -118,7 +118,7 @@ Between judges, or after a judge stays for a rematch. The spec's target is under
 | 2–6 | Check the arena: the theme cards are up and the old carved line is gone. | Check your phone: a new hand, and Hold to speak works. |
 | 6–10 | Nod "ready". | Nod "ready". |
 
-- **If it isn't reset in 10 s:** switch to the backup room (see Fallbacks). Don't press Rematch a second time.
+- **If it isn't reset in 10 s:** reload the website's tab and click "Resume" (see Fallbacks). Don't press Rematch a second time.
 - **Drill it Saturday night:** five times in a row, timed. Write the slowest time here: ______
 - **More than 30 s until the next judge:** phones go back on their banks.
 
@@ -128,14 +128,14 @@ Each one is decided in advance and has a line to say, so nobody improvises at th
 
 | What breaks | Trigger | Do this | Owner | Say |
 | --- | --- | --- | --- | --- |
-| **The room wedges.** A turn won't advance, Rematch doesn't reset, or a phone can't rejoin. | Over 10 s stuck | **Switch the Mac to the backup room.** The poets join it with the room code taped to the back of each phone, about 15 s. If the app itself is hung, force-quit it (⌘⌥⎋), relaunch, and open the backup room. | Operator | Matus: "Let's move to the other stage." |
+| **The room wedges.** A turn won't advance, Rematch doesn't reset, or a phone can't rejoin. | Over 10 s stuck | **Reload the website's tab and click "Resume [code]"**: same room, same code, same scores, and the battle carries on from its phase; the phones just wait. If that fails, click **"Open the hall"** for a new room, and the poets type its new code. If the browser itself is hung, force-quit it (⌘⌥⎋), relaunch, and Resume. | Operator | Matus: "Let's move to the other stage." |
 | **One poet phone dies or freezes** | Any time | Hand that poet **iPhone C**. It joins the same room with the room code. | Operator | Matus keeps talking through the how-it-works line. |
-| **The Mac dies** | Any time | **iPhone C becomes the arena**: arena mode, landscape, propped facing the judges, on the backup room. The speaker stays on if it's wired to the phone, otherwise it's phone audio. Small, but it's live. | Operator | "Same game, smaller box." |
+| **The Mac dies** | Any time | **Open the website in Safari on another device** (the iPad, a teammate's laptop, or iPhone C, propped facing the judges) and click "Open the hall" for a **new room**; the poets join its new code. Another device can't take over the Mac's room, since the host identity lives in the Mac's browser. Last resort: the app's emergency arena on iPhone C, behind the Dev screen. The speaker stays on if it's wired to that device, otherwise it's device audio. | Operator | "Same game, smaller box." |
 | **The Mac dies and iPhone C is already covering a poet** | Any time | **Practice Spar on one iPhone:** the poet against Homer, with that phone as both the arena and the mic. Or play the backup video on a phone. | Operator, poet | "Let me show you against Homer himself." |
 | **Network is slow or down** | Turns lag past the stall line twice | Decided by leader: ethernet into the Mac first, then cellular on the phones. **No hotspot (confirmed banned).** The Cal Hacks announcement on Fri 10:16 PM said: "Personal hotspots, routers, or other broadcasting equipment are prohibited inside the venue and we have tools to find who has these." It was repeated Sat 12:48 PM: Wi-Fi 6 works better, 2.4 GHz works only on the Mezzanine, and patch cables can be rented at the Mezzanine hardware desk. **Ethernet isn't a sure thing either:** on Saturday afternoon hackers reported Wi-Fi "very slow", ethernet links not coming up and one dead switch (#0-ask-directors, Sat 1:31 and 2:11 PM), so test our switch in the 9:20 hall check. Each phone uses its own cellular data instead, which isn't broadcasting. The Mac can't use cellular, so if its ethernet dies, **iPhone C on cellular becomes the arena.** | Operator, poets | "One second, the Wi-Fi in here is a battle of its own." |
 | **Two failures in a row, or no network at all** | Any time | **Backup video**, 90 s, of the best Saturday-night run. Play it from the Mac's second window, or from any phone (it's saved on all three). Play it with sound. | Operator | Matus: "Here's last night's battle, start to finish." Then quiet. |
-| **No verdict after 4 s** | Automatic | The stall line plays, and Beat and Range show. Keep going. | Nobody | Keep talking. Don't apologize. |
-| **No verdict after 10 s** | Automatic | Beat and Range only. Move on. Never show a canned verdict. | Operator | "Homer's thinking. Let's hear the next one." |
+| **No verdict after 4 s** | Automatic | The stall line plays, and Flow and Range show. Keep going. | Nobody | Keep talking. Don't apologize. |
+| **No verdict after 10 s** | Automatic | Flow and Range only. Move on. Never show a canned verdict. | Operator | "Homer's thinking. Let's hear the next one." |
 | **STT keeps mishearing** (noise) | After one retry | Hold the EarPods mic closer to the mouth. If it fails again, play the backup video. | Poet | "That's what Homer heard. This hall is loud." |
 | **The judge has 60 s, not 120** | At the start | Follow the 60-second cut in [demo-script.md](demo-script.md). | Matus | |
 
@@ -165,6 +165,6 @@ Optional, but each one fixes a real risk at a loud, shared table:
 - [ ] **Every teammate's Cal Hacks badge.** "You will NEED it to get into the venue. We will not be handing out extras" (#0-announcements, Sat 9:56 AM, organizer). No badge means no teammate, and no whole team means no judging.
 - [ ] **A power strip and an extension cord.** Hackers reported dead outlets at two tables Friday, and an organizer advised bringing an extension cord (#0-ask-directors, Fri). Check our table's outlet in the 9:20 hall check.
 - [ ] A grippy case or wrist strap, for discus
-- [ ] Gaffer tape, for the cables and the room codes on the backs of the phones
+- [ ] Gaffer tape, for the cables
 - [ ] The backup video, saved locally on the Mac and all three phones (not streamed)
 - [ ] This sheet, printed

@@ -2,13 +2,13 @@
 
 Paste this into Devpost. **Never submit a claim that isn't true on Sunday morning.** The guide recommends submitting a draft Saturday night and editing it until 9:00 AM.
 
-**State: Sat Oct 24, 3:45 PM (SPEC 7866476 and 9a6cfdc: fresh themes and epithets, Homer's three phrases, Flow, the website as the only arena).** Everything outside `[brackets]` is true now. What's left:
+**State: Sat Oct 24, 3:20 PM (SPEC 7866476 and 9a6cfdc: fresh themes and epithets, Homer's three phrases, Flow, the website as the only arena).** Everything outside `[brackets]` is true now. What's left:
 
 | Placeholder | Kind | Comes from | When |
 | --- | --- | --- | --- |
-| `[N]`, `[first]`, `[last]`, `[time]` | **Number** | The first-timer study on build 5, 0.1.0 (202610241256) (`docs/study.md`), using one of pm's line options. It's a lesson, so it's the strict "Beat" score, not the battle's Flow. | Sat 8 PM |
+| `[N]`, `[first]`, `[last]`, `[time]` | **Number** | The first-timer study on the build named in `docs/study.md` (build 11, or build 4 if 11 isn't in TestFlight; lesson 1 scores the same on both), using one of pm's line options. It's a lesson, so it's the strict "Beat" score, not the battle's Flow. | Sat 8 PM |
 | `[real-mic WER]` | **Number** | swift's rerun of the keyterm test on a real iPhone mic. If it differs from 3%/20%, it replaces those numbers everywhere. | When swift runs it |
-| `[turn-to-voice p50]` | **Number** | The measured time from a turn's end to Homer's first word, on build 4 (the 1:30 PM run's latency HUD) | Sat 1:30 PM |
+| `[turn-to-voice p50]` | **Number** | The measured time from a turn's end to Homer's first word, on the judging build (the 5 PM shoot's latency HUD; the 1:30 PM gate never ran) | Sat 5 PM |
 | `[poet's name]`, `[the poet's scene]`, `[poet quote]`, `[composer's name]`, `[how the score was made]`, `[team]` | **A fact only Matus has** | Matus (the list went to leader) | Today |
 | `[If debate passed]`, `[If discus passed]` | Checkpoint | The Sat 8 PM check: 5 runs in a row without a failure. Delete the section if the event failed. | Sat 8 PM |
 | `[URL]` | Link | **The website** (SPEC, Sat 12:20 PM): the arena in a browser at a public HTTPS URL, served from the droplet. It's the first "try it" link. | When it's deployed |
@@ -225,7 +225,7 @@ Main prizes are automatic.
 - [ ] README explains where SpacetimeDB is used (tables, reducers, the 20 Hz stream, the private cards, the SDK patches)
 - [ ] Video, 2:00, opening with the moment ([video.md](video.md))
 - [ ] Figma Slides link, files shared with "Anyone", whole team Edu verified
-- [ ] **Matus submits build 4 (0.1.0, `202610240956`) for external review (Beta App Review) as soon as it finishes processing.** Not build 2 or 3: build 4 has lesson 1, debate, discus and the force-quit rejoin, and its stricter Beat matches our study numbers.
+- [ ] **Matus submits the judging build for external review (Beta App Review) as soon as it finishes processing: build 11 (0.1.0, `202610241510`)**, or build 4 (`202610240956`) if 11 isn't in TestFlight. Build 11 is the one with SPEC 7866476 (Homer's three phrases, fresh themes, Flow, the hands-free mic). Lesson 1 scores the same on both, so the study numbers hold either way. Leader confirms which build the judges get.
 - [ ] TestFlight public link installs on an iPhone that isn't on our internal tester list
 - [ ] **The website opens at [URL]** in a private window on a laptop, and on a phone on cellular with Wi-Fi off, so we know it works off our network. Then an iPhone joins its room
 - [ ] Cover image: an arena frame with the carved gold line, matte, no neon

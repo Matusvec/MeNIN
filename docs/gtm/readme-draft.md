@@ -75,7 +75,7 @@ Voice is the whole game: you play by speaking, and Homer answers out loud.
 - **The battle is a phase machine in reducers**, server-side: lobby → theme → dealing → ready → speaking → judging → scored → round end → finale → finished. A scheduled reducer closes each turn on time. The rules are in [`spacetime/CONTRACT.md`](spacetime/CONTRACT.md).
 - **The phrases Homer deals you sit in a private table** that only your phone can read.
 - **Every phone streams loudness and pitch at about 20 Hz** into one table the arena subscribes to, so the arena's scene moves with whoever is speaking.
-- **A phone that dies can rejoin** and take its seat back with its score. [Keep this only if it passed the Sat 1:30 PM test.]
+- **A phone that dies can rejoin** and take its seat back with its score. [Keep this only if it passed the full-battle gate (deferred from Sat 1:30 PM).]
 - **The iPhone client** is the community Swift SDK [avias8/spacetimedb-swift](https://github.com/avias8/spacetimedb-swift) 0.23.0, vendored with two patches (`ios/Vendor/SpacetimeDB/README.md`):
   - Upstream subscribes every client to whole tables, which would send every phone every room's 20 Hz stream. Ours subscribes per room.
   - When subscriptions overlap, rows are listed once.

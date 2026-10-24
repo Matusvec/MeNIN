@@ -12,15 +12,15 @@ Two videos, both from real takes. Nothing is mocked, and nothing is shown as liv
 
 ## When
 
-**The 1:30 PM full-battle checkpoint (the gate run) doubles as the main footage** (leader, Sat 11:05 AM; the run moved up from 2 PM). If it's usable, the 5 PM shoot is only pickups, and 11 PM is a reshoot only if something's missing.
+**The main shoot is Sat 5:00–5:30 PM** (leader, Sat ~3:15 PM). The 1:30 PM gate run never happened (Matus deferred it), so there's no earlier footage to build on. The shoot runs on **TestFlight build 11** (0.1.0, `202610241510`) on the phones and **the website, with its live scene, as the arena**, after builder's 4 PM deploy. That's the UI judges will play (SPEC 7866476): Homer's three phrases, fresh themes and epithets, 3, 2, 1, SPEAK, Flow, the hands-free mic and no sound effects. 11 PM is a reshoot only if something's missing.
 
 | Time (Sat) | What | Who |
 | --- | --- | --- |
-| Any time before 1:15 PM | B-roll, 2 minutes at most per shot: the haptic beat in a palm (close-up), Homer's three phrases on a phone, a thumb on the discus button | Whoever has a free minute |
-| **1:15 PM** | Set up the capture for the 1:30 PM run ([below](#the-130-pm-capture-the-checkpoint-run-is-the-footage)). Anyone at the Anthropic workshop leaves by 1:10. | Operator, camera teammate |
-| **1:30 PM** | **The checkpoint run, recorded:** arena, over-the-shoulder and wide shots | Everyone |
-| 2:00–2:30 PM | Copy the footage to the Mac. Matus checks it against the shot list, marks what's missing for 5 PM, and **exports the backup video from it** | Matus, operator |
-| 5:00–5:30 PM | **Pickups only:** whatever the 1:30 run missed, plus the first-open line on its own. Use the quietest corner you can find. **Also re-shoot anything that shows the old UI** (SPEC 7866476, Sat 3 PM): five cards instead of Homer's three phrases, hold-to-talk, the old count-in instead of 3, 2, 1, SPEAK, the "Beat" label in battle (it's "Flow" now), a sound effect, or the Mac app as the arena instead of the website. The video has to match what judges will play. | Everyone needed |
+| Any time before 4:45 PM | B-roll on build 11, 2 minutes at most per shot: the haptic beat in a palm (close-up), Homer's three phrases on a phone, SPEAK filling a phone in the poet's color, a thumb on the discus button | Whoever has a free minute |
+| 4:00 PM | Builder deploys the website with the live scene | Builder |
+| **4:45 PM** | Set up the capture ([below](#the-500-pm-shoot)). Check that both phones run build 11 (Settings → About in MeNIN shows `202610241510`) and that the website shows the live scene. **If either isn't true by 4:45, tell leader before rolling:** footage on build 4 or a website without the scene shows a UI judges won't see. | Operator, camera teammate |
+| **5:00–5:30 PM** | **The main shoot:** two full demo-mode battles back to back (Rematch between them), recorded as arena, over-the-shoulder and wide shots, plus the first-open line on its own. Use the quietest corner you can find. | Everyone needed |
+| 5:30–6:00 PM | Copy the footage to the Mac. Matus checks it against the shot list, marks anything missing for 11 PM, and **exports the backup video from the best take** | Matus, operator |
 | 6–8 PM | **The first-timer shot**, during the study (`docs/study.md`). Film only someone who said yes to consent question 4, and film **the screen and their voice, never their face**. Matus edits in between. | Poet runs the study; a second person films |
 | 8:00 PM | The extras checkpoint decides whether debate and discus appear at 1:15–1:25 | Leader |
 | 8:05–8:20 PM | If they passed: 5 s of Socrates opening a debate and one discus throw. If Fetch shipped, also the ASI:One screen recording for the Fetch cut. | Operator, Matus |
@@ -30,24 +30,24 @@ Two videos, both from real takes. Nothing is mocked, and nothing is shown as liv
 | 11:00–11:15 PM | **Reshoot only if a shot is still missing.** Then upload to YouTube, put the link in Devpost, and copy the backup video to every device. | Matus, operator |
 | 11 PM | Feature freeze ([reality-check.md](reality-check.md) checkpoint). The video can still be added to Devpost after this; only the code freezes. | |
 
-**If the 1:30 PM checkpoint fails:** footage from a failing run is useless. The shoot moves to 5 PM if the fix lands by then, otherwise to 8:20 PM, and karaoke is dropped.
+**If the 5 PM shoot fails** (the battle breaks mid-take): footage from a failing run is useless. The shoot moves to 8:20 PM if the fix lands by then, and karaoke is dropped.
 
-## The 1:30 PM capture: the checkpoint run is the footage
+## The 5:00 PM shoot
 
-**The checkpoint comes first. If any recording slows the arena or the phones, stop recording, not the run.**
+**Two takes, back to back.** Take 1 is the main footage; take 2 is the safety, and whichever is cleaner becomes the backup video. Homer writes a fresh theme and coins fresh epithets each take, so nothing repeats and nothing needs to match between takes. Cut within one take, never across two.
 
-**Before 1:15 PM:** check `memory_pressure | grep 'free percentage'` on the Mac and get it to at least 30% free (quit Xcode and the simulators). Make sure every phone has at least 5 GB free and Do Not Disturb on. Start every recording, then **clap once in view of every camera**. Then the operator starts the count-in.
+**Before 4:45 PM:** check `memory_pressure | grep 'free percentage'` on the Mac and get it to at least 30% free (quit Xcode and the simulators). Make sure every phone has at least 5 GB free and Do Not Disturb on. Load the website full screen in the Mac's browser and click **"Open the hall"**, which also lets the browser play Homer's voice, then check that Homer speaks. Start every recording, then **clap once in view of every camera**. Then the operator starts the battle.
 
 | # | Shot | Device and settings | Framing | Must catch |
 | --- | --- | --- | --- | --- |
-| **A** | **The arena screen recording** | The Mac, in **OBS**: macOS Screen Capture → Application → MeNIN, app audio on, mic muted; Apple VT H264 hardware encoder, 60 fps, MKV. Settings are below. | Full arena, nothing else on screen | The whole run: the entrance, both turns, both verdicts with scores counting up, the carved line, the stitched song, the crown. Captions on. |
-| **B** | **Over the shoulder** | **iPhone C**, handheld by the free teammate: 1080p at 60 fps, landscape, AE/AF lock on the arena, then drag exposure down a little | From behind and just above a poet's shoulder: the phone's hand in the foreground, the arena beyond it, in focus on the phone | **Matus's freeze rescue:** his hand comes forward, one card is raised, Homer whispers. Stay on Matus for turn 2; take poet 1 for turn 1. |
+| **A** | **The arena screen recording** | The Mac, in **OBS**: macOS Screen Capture → Application → **the browser running the website**, app audio on, mic muted; Apple VT H264 hardware encoder, 60 fps, MKV. Settings are below. | Full arena, nothing else on screen | The whole take: the entrance with the fresh theme and Homer's call, SPEAK filling the arena in each poet's color, both turns over the live scene, both verdicts with scores counting up, the carved line, the stitched song, the crown. Captions on. |
+| **B** | **Over the shoulder** | **iPhone C**, handheld by the free teammate: 1080p at 60 fps, landscape, AE/AF lock on the arena, then drag exposure down a little | From behind and just above a poet's shoulder: the phone's three phrases in the foreground, the arena beyond it, in focus on the phone | **3, 2, 1, SPEAK filling the phone**, then **Matus's freeze rescue:** Homer's phrases come forward, the one that fits is raised, Homer whispers it, Matus uses it and "+Craft" pops. Stay on Matus for turn 2; take poet 1 for turn 1. |
 | **C** | **A wide shot of the table** | **Any spare phone**, such as a teammate's own, propped or on a stand: 1080p at 60 fps, landscape, AE/AF lock on a face | Both poets, the arena screen and the operator in one frame, from about 2 m away at chest height | The human moment: two people battling, a reaction to a verdict, the room listening to the song. **Room audio comes from here.** |
-| *(D)* | *Optional:* the poets' own phone screens | Control Center → Screen Recording, **mic off** (the app has the mic) | The phone screen | Hand close-ups. Skip it if either phone is low on battery. |
+| *(D)* | *Optional:* the poets' own phone screens | Control Center → Screen Recording, **mic off** (the app has the mic) | The phone screen | Close-ups of Homer's three phrases, SPEAK, and "+Craft". Skip it if either phone is low on battery. |
 
-**If there's no spare phone for C,** iPhone C does B for turn 2 only, then moves to the wide spot for the verdict, the song and the crown. Or C waits for the 5 PM pickups.
+**If there's no spare phone for C,** iPhone C does B for turn 2 only, then moves to the wide spot for the verdict, the song and the crown. Take 2 can fill whatever C missed.
 
-**After the run:** name the files `gate-A-arena.mkv`, `gate-B-ots.mov`, `gate-C-wide.mov` and `gate-D-phone1.mov`, and copy them to the Mac over a USB-C cable or by AirDrop. Remux the MKV to MP4 in OBS. Matus checks each shot in the Devpost shot list below and writes "missing: …" for the 5 PM pickups.
+**After the takes:** name the files `shoot1-A-arena.mkv`, `shoot1-B-ots.mov`, `shoot1-C-wide.mov`, `shoot1-D-phone1.mov` (and `shoot2-…` for take 2), and copy them to the Mac over a USB-C cable or by AirDrop. Remux the MKVs to MP4 in OBS. Matus checks each shot in the Devpost shot list below and writes "missing: …" for 11 PM.
 
 
 **Before the shoot:** run `memory_pressure | grep 'free percentage'` on the Mac. Quit Xcode and every simulator for the shoot and the edit, and confirm at least 30% free. OBS and iMovie each need memory, and the Mac is shared with the Claude sessions.
@@ -56,7 +56,7 @@ Two videos, both from real takes. Nothing is mocked, and nothing is shown as liv
 
 | Role | Who | Does |
 | --- | --- | --- |
-| Arena + capture | Operator | Runs the arena Mac in demo mode and starts and stops OBS. Calls "rolling" and "cut". |
+| Arena + capture | Operator | Runs the website arena on the Mac in demo mode and starts and stops OBS. Calls "rolling" and "cut". |
 | Poet 1 | The poet | Performs, and starts their own screen recording before each take |
 | Poet 2 | Matus | Performs (with the staged freeze), and starts their own screen recording |
 | Camera | [composer, if there; otherwise iPhone C propped on a stand by the operator] | iPhone C on the wide shot |
@@ -67,17 +67,17 @@ Two videos, both from real takes. Nothing is mocked, and nothing is shown as liv
 
 ### The arena Mac: OBS Studio
 
-The Mac's built-in screen recorder (⌘⇧5) records the picture, but it can't be trusted to capture the app's own sound. OBS's macOS Screen Capture source records both: Homer, the beat and the score.
+The Mac's built-in screen recorder (⌘⇧5) records the picture, but it can't be trusted to capture the browser's sound. OBS's macOS Screen Capture source records both: Homer, the beat and the score.
 
 | Setting | Value |
 | --- | --- |
-| Source | **macOS Screen Capture**, method **Application**, set to MeNIN, with **Capture audio** on. Mute the mic and any desktop-audio source, so OBS only hears the app. |
+| Source | **macOS Screen Capture**, method **Application**, set to the browser running the website, with **Capture audio** on. Close every other tab and window in that browser, since the app capture records all of it. Mute the mic and any desktop-audio source, so OBS only hears the app. |
 | Base and output resolution | The display's own size (System Settings → Displays). The output keeps the same shape at 1920 wide. |
 | Frame rate | 60 fps, to match the scene |
 | Encoder | **Apple VT H264 Hardware Encoder**, CBR, 20,000 Kbps. The hardware encoder keeps the CPU free for the app. |
 | Recording format | **MKV**, which survives a crash. Afterwards, use File → Remux Recordings to get an MP4. |
 | Audio | 48 kHz |
-| On the Mac | Notifications off, Dock hidden, the cursor parked off the arena, MeNIN full screen, demo config on, and captions on |
+| On the Mac | Notifications off, Dock hidden, the cursor parked off the arena, the website full screen in the browser (no tabs or address bar showing), demo config on, and captions on |
 
 If OBS misbehaves, fall back to ⌘⇧5 for the picture and use iPhone C's audio.
 
@@ -100,7 +100,7 @@ If OBS misbehaves, fall back to ⌘⇧5 for the picture and use iPhone C's audio
 | Exposure | Long-press a face for **AE/AF Lock**, then drag exposure down a little so the arena screen doesn't blow out |
 | Sound | The camera mic is the room mix: the poet, the beat and Homer. In a quiet room that's the authentic sound of the battle. |
 
-**Syncing:** start every take with one clap in view of iPhone C. Line up the camera and OBS on the count-in's first drum hit, and the phone recordings on the moment the hand appears.
+**Syncing:** start every take with one clap in view of iPhone C. Line up the camera and OBS on the first "3" of the 3, 2, 1, and the phone recordings on the moment SPEAK fills the phone.
 
 ## The Devpost video: shot list (2:00)
 
@@ -110,14 +110,14 @@ The video uses **only our original score** under the narration, and only the bea
 
 | Time | Shot | Source | Sound |
 | --- | --- | --- | --- |
-| 0:00–0:10 | **Cold open.** The poet, EarPods in, spits two lines. The scene moves with the voice, its color fields shift, the beat lane fills, a card flips. No narration. | Camera wide, cut to the OBS close-up | Room mix |
+| 0:00–0:10 | **Cold open.** The poet, EarPods in, spits two lines. The scene moves with the voice, its color fields shift, the beat lane fills, a phrase pops "+Craft". No narration. | Camera wide, cut to the OBS close-up | Room mix |
 | 0:10–0:16 | Title card **μῆνιν · MeNIN**, with "Rage. The first word of Western literature." underneath. Homer's first-open line plays under it. | Editor, plus the OBS first-open take | Homer's first-open line and its music bed |
 | 0:16–0:20 | The event menu: the poetry battle lit, other passed events lit, the rest locked. Matus's voiceover: "MeNIN. Ancient Greek party games, with your iPhone as the controller." | OBS | Hall theme, ducked |
 | 0:20–0:50 | **The battle.** Homer's fresh theme lands; Homer's three phrases on a phone; 3, 2, 1, SPEAK filling the screen in the poet's color; the haptic beat in a palm (B-roll); a used phrase popping "+Craft"; Homer's verdict with five scores counting up. **The freeze rescue:** Homer's phrases come forward, the one that fits raised, and Homer whispers it. | OBS, phone recordings, B-roll | The arena's sound (beat, Homer) and the room mix |
 | 0:50–1:00 | The round verdict: the best line carved in gold | OBS | Homer, then the round-end cue |
 | 1:00–1:15 | **Bard lesson 1 with a first-timer** from the study: a miss, one note from Homer, then they land it. On screen: "Beat [first] → [last]". Screen and voice only, no face. | The first-timer's phone recording | The lesson's own sound |
 | 1:15–1:25 | *Only if it passed at 8 PM:* 5 s of Socrates opening a debate (a different voice), then 5 s of a discus throw: the swing (camera), the flight on the arena (OBS), the fanfare. If neither passed, give the stitched song 10 s more. | Camera, OBS | Their cues |
-| 1:25–1:36 | **How it's built, in one frame:** iPhone mic → on-device onsets (beat lane) and Cartesia STT with Homer's phrases as keyterms → SpacetimeDB → arena Metal scene, plus Homer the live agent on Claude with the stress scanner. **Name each sponsor on screen** (Spacetime, Cartesia, Claude, Figma), since a sponsor judge may only ever see this video. Caption: "3% word error with the drum at full volume, in our tests (20% without keyterms)". Under it, smaller: "Test recordings: recorded verse with our drum mixed in at 0 dB." Use the real-mic number if swift's rerun replaced it. Voiceover: "Nothing here is mocked." | A diagram. **Make it in FigJam** and log it in the Figma stage log, since that's real Figma work. | Voiceover over the hall theme, ducked |
+| 1:25–1:36 | **How it's built, in one frame:** iPhone mic → on-device onsets (beat lane) and Cartesia STT with Homer's phrases as keyterms → SpacetimeDB → the website arena and its live scene, plus Homer the live agent on Claude with the stress scanner. **Name each sponsor on screen** (Spacetime, Cartesia, Claude, Figma), since a sponsor judge may only ever see this video. Caption: "3% word error with the drum at full volume, in our tests (20% without keyterms)". Under it, smaller: "Test recordings: recorded verse with our drum mixed in at 0 dB." Use the real-mic number if swift's rerun replaced it. Voiceover: "Nothing here is mocked." | A diagram. **Make it in FigJam** and log it in the Figma stage log, since that's real Figma work. | Voiceover over the hall theme, ducked |
 | 1:36–1:40 | **Built responsibly**, one card: "Captions on everything Homer says · The mic opens only on your turn · No audio passes through our server · Homer never names your emotion · No account needed". It answers Cartesia's 25% on impact and responsibility, and Anthropic's "where it could go wrong". | Editor | Hall theme, ducked |
 | 1:40–1:55 | The stitched song over the battle's colors, each line with its poet's name | OBS | Homer and the beat |
 | 1:55–2:00 | The champion. End card: [TestFlight link] or playmenin.tech, "Original score by [composer's name]", and the team | OBS, editor | Champion cue |
@@ -144,16 +144,16 @@ Export it the same way as the Devpost video. Upload it unlisted as its own YouTu
 
 **What it's for:** if the network dies at the table, the operator plays this and we narrate it live. We say plainly, "This is last night's battle."
 
-**What it is:** the best demo-mode take (the 1:30 PM run, unless a later take is cleaner), from OBS with the room mix underneath, trimmed only to cut dead air. There's no voiceover and no added music, just the app's own sound. A 2-second card opens it: "Recorded live, Sat Oct 24".
+**What it is:** the cleaner of the two 5 PM takes, from OBS with the room mix underneath, trimmed only to cut dead air. There's no voiceover and no added music, just the app's own sound. A 2-second card opens it: "Recorded live, Sat Oct 24".
 
 | Time | What |
 | --- | --- |
 | 0:00–0:02 | Card: "Recorded live, Sat Oct 24" |
 | 0:02–0:06 | Homer's first-open line |
-| 0:06–0:10 | Theme card and the poet's entrance |
+| 0:06–0:10 | Homer's fresh theme, his call and the poet's entrance |
 | 0:10–0:25 | Turn 1 |
 | 0:25–0:31 | Verdict |
-| 0:31–0:49 | Turn 2, with the freeze rescue |
+| 0:31–0:49 | Turn 2, with the freeze rescue and "+Craft" |
 | 0:49–0:55 | Verdict |
 | 0:55–1:02 | The round verdict and the carved line |
 | 1:02–1:25 | The stitched song (4 lines) |
