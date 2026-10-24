@@ -6,7 +6,7 @@ This is the shared state for **Battle mode** only. Bard and Practice are single-
 
 | Event | Axes | Hand | Turn | Agent |
 | --- | --- | --- | --- | --- |
-| `poetry` | 5: beat, craft, image, answer, range | `formula` cards | one bar of count-in, then lines × bars_per_line bars | yes |
+| `poetry` | 5: beat, craft, image, answer, range | `formula` cards | free verse: a 2.25 s count-in (3-2-1), then one window of turn_seconds (10 s a line; the demo's 2 lines = 20 s) | yes |
 | `debate` | 5: claim, reason, answer, craft, poise | `move` cards | a 3 s count-in, then 45 s | yes, the same endpoints as poetry |
 | `discus` | none | empty | no count-in, 30 s in the circle | **none**: see [Discus](#discus) |
 
@@ -86,7 +86,7 @@ All public tables carry `room_id`, so a client subscribes to exactly one room. *
 | phase | String | see the phase machine |
 | round_no | u32 | 0 in the lobby, then 1..rounds |
 | rounds | u32 | 3 by default; 1 in demo |
-| turn_seconds | u32 | derived: lines_per_turn × bars_per_line × one bar (4 × 60/bpm s), rounded up. Use it for display only; ends_at is exact. |
+| turn_seconds | u32 | the speaking window, beat_at to ends_at. Poetry: lines_per_turn × 10 s (free verse, no bars; the demo is 20 s). Debate 45, discus 30. Set when the room is made or switched; start_turn uses the stored value. |
 | lines_per_turn | u32 | 4 by default; 2 in demo |
 | bpm | u32 | the beat's tempo |
 | form | String | `four_beat` or `hexameter` |
@@ -97,7 +97,7 @@ All public tables carry `room_id`, so a client subscribes to exactly one room. *
 | next_theme | String | the theme the judges picked, until it is dealt |
 | current_turn_id | u64 | the turn that is up, live or being judged; 0 between rounds |
 | created_at | Timestamp | |
-| bars_per_line | u32 | 2: each line is a speaking bar plus a rest bar (SPEC). 1: no rest bars (demo may drop them). It is the last column, appended so live databases migrate without a reset. |
+| bars_per_line | u32 | 2: each line is a speaking bar plus a rest bar; 1: no rest bars. Battles no longer use it (free verse): it is kept, with bpm, for lessons and Practice. It is the last column, appended so live databases migrate without a reset. |
 
 ### `player` (public). Writers: phone, agent.
 
@@ -153,8 +153,8 @@ Row-level security: a client only receives the hand rows of its own players. `SE
 | rescue | String | the last card Homer whispered (freeze rescue) |
 | rescues | u32 | goes up by one per whisper; the arena whispers when it changes |
 | started_at | Timestamp | when Ready was tapped; the count-in starts here |
-| beat_at | Timestamp | beat 1 of line 1 = started_at + one bar (4 × 60/bpm s) |
-| ends_at | Timestamp | beat_at + lines_per_turn × bars_per_line bars. The scheduler closes the turn at ends_at + 2 s if the phone hasn't. |
+| beat_at | Timestamp | when the poet speaks: started_at + the count-in (poetry 2.25 s, debate 3 s, discus 0) |
+| ends_at | Timestamp | beat_at + turn_seconds. The phone ends the turn at ends_at with its final words; the scheduler closes it at ends_at + 2 s if the phone hasn't. |
 
 ### `score` (public). Writer: agent.
 
@@ -202,7 +202,7 @@ Every `set_scene` also appends `id, room_id, turn_id, ms` (milliseconds since `s
 
 | Reducer | Args | When | Effect |
 | --- | --- | --- | --- |
-| `create_room` | event String, rounds u32, bars_per_line u32 (1 or 2), lines_per_turn u32, bpm u32 (40–160), form String, auto_ready bool, theme_choice bool, demo bool | Tap "Start a battle". The demo is `("poetry", 1, 2, 2, 80, "four_beat", true, false, true)`; pass 1 bar per line to drop the rests. The turn may not exceed 120 s. | A new room in `lobby`. demo forces 1 round, 2 lines, 2 poets and auto-ready. Any older lobby of this host is closed, so a double tap leaves one room. Find yours with `SELECT * FROM room WHERE host = <your identity>` and take the highest id. |
+| `create_room` | event String, rounds u32, bars_per_line u32 (1 or 2), lines_per_turn u32, bpm u32 (40–160), form String, auto_ready bool, theme_choice bool, demo bool | Tap "Start a battle". The demo is `("poetry", 1, 2, 2, 80, "four_beat", true, false, true)`: one 20 s window. bars_per_line and bpm are validated and stored but don't time a battle turn. The turn may not exceed 120 s. | A new room in `lobby`. demo forces 1 round, 2 lines, 2 poets and auto-ready. Any older lobby of this host is closed, so a double tap leaves one room. Find yours with `SELECT * FROM room WHERE host = <your identity>` and take the highest id. |
 | `start_battle` | room_id | Begin (2+ poets) | `lobby` → `dealing` (or `theme`), with round_no = 1 |
 | `choose_theme` | room_id, theme | A judge taps a card in `theme` | Sets `next_theme` and moves to `dealing`. The 3 cards come from the content bank on the arena. |
 | `start_turn` | turn_id | auto_ready, or after the 5 s step-up wait | Same as the phone's Ready tap |
@@ -309,7 +309,7 @@ Discus is a motion minigame: no voice, no Claude, no agent (SPEC "The games", UX
 
 ## Timing and rates
 
-- **Beat grid.** Beat *k* (0–3) of line *n* (0-based) falls at `beat_at + (4 × bars_per_line × n + k) × 60/bpm`. With rest bars (bars_per_line = 2) that's `(8n + k)`: bar 2n is line n, and bar 2n+1 is its rest. Each device estimates its offset from server time when `status` flips to `speaking` (offset = local receive time − `started_at`). That is good to a network one-way trip (~50–150 ms), which is fine at ~80 bpm.
+- **Poetry (free verse)**: `beat_at` = `started_at` + 2.25 s (the 3-2-1), `ends_at` = `beat_at` + turn_seconds (20 s in the demo). No beat grid and no bars in a battle; lessons and Practice may still use bpm and bars_per_line for their own drills. Each device estimates its offset from server time when `status` flips to `speaking` (offset = local receive time − `started_at`), good to a network one-way trip (~50–150 ms).
 - **Prosody**, about 20 Hz: fine for SpacetimeDB, since each call is one small transaction. Keep **at most one `set_prosody` in flight** and drop frames rather than queue them, so a bad network can't build lag. The arena interpolates. Expect 100–200 ms phone-to-arena.
 - **Transcript**: on each STT partial (a few per second). `end_turn` carries the final.
 - **Scene**: about every 1.5 s, from the agent.
@@ -324,7 +324,7 @@ cd spacetime && npm install
 npm run typecheck
 npm run publish:local                    # keeps data; publish:local:reset wipes it
 npm run publish:test                     # the isolated test database `homer-test` (no dev-agent, no shared key)
-npm run smoke                            # poetry, discus, set_event and debate over HTTP against homer-test, 101 checks (~90 s)
+npm run smoke                            # poetry, discus, set_event and debate over HTTP against homer-test, 100 checks (~2 min)
 npm run logs
 ```
 

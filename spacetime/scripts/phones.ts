@@ -7,6 +7,7 @@
 //   CODE=ABCD npm run phones                       # local server, database "homer-test"
 //   CODE=ABCD POETS=2 BATTLES=5 STDB_DB=... npm run phones
 //   HOST=<identity hex> NAMES=Bo BATTLES=1 ...     # the newest lobby that arena hosts
+//   HOST=<identity hex> NAMES=Bo STAY=1 ...        # a companion: every battle, until left alone
 //
 // With HOST, it waits for that arena's newest lobby and follows it if the arena opens a
 // new room before the battle begins. It leaves the room after the last battle.
@@ -21,6 +22,8 @@ const HOST = (process.env.HOST ?? '').trim().toLowerCase().replace(/^0x/, '');
 const BATTLES = Number(process.env.BATTLES ?? 5);
 const NAMES = process.env.NAMES ? process.env.NAMES.split(',').map(n => n.trim()) : ['Ada', 'Bo', 'Cy', 'Di', 'Eo'];
 const POETS = Number(process.env.POETS ?? (process.env.NAMES ? NAMES.length : 2));
+const STAY = process.env.STAY === '1';
+const IDLE_MS = 120_000;
 const VERSES = [
   ['The sea came grey against the hull at dawn', 'and {card} carried what the wind had drawn'],
   ['We pulled the oars until the oars were bone', 'and {card} brought the long ship home alone'],
@@ -163,23 +166,46 @@ phones[0].conn.db.room.onUpdate((_c, a, b) => {
     return;
   }
   finished++;
-  console.log(`${clock()} battle ${finished} of ${BATTLES} finished`);
+  console.log(`${clock()} battle ${finished}${STAY ? '' : ` of ${BATTLES}`} finished`);
 });
-while (finished < BATTLES && !closed) {
+// STAY: a companion for a human's battles. It plays every battle and rematch, moves when the
+// HOST arena opens a newer lobby, and leaves once no one else has been connected for 2 min.
+let lonelySince = Date.now();
+let met = false;
+let checked = 0;
+let idle = false;
+while (STAY ? !closed && !idle : finished < BATTLES && !closed) {
   for (const p of phones) void p.step();
+  if (STAY && Date.now() - checked > 2000) {
+    checked = Date.now();
+    const mine = new Set(phones.map(p => p.me));
+    const others = (await sql(null, `SELECT * FROM player WHERE room_id = ${RID}`)).filter((p: any) => !mine.has(BigInt(p.id)));
+    // The clock starts once someone has come and gone: an empty lobby waits for its human.
+    if (others.some((p: any) => p.connected)) {
+      met = true;
+      lonelySince = Date.now();
+    } else if (met && Date.now() - lonelySince > IDLE_MS) idle = true;
+    if (HOST) {
+      const newer = (await sql(null, `SELECT * FROM room WHERE phase = 'lobby'`))
+        .some((r: any) => r.host[0].toLowerCase() === `0x${HOST}` && BigInt(r.id) > RID);
+      if (newer) {
+        console.log(`${clock()} the arena opened a newer lobby`);
+        closed = true;
+      }
+    }
+  }
   await sleep(200);
 }
+if (idle) console.log(`${clock()} no one else here for ${IDLE_MS / 60000} min`);
 for (const p of phones) {
   await p.conn.reducers.leaveRoom({ roomId: RID }).catch(() => {});
   p.conn.disconnect();
 }
 if (closed) {
-  // Start over on the arena's new room (HOST mode only; by code there is nothing to follow).
-  console.log(`${clock()} ${CODE} closed before it began${HOST ? '; following the arena to its new room' : ''}`);
-  if (HOST) {
-    const { spawnSync } = await import('node:child_process');
-    process.exit(spawnSync(process.execPath, process.execArgv.concat(process.argv.slice(1)), { stdio: 'inherit' }).status ?? 1);
-  }
+  // Exit 3: the arena opened a new room. In HOST mode, run this in a loop that restarts on 3
+  // (`until ...; [ $? -ne 3 ]; do :; done`) to follow the arena to it.
+  console.log(`${clock()} ${CODE} closed before it began`);
+  process.exit(3);
 }
 console.log(`${clock()} left ${CODE}`);
 process.exit(0);

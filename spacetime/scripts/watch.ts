@@ -105,6 +105,12 @@ function wire() {
       say(`${c} ${name}'s turn ${a.status} -> ${b.status}${b.attempt > 1 ? ` (attempt ${b.attempt})` : ''}${why}`);
     }
     if (!a.transcript && b.transcript) milestone(b.roomId, 'words');
+    if (a.transcript !== b.transcript && b.transcript) {
+      // Every live transcript update, timed from the downbeat: is STT streaming, and how late?
+      const words = (s: string) => s.split(/\s+/).filter(Boolean).length;
+      const since = Date.now() - micros(b.beatAt);
+      say(`${c} ${name} words ${words(a.transcript)} -> ${words(b.transcript)}, ${secs(since)} after the downbeat${b.status !== 'speaking' ? ` (${b.status})` : ''}`);
+    }
     if (a.played.length !== b.played.length) say(`${c} ${name} played "${b.played[b.played.length - 1]}"`);
     if (a.rescues !== b.rescues) say(`${c} ${name} rescued (${b.rescues})`);
   });

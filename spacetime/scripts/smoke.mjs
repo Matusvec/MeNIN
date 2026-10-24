@@ -63,7 +63,7 @@ check(
   await fails(arena, 'create_room', 'poetry', 1, 30, 2, 80, 'four_beat', true, false, true),
   'bars per line is 1 or 2'
 );
-check(R.turn_seconds === 8 && R.bars_per_line === 2, 'turn length comes from lines x bars x bar');
+check(R.turn_seconds === 20 && R.bars_per_line === 2, 'free verse: 10 s a line, so two lines are one 20 s window');
 
 await call(ada, 'join_room', R.code.toLowerCase(), 'Ada', '', []);
 await call(bo, 'join_room', R.code, 'Bo', 'Breaker of Deadlines', ['storm-throated']);
@@ -114,8 +114,8 @@ check(await fails(bo, 'start_turn', T.id), 'Bo cannot start Ada\'s turn');
 await call(ada, 'start_turn', T.id);
 T = await turn(T.id);
 check(T.status === 'speaking' && (await room(R.id)).phase === 'speaking', 'Ada is speaking');
-check(T.beat_at[0] - T.started_at[0] === 2_000_000, 'one bar of count-in at 120 bpm');
-check(T.ends_at[0] - T.beat_at[0] === 8_000_000, 'two lines of speak + rest bars');
+check(T.beat_at[0] - T.started_at[0] === 2_250_000, 'a 3-2-1 count-in (2.25 s), whatever the bpm');
+check(T.ends_at[0] - T.beat_at[0] === 20_000_000, 'then one 20 s window, no bars');
 
 await call(ada, 'set_prosody', R.id, 0.7, 180, 1);
 await call(bo, 'set_prosody', R.id, 0.9, 90, 9); // not the speaker: dropped
@@ -144,7 +144,7 @@ check(await fails(agent, 'post_score', T.id, [5, 5, 5, 5], 'x', 'y', ''), 'poetr
 await call(agent, 'post_score', T.id, [8, 7, 6, 5, 4], 'Strong bones.', 'took my brother\'s ship', 'storm-throated');
 check((await room(R.id)).phase === 'scored', 'scored');
 const adaTurnId = T.id;
-check((await sql(null, `SELECT * FROM player WHERE id = ${A.id}`))[0].total === 30, 'Ada has 30');
+check((await sql(null, `SELECT * FROM player WHERE id = ${A.id}`))[0].total === 59, 'Ada has 59: image and answer count triple, craft double');
 
 await call(arena, 'advance', R.id);
 r = await room(R.id);
@@ -308,7 +308,7 @@ check(await fails(arena, 'set_event', D.id, 'chariots', 2), 'set_event refuses u
 await call(arena, 'set_event', D.id, 'poetry', 2);
 r = await room(D.id);
 check(r.event === 'poetry' && r.phase === 'lobby' && r.rounds === 2, 'set_event: a poetry lobby');
-check(!r.auto_ready && r.turn_seconds === 8, 'set_event restores the poetry timing');
+check(!r.auto_ready && r.turn_seconds === 20, 'set_event restores the poetry timing');
 const kept = await sql(null, `SELECT * FROM player WHERE room_id = ${D.id}`);
 check(kept.length === 2 && kept.find(p => p.id === DA.id).epithet === 'Iron-Hearted', 'set_event keeps poets and epithets');
 check((await sql(ada, 'SELECT * FROM hand')).some(h => h.player_id === DA.id && h.kind === 'formula'), 'hands hold formulas again');
@@ -342,6 +342,7 @@ await call(ada, 'end_turn', T.id, 'Courage is knowing what to fear.');
 check(await fails(agent, 'post_score', T.id, [5, 5, 5, 5], 'x', 'y', ''), 'debate scores need five axes');
 await call(agent, 'post_score', T.id, [7, 6, 5, 6, 8], 'Sharp.', 'Courage is knowing what to fear.', '');
 check((await room(E.id)).phase === 'scored', 'the debate turn is scored');
+check((await sql(null, `SELECT * FROM player WHERE id = ${EA.id}`))[0].total === 32, 'a debate total is the plain sum of its axes');
 
 console.log(failures === 0 ? '\nall checks passed' : `\n${failures} check(s) failed`);
 process.exit(failures === 0 ? 0 : 1);

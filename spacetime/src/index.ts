@@ -295,6 +295,8 @@ const FORMS = ['four_beat', 'hexameter'];
 const EPOCH = Timestamp.UNIX_EPOCH;
 const DEBATE_COUNT_IN_SECONDS = 3; // a three-count, no drum
 const DEBATE_SECONDS = 45;
+const POETRY_COUNT_IN_MICROS = 2_250_000n; // 3-2-1, then free verse: no metronome, no bars
+const POETRY_SECONDS_PER_LINE = 10; // the demo's two lines: one 20 s window
 const THROW_SECONDS = 30; // a discus thrower's time in the circle
 const MAX_SPEED = 60; // rad/s; a phone gyro tops out near 35
 const MAX_DISTANCE = 100; // metres
@@ -329,16 +331,6 @@ function after(ts: Timestamp, micros: bigint): Timestamp {
   return new Timestamp(ts.microsSinceUnixEpoch + micros);
 }
 
-// Four beats a bar.
-function barMicros(bpm: number): bigint {
-  return BigInt(Math.round((4 * 60_000_000) / bpm));
-}
-
-// Each line is one speaking bar, plus a rest bar when barsPerLine is 2.
-function speakingMicros(lines: number, barsPerLine: number, bpm: number): bigint {
-  return BigInt(lines * barsPerLine) * barMicros(bpm);
-}
-
 function isDiscus(r: Room): boolean {
   return r.event === 'discus';
 }
@@ -348,12 +340,13 @@ function seconds(s: number): bigint {
 }
 
 // A turn's count-in (start to beat_at) and speaking window (beat_at to
-// ends_at). A verse gets one bar of count-in, a debater a three-count, and a
-// thrower the circle at once.
-function turnWindow(event: string, lines: number, barsPerLine: number, bpm: number): { countIn: bigint; speak: bigint } {
+// ends_at). A verse is free verse (SPEC "The turn"): a 3-2-1, then one window of
+// the room's turn_seconds, like a debater's three-count and 45 s; a thrower gets
+// the circle at once. bpm and bars stay on the room for lessons and Practice only.
+function turnWindow(event: string, turnSeconds: number): { countIn: bigint; speak: bigint } {
   if (event === 'discus') return { countIn: 0n, speak: seconds(THROW_SECONDS) };
   if (event === 'debate') return { countIn: seconds(DEBATE_COUNT_IN_SECONDS), speak: seconds(DEBATE_SECONDS) };
-  return { countIn: barMicros(bpm), speak: speakingMicros(lines, barsPerLine, bpm) };
+  return { countIn: POETRY_COUNT_IN_MICROS, speak: seconds(turnSeconds) };
 }
 
 // The settings an event decides: demo plays one round, and discus always
@@ -363,12 +356,11 @@ function eventSettings(
   demo: boolean,
   rounds: number,
   autoReady: boolean,
-  lines: number,
-  barsPerLine: number,
-  bpm: number
+  lines: number
 ): { rounds: number; turnSeconds: number; autoReady: boolean } {
   if (!demo && (rounds < 1 || rounds > 5)) throw new SenderError('rounds must be 1 to 5');
-  const turnSeconds = Math.ceil(Number(turnWindow(event, lines, barsPerLine, bpm).speak) / 1e6);
+  const turnSeconds =
+    event === 'discus' ? THROW_SECONDS : event === 'debate' ? DEBATE_SECONDS : lines * POETRY_SECONDS_PER_LINE;
   if (turnSeconds > 120) throw new SenderError('a turn cannot run past 120 seconds');
   return { rounds: demo ? 1 : rounds, turnSeconds, autoReady: event === 'discus' || demo || autoReady };
 }
@@ -633,7 +625,7 @@ export const createRoom = spacetimedb.reducer(
     }
     // The poetry settings are kept for discus too, so set_event can switch back.
     const lines = args.demo ? 2 : args.linesPerTurn;
-    const s = eventSettings(args.event, args.demo, args.rounds, args.autoReady, lines, args.barsPerLine, args.bpm);
+    const s = eventSettings(args.event, args.demo, args.rounds, args.autoReady, lines);
 
     // A host has one open lobby at a time; a double tap must not leave two.
     for (const old of [...ctx.db.room.iter()]) {
@@ -707,7 +699,7 @@ export const setEvent = spacetimedb.reducer(
     requireHost(ctx, r);
     if (!EVENTS[event]) throw new SenderError('unknown event');
     if (r.phase !== 'lobby' && r.phase !== 'finished') throw new SenderError('finish this event first');
-    const s = eventSettings(event, r.demo, rounds, r.autoReady && !isDiscus(r), r.linesPerTurn, r.barsPerLine, r.bpm);
+    const s = eventSettings(event, r.demo, rounds, r.autoReady && !isDiscus(r), r.linesPerTurn);
     clearBattle(ctx, roomId);
     for (const h of [...ctx.db.hand.roomId.filter(roomId)]) {
       ctx.db.hand.playerId.update({ ...h, kind: EVENTS[event].card, cards: [] });
@@ -872,7 +864,7 @@ export const startTurn = spacetimedb.reducer({ turnId: t.u64() }, (ctx, { turnId
     throw new SenderError('this turn is not up');
   }
 
-  const w = turnWindow(r.event, r.linesPerTurn, r.barsPerLine, r.bpm);
+  const w = turnWindow(r.event, r.turnSeconds);
   const beatAt = after(ctx.timestamp, w.countIn);
   const endsAt = after(beatAt, w.speak);
   ctx.db.turn.id.update({ ...tr, status: 'speaking', startedAt: ctx.timestamp, beatAt, endsAt });

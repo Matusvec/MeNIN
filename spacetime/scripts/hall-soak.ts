@@ -198,7 +198,7 @@ await arena.r.createRoom({ event: 'poetry', rounds: 1, barsPerLine: 2, linesPerT
 const R = (await sql(null, 'SELECT * FROM room')).filter((r: any) => r.host[0] === `0x${arenaId.hex}`).sort((a: any, b: any) => b.id - a.id)[0];
 RID = R.id;
 CODE = R.code;
-check(R.demo && R.auto_ready && R.rounds === 1 && R.turn_seconds === 12, `demo room ${CODE}: 1 round, auto-ready, 12 s turns`);
+check(R.demo && R.auto_ready && R.rounds === 1 && R.turn_seconds === 20, `demo room ${CODE}: 1 round, auto-ready, 20 s turns`);
 await ada.r.joinRoom({ code: CODE, name: 'Ada', epithet: '', hoard: [] });
 await bo.r.joinRoom({ code: CODE, name: 'Bo', epithet: 'Breaker of Deadlines', hoard: ['storm-throated'] });
 for (const p of await players()) (p.name === 'Ada' ? (A = p.id) : (B = p.id));
@@ -422,7 +422,7 @@ t0 = now();
 await arena.r.setEvent({ roomId: big(RID), event: 'poetry', rounds: 1 });
 time('set_event discus -> poetry', now() - t0);
 r = await room();
-check(r.event === 'poetry' && r.phase === 'lobby' && r.turn_seconds === 12 && r.auto_ready && r.rounds === 1, 'poetry lobby: 12 s turns again, auto-ready');
+check(r.event === 'poetry' && r.phase === 'lobby' && r.turn_seconds === 20 && r.auto_ready && r.rounds === 1, 'poetry lobby: 20 s turns again, auto-ready');
 await cleanCheck('set_event poetry', true);
 await hallCheck('set_event poetry');
 check(handOf(ada, A)?.kind === 'formula', 'hands hold formulas again');
@@ -442,7 +442,7 @@ for (let i = 0; i < 2; i++) {
   if (i === 0) await arena.r.advance({ roomId: big(RID) });
 }
 const totals = (await players()).map((p: any) => p.total);
-check(totals.every((t: number) => t === 29), `both poets scored 29 this battle, nothing carried over (${totals})`);
+check(totals.every((t: number) => t === 57), `both poets scored 57 (weighted) this battle, nothing carried over (${totals})`);
 
 // Probe: the stale disconnect. A network blip: the app reconnects (B) and rejoins
 // before the server sees the old socket (A) close.
