@@ -91,7 +91,7 @@ swift's measurement helps: ink-2 with the hand as keyterms gets 3% word error wi
 - Debate and discus are in build now (Matus's call, SPEC `2fb21bf`). They reach the demo **only** by passing the Sat 8 PM check (5 runs in a row without a failure), and SPEC still puts them first in the cut order.
 - At least 80% of the demo is the poetry battle.
 - Anything not solid stays a locked tile. Never demo a half-working event.
-- Discus has no voice and no Claude, so it's cheap. If it ships first, it's the best judge moment we have.
+- Discus has no voice and no Claude, so it's cheap. **It passed its check early: 5 of 5 clean real-phone runs on the website (16:46–16:49 PM, build 18) plus 5 scripted runs, throws of 19.8 to 66.9 m, one real foul handled, no stalls or drops (leader, Sat ~4:50 PM), and it's unlocked in SPEC.** It's the best judge moment we have after the battle.
 
 ### 8. The original soundtrack (SPEC "Music", `2fb21bf`)
 **Not BS:** a human-made score is rare at a hackathon, it lifts Most Creative and Hacker's Choice, and it keeps the video safe from copyright claims. The risks are small and already handled in SPEC: no music under a speaking poet, and the music ducks under Homer. Two things to watch:
@@ -117,7 +117,7 @@ swift's measurement helps: ink-2 with the hand as keyterms gets 3% word error wi
 | Before anyone sleeps (Fri night) | Two iPhones and the arena in one SpacetimeDB room; turns advance | Debug the Swift client first thing Saturday. Ask the Spacetime booth at 9 AM. |
 | Sat 10 AM | The fast judge path, turn end to verdict text: p50 ≤ 2.5 s, p95 ≤ 4 s | Drop to a smaller model and cut output tokens. Never fake a verdict. |
 | ~~Sat 1:30 PM~~ **Sat 5:00 PM** (Matus deferred it; it's now the video shoot) | A full demo-mode battle on the arena, end to end, with spoken verdicts, on two real phones running build 18 (0.1.0, `202610241606`) plus the website, with Cartesia working (go/no-go at 4:45; else 5:30, then 8:20), **on Moss-dealt phrases** (the dealer is on for judging). Take 2 includes one phone force-quitting and rejoining. Debate and discus are already in build; this is still the check that matters most. | Freeze features. Everyone on debate and discus moves to the battle until it passes. |
-| Sat 8 PM | Each unlocked extra event (discus, debate) runs 5 times in a row without a failure | That event goes back to a locked tile for the demo |
+| Sat 8 PM | Debate runs 5 times in a row without a failure (**discus already passed**, Sat 4:46–4:49 PM, 5 of 5 on build 18) | Debate goes back to a locked tile for the demo |
 | Sat 8 PM | First-timer study done (6–8 PM, run by the poet, `docs/study.md`): Beat score, first try vs last, in Bard lesson 1 | The pitch drops the number line (demo-script.md 1:26) and Devpost drops the accomplishment |
 | Sat 9 PM | Hall noise test at demo volume, with the score's level set alongside the beat | Switch to the stage-mic option (ux-flow option A). Turn the score down until Homer is clear. |
 | Sat 11 PM | Feature freeze; Devpost draft submitted; video recorded | Cut, don't fix |

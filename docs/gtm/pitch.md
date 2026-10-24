@@ -2,7 +2,7 @@
 
 The table demo is in [demo-script.md](demo-script.md). This file holds everything around it: the lines, the booth pitches, the Q&A and the video.
 
-**Frame (SPEC "The games"):** ancient Greek party games, on one shared screen, with your iPhone as the controller. **The poetry battle is the main event and the spine of every demo.** Socratic debate and discus are in build now (SPEC `2fb21bf`). Each one reaches the demo only if it runs 5 times in a row without failing by Sat 8 PM. Everything else appears as locked tiles.
+**Frame (SPEC "The games"):** ancient Greek party games, on one shared screen, with your iPhone as the controller. **The poetry battle is the main event and the spine of every demo.** **Discus is unlocked** (it passed 5 of 5 on real phones, Sat 4:46–4:49 PM). Socratic debate reaches the demo only if it runs 5 times in a row without failing by Sat 8 PM. Everything else appears as locked tiles.
 
 **Tone (Matus):** professional and badass, never academic. History gets **one sharp line**, then straight to the battle. The battle is the loudest part. Say "iPhone", never "anyone".
 
@@ -67,7 +67,7 @@ The new frame raises the ceiling on Most Creative, Hacker's Choice and Meta. It 
 
 - **At least 80% of the 2 minutes is the poetry battle.** The other events get one line and a tile.
 - **An event that isn't solid stays a locked tile.** A locked tile reads as a roadmap; a broken event reads as spread thin.
-- If neither debate nor discus passes the checkpoint, the frame still holds: "Every party game starts with one great event. Ours is a poetry battle."
+- If debate doesn't pass the checkpoint, the frame still holds with the battle and the discus: "Every party game starts with one great event. Ours is a poetry battle."
 
 ## Booth pitches (Saturday afternoon, 30 seconds each, phone in hand)
 
@@ -131,7 +131,7 @@ Thumbnail / Devpost cover: one arena frame with the carved gold line over matte 
 
 ## Hacker's Choice ground game (Saturday night)
 
-- **Discus is the hook** if it passes the Sat 8 PM check. The fanfare from the score sells the throw. Anyone can swing a phone, with no poetry nerves. "Throw the discus, then stay for the battle."
+- **Discus is the hook** (it passed its check Sat 4:49 PM). The fanfare from the score sells the throw. Anyone can swing a phone, with no poetry nerves. "Throw the discus, then stay for the battle."
 - Battles at our table on our iPhones, plus the arena. Say "Two minutes, and Homer's phrases are there if you get stuck" and let the phrases do the work.
 - **Karaoke** (Sat 8–9:30 PM, Theater) is a room full of people holding mics in a performing mood. Bring the arena and two phones.
 - Film 15-second clips (a discus throw, the scene shifting color during a verse) and post them tagging the sponsors.

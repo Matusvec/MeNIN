@@ -57,8 +57,8 @@ Setup: iPhones plus the website as the arena, full screen in a browser on the Ma
   - **The question is fixed in demo mode:** "Is it cheating to let an AI write your love letter?" It's our thesis turned into a question: most AI talks for you.
   - **Sides are dealt by turn order:** the first debater says Yes and the second says No. Socrates says it out loud at step-up: "{name}, {title}. You say {side}. The floor is yours. Try not to fall through it." To give the judge a side, give them that turn slot.
   - **Rehearse both sides,** because whoever debates the judge has to argue the other one.
-- **Then the invitation:** "Want to throw the discus?" (if it passed at 8 PM), or "Want to battle us?"
-- **Discus (if it passed the Sat 8 PM check):** hand the judge Matus's iPhone. "Swing it like a discus, and lift your thumb to release. Keep hold of the phone." The arena shows the throw in silence (there's no whoosh), the distance appears with the fanfare, and Homer calls the throw ("Strong arm." or "A gentle toss. The crowd forgives you."). He doesn't say the number. It takes about 10 seconds, needs zero skill, and gets a laugh.
+- **Then the invitation:** "Want to throw the discus?" (it passed its check), or "Want to battle us?"
+- **Discus (passed its check, Sat 4:49 PM):** hand the judge Matus's iPhone. "Swing it like a discus, and lift your thumb to release. Keep hold of the phone." The arena shows the throw in silence (there's no whoosh), the distance appears with the fanfare, and Homer calls the throw ("Strong arm." or "A gentle toss. The crowd forgives you."). He doesn't say the number. It takes about 10 seconds, needs zero skill, and gets a laugh.
   - **Safety:** the release is a thumb lift, never opening your hand. Use a phone with a grippy case, and only swing where there's arm room, away from the shared table's laptops.
 - **Or a rematch:** hand them the phone and headset; Homer writes a fresh theme and deals fresh phrases, and they battle the poet.
 

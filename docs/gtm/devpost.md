@@ -10,7 +10,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 | `[real-mic WER]` | **Number** | swift's rerun of the keyterm test on a real iPhone mic. If it differs from 3%/20%, it replaces those numbers everywhere. | When swift runs it |
 | `[turn-to-voice p50]` | **Number** | The measured time from a turn's end to Homer's first word, on the 5 PM shoot's build (its latency HUD; the shoot is the full-battle gate) | Sat 5 PM |
 | `[poet's name]`, `[the poet's scene]`, `[poet quote]`, `[composer's name]`, `[how the score was made]`, `[team]` | **A fact only Matus has** | Matus (the list went to leader) | Today |
-| `[If debate passed]`, `[If discus passed]` | Checkpoint | The Sat 8 PM check: 5 runs in a row without a failure. Delete the section if the event failed. | Sat 8 PM |
+| `[If debate passed]` | Checkpoint | The Sat 8 PM check: 5 runs in a row without a failure. Delete the section if it failed. (Discus already passed its check early: 5 of 5 clean real-phone runs on the website (16:46–16:49 PM, build 18) plus 5 scripted runs, throws of 19.8 to 66.9 m, one real foul handled, no stalls or drops (leader, Sat ~4:50 PM).) | Sat 8 PM |
 | `[URL]` | Link | **The website** (SPEC, Sat 12:20 PM): the arena in a browser at a public HTTPS URL, served from the droplet. It's the first "try it" link. | When it's deployed |
 | `[TestFlight public link]`, `[Video]`, `[Figma Slides]`, `[ASI:One link]` | Link | Apple's Beta App Review; [video.md](video.md); the Slides deck; builder | As each lands |
 
@@ -48,7 +48,7 @@ One screen is the arena: our website at [URL], open in any laptop browser. Every
 | --- | --- | --- |
 | **Poetry battle** (main event) | Homer | Improvise free verse, answering the poet before you |
 | [If debate passed] **Socratic debate** | Socrates | Argue a question in timed spoken turns |
-| [If discus passed] **Discus** | Homer announces | Swing your phone; its motion sensors measure the throw |
+| **Discus** | Homer announces | Swing your phone; its motion sensors measure the throw |
 
 Other events show as locked tiles, because we only unlock what's solid.
 
@@ -73,7 +73,7 @@ Other events show as locked tiles, because we only unlock what's solid.
 
 **[If debate passed] Socratic debate.** It's the same engine as the battle: timed spoken turns, the scene and a spoken verdict, with no beat. Socrates hosts in his own voice, and sides are dealt by turn order. Our demo question: "Is it cheating to let an AI write your love letter?" Your hand holds rhetorical moves ("define your terms", "counterexample", "analogy"). Tap a move as you make it, and the judge checks that you really made it. Freeze, and Socrates whispers you a question to ask. It has its own five axes: Claim, Reason, Answer, Craft and Poise.
 
-**[If discus passed] Discus.** Hold a button with your thumb, swing your iPhone, and lift your thumb to release. You never let go of the phone. Core Motion measures the swing and the release, the arena flies the throw in silence, the distance lands with a fanfare, and Homer calls the throw ("Strong arm."). No voice, no AI: just physics and bragging rights.
+**Discus.** Hold a button with your thumb, swing your iPhone, and lift your thumb to release. You never let go of the phone. Core Motion measures the swing and the release, the arena flies the throw in silence, the distance lands with a fanfare, and Homer calls the throw ("Strong arm."). No voice, no AI: just physics and bragging rights.
 
 ## How we built it
 
@@ -132,7 +132,7 @@ The total is out of 100. Clichés and dodging the theme cost. In the lessons, **
 - A live battle on iPhones, with Homer's spoken verdict [turn-to-voice p50] s after the last word.
 - 3% word error rate in our tests, with a drum at full volume as test noise, down from 20%, by feeding the phrases Homer dealt each poet to the recognizer.
 - The stitched song: the room leaves with one poem it made together.
-- [If debate or discus passed: three events on one engine.]
+- The discus: 5 of 5 clean runs on real phones in its check, with throws from 19.8 to 66.9 m and a foul handled. [If debate passed: three events in one hall.]
 
 ## What we learned
 
