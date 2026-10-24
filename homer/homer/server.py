@@ -182,6 +182,12 @@ def scorecard(j: Judgment, bpm: float | None = None, started_at: float = 0.0, ev
 @app.get("/health")
 async def health() -> dict[str, Any]:
     cfg = settings()
+    if cfg.stdb_token and status["stdb"] in ("failed", "unreachable"):
+        # The database may be back (a reboot, a key set late): look again rather than wait for a restart.
+        try:
+            status["stdb"] = "claimed" if await arena().db.is_service() else "failed"
+        except StdbError:
+            status["stdb"] = "unreachable"
     return {
         "ok": True,
         "judgeModel": cfg.judge_model,

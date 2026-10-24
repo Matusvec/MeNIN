@@ -13,13 +13,32 @@ prompt cache is only a WARN.
 
 from __future__ import annotations
 
+import glob
 import json
+import os
+import ssl
 import sys
 import time
 import urllib.error
 import urllib.request
 
 VERDICT_TARGET_S = 2.5
+MODERN_PYTHONS = ["/opt/homebrew/bin/python3*", "/usr/local/bin/python3*"]
+
+
+def modern_tls() -> None:
+    """macOS's own python3 links LibreSSL 2.8, which today's TLS servers (Caddy) refuse.
+
+    Re-run this script under a Homebrew Python when one exists, so
+    `python3 homer/scripts/demo_check.py` works as typed on the team Macs.
+    """
+    if not ssl.OPENSSL_VERSION.startswith("LibreSSL 2") or os.environ.get("DEMO_CHECK_REEXEC"):
+        return
+    found = sorted(p for pattern in MODERN_PYTHONS for p in glob.glob(pattern) if os.access(p, os.X_OK) and "config" not in p)
+    if found:
+        os.environ["DEMO_CHECK_REEXEC"] = "1"
+        os.execv(found[-1], [found[-1], *sys.argv])
+    print("WARN  this python3 uses LibreSSL 2.8, which HTTPS servers may refuse; install a Homebrew python3\n")
 VERSE = "the wine dark sea took my brother's ship\nI stand on the shore with salt in my teeth"
 
 results: list[tuple[str, str, str]] = []  # (PASS | WARN | FAIL, check, detail)
@@ -131,6 +150,8 @@ def check_quick(base: str) -> None:
 
 def main() -> int:
     base = (sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8000").rstrip("/")
+    if base.startswith("https://"):
+        modern_tls()
     print(f"Checking {base}\n")
     if check_health(base):
         check_judge(base)

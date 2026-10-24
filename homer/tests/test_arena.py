@@ -151,5 +151,7 @@ def test_the_service_starts_when_spacetimedb_is_down(monkeypatch):
     try:
         with TestClient(server.app) as c:
             assert c.get("/health").json()["stdb"] == "unreachable"
+            arena.db = Stdb(cfg(), httpx2.AsyncClient(transport=httpx2.MockTransport(lambda r: httpx2.Response(200))))
+            assert c.get("/health").json()["stdb"] == "claimed"  # back without a restart
     finally:
         server._judge = server._arena = None
