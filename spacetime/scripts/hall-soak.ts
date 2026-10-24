@@ -442,7 +442,7 @@ for (let i = 0; i < 2; i++) {
   if (i === 0) await arena.r.advance({ roomId: big(RID) });
 }
 const totals = (await players()).map((p: any) => p.total);
-check(totals.every((t: number) => t === 57), `both poets scored 57 (weighted) this battle, nothing carried over (${totals})`);
+check(totals.every((t: number) => t === 56), `both poets scored 56 (weighted) this battle, nothing carried over (${totals})`);
 
 // Probe: the stale disconnect. A network blip: the app reconnects (B) and rejoins
 // before the server sees the old socket (A) close.

@@ -305,10 +305,10 @@ const MAX_DISTANCE = 100; // metres
 // live in the app's event config; here we only need how many there are and
 // what kind of card the hand holds. Timing is in turnWindow. Discus has no
 // hand, no judge and no agent: see isDiscus.
-// A verse's total is its axes weighted in rubric order: poetry leans on Image, Answer and
-// Craft, not on hitting the drum (out of 100); debate weighs every axis the same (out of 50).
+// A verse's total is its axes weighted in rubric order: poetry is judged on content only,
+// Image, Answer and Craft (out of 100); debate weighs every axis the same (out of 50).
 const EVENTS: Record<string, { axes: number; card: string; weights: number[] }> = {
-  poetry: { axes: 5, card: 'formula', weights: [1, 2, 3, 3, 1] }, // beat (flow), craft, image, answer, range
+  poetry: { axes: 5, card: 'formula', weights: [0, 2, 4, 4, 0] }, // beat (flow), craft, image, answer, range
   debate: { axes: 5, card: 'move', weights: [1, 1, 1, 1, 1] }, // claim, reason, answer, craft, poise
   discus: { axes: 0, card: '', weights: [] },
 };

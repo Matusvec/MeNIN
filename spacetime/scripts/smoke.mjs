@@ -144,7 +144,7 @@ check(await fails(agent, 'post_score', T.id, [5, 5, 5, 5], 'x', 'y', ''), 'poetr
 await call(agent, 'post_score', T.id, [8, 7, 6, 5, 4], 'Strong bones.', 'took my brother\'s ship', 'storm-throated');
 check((await room(R.id)).phase === 'scored', 'scored');
 const adaTurnId = T.id;
-check((await sql(null, `SELECT * FROM player WHERE id = ${A.id}`))[0].total === 59, 'Ada has 59: image and answer count triple, craft double');
+check((await sql(null, `SELECT * FROM player WHERE id = ${A.id}`))[0].total === 58, 'Ada has 58: content only, image and answer x4, craft x2');
 
 await call(arena, 'advance', R.id);
 r = await room(R.id);
