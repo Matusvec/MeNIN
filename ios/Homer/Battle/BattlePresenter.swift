@@ -211,6 +211,9 @@ enum BattlePresenter {
         switch turn.statusValue {
         case .waiting:
             model.moment = .onDeck(hand: hand, autoReady: room.autoReady)
+        case .speaking where recorder?.phase == .closing:
+            // TODO: a dedicated "the Muse is timing you" moment (art lead); weighing reads closest.
+            model.moment = .weighing
         case .speaking where room.event == "debate":
             let live = recorder?.phase == .live || recorder?.phase == .finishing
             model.moment = .debating(

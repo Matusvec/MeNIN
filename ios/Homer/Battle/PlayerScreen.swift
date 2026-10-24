@@ -52,6 +52,8 @@ struct PlayerScreen: View {
             for _ in 0..<100 where battle.connection != .connected { try? await Task.sleep(for: .milliseconds(100)) }
             guard battle.connection == .connected, battle.me == nil else { return }
             battle.join(code: last.code, name: last.name)
+            try? await Task.sleep(for: .seconds(2))
+            if battle.lastError == "no such room" { LastBattle.clear() }  // it finished while we were away
         }
     }
 

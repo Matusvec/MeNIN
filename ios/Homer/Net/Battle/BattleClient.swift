@@ -180,6 +180,11 @@ final class BattleClient: SpacetimeClientDelegate {
         autoStarted = key
         Task {
             try? await Task.sleep(for: .seconds(2))
+            // A poet reopening the app gets up to 20 s to come back (capped: a stale
+            // `connected = false` from an old socket can't stall the battle).
+            for _ in 0..<40 where player(turn.playerId)?.connected == false {
+                try? await Task.sleep(for: .milliseconds(500))
+            }
             if currentTurn?.id == turn.id, currentTurn?.statusValue == .waiting { startTurn(turn.id) }
         }
     }

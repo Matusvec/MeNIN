@@ -19,6 +19,9 @@ final class TurnRecorder {
         case finishing
         case done
         case unavailable(String)  // no agent or no Cartesia: the screen falls back to typing
+        /// Reopened mid-way through your own live turn: don't go live; the server's timer closes
+        /// the turn with what was already sent ("the Muse is timing you").
+        case closing
     }
 
     private(set) var phase = Phase.idle {
@@ -85,9 +88,12 @@ final class TurnRecorder {
         case (.waiting, .idle), (.waiting, .done):
             await prepare(turn: turn)
         case (.speaking, .idle), (.speaking, .done) where turn.id != turnId:
-            // Joined late or the app restarted mid-turn: still try to get the mic up.
-            await prepare(turn: turn)
-            goLive(turn: turn, room: room)
+            // Reopened mid-turn (crash, force-quit). Demo-safe: stay quiet and let the server's
+            // timer judge what was sent. `goLive(lateJoin:)` is the fuller path, kept for later.
+            turnId = turn.id
+            phase = .closing
+        case (.scored, .closing), (.judging, .closing), (.skipped, .closing), (.declined, .closing):
+            phase = .done
         case (.speaking, .ready):
             goLive(turn: turn, room: room)
         default:
@@ -137,10 +143,15 @@ final class TurnRecorder {
     }
 
     /// The turn flipped to speaking: lock the beat grid to this device's clock and go live.
-    func goLive(turn: TurnRow, room: RoomRow) {
+    func goLive(turn: TurnRow, room: RoomRow, lateJoin: Bool = false) {
         guard phase == .ready, turn.id == turnId else { return }
         let nowMs = Date().timeIntervalSince1970 * 1000
-        let offset = BeatClock.offset(localReceiveMs: nowMs, serverStartedAtMs: turn.startedAt.epochMs)
+        // The offset is measured as the turn flips to speaking; a late join can't, so it uses
+        // the device clock (NTP-close to the server's).
+        let offset = lateJoin ? 0 : BeatClock.offset(localReceiveMs: nowMs, serverStartedAtMs: turn.startedAt.epochMs)
+        if lateJoin, !turn.transcript.isEmpty {
+            finals = turn.transcript.hasSuffix("\n") ? turn.transcript : turn.transcript + "\n"
+        }
         // The turn ends when the server says (poetry: the beat grid's end; debate: Go + 45 s).
         let endMs = turn.endsAt.epochMs + offset
         goAt = turn.beatAt.epochMs + offset
