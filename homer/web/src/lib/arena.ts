@@ -57,7 +57,12 @@ export type Conductor = {
 }
 
 const TICK_MS = 300
-const STEP_UP_MS = 2000 // auto-ready: a short beat before each turn starts
+const STEP_UP_MS = 2000 // auto-ready: a short beat before each turn starts (debate, discus; and after a reconnect)
+// Poetry: ready to SPEAK in about 6 s. The phone warms its mic for MIN_READY_MS of `ready`, and the
+// count-in (SPEAK = start_turn + 2.25 s) starts while Homer still has OVERLAP_MS to say, so he ends
+// at least 0.75 s before the mic opens.
+const MIN_READY_MS = 1500
+const OVERLAP_MS = 1500
 const QUEUE_CAP_MS = 15000 // auto-start waits for Homer's line at most this long
 const COMEBACK_MS = 20000 // a poet reopening the app gets this long to come back
 const ADVANCE_AFTER_MS = 500 // after Homer's line, before the next reveal
@@ -85,6 +90,10 @@ export type ArenaView = {
   sound: boolean // the hall was started with a click: voice and drum are on
   voiceNote: string // the operator corner: why Homer is on text ("Voice credits out", "Voice offline"), or ''
 }
+
+/** The verdict the agent posts when the judge never answered (homer/homer/judge.py SILENT_VERDICT): the
+ *  score is a neutral fallback, not a judgment, and the scorecard says so. */
+export const SILENT_VERDICT = 'Homer is silent on this one.'
 
 export const EMOTIONS = ['anger', 'grief', 'joy', 'awe', 'tenderness', 'fear', 'defiance', 'longing'] as const
 export type Emotion = (typeof EMOTIONS)[number]
@@ -162,6 +171,8 @@ export class Arena {
   private said = new Set<string>()
   private calls = new Map<number, string>() // round_no -> Homer's call-up, from /battle/deal
   private queue: Promise<void> = Promise.resolve()
+  private pending = 0 // lines and performances queued or running
+  private lineEndsAt: number | null = null // a text-only line's end (a voiced line's end comes from the voice)
   private line = ''
   private speaking = false
   private warming = false
@@ -316,7 +327,7 @@ export class Arena {
   }
 
   rematch(): void {
-    this.generation += 1
+    this.newBattle()
     this.lastPhaseSeen = null // already counted; don't count finished → dealing again
     this.call(() => this.conn!.reducers.rematch({ roomId: this.roomId }))
   }
@@ -493,15 +504,19 @@ export class Arena {
     const beatMs = 60000 / Math.max(room.bpm, 1)
     const lineMs = beatMs * 4 // one line a bar: the rest bar is for poets drawing breath, not for Homer
     const beatAt = Date.now() + 300 + beatMs * 4 // after a count-in bar
+    const gen = this.generation
+    // Next in the finale (or a rematch) ends the song at the line it's on.
+    const over = () => gen !== this.generation || this.room()?.phase !== 'finale'
     this.stage.playBeat({ beatAtLocalMs: beatAt, bpm: room.bpm, barsPerLine: 1, lines: song.length })
     try {
       for (const [i, text] of song.entries()) {
         await sleep(Math.max(0, beatAt + lineMs * i - 250 - Date.now()))
+        if (over()) return
         this.line = text
         this.publish()
-        await this.voiced(text).catch(() => sleep(Math.min(readingTime(text), lineMs - 250))) // text keeps to the bar
+        await this.voiced(text).catch(() => this.hold(Math.min(readingTime(text), lineMs - 250), gen)) // text keeps to the bar
       }
-      await sleep(Math.max(0, beatAt + lineMs * song.length - Date.now()))
+      if (!over()) await sleep(Math.max(0, beatAt + lineMs * song.length - Date.now()))
     } finally {
       this.stage.stopBeat()
     }
@@ -509,8 +524,20 @@ export class Arena {
 
   /** Bumped each time this room starts over, so per-battle work (deals, the song) is asked again. */
   private trackGeneration(room: Room): void {
-    if (this.lastPhaseSeen === 'finished' && room.phase !== 'finished') this.generation += 1
+    if (this.lastPhaseSeen === 'finished' && room.phase !== 'finished') this.newBattle()
     this.lastPhaseSeen = room.phase
+  }
+
+  /** A rematch: the last battle's lines are dropped, and Homer stops mid-line (the crown after a skipped song). */
+  private newBattle(): void {
+    this.generation += 1
+    this.voice?.hush()
+  }
+
+  /** Hold for `ms`, or less if the battle moves on. */
+  private async hold(ms: number, gen: number): Promise<void> {
+    const end = Date.now() + ms
+    while (Date.now() < end && gen === this.generation) await sleep(Math.min(100, end - Date.now()))
   }
 
   /** auto_ready rooms (always on in demo): start each turn after a short step-up beat. */
@@ -521,10 +548,15 @@ export class Arena {
     if (this.autoStarted === key) return
     this.autoStarted = key
     // Every wait here is capped by the clock, not by counting sleeps: a hidden tab's timers are throttled.
-    const homerDone = () => Promise.race([this.queue, sleep(QUEUE_CAP_MS)])
+    const poetry = room.event === 'poetry'
+    const overlap = poetry ? OVERLAP_MS : 0 // other events keep the count-in after Homer's last word
+    const homerDone = async () => {
+      const cap = Date.now() + QUEUE_CAP_MS
+      while (Date.now() < cap && this.homerLeftMs() > overlap) await sleep(100)
+    }
     void (async () => {
-      await sleep(STEP_UP_MS)
-      // The count-in waits until Homer finishes his call (docs/ux-flow.md T1), so his voice never meets an open mic.
+      await sleep(poetry ? MIN_READY_MS : STEP_UP_MS)
+      // His voice never meets an open mic (docs/ux-flow.md T1): the count-in may overlap his last words only.
       await homerDone()
       // A poet reopening the app gets up to 20 s (capped: a phone that never comes back can't stall the battle;
       // the turn goes ahead and the timer skips it).
@@ -658,33 +690,59 @@ export class Arena {
   private say(key: string, text: string, then?: () => void): void {
     if (this.said.has(key) || !text) return
     this.said.add(key)
+    const gen = this.generation
+    this.pending += 1
     this.queue = this.queue.then(async () => {
-      // Homer is silent while a verse is live: a line still queued when the count-in starts is dropped.
-      const now = this.room()
-      if (now?.event === 'poetry' && now.phase === 'speaking') return then?.()
-      this.line = text
-      this.speaking = true
-      this.publish()
-      // The voice never holds a reveal hostage: at most the read time plus 4 s, then the battle moves on.
-      const host = this.room()?.event === 'debate' ? 'socrates' : 'homer'
-      if (this.voice && this.voiceUp()) {
-        this.warming = true
-        this.publish()
-        const heard = () => {
-          this.warming = false
-          this.publish()
-        }
-        const fallback = () => {
-          heard() // no voice coming: the line is up as text, nothing is "about to speak"
-          return sleep(readingTime(text))
-        }
-        await Promise.race([this.voiced(text, heard, host).catch(fallback), sleep(readingTime(text) + 4000)])
-        this.warming = false
-      } else await sleep(readingTime(text))
-      this.speaking = false
-      this.publish()
-      then?.()
+      try {
+        await this.sayNow(gen, text, then)
+      } finally {
+        this.pending -= 1
+        this.lineEndsAt = null
+      }
     })
+  }
+
+  private async sayNow(gen: number, text: string, then?: () => void): Promise<void> {
+    // A line from a battle that's over (Next in the finale, then Rematch) is dropped, not read late.
+    if (gen !== this.generation) return
+    // Homer is silent while a verse is live: a line still queued when the count-in starts is dropped.
+    const now = this.room()
+    if (now?.event === 'poetry' && now.phase === 'speaking') return then?.()
+    this.line = text
+    this.speaking = true
+    this.publish()
+    // The voice never holds a reveal hostage: at most the read time plus 4 s, then the battle moves on.
+    const host = this.room()?.event === 'debate' ? 'socrates' : 'homer'
+    if (this.voice && this.voiceUp()) {
+      this.warming = true
+      this.publish()
+      const heard = () => {
+        this.warming = false
+        this.publish()
+      }
+      const fallback = () => {
+        heard() // no voice coming: the line is up as text, nothing is "about to speak"
+        this.lineEndsAt = Date.now() + readingTime(text)
+        return this.hold(readingTime(text), gen)
+      }
+      await Promise.race([this.voiced(text, heard, host).catch(fallback), this.hold(readingTime(text) + 4000, gen)])
+      this.warming = false
+    } else {
+      this.lineEndsAt = Date.now() + readingTime(text)
+      await this.hold(readingTime(text), gen)
+    }
+    this.speaking = false
+    this.publish()
+    if (gen !== this.generation) return // hushed by a rematch: the old battle's `then` (an advance) is void
+    then?.()
+  }
+
+  /** How long Homer still has to talk: 0 when he's quiet, Infinity while a line is arriving or more wait. */
+  private homerLeftMs(): number {
+    if (this.pending === 0) return 0
+    if (this.pending > 1 || !this.speaking) return Infinity
+    if (this.lineEndsAt !== null) return Math.max(0, this.lineEndsAt - Date.now())
+    return this.voice?.remainingMs() ?? Infinity
   }
 
   /** Homer's voice, or a throw while it rests. A failure asks the agent why (credits out?) and rests it a while,
@@ -694,7 +752,7 @@ export class Arena {
     try {
       await this.voice.speak(text, onStart, host)
     } catch (error) {
-      if (!(error instanceof Error && error.message === 'one generation at a time')) this.voiceFailed()
+      if (!(error instanceof Error && ['one generation at a time', 'hushed'].includes(error.message))) this.voiceFailed()
       throw error
     }
     if (this.voiceNote) {
@@ -723,13 +781,23 @@ export class Arena {
       if (this.said.has(key)) return
       this.said.add(key)
     }
+    const gen = this.generation
+    this.pending += 1
     this.queue = this.queue.then(async () => {
-      this.speaking = true
-      this.publish()
-      await task().catch(() => {})
-      this.speaking = false
-      this.publish()
+      try {
+        if (gen === this.generation) await this.performNow(task)
+      } finally {
+        this.pending -= 1
+      }
     })
+  }
+
+  private async performNow(task: () => Promise<void>): Promise<void> {
+    this.speaking = true
+    this.publish()
+    await task().catch(() => {})
+    this.speaking = false
+    this.publish()
   }
 
   private speakIfDue(room: Room): void {
@@ -751,8 +819,11 @@ export class Arena {
         const poet = turn && poets.find((p) => p.id === turn.playerId)
         if (!round || !turn || !poet) return
         // The theme once, as the round opens. Then P21: the round's first poet gets the theme's call,
-        // every later poet answers the line before, and a retry is just "Again."
-        this.say(`theme ${round.id}`, round.theme)
+        // every later poet answers the line before, and a retry is just "Again." The theme and the first
+        // call-up are one line: one trip to the voice, so the count-in starts sooner.
+        const opening = !this.said.has(`theme ${round.id}`)
+        if (opening) this.said.add(`theme ${round.id}`)
+        const theme = opening ? `${round.theme.trim()}${/[.!?]$/.test(round.theme.trim()) ? '' : '.'} ` : ''
         const first = turn.turnNo === Math.min(...this.turns().filter((t) => t.roundId === round.id).map((t) => t.turnNo))
         const title = poet.epithet ? `${poet.name}, ${poet.epithet}.` : `${poet.name}.`
         const side = room.event === 'debate' ? this.side(round.theme, turn.turnNo) : ''
@@ -761,13 +832,13 @@ export class Arena {
           : side ? (first ? `${title} You argue ${side}.` : `${poet.name}, you argue ${side}. Answer that.`)
           : first ? `${title} ${this.calls.get(room.roundNo) ?? 'The floor is yours.'}`
           : `${poet.name}. Answer that.`
-        this.say(`up ${turn.id} ${turn.attempt}`, call)
+        this.say(`up ${turn.id} ${turn.attempt}`, theme + call)
         return
       }
       case 'scored': {
         if (!turn) return
         const score = [...this.conn!.db.score.iter()].find((s) => s.turnId === turn.id)
-        if (score) this.say(`verdict ${turn.id}`, score.verdict || 'Homer is silent on this one.', advance)
+        if (score) this.say(`verdict ${turn.id}`, score.verdict || SILENT_VERDICT, advance)
         else if (turn.status === 'declined') this.say(`verdict ${turn.id}`, 'Not in my hall.', advance)
         else if (turn.status === 'skipped') this.say(`verdict ${turn.id}`, 'The hall waited. No verse came.', advance)
         return

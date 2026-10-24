@@ -7,7 +7,7 @@ from fakes import FakeClient, reply
 from homer import events
 from homer.config import settings
 from homer.claude import thinking_for
-from homer.judge import EmptyVerse, Judge, Turn, clean_verdict, output_schema
+from homer.judge import SILENT_VERDICT, EmptyVerse, Judge, Turn, clean_verdict, output_schema
 from homer.prompts import judge_system
 
 VERSE = "the wind was cold, the waves were grey\nthe sea kept time and so did I"
@@ -130,15 +130,15 @@ def test_slow_claude_leaves_homer_silent_on_three_axes():
     judge, _ = make(delay=0.05, chunk=2, judge_timeout=0.2)
     j = run(judge.judge(Turn(VERSE)))
     assert j.silent and j.error == "TimeoutError"
-    assert j.scores["craft"] == j.scores["image"] == j.scores["answer"] == 0
+    assert j.scores["craft"] == j.scores["image"] == j.scores["answer"] == 4  # neutral: our failure, not theirs
     assert j.scores["beat"] >= 1 and j.scores["range"] >= 1
-    assert j.verdict == "" and j.best_line in VERSE.splitlines()
+    assert j.verdict == SILENT_VERDICT and j.best_line in VERSE.splitlines()  # a marker, never an invented verdict
 
 
 def test_bad_json_is_silent_not_invented():
     judge, _ = make('{"fit": true, "verdict": "Stro')
     j = run(judge.judge(Turn(VERSE)))
-    assert j.silent and j.verdict == ""
+    assert j.silent and j.verdict == SILENT_VERDICT
 
 
 def test_empty_verse_is_not_judged():

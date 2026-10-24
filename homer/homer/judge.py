@@ -98,6 +98,15 @@ class Judgment:
         return sum(v * self.weights.get(k, 1) for k, v in self.scores.items())
 
 
+# Claude's axes when the judge never answered (timeout, outage, unreadable reply). The battle score is
+# content only, so a 0 would sink a poet for our failure; 4 is the low end of "a real attempt" (40/100),
+# about where the day's real verses landed (22-40), so a timeout neither punishes nor rewards much.
+SILENT_SCORE = 4
+# ...and the verdict posted with it, so every client can tell a neutral fallback from a judgment and say so
+# (the website's lib/arena.ts SILENT_VERDICT and the phone match it exactly).
+SILENT_VERDICT = "Homer is silent on this one."
+
+
 class EmptyVerse(ValueError):
     pass
 
@@ -291,6 +300,8 @@ class Judge:
             )
         except (asyncio.TimeoutError, anthropic.APIError, BudgetExceeded) as exc:
             j.silent, j.error = True, type(exc).__name__
+            j.scores.update({a.key: SILENT_SCORE for a in event.claude_axes})
+            j.verdict = SILENT_VERDICT
             j.best_line = lines[fallback] if fallback is not None else ""
             if event.hand == "moves":
                 j.best_line = debate.clean_line(j.best_line)
@@ -310,6 +321,8 @@ class Judge:
             data = json.loads(text)
         except json.JSONDecodeError:
             j.silent, j.error = True, f"bad JSON (stop_reason={final.stop_reason})"
+            j.scores.update({a.key: SILENT_SCORE for a in event.claude_axes})
+            j.verdict = SILENT_VERDICT
             j.best_line = lines[fallback] if fallback is not None else ""
             return j
         if not data.get("fit", True):

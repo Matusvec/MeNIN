@@ -146,7 +146,7 @@ def test_debate_judgment():
 def test_debate_judge_silent_and_empty():
     out = run(judge(delay=0.05, chunk=2).__class__(client=FakeClient(REPLY, delay=0.05, chunk=2),
                                                     cfg=dataclasses.replace(CFG, judge_timeout=0.2)).judge(turn()))
-    assert out.silent and out.scores["claim"] == 0 and out.scores["poise"] >= 1
+    assert out.silent and out.scores["claim"] == 4 and out.scores["poise"] >= 1  # neutral when the judge is silent
     assert out.best_line in sentences(ARGUMENT)
     with pytest.raises(EmptyVerse):
         run(judge().judge(turn(transcript="  ")))

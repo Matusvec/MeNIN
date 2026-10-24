@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import QRCode from 'qrcode'
 import DiscusPanel from './Discus'
-import { Arena, QUIET_SCENE, STDB_DB, type ArenaView, type GameEvent, type SceneFeed } from './lib/arena'
+import { Arena, QUIET_SCENE, SILENT_VERDICT, STDB_DB, type ArenaView, type GameEvent, type SceneFeed } from './lib/arena'
 import { webJoinLink } from './lib/links'
 import SceneBackdrop from './scene/SceneBackdrop'
 import './wired.css'
@@ -32,9 +32,10 @@ function Backdrop({ feed }: { feed: () => SceneFeed }) {
 }
 
 // Each rubric's bars in display order, as [label, index into score.axes]; score.axes keeps
-// homer/homer/events.py's order (poetry: beat, craft, image, answer, range). Beat reads as Flow.
+// homer/homer/events.py's order (poetry: beat, craft, image, answer, range). A poetry battle is
+// judged on content only (Image x4, Answer x4, Craft x2 = /100): Flow and Range aren't shown.
 const AXES: Record<string, Array<[string, number]>> = {
-  poetry: [['Image', 2], ['Answer', 3], ['Craft', 1], ['Flow', 0], ['Range', 4]],
+  poetry: [['Image', 2], ['Answer', 3], ['Craft', 1]],
   debate: [['Claim', 0], ['Reason', 1], ['Answer', 2], ['Craft', 3], ['Poise', 4]],
 }
 
@@ -301,7 +302,14 @@ export default function ArenaPanel({
         {discus && <DiscusPanel view={view} />}
 
         {room.phase === 'scored' && score && !discus && (
-          <div className="score-panel five">
+          // A judge that never answered posts SILENT_VERDICT and a neutral score: grey it and say so.
+          <div
+            className={`score-panel five${!score.verdict || score.verdict === SILENT_VERDICT ? ' neutral' : ''}`}
+            style={!score.verdict || score.verdict === SILENT_VERDICT ? { filter: 'grayscale(1)', opacity: 0.7 } : undefined}
+          >
+            {(!score.verdict || score.verdict === SILENT_VERDICT) && (
+              <small className="neutral-mark">Neutral score: the judge timed out</small>
+            )}
             {(AXES[room.event] ?? AXES.poetry).map(([label, i]) => {
               const value = score.axes[i] ?? 0
               return (

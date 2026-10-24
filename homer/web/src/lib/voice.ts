@@ -14,6 +14,9 @@ export class HomerVoice {
   private pending = new Map<string, Pending>()
   private next = 0
   private busy = false
+  private streaming = false // a line's audio is still on its way: how long it runs isn't known yet
+  private sources = new Set<AudioBufferSourceNode>() // audio scheduled and not yet played out
+  private wake: (() => void) | null = null // ends the wait for the current line's playback
 
   constructor(readonly ctx: AudioContext) {}
 
@@ -60,6 +63,8 @@ export class HomerVoice {
       const source = this.ctx.createBufferSource()
       source.buffer = buffer
       source.connect(this.ctx.destination)
+      this.sources.add(source)
+      source.onended = () => this.sources.delete(source)
       this.next = Math.max(this.next, this.ctx.currentTime + 0.05)
       source.start(this.next)
       this.next += buffer.duration
@@ -81,6 +86,7 @@ export class HomerVoice {
   async speak(text: string, onStart?: () => void, host: 'homer' | 'socrates' = 'homer'): Promise<void> {
     if (this.busy) throw new Error('one generation at a time')
     this.busy = true
+    this.streaming = true
     try {
       const socket = await this.open()
       const contextId = `arena-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -108,12 +114,43 @@ export class HomerVoice {
         await Promise.race([done, new Promise((_, reject) => window.setTimeout(() => reject(new Error('voice timeout')), 15000))])
       } finally {
         window.clearTimeout(firstAudio)
+        this.streaming = false
       }
       const left = Math.max(0, this.next - this.ctx.currentTime)
-      await new Promise((resolve) => window.setTimeout(resolve, left * 1000))
+      await new Promise<void>((resolve) => {
+        const timer = window.setTimeout(resolve, left * 1000)
+        this.wake = () => {
+          window.clearTimeout(timer)
+          resolve()
+        }
+      })
+      this.wake = null
     } finally {
       this.busy = false
+      this.streaming = false
     }
+  }
+
+  /** Stop talking now: scheduled audio is cut and the line in progress ends (it throws 'hushed'). */
+  hush(): void {
+    for (const source of this.sources) {
+      try {
+        source.stop()
+      } catch {
+        // already stopped
+      }
+    }
+    this.sources.clear()
+    this.next = this.ctx.currentTime
+    for (const p of this.pending.values()) p.reject(new Error('hushed'))
+    this.pending.clear()
+    this.wake?.()
+  }
+
+  /** Ms of audio still to play once the whole line has arrived; null while it is still streaming in. */
+  remainingMs(): number | null {
+    if (this.streaming) return null
+    return Math.max(0, (this.next - this.ctx.currentTime) * 1000)
   }
 
   close(): void {

@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from homer import claude, server
 from homer.config import settings
 from homer.guard import AppKey, Budget, BudgetExceeded, Guard, client_ip, kind_of
-from homer.judge import Judge, Turn
+from homer.judge import SILENT_VERDICT, Judge, Turn
 
 
 def test_per_path_limits_per_ip():
@@ -48,7 +48,7 @@ def test_a_spent_budget_leaves_homer_silent_not_canned(monkeypatch):
     cfg = dataclasses.replace(settings(), judge_model="claude-opus-5-5", judge_timeout=5.0)
     client = FakeClient(reply())
     j = asyncio.run(Judge(client=client, cfg=cfg).judge(Turn("the wind was cold the waves were grey")))
-    assert j.silent and j.error == "BudgetExceeded" and j.verdict == "" and j.scores["craft"] == 0
+    assert j.silent and j.error == "BudgetExceeded" and j.verdict == SILENT_VERDICT and j.scores["craft"] == 4  # neutral, not zero
     assert client.calls == []  # nothing was sent
 
 
