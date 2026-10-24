@@ -94,7 +94,7 @@ Two to five human poets in one room, Jackbox-style:
 
 How a battle runs:
 
-- **Entrance.** Homer announces every poet with a fresh epithet he coins for this battle ("Enter Matus, Breaker of Deadlines!"), never one of that poet's last five; the hoard epithet is only a fallback (Matus, Sat 3:30 PM: the same one every time is boring).
+- **Entrance.** Homer announces every poet with a fresh Homeric epithet he coins for this battle ("of the bronze spear", never modern nouns) ("Enter Matus, Breaker of Deadlines!"), never one of that poet's last five; the hoard epithet is only a fallback (Matus, Sat 3:30 PM: the same one every time is boring).
 - **Rounds.** Three rounds. Each round has a theme; every poet takes one turn; turn order rotates. The scene on the arena reacts to whoever is speaking. The mic is hands-free everywhere (Matus's call, Sat 2 PM; push-to-talk confused first-timers): it opens with a haptic thump when your turn goes live and stays open for the whole verse, your words show live on the arena as you speak, and "I'm done" ends early.
 - **The hall stays open.** When an event ends, the arena returns to the event menu with everyone still joined.
 - **Verdict.** The judge scores every verse. At the end of each round Homer reads the verdict aloud, and the best line of the round is carved in gold across the arena.
@@ -107,7 +107,7 @@ How a battle runs:
 
 Shared by practice and battle. This is the core loop; get it right first.
 
-1. **Theme.** Fresh every round: Homer generates a vivid, specific theme of six words or fewer with a feeling in it, never one of the last twenty ("The text you never sent"), and announces it aloud. The written themes are the fallback.
+1. **Theme.** Fresh every round: Homer generates a vivid, specific theme of six words or fewer from Homer's own world (ships, war, gods, exile, homecoming; nothing invented after the Bronze Age, Matus: "umbrellas did not exist"), with a feeling anyone can riff on, never one of the last twenty ("The ship that left without you"), and announces it aloud. The written themes are the fallback.
 2. **Homer's phrases.** Optional help, not homework: your phone shows three stock phrases that fit the theme and the beat ("the whale-road", "grey-eyed Athena"), under one line: "Stuck? Use one of Homer's phrases. It scores Craft." Using one pops "+Craft".
 3. **Speak.** In a battle you spit free, with no metronome behind you (Matus, Sat 3:30 PM: "I just want to spit poetry without the metronome"). A 3-2-1 with a haptic tick, then SPEAK fills the phone and the arena in the poet's color, once, for the whole verse. No drum, no beat haptics, no per-line Speak/Breathe while a poet speaks: you get one window (20 seconds in demo mode) with a countdown ring, and "I'm done" ends early. Your words show live on the arena; the scene answers your voice's loudness and feeling. A phrase card lights up when you use it. Lines are whatever you say between breaths. The beat lives in Bard lessons, which teach it, and under Homer's stitched song.
 4. **Freeze rescue.** If you go silent for about 2.5 seconds mid-turn (never in the first 3 seconds after SPEAK; lessons: about a second inside a speaking bar), your phrases glow and Homer whispers one that fits; at most twice a turn, so an ordinary breath never triggers it.
