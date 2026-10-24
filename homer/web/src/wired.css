@@ -460,6 +460,11 @@ body:has(.menin-scene.on) .mode-layout:has(.arena:not([data-phase='none'])) .wor
   opacity: 0.55;
 }
 
+/* The newest words, still being heard: dimmer until they settle. */
+.arena .live-verse .partial {
+  color: #7b8d96;
+}
+
 .arena .live-verse mark.formula {
   color: inherit;
   background: none;
@@ -756,6 +761,33 @@ body:has(.menin-scene.on) .mode-layout:has(.arena:not([data-phase='none'])) .wor
   /* After the verse, the theme steps back: it's been on screen all turn. */
   .arena:is([data-phase='scored'], [data-phase='round_end'], [data-phase='finale'], [data-phase='finished']) .workspace-heading h2 {
     font-size: clamp(1.6rem, 2.6vw, 2.3rem);
+  }
+
+  /* While the verse runs the theme is a line, not a headline: the verse and its clock come first. */
+  .arena[data-phase='speaking'] .workspace-heading h2 {
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+  }
+
+  /* SPEAK and its clock side by side, so the ring stays above the fold. */
+  .arena .verse-cue[data-cue='speak'] {
+    grid-template-columns: auto auto;
+    column-gap: clamp(1.2rem, 3vw, 2.4rem);
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    padding: clamp(0.9rem, 2vw, 1.4rem) clamp(1.2rem, 2.6vw, 2rem);
+  }
+
+  .arena .verse-cue[data-cue='speak'] small {
+    grid-column: 1 / -1;
+  }
+
+  .arena .verse-cue strong {
+    font-size: clamp(3rem, 6.5vw, 5.2rem);
+  }
+
+  .arena .verse-cue .clock {
+    width: clamp(4.5rem, 7vw, 6rem);
   }
 
   .arena .score-panel.five {

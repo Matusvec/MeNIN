@@ -127,9 +127,19 @@
   transform: scale(0.6);
 }
 
-/* Homer up front: on the coach screen his stage takes half the room. */
-.mode-layout:has(.coach) {
+/* Homer up front: on the coach screen his stage takes half the room, and the
+   panel is one column (no standings in a coach room). Specific enough to win
+   over the battle layout in wired.css. */
+.mode-layout:has(.arena:not([data-phase='none']) .coach) {
   grid-template-columns: minmax(18rem, 1fr) minmax(0, 1.1fr);
+}
+
+.mode-layout:has(.arena:not([data-phase='none']) .coach) .workspace {
+  width: min(96%, 52rem);
+}
+
+.arena:not([data-phase='none']):has(.coach) {
+  display: block;
 }
 
 /* ── Homer's reply: the caption, big, from across the room ───────────────── */
