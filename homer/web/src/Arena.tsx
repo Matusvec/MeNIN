@@ -68,18 +68,40 @@ export default function ArenaPanel({
     return <Heading kicker="The hall" title="Opening the doors…" note="" />
   }
 
+  if (view.status === 'other-tab') {
+    return <Heading kicker="The hall" title="The hall is open in another tab" note="One screen drives a battle. Close the other tab, then reload this one." />
+  }
+
   if (!room) {
     return (
       <>
         <Heading kicker="Host a battle" title="Open the hall" note="This screen is the arena. Phones join with the MeNIN app." />
-        {view.status === 'offline' && <p className="wired-note">{view.error || 'Lost the hall. Reload to reconnect.'}</p>}
+        {view.status === 'offline' && <p className="wired-note">{view.error || 'Lost the hall. Reconnecting…'}</p>}
         <div className="wired-actions">
-          <button className="primary-action" disabled={view.status !== 'connected'} onClick={() => arena.current?.createRoom()}>
+          <button
+            className="primary-action"
+            disabled={view.status !== 'connected'}
+            onClick={() => {
+              arena.current?.startSound()
+              arena.current?.createRoom()
+            }}
+          >
             Open the hall
           </button>
           {view.resumable && (
-            <button className="secondary-action" onClick={() => arena.current?.resume(view.resumable!)}>
+            <button
+              className="secondary-action"
+              onClick={() => {
+                arena.current?.startSound()
+                arena.current?.resume(view.resumable!)
+              }}
+            >
               Resume {view.resumable.code}
+            </button>
+          )}
+          {view.status === 'offline' && view.error && (
+            <button className="secondary-action" onClick={() => arena.current?.retry()}>
+              Try again
             </button>
           )}
         </div>
@@ -99,6 +121,12 @@ export default function ArenaPanel({
         title={room.phase === 'lobby' ? 'Enter the hall' : view.round?.theme || PHASES[room.phase] || room.phase}
         note={speaker && ['ready', 'speaking', 'judging'].includes(room.phase) ? `${speaker.name}: ${PHASES[room.phase]}` : PHASES[room.phase] ?? ''}
       />
+
+      <p className="host-guard">
+        This screen hosts room {room.code}. Don’t open {room.code} on another arena, or every turn is judged twice.
+        {view.status === 'offline' && ' Reconnecting…'}
+        {!view.sound && ' Sound is off: reload and use Open the hall or Resume to start it.'}
+      </p>
 
       {room.phase === 'lobby' && (
         <div className="join-card">

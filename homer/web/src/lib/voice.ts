@@ -1,89 +1,121 @@
-// Homer's voice in the browser, on a click: one Cartesia generation at a time,
-// never during a battle. Cartesia allows two generations at once, account-wide,
-// and the arena needs them. The agent refuses a `web` token (409) while a
-// battle runs, so the page simply stays text-only then. Text is always shown
-// first; the voice is extra.
+// Homer's voice on the web arena: Cartesia text-to-speech over one WebSocket, one
+// generation at a time (Cartesia allows two at once, account-wide). The token comes
+// from the agent's /voice/token (role "arena") and is renewed before it expires.
+// The arena's line queue already serializes calls; `speak` also refuses overlap.
 
-import { AgentError, voiceToken } from './agent'
+import { voiceToken, type VoiceToken } from './agent'
 
 const SAMPLE_RATE = 44100
-let busy = false
+type Pending = { resolve: () => void; reject: (error: Error) => void; started: boolean; onStart?: () => void }
 
-export type VoiceResult = 'spoken' | 'busy' | 'unavailable'
+export class HomerVoice {
+  private socket: WebSocket | null = null
+  private token: (VoiceToken & { expiresAt?: number }) | null = null
+  private pending = new Map<string, Pending>()
+  private next = 0
+  private busy = false
 
-/** Speak `text` in Homer's voice. Resolves when the audio has finished (or failed). */
-export async function speakAloud(text: string, onStart?: () => void): Promise<VoiceResult> {
-  if (busy || !text.trim()) return 'busy'
-  busy = true
-  const audio = new AudioContext({ sampleRate: SAMPLE_RATE })
-  try {
-    const token = await voiceToken()
-    await audio.resume()
+  constructor(readonly ctx: AudioContext) {}
+
+  private async open(): Promise<WebSocket> {
+    const fresh = this.token && (this.token.expiresAt ?? 0) - Date.now() > 30000
+    if (this.socket?.readyState === WebSocket.OPEN && fresh) return this.socket
+    this.socket?.close()
+    this.token = await voiceToken()
     const url =
-      `wss://api.cartesia.ai/tts/websocket?cartesia_version=${encodeURIComponent(token.cartesiaVersion)}` +
-      `&access_token=${encodeURIComponent(token.token)}`
-    const contextId = `web-${Date.now()}`
-    let next = 0
-    let started = false
+      `wss://api.cartesia.ai/tts/websocket?cartesia_version=${encodeURIComponent(this.token.cartesiaVersion)}` +
+      `&access_token=${encodeURIComponent(this.token.token)}`
+    const socket = new WebSocket(url)
     await new Promise<void>((resolve, reject) => {
-      const socket = new WebSocket(url)
-      const timeout = window.setTimeout(() => {
-        socket.close()
-        reject(new Error('timeout'))
-      }, 20000)
-      socket.onopen = () =>
-        socket.send(
-          JSON.stringify({
-            model_id: token.tts.model,
-            transcript: text,
-            voice: { mode: 'id', id: token.tts.voiceId },
-            output_format: { container: 'raw', encoding: 'pcm_f32le', sample_rate: SAMPLE_RATE },
-            language: 'en',
-            context_id: contextId,
-            continue: false,
-          }),
-        )
-      socket.onmessage = (message) => {
-        const body = JSON.parse(String(message.data))
-        if (body.type === 'chunk' && body.data) {
-          const bytes = Uint8Array.from(atob(body.data), (c) => c.charCodeAt(0))
-          const samples = new Float32Array(bytes.buffer, 0, Math.floor(bytes.byteLength / 4))
-          const buffer = audio.createBuffer(1, samples.length, SAMPLE_RATE)
-          buffer.copyToChannel(samples, 0)
-          const source = audio.createBufferSource()
-          source.buffer = buffer
-          source.connect(audio.destination)
-          next = Math.max(next, audio.currentTime + 0.05)
-          source.start(next)
-          next += buffer.duration
-          if (!started) {
-            started = true
-            onStart?.()
-          }
-        }
-        if (body.type === 'error') {
-          window.clearTimeout(timeout)
-          socket.close()
-          reject(new Error(body.error || 'tts error'))
-        }
-        if (body.done || body.type === 'done') {
-          window.clearTimeout(timeout)
-          socket.close()
-          resolve()
-        }
+      const timer = window.setTimeout(() => reject(new Error('voice socket timeout')), 8000)
+      socket.onopen = () => {
+        window.clearTimeout(timer)
+        resolve()
       }
       socket.onerror = () => {
-        window.clearTimeout(timeout)
-        reject(new Error('socket error'))
+        window.clearTimeout(timer)
+        reject(new Error('voice socket error'))
       }
     })
-    const left = Math.max(0, next - audio.currentTime)
-    await new Promise((resolve) => window.setTimeout(resolve, left * 1000))
-    return started ? 'spoken' : 'unavailable'
-  } catch (error) {
-    return error instanceof AgentError && error.status === 409 ? 'busy' : 'unavailable'
-  } finally {
-    busy = false
-    void audio.close()
+    socket.onmessage = (message) => this.receive(String(message.data))
+    socket.onclose = () => {
+      if (this.socket === socket) this.socket = null
+      for (const p of this.pending.values()) p.reject(new Error('voice socket closed'))
+      this.pending.clear()
+    }
+    this.socket = socket
+    return socket
+  }
+
+  private receive(raw: string): void {
+    const body = JSON.parse(raw)
+    const p = this.pending.get(body.context_id)
+    if (!p) return
+    if (body.type === 'chunk' && body.data) {
+      const bytes = Uint8Array.from(atob(body.data), (c) => c.charCodeAt(0))
+      const samples = new Float32Array(bytes.buffer, 0, Math.floor(bytes.byteLength / 4))
+      const buffer = this.ctx.createBuffer(1, samples.length, SAMPLE_RATE)
+      buffer.copyToChannel(samples, 0)
+      const source = this.ctx.createBufferSource()
+      source.buffer = buffer
+      source.connect(this.ctx.destination)
+      this.next = Math.max(this.next, this.ctx.currentTime + 0.05)
+      source.start(this.next)
+      this.next += buffer.duration
+      if (!p.started) {
+        p.started = true
+        p.onStart?.()
+      }
+    }
+    if (body.type === 'error') {
+      this.pending.delete(body.context_id)
+      p.reject(new Error(body.error || 'voice error'))
+    } else if (body.done || body.type === 'done') {
+      this.pending.delete(body.context_id)
+      p.resolve()
+    }
+  }
+
+  /** Speak `text`; resolves when the audio has finished playing. Throws if the voice can't be reached. */
+  async speak(text: string, onStart?: () => void): Promise<void> {
+    if (this.busy) throw new Error('one generation at a time')
+    this.busy = true
+    try {
+      const socket = await this.open()
+      const contextId = `arena-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+      const done = new Promise<void>((resolve, reject) => this.pending.set(contextId, { resolve, reject, started: false, onStart }))
+      socket.send(
+        JSON.stringify({
+          model_id: this.token!.tts.model,
+          transcript: text,
+          voice: { mode: 'id', id: this.token!.tts.voiceId },
+          output_format: { container: 'raw', encoding: 'pcm_f32le', sample_rate: SAMPLE_RATE },
+          language: 'en',
+          context_id: contextId,
+          continue: false,
+        }),
+      )
+      // No audio within 3 s: give up on this line (the arena falls back to text). A line never runs past 15 s.
+      const firstAudio = window.setTimeout(() => {
+        const p = this.pending.get(contextId)
+        if (p && !p.started) {
+          this.pending.delete(contextId)
+          p.reject(new Error('voice slow'))
+        }
+      }, 3000)
+      try {
+        await Promise.race([done, new Promise((_, reject) => window.setTimeout(() => reject(new Error('voice timeout')), 15000))])
+      } finally {
+        window.clearTimeout(firstAudio)
+      }
+      const left = Math.max(0, this.next - this.ctx.currentTime)
+      await new Promise((resolve) => window.setTimeout(resolve, left * 1000))
+    } finally {
+      this.busy = false
+    }
+  }
+
+  close(): void {
+    this.socket?.close()
   }
 }

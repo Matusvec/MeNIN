@@ -154,7 +154,6 @@
   background: linear-gradient(135deg, rgb(36 52 65 / 84%), rgb(55 64 70 / 76%));
   border: 0.2rem solid rgb(249 249 244 / 90%);
   border-radius: 1rem;
-  backdrop-filter: blur(0.55rem);
 }
 
 .game-tile small {
@@ -214,4 +213,14 @@
 
 .join-card small {
   color: #78909c;
+}
+
+.host-guard {
+  margin: 0.5rem 0 0;
+  padding: 0.45rem 0.75rem;
+  color: #6b5a2e;
+  font-size: 0.78rem;
+  background: #fbf3dc;
+  border: 1px solid #ecd9a4;
+  border-radius: 0.6rem;
 }

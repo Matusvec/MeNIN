@@ -231,11 +231,16 @@ export default function Homer3D({ speaking, mode }: Homer3DProps) {
 
     const clock = new THREE.Clock()
     let frame = 0
+    let lastRender = -1
     const animate = () => {
       frame = requestAnimationFrame(animate)
+      if (document.hidden) return
       const time = clock.getElapsedTime()
       const speakingNow = speakingRef.current
       const reactionAge = (performance.now() - reactionStarted.current) / 1000
+      // Idle (no speech, no reaction) Homer only breathes and blinks: 20 frames a second is plenty.
+      if (!speakingNow && reactionAge > 1.15 && time - lastRender < 1 / 20) return
+      lastRender = time
       const voice =
         speakingNow
           ? 0.48 + Math.sin(time * 12.4) * 0.22 + Math.sin(time * 19.1) * 0.12

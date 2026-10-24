@@ -9,6 +9,8 @@
 import { DbConnection } from '../stdb'
 import type { Player, Room, Round, Score, Turn } from '../stdb/types'
 import { AGENT_URL } from './agent'
+import { Stage } from './stage'
+import { HomerVoice } from './voice'
 
 const STDB_URI = import.meta.env.VITE_STDB_URI || 'wss://maincloud.spacetimedb.com'
 export const STDB_DB = import.meta.env.VITE_STDB_DB || 'homer-calhacks'
@@ -29,10 +31,14 @@ export const DEMO_ROOM = {
 const TICK_MS = 300
 const STEP_UP_MS = 2000 // auto-ready: a short beat before each turn starts
 const COMEBACK_MS = 20000 // a poet reopening the app gets this long to come back
-const ADVANCE_AFTER_MS = 1500 // after Homer's line, before the next reveal
+const ADVANCE_AFTER_MS = 500 // after Homer's line, before the next reveal
+const CONNECT_WATCHDOG_MS = 15000 // a connect that hangs never errors; give up and offer a retry
+// Races the server already refuses safely (a phone's Ready tap vs auto-start; an advance that
+// another caller won): nothing to show on the big screen.
+const QUIET = [/this turn is not up/i, /cannot advance from/i]
 
 export type ArenaView = {
-  status: 'connecting' | 'connected' | 'offline'
+  status: 'connecting' | 'connected' | 'offline' | 'other-tab'
   room: Room | null
   poets: Player[]
   round: Round | null
@@ -43,14 +49,13 @@ export type ArenaView = {
   speaking: boolean
   error: string
   resumable: Room | null // an unfinished room this browser hosts, after a reload
+  sound: boolean // the hall was started with a click: voice and drum are on
 }
 
-type Speaker = (text: string) => Promise<void>
-
-/** W1, text only: hold each line long enough to read it. W2 swaps in the voice. */
+/** Text only: hold each line long enough to read it, briskly. With the voice, the line's own length rules. */
 export function readingTime(text: string): number {
   const words = text.split(/\s+/).filter(Boolean).length
-  return Math.min(7000, Math.max(2500, 1200 + words * 320))
+  return Math.min(4000, 1500 + words * 250)
 }
 
 function tokenKey(): string {
@@ -107,19 +112,69 @@ export class Arena {
   private speaking = false
   private status: ArenaView['status'] = 'connecting'
   private error = ''
+  // W2: Homer's voice and the drum, once a click has unlocked audio
+  private voice: HomerVoice | null = null
+  private stage: Stage | null = null
+  private beatFor = ''
+  private lastHits = { turn: 0n, hits: 0 }
 
-  constructor(
-    private onView: (view: ArenaView) => void,
-    private speakAloud: Speaker | null = null,
-  ) {}
+  constructor(private onView: (view: ArenaView) => void) {}
+
+  /** "Start the hall": call from a click, so the browser lets the page play sound. */
+  startSound(): void {
+    if (this.stage) return
+    const ctx = new AudioContext()
+    void ctx.resume()
+    this.stage = new Stage(ctx)
+    this.voice = new HomerVoice(ctx)
+    this.publish()
+  }
 
   // ----- connection -------------------------------------------------------------
 
+  /**
+   * One tab drives the hall: two tabs share the token, so both would be the host and both
+   * would drive. Holds a Web Lock for as long as this arena lives; without one, it only shows.
+   */
   connect(): void {
+    const locks = (navigator as Navigator & { locks?: LockManager }).locks
+    if (!locks) {
+      this.open()
+      return
+    }
+    void locks.request(`menin-arena-${STDB_DB}`, { ifAvailable: true }, (lock) => {
+      if (!lock) {
+        this.status = 'other-tab'
+        this.publish()
+        return
+      }
+      this.open()
+      return new Promise<void>((release) => (this.releaseLock = release))
+    })
+  }
+
+  private releaseLock: (() => void) | null = null
+  private watchdog = 0
+
+  private open(): void {
+    window.clearTimeout(this.watchdog)
+    this.watchdog = window.setTimeout(() => {
+      if (this.status !== 'connecting') return
+      this.status = 'offline'
+      this.error = "Can't reach the hall. Try again."
+      this.publish()
+    }, CONNECT_WATCHDOG_MS)
     this.conn = DbConnection.builder()
       .withUri(STDB_URI)
       .withDatabaseName(STDB_DB)
       .withToken(loadToken())
+      .withAutomaticReconnect()
+      .onAutomaticReconnect((_conn, _identity, token) => {
+        saveToken(token)
+        this.status = 'connected'
+        this.error = ''
+        this.publish()
+      })
       .onConnect((conn, identity, token) => {
         saveToken(token)
         this.identityHex = identity.toHexString()
@@ -135,21 +190,38 @@ export class Arena {
         }
         this.publish()
       })
-      .onConnectError((_ctx, error) => {
+      .onConnectError((_ctx, error, nextAttempt) => {
         this.status = 'offline'
-        this.error = `Can't reach the hall: ${error.message}`
+        // A failed automatic reconnect will be retried: the screen just says "Reconnecting…".
+        this.error = nextAttempt === undefined ? `Can't reach the hall: ${error.message}` : ''
         this.publish()
       })
       .onDisconnect(() => {
-        this.status = 'offline'
+        this.status = 'offline' // the SDK reconnects by itself; onAutomaticReconnect brings it back
         this.publish()
       })
       .build()
+    window.clearInterval(this.ticker)
     this.ticker = window.setInterval(() => this.tick(), TICK_MS)
   }
 
+  /** After the watchdog gave up: try again from scratch. */
+  retry(): void {
+    this.conn?.disconnect()
+    this.conn = null
+    this.roomSub = null
+    this.status = 'connecting'
+    this.error = ''
+    this.publish()
+    this.open()
+  }
+
   disconnect(): void {
+    window.clearTimeout(this.watchdog)
     window.clearInterval(this.ticker)
+    this.releaseLock?.()
+    this.stage?.stopBeat()
+    this.voice?.close()
     this.roomSub?.unsubscribe()
     this.conn?.disconnect()
     this.conn = null
@@ -196,7 +268,9 @@ export class Arena {
     if (!this.conn) return
     this.error = ''
     work().catch((error: unknown) => {
-      this.error = error instanceof Error ? error.message : String(error)
+      const message = error instanceof Error ? error.message : String(error)
+      if (QUIET.some((quiet) => quiet.test(message))) return
+      this.error = message
       this.publish()
     })
   }
@@ -254,11 +328,69 @@ export class Arena {
 
   private tick(): void {
     const room = this.room()
-    if (!room) return
+    if (!room || this.status !== 'connected') return
     this.trackGeneration(room)
     this.autoStartIfNeeded(room)
     this.askAgentIfNeeded(room)
     this.speakIfDue(room)
+    this.drum(room)
+  }
+
+  /** The beat on the turn's grid while a verse is live, and a strike per hit (ArenaConductor.tick). */
+  private drum(room: Room): void {
+    if (!this.stage) return
+    const turn = this.currentTurn(room)
+    if (room.event !== 'poetry' || !turn || turn.status !== 'speaking' || turn.beatAt.toMillis() === 0n) {
+      if (this.beatFor && !this.singing) {
+        this.beatFor = ''
+        this.stage.stopBeat()
+      }
+      return
+    }
+    const key = `${turn.id}-${turn.attempt}`
+    if (this.beatFor !== key) {
+      this.beatFor = key
+      // This browser's offset from the server clock, estimated as the turn goes live.
+      const offset = Date.now() - Number(turn.startedAt.toMillis())
+      this.stage.playBeat({
+        beatAtLocalMs: Number(turn.beatAt.toMillis()) + offset,
+        bpm: room.bpm,
+        barsPerLine: room.barsPerLine,
+        lines: room.linesPerTurn,
+      })
+    }
+    const prosody = [...this.conn!.db.prosody.iter()].find((p) => p.roomId === this.roomId && p.turnId === turn.id)
+    if (prosody) {
+      if (this.lastHits.turn !== turn.id) this.lastHits = { turn: turn.id, hits: 0 }
+      if (prosody.hits > this.lastHits.hits) {
+        this.stage.strike()
+        this.lastHits.hits = prosody.hits
+      }
+    }
+  }
+
+  private singing = false
+
+  /** The stitched song on the drum: a fresh grid, each line spoken as its line begins. */
+  private async singOnBeat(room: Room, song: string[]): Promise<void> {
+    if (!this.stage || !this.voice) return
+    const beatMs = 60000 / Math.max(room.bpm, 1)
+    const lineMs = beatMs * 4 // one line a bar: the rest bar is for poets drawing breath, not for Homer
+    const beatAt = Date.now() + 300 + beatMs * 4 // after a count-in bar
+    this.singing = true
+    this.stage.playBeat({ beatAtLocalMs: beatAt, bpm: room.bpm, barsPerLine: 1, lines: song.length })
+    try {
+      for (const [i, text] of song.entries()) {
+        await sleep(Math.max(0, beatAt + lineMs * i - 250 - Date.now()))
+        this.line = text
+        this.publish()
+        await this.voice.speak(text).catch(() => sleep(readingTime(text)))
+      }
+      await sleep(Math.max(0, beatAt + lineMs * song.length - Date.now()))
+    } finally {
+      this.stage.stopBeat()
+      this.singing = false
+    }
   }
 
   /** Bumped each time this room starts over, so per-battle work (deals, the song) is asked again. */
@@ -333,6 +465,15 @@ export class Arena {
       case 'dealing':
         once(`deal ${battle} ${room.roundNo}`, () => this.deal(room.id, room.roundNo, room.nextTheme))
         return
+      case 'scored': {
+        // The round's last verdict is on screen: have the agent work out the round's call now,
+        // so round_end posts it at once (it's posted only in round_end).
+        const round = this.currentRound(room)
+        const turns = round ? this.turns().filter((t) => t.roundId === round.id) : []
+        const done = turns.length > 0 && turns.every((t) => ['scored', 'skipped', 'declined'].includes(t.status))
+        if (round && done) quietly(`verdict ahead ${round.id}`, () => postAgent('/battle/verdict', { roundId: round.id }))
+        return
+      }
       case 'round_end': {
         const round = this.currentRound(room)
         if (round) once(`verdict ${round.id}`, () => postAgent('/battle/verdict', { roundId: round.id }))
@@ -386,11 +527,23 @@ export class Arena {
       this.line = text
       this.speaking = true
       this.publish()
-      if (this.speakAloud) await this.speakAloud(text).catch(() => sleep(readingTime(text)))
+      // The voice never holds a reveal hostage: at most the read time plus 4 s, then the battle moves on.
+      if (this.voice) await Promise.race([this.voice.speak(text).catch(() => sleep(readingTime(text))), sleep(readingTime(text) + 4000)])
       else await sleep(readingTime(text))
       this.speaking = false
       this.publish()
       then?.()
+    })
+  }
+
+  /** Queue any performance behind Homer's lines, one at a time. */
+  private perform(task: () => Promise<void>): void {
+    this.queue = this.queue.then(async () => {
+      this.speaking = true
+      this.publish()
+      await task().catch(() => {})
+      this.speaking = false
+      this.publish()
     })
   }
 
@@ -412,10 +565,15 @@ export class Arena {
         const round = this.currentRound(room)
         const poet = turn && poets.find((p) => p.id === turn.playerId)
         if (!round || !turn || !poet) return
-        // P21: the round's first poet gets the theme's call; every later poet answers the line before.
+        // The theme once, as the round opens. Then P21: the round's first poet gets the theme's call,
+        // every later poet answers the line before, and a retry is just "Again."
+        this.say(`theme ${round.id}`, round.theme)
         const first = turn.turnNo === Math.min(...this.turns().filter((t) => t.roundId === round.id).map((t) => t.turnNo))
         const title = poet.epithet ? `${poet.name}, ${poet.epithet}.` : `${poet.name}.`
-        const call = first ? `${round.theme}. ${title} ${this.calls.get(room.roundNo) ?? 'The floor is yours.'}` : `${poet.name}. Answer that.`
+        const call =
+          turn.attempt > 1 ? 'Again.'
+          : first ? `${title} ${this.calls.get(room.roundNo) ?? 'The floor is yours.'}`
+          : `${poet.name}. Answer that.`
         this.say(`up ${turn.id} ${turn.attempt}`, call)
         return
       }
@@ -438,7 +596,8 @@ export class Arena {
         if (!song.length || this.said.has(key)) return
         this.said.add(key)
         const champion = [...poets].sort((a, b) => b.total - a.total)[0]
-        song.forEach((text, i) => this.say(`${key} line ${i}`, text))
+        if (this.voice && this.stage) this.perform(() => this.singOnBeat(room, song))
+        else song.forEach((text, i) => this.say(`${key} line ${i}`, text))
         if (champion) {
           const crown = `${champion.name}${champion.epithet ? `, ${champion.epithet}` : ''}. The hall is yours.`
           this.say(`${key} crown`, crown, advance)
@@ -472,6 +631,7 @@ export class Arena {
       speaking: this.speaking,
       error: this.error,
       resumable: !room && hosted ? hosted : null,
+      sound: Boolean(this.stage),
     })
   }
 }
