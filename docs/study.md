@@ -5,7 +5,7 @@ Five people who have never freestyled take MeNIN's first lesson, and we write do
 - **Who runs it:** the poet (`docs/gtm/README.md`, step 8). One person can run it alone.
 - **When:** Saturday, 6 to 8 PM. It takes about 45 minutes for five people, including finding them.
 - **Where:** anywhere at the venue with a little less noise. It doesn't need to be quiet.
-- **The study build:** **build 5, which TestFlight shows as 0.1.0 (202610241252).** If build 5 isn't in TestFlight yet at 5:30, use build 4, 0.1.0 (202610240956). It scores lesson 1 exactly the same.
+- **The study build:** **build 5, which TestFlight shows as 0.1.0 (202610241256).** If build 5 isn't in TestFlight yet at 5:30, use build 4, 0.1.0 (202610240956). It scores lesson 1 exactly the same.
 - **Finish by 8 PM.** The poet is Poet 1 in the Sat 8 PM poetry runs (`docs/ux-flow.md`, "Sat 8 PM runs"), which start around 8:30 after debate and discus.
 
 **Before 6 PM**
