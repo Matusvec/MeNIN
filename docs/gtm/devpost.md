@@ -4,23 +4,23 @@ Paste this into Devpost. Anything in `[brackets]` needs a real number or link be
 
 ---
 
-**Project name / title:** Homer: Party Games of Ancient Greece *(option 1. The alternatives, "Agon: Ancient Greek Party Games, Hosted by Homer" and "The Homeric Games", are in pitch.md.)*
+**Project name / title:** MeNIN: Ancient Greek Party Games, Hosted by Homer *(fallback: "MeNIN: Party Games of Ancient Greece")*
 
-**Tagline** (200 chars): Party games of ancient Greece on one screen, with your iPhone as the controller. The main event: a poetry battle over the beat, judged live by Homer.
+**Tagline** (200 chars): Rage is the first word of the Iliad. MeNIN turns it into party games: battle in verse over the beat, judged live by Homer, on one screen with your iPhone as the controller.
 
 *Trademarks: no "Wii", "Wii Sports", "Guitar Hero" or "Olympic" anywhere in this page.*
 
-**Try it:** [TestFlight public link] · [winedark.tech or the chosen domain] · Video: [link]
+**Try it:** [TestFlight public link] · [menin.tech, or the chosen domain] · Video: [link]
 
 ---
 
 ## Inspiration
 
-The Greeks didn't separate sport and poetry. At the Panathenaic Games, poets competed reciting Homer right next to the athletes. *Agon* means contest.
+The first word of Western literature is μῆνιν (*mēnin*, pronounced "MAY-nin"): **rage**. Homer opened the Iliad with a fight, and so do we.
 
-And Homer never memorized the Iliad. He improvised it, using formulas: phrases built to fit the beat, like *the wine-dark sea*. Freestyle rappers do the same thing every night. That's a learnable skill, and almost nobody gets to practice it out loud. [Poet's name] performs spoken word. Open mics are once a week, and between them you practice alone in your room, with no one to tell you whether your beat landed. [Quote from a poet interviewed Saturday, with permission.]
+[Poet's name] performs spoken word. Open mics are once a week, and between them you practice alone in your room, with no one to tell you whether your beat landed. [Quote from a poet interviewed Saturday, with permission.] Improvising out loud is a learnable skill: Homer did it with phrases built to fit the beat, and freestyle rappers do it every night. Almost nobody gets to practice it with friends.
 
-So we built the Greek party games, and made the poetry battle the main event.
+So we built ancient Greek party games, and made the poetry battle the main event.
 
 ## What it does
 

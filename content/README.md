@@ -7,7 +7,7 @@ Lesson scripts and the formula bank. The agent service and the app both read the
 | `lessons.md` | The six Bard lesson scripts: demo verse, spoken lines, feedback, and when each lesson lands. The conventions are at the top of the file. |
 | `formulas.json` | The starter formula bank: 158 entries, dealt into hands and whispered by the freeze rescue. |
 | `debate.md` | The Socratic debate event: Socrates' persona, 22 questions, the five-axis rubric, the freeze rescue, the move table, and shared lines. |
-| `moves.json` | 40 rhetorical-move cards for the debate hand. Same schema as `formulas.json`, with `kind: "move"`, `beats: 0`, and the move's role (`open`, `attack`, `defend`, `close`) in `themes`. See `debate.md`. |
+| `moves.json` | 40 rhetorical-move cards for the debate hand. Same schema as `formulas.json`, with `kind: "move"`, `beats: 0`, and empty `themes`, plus a `role` field. See `moves.json` below. |
 
 ## formulas.json
 
@@ -29,3 +29,19 @@ A JSON array. Each entry looks like this:
 The runtime card (`FormulaCard` in `ios/Homer/Contracts.swift`: `id`, `text`, `kind`, `used`) is built from an entry, and the `kind` values match its enum. `used` is game state, so it isn't stored here.
 
 Every phrase is original, a traditional Homeric or Old English formula, or a plain rendering of one. None is quoted from a copyrighted translation.
+
+## moves.json
+
+A JSON array in the same shape as `formulas.json`, plus a `role` field:
+
+```json
+{ "id": "stake-your-claim", "text": "stake your claim", "kind": "move", "role": "open", "beats": 0, "themes": [], "emotions": ["defiance"] }
+```
+
+- **kind:** always `move`. It's in the `FormulaCard.Kind` enum.
+- **role:** one of `open`, `attack`, `defend`, `close`. A dealt hand has at least one of each.
+- **beats:** always `0`, since debate has no beat.
+- **themes:** topics, using the same idea as the formula bank. Empty for now, because every move fits every question.
+- **emotions:** the same eight keys as the formula bank.
+
+Every move's id appears in the move table in `debate.md`, along with the question Socrates whispers when it's the rescue.

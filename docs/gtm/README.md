@@ -1,4 +1,4 @@
-# How Homer wins Cal Hacks 13.0
+# How MeNIN wins Cal Hacks 13.0
 
 GTM brief. Friday Oct 23, 11 PM. Sources: Hacker Guide (organizers call it "the source of truth" over Devpost), Hive's live prize list (58 prizes), every sponsor Slack channel and its threads, and the Figma and Moss track docs.
 
@@ -75,6 +75,9 @@ Owners are roles. Matus decides who.
 Frame from SPEC "The games": ancient Greek party games, with the poetry battle as the main event.
 
 > Spoken: **"Ancient Greek party games, like Wii Sports, and the main event is a rap battle judged by Homer."**
-> Written (Devpost, video, app): **"Party games of ancient Greece. Battle in verse, judged by Homer. Your iPhone is the controller."**
+> Opener: **"The first word of Western literature is *mēnin*. Rage. Homer opened with a fight, and so do we."**
+> Written (Devpost, video, app): **"MeNIN: ancient Greek party games, hosted by Homer. Battle in verse on one screen, with your iPhone as the controller."**
+
+**Name: MeNIN** (μῆνιν, "rage", the first word of the Iliad). Say "MAY-nin" before anyone reads it. Homer hosts the poetry battle and Socrates hosts the debate.
 
 "Wii", "Wii Sports", "Guitar Hero" and "Olympic" are trademarks: say them out loud as comparisons, but never write them in the name, title, tagline or app. Name options for Matus are in [pitch.md](pitch.md).

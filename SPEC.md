@@ -8,7 +8,7 @@ Background (pitch, tracks, schedule, demo script) lives in `Homer Cal Hacks 13.0
 
 **MeNIN teaches you to improvise poetry out loud the way Homer did, then lets you battle other poets live.**
 
-The name: μῆνιν (*mēnin*, "rage") is the first word of the Iliad, and so the first word of Western literature.
+The name: μῆνιν (*mēnin*, "rage", said "MAY-nin") is the first word of the Iliad, and so the first word of Western literature.
 
 Homer never memorized the Iliad. He improvised it, using formulas: ready-made phrases that fit the beat ("the wine-dark sea", "swift-footed Achilles"). Every oral tradition that improvises works this way: Homer, Beowulf, freestyle rap. Learn the formulas and the beat, and you can improvise. MeNIN gives you both, with Homer himself as your teacher.
 
@@ -36,6 +36,10 @@ MeNIN is ancient Greek Wii Sports: party games from the Greek *agon* (contest), 
 - **Discus** is a self-contained motion minigame: no voice, no Claude. Core Motion measures the swing and the release, and the arena shows the throw. You hold a button with your thumb while you swing and release by lifting your thumb; you never let go of the phone.
 - The 2-minute demo stays at least 80% poetry battle. An extra event that can't run 5 times in a row without failing by Sat 8 PM stays a locked tile for the demo. All checkpoints are in `docs/gtm/reality-check.md`.
 - Bard mode and Practice mode are the training, like Wii Sports Training.
+
+## First open
+
+The first time someone opens MeNIN, Homer speaks before any menu: "The first word of Western literature is mēnin. Rage. Give me one line." You say anything, the scene answers your voice, and Homer says: "Good. Now let me show you how I did it." Then the event menu. Every later launch opens straight on the menu.
 
 ## The three modes
 

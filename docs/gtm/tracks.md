@@ -38,7 +38,7 @@ Events: the poetry battle (core); Socratic debate and discus (only if the poetry
 **What they asked for:**
 > "projects where Spacetime is the core real-time backend, especially anything with live shared state, multiplayer interaction, or instant sync between users/agents/systems... great fit not just for games, but also... social experiences... The main thing we'd want is for SpacetimeDB to be meaningfully used, not just added on the side."
 
-**How Homer hits it:**
+**How MeNIN hits it:**
 - The arena-plus-phones battle is SpacetimeDB.
 - Rooms, turn order, the timer, scores, totals, the winner and the carved best line all live in tables. They're decided in **reducers, server-side**, not on any one device.
 - Each phone streams loudness and pitch at about 20 Hz into a table the arena subscribes to, so the scene moves with whoever is speaking. That's "instant sync between users" you can see.
@@ -76,7 +76,7 @@ Criteria: Workflow Design, Adoptability ("a measurable before and after"), Outpu
 - [ ] All files shared with "Anyone"
 - [ ] **Every teammate Edu verified** at figma.com/education/apply
 
-**How Homer hits it:** one designer plus a team of Claude Code sessions, with Figma as the source of truth between them. That's a workflow another team could copy, which is what "Adoptability" means.
+**How MeNIN hits it:** one designer plus a team of Claude Code sessions, with Figma as the source of truth between them. That's a workflow another team could copy, which is what "Adoptability" means.
 
 **The problem today:** the artist's log says no Figma file exists yet, because the session had no Figma connector. **Matus has to design the arena and phone screens in Figma and connect the Figma MCP Saturday morning**, or the Workflow prize is gone. The friction going from Figma to SwiftUI (Dev Mode has SwiftUI snippets; Make outputs React) is honest friction worth logging.
 
@@ -136,7 +136,7 @@ Their own idea list includes "**Multi-speaker agent**: tutor, debate partner... 
 **Criteria:**
 > "how meaningfully they strengthen human connection, how essential and well-integrated AI is, originality, and the strength of the working demo."
 
-**How Homer hits it:**
+**How MeNIN hits it:**
 - **Party games for one room:** one screen, everyone's phone a controller. That's the most literal "bringing people closer" format there is.
 - **Human connection:** people in one room answering each other out loud. The Answer axis literally scores responding to the person before you. The stitched song turns the room into co-authors.
 - **AI is essential:** Homer is the MC, the judge, the coach and the stitcher. Take him out and there's no game.
@@ -186,7 +186,7 @@ Hacker Guide and Hive add: "One thing done well and usable on Monday beats a bro
 | Prize | Item | What it takes | Do it? |
 | --- | --- | --- | --- |
 | Best Use of Gen AI | Assorted | Uses a public GenAI API (Anthropic counts). Tag it. | **Yes**, it's free |
-| Best .Tech Domain Name | **Desktop microphone** and a .tech domain for 10 years | Register a .tech domain and use it. Redirect it to the TestFlight link and video. Name ideas: `winedark.tech`, `rhapsode.tech`, `spitlikehomer.tech` | **Yes**, 10 minutes |
+| Best .Tech Domain Name | **Desktop microphone** and a .tech domain for 10 years | Register a .tech domain and use it. Redirect it to the TestFlight link and video. Name: `menin.tech` (check it's available; fallbacks `playmenin.tech`, `meninthegame.tech`) | **Yes**, 10 minutes |
 | Commit Fellowship | Interview for a 3-week founder sprint, plus *The Lean Startup* | "working prototype with a team, demonstrate a real problem worth solving, opt into the Commit Fellowship Prize Category" | **Yes**, if the team might continue after Sunday |
 | Best Use of Vultr | M5Stack Tab5 | Host the Python agent service on Vultr | **Only if** that's where we'd host it anyway |
 | GoDaddy Registry domain | Digital gift card | Register a GoDaddy Registry domain | Skip; one domain is enough |

@@ -103,15 +103,16 @@ In poetry, Homer whispers a formula. In debate, Socrates whispers a question for
 
 ## The moves
 
-`content/moves.json` holds 40 move cards with the same schema as `formulas.json`:
+`content/moves.json` holds 40 move cards with the same schema as `formulas.json`, plus one extra field:
 
 - `kind` is `"move"`.
-- `beats` is `0`, because debate has no beat.
-- `themes` holds the move's role in an argument instead of a topic:
+- `role` is the move's job in an argument:
   - `open`: stake out ground
   - `attack`: go after their point
   - `defend`: protect yours
   - `close`: finish
+- `beats` is `0`, because debate has no beat.
+- `themes` is for topics, as in the formula bank. It's empty for now, since every move fits every question.
 
 Deal a hand with at least one open, one attack, one defend and one close. The fifth card is any role.
 
