@@ -78,6 +78,12 @@ export const Player = __t.object("Player", {
 });
 export type Player = __Infer<typeof Player>;
 
+export const Presence = __t.object("Presence", {
+  connectionId: __t.connectionId(),
+  identity: __t.identity(),
+});
+export type Presence = __Infer<typeof Presence>;
+
 export const Prosody = __t.object("Prosody", {
   roomId: __t.u64(),
   turnId: __t.u64(),

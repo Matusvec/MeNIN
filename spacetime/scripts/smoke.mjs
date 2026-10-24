@@ -344,5 +344,80 @@ await call(agent, 'post_score', T.id, [7, 6, 5, 6, 8], 'Sharp.', 'Courage is kno
 check((await room(E.id)).phase === 'scored', 'the debate turn is scored');
 check((await sql(null, `SELECT * FROM player WHERE id = ${EA.id}`))[0].total === 32, 'a debate total is the plain sum of its axes');
 
+// ---------------------------------------------------------------- coach
+
+// Judge mode: Homer replies to each turn; the conversation runs until the host ends it.
+await call(arena, 'create_room', 'coach', 3, 2, 2, 80, 'four_beat', false, false, false);
+const C = (await sql(null, 'SELECT * FROM room'))
+  .filter(x => x.host[0] === `0x${arena.hex}`)
+  .sort((a, b) => b.id - a.id)[0];
+check(C.event === 'coach' && C.auto_ready && C.turn_seconds === 20 && C.rounds === 1, 'coach room: auto-ready, 20 s turns, one conversation');
+await call(ada, 'join_room', C.code, 'Ada', 'Iron-Hearted', []);
+await call(bo, 'join_room', C.code, 'Bo', '', []);
+const cPlayers = await sql(null, `SELECT * FROM player WHERE room_id = ${C.id}`);
+const CA = cPlayers.find(p => p.name === 'Ada');
+const CB = cPlayers.find(p => p.name === 'Bo');
+check((await sql(ada, 'SELECT * FROM hand')).some(h => h.player_id === CA.id && h.kind === ''), 'a coach hand holds nothing');
+await call(arena, 'start_battle', C.id);
+check((await room(C.id)).phase === 'dealing', 'coach begins in dealing, for the theme');
+await call(agent, 'deal_round', C.id, 1, 'The wine-dark sea', []);
+r = await room(C.id);
+T = await turn(r.current_turn_id);
+check(r.phase === 'ready' && T.player_id === CA.id && T.turn_no === 0, 'dealt with no hands: Ada is up');
+await call(arena, 'start_turn', T.id);
+T = await turn(T.id);
+check(T.beat_at[0] - T.started_at[0] === 2_250_000 && T.ends_at[0] - T.beat_at[0] === 20_000_000, 'a coach turn is free verse: 3-2-1, then 20 s');
+await call(ada, 'end_turn', T.id, 'The sea took the ship.');
+check(await fails(agent, 'post_score', T.id, [5, 5, 5, 5, 5], 'x', '', ''), 'coach takes no axes');
+const reply = 'Strong opening; now make the sea do something. '.repeat(11).trim(); // ~520 chars
+await call(agent, 'post_score', T.id, [], reply, '', '');
+const cScore = (await sql(null, `SELECT * FROM score WHERE turn_id = ${T.id}`))[0];
+check(cScore.total === 0 && cScore.verdict.length > 300 && (await room(C.id)).phase === 'scored', "Homer's reply is kept whole (up to 600 chars), total 0");
+const firstRound = T.round_id;
+const order = [CA.id];
+for (let i = 0; i < 3; i++) {
+  await call(arena, 'advance', C.id);
+  r = await room(C.id);
+  T = await turn(r.current_turn_id);
+  order.push(T.player_id);
+  check(r.phase === 'ready' && T.round_id === firstRound && T.turn_no === i + 1 && r.round_no === 1, `coach turn ${i + 1}: the same round, turn_no ${i + 1}`);
+  await call(arena, 'skip_turn', T.id);
+}
+check(JSON.stringify(order) === JSON.stringify([CA.id, CB.id, CA.id, CB.id]), 'two poets take turns, Ada, Bo, Ada, Bo: no round_end, no rotation');
+await call(arena, 'advance', C.id);
+T = await turn((await room(C.id)).current_turn_id);
+await call(arena, 'start_turn', T.id);
+check(await fails(ada, 'end_battle', C.id), 'only the host ends a conversation');
+await call(arena, 'end_battle', C.id);
+check((await room(C.id)).phase === 'finished' && (await turn(T.id)).status === 'skipped', 'end_battle: finished, and the live turn is skipped');
+check(await fails(ada, 'end_turn', T.id, 'too late'), 'a late end_turn is refused');
+check(await fails(arena, 'end_battle', C.id), 'a finished conversation cannot be ended again');
+check((await sql(null, `SELECT * FROM turn WHERE room_id = ${C.id}`)).length === 6 && (await sql(null, `SELECT * FROM score WHERE room_id = ${C.id}`)).length === 1, 'the conversation (3 cycles, 6 turns) stays until a rematch');
+await call(arena, 'rematch', C.id);
+check((await room(C.id)).phase === 'dealing' && (await sql(null, `SELECT * FROM turn WHERE room_id = ${C.id}`)).length === 0, 'rematch: a fresh conversation');
+
+// Solo: one poet, the same poet every turn.
+await call(arena, 'create_room', 'coach', 1, 2, 2, 80, 'four_beat', true, false, true);
+const S = (await sql(null, 'SELECT * FROM room'))
+  .filter(x => x.host[0] === `0x${arena.hex}`)
+  .sort((a, b) => b.id - a.id)[0];
+await call(ada, 'join_room', S.code, 'Ada', '', []);
+await call(arena, 'start_battle', S.id);
+await call(agent, 'deal_round', S.id, 1, 'A ship that never came home', [[(await sql(null, `SELECT * FROM player WHERE room_id = ${S.id}`))[0].id, []]]);
+const solo = [];
+for (let i = 0; i < 3; i++) {
+  T = await turn((await room(S.id)).current_turn_id);
+  solo.push(T.player_id);
+  await call(arena, 'skip_turn', T.id);
+  await call(arena, 'advance', S.id);
+}
+check(solo.length === 3 && new Set(solo).size === 1, 'solo: one poet is enough, and gets every turn');
+await call(arena, 'create_room', 'poetry', 1, 2, 2, 80, 'four_beat', true, false, true);
+const P1 = (await sql(null, 'SELECT * FROM room'))
+  .filter(x => x.host[0] === `0x${arena.hex}`)
+  .sort((a, b) => b.id - a.id)[0];
+await call(ada, 'join_room', P1.code, 'Ada', '', []);
+check(await fails(arena, 'start_battle', P1.id), 'a poetry battle still needs two poets');
+
 console.log(failures === 0 ? '\nall checks passed' : `\n${failures} check(s) failed`);
 process.exit(failures === 0 ? 0 : 1);

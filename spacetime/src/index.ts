@@ -297,6 +297,7 @@ const DEBATE_COUNT_IN_SECONDS = 3; // a three-count, no drum
 const DEBATE_SECONDS = 45;
 const POETRY_COUNT_IN_MICROS = 2_250_000n; // 3-2-1, then free verse: no metronome, no bars
 const POETRY_SECONDS_PER_LINE = 10; // the demo's two lines: one 20 s window
+const COACH_SECONDS = 20; // a coach turn: free verse, one 20 s window
 const THROW_SECONDS = 30; // a discus thrower's time in the circle
 const MAX_SPEED = 60; // rad/s; a phone gyro tops out near 35
 const MAX_DISTANCE = 100; // metres
@@ -311,6 +312,7 @@ const EVENTS: Record<string, { axes: number; card: string; weights: number[] }> 
   poetry: { axes: 5, card: 'formula', weights: [0, 2, 4, 4, 0] }, // beat (flow), craft, image, answer, range
   debate: { axes: 5, card: 'move', weights: [1, 1, 1, 1, 1] }, // claim, reason, answer, craft, poise
   discus: { axes: 0, card: '', weights: [] },
+  coach: { axes: 0, card: '', weights: [] }, // Judge mode: Homer replies in score.verdict, no scores
 };
 
 // ---------------------------------------------------------------- helpers
@@ -333,6 +335,10 @@ function after(ts: Timestamp, micros: bigint): Timestamp {
 
 function isDiscus(r: Room): boolean {
   return r.event === 'discus';
+}
+
+function isCoach(r: Room): boolean {
+  return r.event === 'coach';
 }
 
 function seconds(s: number): bigint {
@@ -358,11 +364,15 @@ function eventSettings(
   autoReady: boolean,
   lines: number
 ): { rounds: number; turnSeconds: number; autoReady: boolean } {
-  if (!demo && (rounds < 1 || rounds > 5)) throw new SenderError('rounds must be 1 to 5');
+  const coach = event === 'coach'; // one open-ended conversation, so rounds don't apply
+  if (!demo && !coach && (rounds < 1 || rounds > 5)) throw new SenderError('rounds must be 1 to 5');
   const turnSeconds =
-    event === 'discus' ? THROW_SECONDS : event === 'debate' ? DEBATE_SECONDS : lines * POETRY_SECONDS_PER_LINE;
+    event === 'discus' ? THROW_SECONDS
+    : event === 'debate' ? DEBATE_SECONDS
+    : coach ? COACH_SECONDS
+    : lines * POETRY_SECONDS_PER_LINE;
   if (turnSeconds > 120) throw new SenderError('a turn cannot run past 120 seconds');
-  return { rounds: demo ? 1 : rounds, turnSeconds, autoReady: event === 'discus' || demo || autoReady };
+  return { rounds: demo || coach ? 1 : rounds, turnSeconds, autoReady: event === 'discus' || coach || demo || autoReady };
 }
 
 // Inserts a round and its turns in seat order, rotated by one seat each
@@ -381,24 +391,32 @@ function layOutRound(ctx: Ctx, roomId: bigint, roundNo: number, theme: string): 
   const players = playersOf(ctx, roomId);
   const offset = (roundNo - 1) % players.length;
   const order = [...players.slice(offset), ...players.slice(0, offset)];
-  return order.map((p, i) =>
-    ctx.db.turn.insert({
-      id: 0n,
-      roomId,
-      roundId: rd.id,
-      playerId: p.id,
-      turnNo: i,
-      status: 'waiting',
-      attempt: 1,
-      transcript: '',
-      played: [],
-      rescue: '',
-      rescues: 0,
-      startedAt: EPOCH,
-      beatAt: EPOCH,
-      endsAt: EPOCH,
-    })
-  );
+  return order.map((p, i) => newTurn(ctx, roomId, rd.id, p.id, i));
+}
+
+function newTurn(ctx: Ctx, roomId: bigint, roundId: bigint, playerId: bigint, turnNo: number): Turn {
+  return ctx.db.turn.insert({
+    id: 0n,
+    roomId,
+    roundId,
+    playerId,
+    turnNo,
+    status: 'waiting',
+    attempt: 1,
+    transcript: '',
+    played: [],
+    rescue: '',
+    rescues: 0,
+    startedAt: EPOCH,
+    beatAt: EPOCH,
+    endsAt: EPOCH,
+  });
+}
+
+// A coach conversation never runs out of turns: after the last poet, the next cycle joins
+// the same round in seat order, turn_no counting on, so the transcript stays one round.
+function appendCycle(ctx: Ctx, roomId: bigint, roundId: bigint, firstTurnNo: number): Turn[] {
+  return playersOf(ctx, roomId).map((p, i) => newTurn(ctx, roomId, roundId, p.id, firstTurnNo + i));
 }
 
 // Discus rounds need no agent: the module lays out each throw itself.
@@ -517,7 +535,8 @@ function idleScene(ctx: Ctx, roomId: bigint): void {
 
 function beginBattle(ctx: Ctx, r: Room): void {
   const n = playersOf(ctx, r.id).length;
-  if (n < MIN_PLAYERS) throw new SenderError(`need at least ${MIN_PLAYERS} poets`);
+  const min = isCoach(r) ? 1 : MIN_PLAYERS; // Judge mode: one poet and Homer
+  if (n < min) throw new SenderError(`need at least ${min} poet${min === 1 ? '' : 's'}`);
   if (isDiscus(r)) {
     startThrowRound(ctx, r, 1);
     return;
@@ -736,6 +755,8 @@ export const advance = spacetimedb.reducer({ roomId: t.u64() }, (ctx, { roomId }
     const cur = getTurn(ctx, r.currentTurnId);
     const next = turnsOf(ctx, cur.roundId).find(x => x.turnNo === cur.turnNo + 1);
     if (next) setPhase(ctx, r, 'ready', next.id);
+    // Coach goes round again: the next cycle of turns, in the same round, with no verdict.
+    else if (isCoach(r)) setPhase(ctx, r, 'ready', appendCycle(ctx, r.id, cur.roundId, cur.turnNo + 1)[0].id);
     // Discus has no verdict: the next round of throws starts at once.
     else if (isDiscus(r) && r.roundNo < r.rounds) startThrowRound(ctx, r, r.roundNo + 1);
     else if (isDiscus(r)) setPhase(ctx, r, 'finale', 0n);
@@ -774,6 +795,23 @@ export const skipTurn = spacetimedb.reducer({ turnId: t.u64() }, (ctx, { turnId 
 });
 
 // ---------------------------------------------------------------- phone
+
+// The host ends a battle where it stands. A coach conversation has no end of its own; this is
+// its End button, and it works for any event. A live turn is marked skipped and its timer
+// cancelled, so a late end_turn or score is refused.
+export const endBattle = spacetimedb.reducer({ roomId: t.u64() }, (ctx, { roomId }) => {
+  const r = getRoom(ctx, roomId);
+  requireHost(ctx, r);
+  if (r.phase === 'lobby' || r.phase === 'finished') throw new SenderError(`cannot end from ${r.phase}`);
+  for (const tr of [...ctx.db.turn.roomId.filter(roomId)]) {
+    ctx.db.turnTimer.turnId.delete(tr.id);
+    if (tr.id === r.currentTurnId && ['waiting', 'speaking', 'judging'].includes(tr.status)) {
+      ctx.db.turn.id.update({ ...tr, status: 'skipped' });
+    }
+  }
+  idleScene(ctx, roomId);
+  setPhase(ctx, r, 'finished', 0n);
+});
 
 export const joinRoom = spacetimedb.reducer(
   { code: t.string(), name: t.string(), epithet: t.string(), hoard: t.array(t.string()) },
@@ -1064,8 +1102,10 @@ export const dealRound = spacetimedb.reducer(
     if (findRound(ctx, roomId, roundNo)) throw new SenderError(`round ${roundNo} is already dealt`);
 
     const players = playersOf(ctx, roomId);
-    const byPlayer = new Map(hands.map(h => [h.playerId, h.cards]));
-    if (byPlayer.size !== hands.length || players.some(p => !byPlayer.has(p.id))) {
+    // Coach has no cards: its deal is only the theme, with empty hands or none at all.
+    const dealt = isCoach(r) && hands.length === 0 ? players.map(p => ({ playerId: p.id, cards: [] as string[] })) : hands;
+    const byPlayer = new Map(dealt.map(h => [h.playerId, h.cards]));
+    if (byPlayer.size !== dealt.length || players.some(p => !byPlayer.has(p.id))) {
       throw new SenderError('deal exactly one hand to every poet');
     }
 
@@ -1115,7 +1155,7 @@ export const postScore = spacetimedb.reducer(
       playerId: tr.playerId,
       axes,
       total,
-      verdict: args.verdict.trim().slice(0, 300),
+      verdict: args.verdict.trim().slice(0, isCoach(r) ? 600 : 300), // a coach verdict is Homer's spoken reply
       bestLine: args.bestLine.trim().slice(0, 200),
       coined: args.coined.trim().slice(0, 60),
     });

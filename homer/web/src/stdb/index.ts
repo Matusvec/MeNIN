@@ -40,6 +40,7 @@ import ClaimServiceReducer from "./claim_service_reducer";
 import CreateRoomReducer from "./create_room_reducer";
 import DealRoundReducer from "./deal_round_reducer";
 import DeclineTurnReducer from "./decline_turn_reducer";
+import EndBattleReducer from "./end_battle_reducer";
 import EndTurnReducer from "./end_turn_reducer";
 import EnterReducer from "./enter_reducer";
 import JoinRoomReducer from "./join_room_reducer";
@@ -264,6 +265,7 @@ const reducersSchema = __reducers(
   __reducerSchema("create_room", CreateRoomReducer),
   __reducerSchema("deal_round", DealRoundReducer),
   __reducerSchema("decline_turn", DeclineTurnReducer),
+  __reducerSchema("end_battle", EndBattleReducer),
   __reducerSchema("end_turn", EndTurnReducer),
   __reducerSchema("enter", EnterReducer),
   __reducerSchema("join_room", JoinRoomReducer),
