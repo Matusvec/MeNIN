@@ -6,7 +6,7 @@ Logistics for judging day, Sunday Oct 25: what goes where, what gets charged, ho
 
 **Our gear (Matus's list):** one Mac (a MacBook Air), three iPhones and power banks. There's no iPad and no portable monitor. gtm checked the venue items against the Hacker Guide and the Cal Hacks announcements on Fri Oct 23, and marks them **(confirmed)** or **(not in the guide)**.
 
-**The build: TestFlight build 11** (0.1.0, `202610241510`) for the first-timer study, the 5 PM shoot (the full-battle gate) and the 8 PM runs. Build 11 is the one with SPEC 7866476: Homer's three phrases, fresh themes and epithets, 3, 2, 1, SPEAK, Flow in battle and the hands-free mic. If it isn't in TestFlight in time for the study, the study falls back to build 4 (0.1.0, `202610240956`): **lesson 1 scores the same on both** (swift and builder confirmed), and `docs/study.md` names the build it ran on. **The judging build is whatever passes the 8 PM runs:** build 11, or a later one if something gets fixed. Leader confirms the judging build at 11 PM. Before each study session and each judge, check Settings → About in MeNIN (or the TestFlight app) for the build number.
+**The build: TestFlight build 11** (0.1.0, `202610241510`) for the first-timer study. Build 11 has SPEC 7866476 (Homer's three phrases, fresh themes and epithets, 3, 2, 1, SPEAK, Flow in battle and the hands-free mic) but not free verse, which landed after it (SPEC 5fb8baf, 3:26 PM). **The 5 PM shoot (the full-battle gate) and the 8 PM runs need the first build with free verse:** [leader names it]. If it isn't in TestFlight in time for the study, the study falls back to build 4 (0.1.0, `202610240956`): **lesson 1 scores the same on both** (swift and builder confirmed), and `docs/study.md` names the build it ran on. **The judging build is whatever passes the 8 PM runs:** build 11, or a later one if something gets fixed. Leader confirms the judging build at 11 PM. Before each study session and each judge, check Settings → About in MeNIN (or the TestFlight app) for the build number.
 
 **The hands: Moss deals them, judging included** (leader, Sat ~11 AM). `HOMER_DEALER=moss` is on in production; the old tag dealer takes over silently only if Moss stalls. So **the poets rehearse on Moss hands: start from [demo-hands.md](demo-hands.md)**, builder's sample Moss hands for the three demo themes. The Sat 1:30 PM full-battle checkpoint, the Sat 8 PM runs and every rehearsal use Moss hands. Moss ranks by meaning, so the hand for the same theme can vary a little between deals. Rehearse the theme's feel, not a fixed five.
 
@@ -44,7 +44,7 @@ If iPhone C is already covering for a dead poet phone, the judge's phone after 2
 **On every device:**
 
 - Do Not Disturb on, so no notification ever pops up on the arena.
-- Ringer silent. Brightness up. System haptics on, since the beat lives in the poets' palms.
+- Ringer silent. Brightness up. System haptics on, for the 3-2-1 ticks and the turn's thump.
 - **Low Power Mode off on the phones during runs.** It throttles performance and can delay network work. Turn it on only between runs if a phone is under 30%.
 - **On the Mac:** notifications off, sleep and the screen saver off, the Dock hidden, and nothing open except MeNIN and the backup video. Confirm MeNIN really goes **full screen** in arena mode on the Mac. Keep **Low Power Mode off** too: it lowers the GPU clock, which can drop the scene's 60 fps and dim the display. Only turn it on if the battery falls under 30%.
 
@@ -91,7 +91,7 @@ Before every run:
 
 - [ ] The main room is open on the website, both poets have joined, and demo config is on. Nothing is preloaded: Homer writes a fresh theme and coins fresh epithets every battle (SPEC 7866476).
 - [ ] "Open the hall" is clicked, and Homer speaks.
-- [ ] The hands-free mic opens on each phone's turn, and the haptic beat can be felt.
+- [ ] The hands-free mic opens on each phone's turn, and the 3-2-1 ticks and the thump can be felt.
 - [ ] Speaker volume is set and captions are on.
 - [ ] The operator key "replay opening" is ready.
 - [ ] The backup video is paused at 0:00 on the Mac.
@@ -149,7 +149,7 @@ Optional, but each one fixes a real risk at a loud, shared table:
 | --- | --- | --- | --- |
 | **Wired USB-C EarPods** (Apple, about $20) | **3**: two poets plus a spare | The inline mic sits near the chin, and a poet can hold it up like a mic. Either way it's much closer to the mouth than the phone's mic at arm's length, so STT survives the hall. Wired means no pairing chaos with three phones in one spot. | Check each iPhone's port first. Any phone with Lightning needs the Lightning EarPods. |
 | **A small wired speaker** (3.5 mm) | 1 | Mac speakers lose to a hall. A wired speaker on the **MacBook Air's headphone jack** has zero latency and nothing to pair. | Preferred. |
-| A Bluetooth speaker, only if there's no wired one | 1 | Louder than the Mac | **Policy risk is low:** the ban targets hotspots and routers, and a Bluetooth speaker isn't network equipment. The phrase "other broadcasting equipment" is vague, though, so unplug it if a director objects and fall back to the Mac speakers. **The real risk is technical:** Bluetooth adds roughly 150 to 300 ms of audio delay. At 80 BPM a beat is 750 ms, so the drum would land a quarter-beat behind the beat lane and the haptic beat in the poets' palms. Bluetooth also drops out in a crowded 2.4 GHz hall. If we use one, use it for Homer's voice and keep the count-in drum short, or have the app apply an audio offset. |
+| A Bluetooth speaker, only if there's no wired one | 1 | Louder than the Mac | **Policy risk is low:** the ban targets hotspots and routers, and a Bluetooth speaker isn't network equipment. The phrase "other broadcasting equipment" is vague, though, so unplug it if a director objects and fall back to the Mac speakers. **The real risk is technical:** Bluetooth adds roughly 150 to 300 ms of audio delay. Battles have no drum now (free verse), so the delay only matters for the beat under Homer's stitched song, where a small lag is harmless. Bluetooth also drops out in a crowded 2.4 GHz hall, so prefer a wired speaker. |
 | **USB-C to Ethernet adapter** | 1 | **Required, not optional.** The MacBook Air has no ethernet port, and the venue Wi-Fi is slow. | Reserve the ethernet cable in the H@B app as well. |
 | A power bank with **≥30 W USB-C PD** | 1 | Feeds the Mac under load | Only if none of the current banks can (see Power) |
 | A grippy phone case or a wrist strap | 1 | For discus, on iPhone C | |

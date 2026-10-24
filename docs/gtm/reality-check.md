@@ -82,7 +82,7 @@ It was Matus's call, and it buys real things: the haptic beat, native audio, and
 | The web scene work was thrown away mid-build | The artist reports the shader math carries over to Metal. Log the friction (it's good for the Figma log). |
 
 ### 6. Noise in the judging hall
-Tables are shared by 2-3 teams. Wired headset mics, the hands-free mic that opens only on your turn, the haptic beat, drum ducking and captions are all in SPEC now. **Test them in the hall at peak noise on Saturday night.** Until that test passes, the Q&A line "works in this noise" is unproven.
+Tables are shared by 2-3 teams. Wired headset mics, the hands-free mic that opens only on your turn, free-verse battles with no drum under a speaking poet (SPEC 5fb8baf), and captions are all in SPEC now. **Test them in the hall at peak noise on Saturday night.** Until that test passes, the Q&A line "works in this noise" is unproven.
 
 swift's measurement helps: ink-2 with the hand as keyterms gets 3% word error with the drum at full volume (0 dB), versus 20% without. That proves the drum and the keyterms, not the hall. It came from test recordings (a four-line verse with a synthetic drum mixed in digitally, not a real iPhone mic), which docs/voice.md calls an optimistic lower bound. Quote it as "with the drum at full volume in our tests", never as "in a loud hall". swift reruns on a real iPhone mic once the agent is public, and those numbers replace these if they differ.
 
@@ -116,7 +116,7 @@ swift's measurement helps: ink-2 with the hand as keyterms gets 3% word error wi
 | --- | --- | --- |
 | Before anyone sleeps (Fri night) | Two iPhones and the arena in one SpacetimeDB room; turns advance | Debug the Swift client first thing Saturday. Ask the Spacetime booth at 9 AM. |
 | Sat 10 AM | The fast judge path, turn end to verdict text: p50 ≤ 2.5 s, p95 ≤ 4 s | Drop to a smaller model and cut output tokens. Never fake a verdict. |
-| ~~Sat 1:30 PM~~ **Sat 5:00 PM** (Matus deferred it; it's now the video shoot) | A full demo-mode battle on the arena, end to end, with spoken verdicts, on two real phones running build 11 plus the website, **on Moss-dealt phrases** (the dealer is on for judging). Take 2 includes one phone force-quitting and rejoining. Debate and discus are already in build; this is still the check that matters most. | Freeze features. Everyone on debate and discus moves to the battle until it passes. |
+| ~~Sat 1:30 PM~~ **Sat 5:00 PM** (Matus deferred it; it's now the video shoot) | A full demo-mode battle on the arena, end to end, with spoken verdicts, on two real phones running the first free-verse build plus the website, **on Moss-dealt phrases** (the dealer is on for judging). Take 2 includes one phone force-quitting and rejoining. Debate and discus are already in build; this is still the check that matters most. | Freeze features. Everyone on debate and discus moves to the battle until it passes. |
 | Sat 8 PM | Each unlocked extra event (discus, debate) runs 5 times in a row without a failure | That event goes back to a locked tile for the demo |
 | Sat 8 PM | First-timer study done (6–8 PM, run by the poet, `docs/study.md`): Beat score, first try vs last, in Bard lesson 1 | The pitch drops the number line (demo-script.md 1:26) and Devpost drops the accomplishment |
 | Sat 9 PM | Hall noise test at demo volume, with the score's level set alongside the beat | Switch to the stage-mic option (ux-flow option A). Turn the score down until Homer is clear. |

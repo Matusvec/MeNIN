@@ -8,7 +8,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 | --- | --- | --- | --- |
 | `[N]`, `[first]`, `[last]`, `[time]` | **Number** | The first-timer study on the build named in `docs/study.md` (build 11, or build 4 if 11 isn't in TestFlight; lesson 1 scores the same on both), using one of pm's line options. It's a lesson, so it's the strict "Beat" score, not the battle's Flow. | Sat 8 PM |
 | `[real-mic WER]` | **Number** | swift's rerun of the keyterm test on a real iPhone mic. If it differs from 3%/20%, it replaces those numbers everywhere. | When swift runs it |
-| `[turn-to-voice p50]` | **Number** | The measured time from a turn's end to Homer's first word, on build 11 (the latency HUD in the 5 PM shoot, which is the full-battle gate) | Sat 5 PM |
+| `[turn-to-voice p50]` | **Number** | The measured time from a turn's end to Homer's first word, on the 5 PM shoot's build (its latency HUD; the shoot is the full-battle gate) | Sat 5 PM |
 | `[poet's name]`, `[the poet's scene]`, `[poet quote]`, `[composer's name]`, `[how the score was made]`, `[team]` | **A fact only Matus has** | Matus (the list went to leader) | Today |
 | `[If debate passed]`, `[If discus passed]` | Checkpoint | The Sat 8 PM check: 5 runs in a row without a failure. Delete the section if the event failed. | Sat 8 PM |
 | `[URL]` | Link | **The website** (SPEC, Sat 12:20 PM): the arena in a browser at a public HTTPS URL, served from the droplet. It's the first "try it" link. | When it's deployed |
@@ -18,7 +18,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 
 **Project name / title:** MeNIN: Ancient Greek Party Games, Hosted by Homer *(fallback: "MeNIN: Party Games of Ancient Greece")*
 
-**Tagline** (200 chars): Rage is the first word of the Iliad. MeNIN turns it into party games: battle in verse over the beat, judged live by Homer, on one screen with your iPhone as the controller.
+**Tagline** (200 chars): Rage is the first word of the Iliad. MeNIN turns it into party games: battle in free verse, judged live by Homer, on one screen with your iPhone as the controller.
 
 *Trademarks: no "Wii", "Wii Sports", "Guitar Hero" or "Olympic" anywhere in this page.*
 
@@ -46,7 +46,7 @@ One screen is the arena: our website at [URL], open in any laptop browser. Every
 
 | Event | Host | You |
 | --- | --- | --- |
-| **Poetry battle** (main event) | Homer | Improvise verse over the beat |
+| **Poetry battle** (main event) | Homer | Improvise free verse, answering the poet before you |
 | [If debate passed] **Socratic debate** | Socrates | Argue a question in timed spoken turns |
 | [If discus passed] **Discus** | Homer announces | Swing your phone; its motion sensors measure the throw |
 
@@ -56,8 +56,8 @@ Other events show as locked tiles, because we only unlock what's solid.
 - Homer announces each poet with a fresh epithet he coins for this battle: "Enter Matus, Breaker of Deadlines!"
 - Homer writes a fresh theme every round, six words or fewer, like "The text you never sent".
 - Your phone shows three of **Homer's phrases**, stock phrases that fit the theme and the beat ("the whale-road", "grey-eyed Athena"), under one line: "Stuck? Use one of Homer's phrases. It scores Craft." They're optional help, not homework.
-- Homer drops a slow drum-and-lyre beat, and you feel it in your palm through haptics. The arena ducks the drum while you speak, so it doesn't bleed into your mic.
-- 3, 2, 1, then SPEAK fills your phone and the arena in your color. The mic is hands-free: it opens on your turn, and you speak up to four lines, one per bar ("I'm done" ends early). Each stress that lands on the beat is a soft strike on the beat lane. Use one of Homer's phrases and it pops "+Craft" and flips onto the arena.
+- **No metronome. The beat is how Homer trains you; in battle you spit free.** It lives in the Bard lessons and comes back under Homer's stitched song.
+- A 3, 2, 1 with a haptic tick, then SPEAK fills your phone and the arena in your color, once, for the whole verse. The mic is hands-free: you get one window with a countdown ring (10 s a line, 20 s in demo mode), and "I'm done" ends it early. A line is whatever you say between breaths. Use one of Homer's phrases and it pops "+Craft" and flips onto the arena.
 - Freeze for a second and Homer's phrases come forward, the one that fits raised, while Homer whispers it to you.
 - About three seconds after your last word, Homer delivers the verdict like a title-fight MC: five scores and your best line, quoted.
 - The best line of each round is carved in gold across the arena.
@@ -81,9 +81,9 @@ Other events show as locked tiles, because we only unlock what's solid.
 - **The website ([URL]) is the arena,** and the only one people see. It's static files served from our droplet over HTTPS, on SpacetimeDB's TypeScript SDK and the same agent service as the app. Open it on a laptop and it hosts the room, drives the battle and speaks as Homer. Phones join its room with the app.
 - **iOS app (SwiftUI, iOS 18+).** On your iPhone, the app is the controller (join by code or QR) plus training (Bard and Practice). Its own arena mode stays in the code, behind the Dev screen, as an emergency fallback.
   - AVAudioEngine captures the mic with voice processing.
-  - Core Haptics plays the beat in your hand.
+  - Core Haptics plays the turn's thump and the 3-2-1 ticks, and the beat in your hand during lessons.
   - Metal shaders render the scene.
-  - Syllable onsets detected on the phone itself drive the beat lane, so a hit never waits for the transcript.
+  - In lessons, syllable onsets detected on the phone itself drive the beat lane, so a hit never waits for the transcript.
   - Views take plain value models and never touch state, so the design could change twice without rewriting the logic.
 - **SpacetimeDB** is the hall: rooms, players, rounds, turns, scores, the carved lines, the stitched song and the discus throws.
   - The whole battle is a phase machine in **reducers**, server-side, from lobby to theme, dealing, speaking, judging, round end, finale and champion. A scheduled reducer closes each turn on time.
@@ -91,14 +91,14 @@ Other events show as locked tiles, because we only unlock what's solid.
   - Each phone streams loudness and pitch at about 20 Hz into a table the arena subscribes to, so the arena's scene moves with whoever is speaking.
   - The iPhone client is the community Swift SDK (avias8/spacetimedb-swift 0.23.0), vendored with two patches. Upstream subscribes every client to whole tables, which would send every phone every room's 20 Hz voice stream, so each phone now subscribes only to its own room. The second patch lists each row once when subscriptions overlap.
 - **Cartesia** is the ears and the voice.
-  - Streaming speech-to-text (**ink-2**, over WebSocket) writes the live transcript. We send every phrase Homer dealt the poet, plus the theme, as **keyterms**, so it hears "the wine-dark sea" through the drum. With the drum at full volume (0 dB) in our tests, the word error rate is **3% with keyterms and 20% without**. Those tests used recorded verse with the drum mixed in digitally, and five dealt phrases as keyterms. [real-mic WER] The final transcript arrives about **75 ms** after the poet stops.
+  - Streaming speech-to-text (**ink-2**, over WebSocket) writes the live transcript. We send every phrase Homer dealt the poet, plus the theme, as **keyterms**, so it catches "the wine-dark sea" through the noise. In our tests, with a drum at full volume (0 dB) as the test noise, the word error rate is **3% with keyterms and 20% without**. Those tests used recorded verse with the drum mixed in digitally, and five dealt phrases as keyterms. Battles no longer play a drum, so at the table the enemy is the hall; lessons still play it, on the same phone. [real-mic WER] The final transcript arrives about **75 ms** after the poet stops.
   - The phone streams straight to Cartesia with a short-lived token from our server, so no audio passes through us.
   - Cartesia TTS is Homer (**sonic-3.6**, the voice Carl, "Steady Storyteller"), with first audio in about **100 ms**: lessons, entrances, verdicts, the freeze whisper and the stitched song.
 - **Claude (Anthropic)** is the judge, the coach and the MC.
   - The judge gets the phrases Homer dealt you, the verse you're answering and the scanner's stress count. It returns five scores, the best line and a one-line verdict.
   - Each judgment is one streamed request to **Claude Opus 5.5**: fast mode, low effort, a cached system prompt and a JSON schema, so the output is always valid. Verdict text lands in **p50 1.0 s, p95 1.5 s** (10 live calls, Fri Oct 23, `homer/scripts/latency.py`).
   - Claude also writes each round's fresh theme and Homer's call to the first poet, coins a fresh epithet for every poet each battle, writes Homer's lesson feedback, his sparring verses and the round verdicts, and writes the stitched song. The freeze whisper makes no model call: it picks the dealt phrase that fits the line, so it's instant.
-- **The stress scanner** (Python, CMU Pronouncing Dictionary) counts the beat deterministically. The beat score (**Flow** in battles, a forgiving steady-rhythm check; **Beat** in lessons, strict) never comes from the model's opinion.
+- **The stress scanner** (Python, CMU Pronouncing Dictionary) counts the beat deterministically. The beat score (**Flow** in battles: does the verse move, judged from the words alone, with no drum timing; **Beat** in lessons, strict) never comes from the model's opinion.
 - **Python + FastAPI** service for the Claude calls, the scanner and the formula bank, in Docker behind Caddy on **DigitalOcean**.
 - **Figma.** Matus drew the first concept in Figma Design. The art session reads frames, exact values and assets straight from the file through the Figma MCP server, so it builds from the design rather than from screenshots. We compared two design directions, "Atelier" and "Cut paper", in a single Figma variable collection with two modes. Every variable carries its Swift name, so one mode switch in Figma matches one launch flag in the app. Matus picked Atelier by flipping the same frames between modes, and it's the look that ships. The art session built two clickable prototype flows through the MCP, bound to the same tokens: [first open to practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102), and [a full battle from join to champion](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364). Design file: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv · Full stage log: [Figma Slides].
 - **Original score by [composer's name].**
@@ -108,7 +108,7 @@ Other events show as locked tiles, because we only unlock what's solid.
 
 | Axis | What it measures | Scored by |
 | --- | --- | --- |
-| Flow | Did you keep a steady rhythm: about four stresses a line, forgiving. It counts for less than Image, Answer and Craft. | Stress scanner (deterministic) |
+| Flow | Did the verse move: a natural rhythm of roughly four stresses a line, judged from the words with no drum timing. It counts for less than Image, Answer and Craft. | Stress scanner (deterministic) |
 | Craft | Used Homer's phrases, varied them, coined new ones | Claude |
 | Image | Strength of the imagery | Claude |
 | Answer | Responded to the last verse | Claude |
@@ -116,8 +116,8 @@ Other events show as locked tiles, because we only unlock what's solid.
 
 ## Challenges we ran into
 
-- **One room, many mics.** The drum and Homer's voice bleed into every phone's mic. We put the beat in your palm through haptics and duck the arena drum while you speak.
-- **Hearing "rose-fingered Dawn" through a drum.** Recognizers mangle exactly the rare phrases the game runs on. We feed the phrases Homer dealt you to the recognizer as keyterms, and with the drum at full volume in our tests the word error rate fell from 20% to 3%.
+- **One room, many mics.** The drum and Homer's voice bled into every phone's mic. First we moved the beat into your palm as haptics and ducked the arena drum while you spoke. Then Matus playtested it and said, "I just want to spit poetry without the metronome." So battles went free verse: nothing plays under a speaking poet, and the beat stays in the lessons, where it teaches.
+- **Hearing "rose-fingered Dawn" through noise.** Recognizers mangle exactly the rare phrases the game runs on. We feed the phrases Homer dealt you to the recognizer as keyterms, and in our tests, with a drum at full volume as test noise, the word error rate fell from 20% to 3%.
 - **A verdict that lands in three seconds.** Our first judge was a slow, multi-step tool loop. We cut it to one streamed Claude call with the scanner's count already in the prompt, low effort and a fixed JSON schema. Verdict text now arrives in p50 1.0 s and p95 1.5 s, and Homer's voice starts about 100 ms later.
 - **Every phone was syncing every room.** The community Swift SDK subscribes to whole tables, so with a 20 Hz voice stream each phone would have received every room's traffic. We patched it to subscribe per room.
 - **We switched from web to iOS mid-build.** On Friday night the scene was already written for the web in React, Three.js and GLSL. The palette and motion lived in plain math tables, so they carried over to Metal almost line for line. The React code didn't survive. On Saturday we brought the arena back to the browser: the website is now the only arena, so anyone can open it at a public URL.
@@ -129,14 +129,14 @@ Other events show as locked tiles, because we only unlock what's solid.
 
 - [N] people who'd never freestyled took lesson one at Cal Hacks. Their Beat score went from **[first] to [last]** out of 10, in about [time] minutes. *(Beat only, first try vs last. If fewer than three landed, drop the time.)*
 - A live battle on iPhones, with Homer's spoken verdict [turn-to-voice p50] s after the last word.
-- 3% word error rate with the drum at full volume in our tests, down from 20%, by feeding the phrases Homer dealt each poet to the recognizer.
+- 3% word error rate in our tests, with a drum at full volume as test noise, down from 20%, by feeding the phrases Homer dealt each poet to the recognizer.
 - The stitched song: the room leaves with one poem it made together.
 - [If debate or discus passed: three events on one engine.]
 
 ## What we learned
 
 *(Draft. Each line is true now; reread them Sunday morning.)*
-- A recognizer does far better when you tell it what to expect. Five dealt phrases as keyterms took word errors from 20% to 3% under the drum in our tests.
+- A recognizer does far better when you tell it what to expect. Five dealt phrases as keyterms took word errors from 20% to 3% in our tests, with a drum at full volume as test noise.
 - Keep the model away from anything you can count. The beat is arithmetic, so a scanner scores it, and Claude judges what only taste can.
 - With six-plus agent sessions building at once, one spec and one folder per session mattered more than any single prompt.
 
@@ -159,14 +159,14 @@ Other events show as locked tiles, because we only unlock what's solid.
 
 ## Where it can go wrong (and what we do about it)
 
-- **Speech recognition misses in noisy rooms.** Keyterms from Homer's phrases cut word errors from 20% to 3% with the drum at full volume in our tests, but those were recorded test mixes, and a loud hall with a real phone mic is harder. The live transcript is always on screen, so you see what Homer heard, and the hands-free mic opens only on your turn.
+- **Speech recognition misses in noisy rooms.** Keyterms from Homer's phrases cut word errors from 20% to 3% in our tests, with a drum at full volume as test noise, but those were recorded test mixes, and a loud hall with a real phone mic is harder. The live transcript is always on screen, so you see what Homer heard, and the hands-free mic opens only on your turn.
 - **Taste is contestable.** Every verdict shows five scores and the quoted line, so you can see why you lost.
 - **Emotion reading is approximate.** The scene is art, not a diagnosis, and Homer never names your emotion.
 - **English stress has edge cases** with names, slang and loanwords. The scanner flags uncertain syllables instead of marking them wrong.
 - **A roast can sting a beginner.** Roasts stay gentle and only in Battle; in lessons Homer is a calm coach.
 - **Bad content.** A verse that isn't fit for the hall scores nothing, and Homer won't quote it. Names are filtered before Homer says them.
 - **Privacy:** no audio passes through our server. Your phone streams the mic straight to Cartesia for transcription. Transcripts, scores and lines live in the room's tables on SpacetimeDB, and Rematch clears them. Finished rooms aren't deleted yet; an automatic cleanup is on our list. On our current plan Cartesia's standard data terms apply. For launch we'd turn on Cartesia's zero-data-retention option, which covers STT audio and transcripts and is available on their enterprise plan.
-- **Accessibility:** captions on everything Homer says. The beat is in your palm as haptics, so you can feel it without hearing it.
+- **Accessibility:** captions on everything Homer says. In battles, a haptic thump and the 3-2-1 ticks tell you your turn has started; in lessons, the beat is in your palm as haptics, so you can feel it without hearing it.
 
 ## Built with
 
