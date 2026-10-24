@@ -1,0 +1,200 @@
+/* The discus field (Discus.tsx), in the hall's palette: ink #334b5b, sea #3794b4, foam #edf7f9, gold #d7b46a. */
+
+.discus {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1.25rem;
+}
+
+.discus-kicker {
+  margin: 0;
+  color: #3d9dbf;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.discus-status {
+  margin: 0;
+  color: #355d72;
+  font: 1.45rem/1.35 Georgia, serif;
+  text-align: center;
+}
+
+.discus-field {
+  width: 100%;
+  height: auto;
+  background: #f7fbfc;
+  border: 1px solid rgb(79 148 171 / 18%);
+  border-radius: 1rem;
+}
+
+.discus-field .ground {
+  stroke: #9fcfe0;
+  stroke-width: 2;
+}
+
+.discus-field .mark line {
+  stroke: #9fcfe0;
+}
+
+.discus-field text {
+  fill: #718e9d;
+  font: 9px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  text-anchor: middle;
+}
+
+.discus-field .phayllos line {
+  stroke: #d7b46a;
+  stroke-dasharray: 3 3;
+}
+
+.discus-field .phayllos text {
+  fill: #9b7a35;
+  font-style: italic;
+}
+
+.discus-field .flag line {
+  stroke: #718e9d;
+}
+
+.discus-field .flag path {
+  fill: #9fcfe0;
+}
+
+.discus-field .flag.best path {
+  fill: #d7b46a;
+}
+
+.discus-field .flag text {
+  fill: #355d72;
+  font-weight: 700;
+  text-anchor: start;
+}
+
+.discus-field .circle {
+  fill: none;
+  stroke: #3794b4;
+  stroke-width: 1.5;
+  transition: r 80ms linear;
+}
+
+.discus-field .arc {
+  fill: none;
+  stroke: #3794b4;
+  stroke-dasharray: 2 3;
+  stroke-width: 1.5;
+}
+
+.discus-field .disc {
+  fill: #334b5b;
+}
+
+.discus-field .arc.foul {
+  stroke: #b0485a;
+}
+
+.discus-field .disc.foul,
+.discus-field .foul-mark {
+  fill: #b0485a;
+}
+
+.discus-field .foul-mark {
+  font-size: 14px;
+}
+
+.discus-power {
+  height: 0.6rem;
+  overflow: hidden;
+  background: #edf7f9;
+  border-radius: 999px;
+}
+
+.discus-power > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #9fcfe0, #3794b4);
+  transition: width 80ms linear;
+}
+
+.discus-result {
+  color: #3794b4;
+  font: 600 clamp(2.4rem, 6vw, 3.6rem)/1 Georgia, serif;
+  text-align: center;
+}
+
+.discus-result.foul {
+  color: #b0485a;
+}
+
+.discus-result small {
+  display: block;
+  margin-top: 0.4rem;
+  color: #9b7a35;
+  font: italic 1.05rem/1.3 Georgia, serif;
+}
+
+.discus-ranks {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.discus-ranks li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.7rem 0.9rem;
+  color: #334b5b;
+  background: #edf7f9;
+  border: 1px solid rgb(79 148 171 / 18%);
+  border-radius: 1rem;
+}
+
+.discus-ranks li.up {
+  border-color: #328eaf;
+  box-shadow: 0 0 0 2px rgb(50 142 175 / 25%);
+}
+
+.discus-ranks li.champion {
+  border-color: #d7b46a;
+  box-shadow: 0 0 0 2px rgb(215 180 106 / 30%);
+}
+
+.discus-ranks .who {
+  font-size: 1.1rem;
+}
+
+.discus-ranks .who small {
+  display: block;
+  color: #8297a1;
+  font-size: 0.8rem;
+}
+
+.discus-ranks .tries {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.discus-ranks .tries i {
+  padding: 0.1rem 0.4rem;
+  color: #577685;
+  font-size: 0.8rem;
+  font-style: normal;
+  background: #fff;
+  border-radius: 0.4rem;
+}
+
+.discus-ranks .tries i.foul {
+  color: #b0485a;
+}
+
+.discus-ranks strong {
+  color: #3794b4;
+  font-size: 1.2rem;
+}

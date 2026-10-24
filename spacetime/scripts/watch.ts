@@ -94,8 +94,10 @@ function wire() {
         if (up && Date.now() - up > 10_000) why += ' !! slow start';
         milestone(b.roomId, 'started');
       } else if (a.status === 'speaking') {
-        const late = Date.now() - micros(b.endsAt);
-        why = late >= 1000 ? `, closed by the timer (${secs(late)} after ends_at)` : `, ended ${secs(-late)} early`;
+        const late = Date.now() - micros(a.endsAt); // a retry resets ends_at to the epoch
+        // The timer fires 2 s (GRACE_MICROS) past ends_at; anything sooner was the phone.
+        why = late >= 1800 ? `, closed by the timer (${secs(late)} after ends_at)`
+          : late >= 0 ? `, ended by the phone ${secs(late)} after ends_at` : `, ended ${secs(-late)} early`;
         if (b.transcript) why += `, ${b.transcript.split(/\s+/).filter(Boolean).length} words`;
       }
       if (b.status === 'judging') judgingAt.set(b.id, Date.now());
