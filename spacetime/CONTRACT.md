@@ -221,14 +221,14 @@ All of these require the caller to be a registered service identity (or the owne
 | `decline_turn` | turn_id | The verse isn't fit for the hall | The turn is `declined`, scores nothing, and the phase becomes `scored` |
 | `post_verdict` | round_id, verdict, best_turn_id, best_line | The phase is `round_end` | Sets the round verdict and the carved line (once per round) |
 | `post_song` | room_id, turn_ids [u64], lines [String] | Any time after round 1 (pre-stitch); performed at `finale` | Replaces the song (max 16 lines; the demo cap of 4 is the agent's job) |
-| `set_scene` | turn_id, then the 8 weights f32 | Every ~1.5 s while the turn is speaking or judging | Updates `scene` and appends a `color_sample`. Updates for a turn that isn't current are dropped silently. |
+| `set_scene` | turn_id, then the 8 weights f32 | Every ~1.5 s while the turn is speaking or judging | Updates `scene` and appends a `color_sample`. Updates for a turn that isn't current are dropped silently. **Guaranteed:** `set_scene` on turn 0 is a silent no-op for a registered service and is refused for anyone else, so the agent can use it to check its registration. |
 
 ### Owner and setup
 
 | Reducer | Args | Who | Effect |
 | --- | --- | --- | --- |
 | `set_service_key` | key (16+ characters) | owner, from the CLI | Stores the key the agent registers with |
-| `claim_service` | key | agent, once at startup | Registers the caller's identity as a service. The registration lasts until a data reset, so changing the key later (smoke sets a random one each run) doesn't affect identities already registered. |
+| `claim_service` | key | agent, once at startup | Registers the caller's identity as a service. The registration lasts until a data reset. An identity that's already registered succeeds whatever key it sends, so a rotated key never breaks the agent's startup. |
 | `turn_timeout` | — | scheduler only | Closes a turn still `speaking` at ends_at + 2 s, with the last transcript it got |
 
 ## Calling it from the agent service (Python, no SDK)
@@ -290,7 +290,8 @@ spacetime start                          # local server on :3000 (all interfaces
 cd spacetime && npm install
 npm run typecheck
 npm run publish:local                    # keeps data; publish:local:reset wipes it
-npm run smoke                            # full two-round battle over HTTP, 56 checks
+npm run publish:test                     # the isolated test database `homer-test` (no dev-agent, no shared key)
+npm run smoke                            # full two-round battle over HTTP against homer-test, 59 checks
 npm run logs
 ```
 

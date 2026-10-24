@@ -88,7 +88,7 @@ Before every run:
 - [ ] The backup room code is written down, and the backup video is paused at 0:00 on the Mac.
 - [ ] **Run the demo check** on the Mac, from the repo root, in a Terminal on a second desktop (never over the arena while a judge is looking):
   `python3 homer/scripts/demo_check.py https://api.playmenin.tech` *(the domain is pending Matus; until then, use the agent's current URL)*
-  It takes about 5 s. It checks the agent's health, times one real judged turn (Practice mode, so nothing is written to the room), and checks the themes, the freeze rescue and the voice token. **Read the lines, not just the last one.** It prints GO whenever nothing FAILs, even with warnings, and three warnings are really no-go:
+  It takes about 5 s. It checks the agent's health, times one real judged turn (Practice mode, so nothing is written to the room), and checks the themes, the freeze rescue and the voice token. **Read the lines, not just the last one.** It prints GO whenever nothing FAILs. Builder is turning the first two below into FAILs; until the repo has that change, treat them as no-go even if they print WARN:
   - `WARN spacetimedb ... battles can't be written`: **no battle.** Run Practice Spar for this judge and tell leader.
   - `WARN voice token ... NO VOICE ID`: **Homer is mute.** Fix it before the judge sits down, or use the backup video.
   - `WARN judge cache ... cold`: run the check again. The second run warms it.

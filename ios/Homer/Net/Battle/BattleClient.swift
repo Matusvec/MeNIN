@@ -100,6 +100,12 @@ final class BattleClient: SpacetimeClientDelegate {
     /// Results come back through the subscription; every call is safe to retry.
     private func askAgentIfNeeded() {
         guard let agent, let room else { return }
+        /// Fire and forget, for calls whose failure only means "try again next tick".
+        func quietly(_ key: String, _ work: @escaping @Sendable () async throws -> Void) {
+            guard !agentAsked.contains(key) else { return }
+            agentAsked.insert(key)
+            Task { try? await work() }
+        }
         func once(_ key: String, _ work: @escaping @Sendable () async throws -> Void) {
             guard !agentAsked.contains(key) else { return }
             agentAsked.insert(key)
@@ -113,14 +119,35 @@ final class BattleClient: SpacetimeClientDelegate {
                 }
             }
         }
+        // Names and epithets for anyone the agent hasn't approved yet, in any phase.
+        for poet in players where !poet.named {
+            once("poet \(poet.id)") { try await agent.battlePoet(.init(playerId: poet.id)) }
+        }
         switch room.phaseValue {
+        case .speaking:
+            // The scene's color layer: about every 1.5 s while a verse is live.
+            guard let turn = currentTurn, !turn.transcript.isEmpty else { return }
+            let tick = Int(Date().timeIntervalSince1970 * 1000 / 1500)
+            let p = prosody.map { $0.turnId == turn.id ? $0 : nil } ?? nil
+            let req = BattleEmotionRequest(turnId: turn.id, transcript: turn.transcript,
+                                           loudness: p.map { Double($0.loudness) }, pitch: p.flatMap { $0.pitch > 0 ? Double($0.pitch) : nil })
+            quietly("emotion \(turn.id) \(tick)") { try await agent.battleEmotion(req) }
         case .dealing:
             let req = BattleDealRequest(roomId: room.id, roundNo: room.roundNo, theme: room.nextTheme)
             once("deal \(room.id) \(room.roundNo)") { try await agent.battleDeal(req) }
-        case .roundEnd where room.roundNo < room.rounds && !room.themeChoice:
+        case .roundEnd:
+            if let round = currentRound {
+                once("verdict \(round.id)") { try await agent.battleVerdict(.init(roundId: round.id)) }
+            }
+            // The song: pre-stitched after round 1, final after the last round.
+            if room.roundNo == 1 || room.roundNo == room.rounds {
+                once("song \(room.id) \(room.roundNo)") { try await agent.battleSong(.init(roomId: room.id)) }
+            }
             // Deal the next round ahead so the next turn is ready the moment the verdict ends.
-            let req = BattleDealRequest(roomId: room.id, roundNo: room.roundNo + 1, theme: "")
-            once("deal \(room.id) \(room.roundNo + 1)") { try await agent.battleDeal(req) }
+            if room.roundNo < room.rounds && !room.themeChoice {
+                let req = BattleDealRequest(roomId: room.id, roundNo: room.roundNo + 1, theme: "")
+                once("deal \(room.id) \(room.roundNo + 1)") { try await agent.battleDeal(req) }
+            }
         case .judging:
             guard let turn = currentTurn, turn.statusValue == .judging, let poet = player(turn.playerId) else { return }
             let previous = turns.filter { $0.roundId == turn.roundId && $0.turnNo + 1 == turn.turnNo }.first?.transcript ?? ""
@@ -228,6 +255,17 @@ final class BattleClient: SpacetimeClientDelegate {
     func startBattle() { call("start_battle", Reducer.RoomId(roomId: roomId)) }
     func chooseTheme(_ theme: String) { call("choose_theme", Reducer.ChooseTheme(roomId: roomId, theme: theme)) }
     func advance() { call("advance", Reducer.RoomId(roomId: roomId)) }
+
+    @ObservationIgnored private var advancedFrom = Set<String>()
+
+    /// Advances once per reveal, however many callers (conductor, operator key, dev autopilot) ask.
+    func advanceOnce() {
+        guard let room else { return }
+        let key = "\(room.id) \(room.phase) \(room.roundNo) \(room.currentTurnId)"
+        guard !advancedFrom.contains(key) else { return }
+        advancedFrom.insert(key)
+        advance()
+    }
     func skipTurn(_ turnId: UInt64) { call("skip_turn", Reducer.TurnId(turnId: turnId)) }
     func rematch() { call("rematch", Reducer.RoomId(roomId: roomId)) }
 
@@ -261,6 +299,25 @@ final class BattleClient: SpacetimeClientDelegate {
         }
     }
 
+    @ObservationIgnored private var cardsPlayed = Set<String>()
+
+    /// Card reveal (P8): play every card from the hand whose words appear in `text`. Safe to call
+    /// on every transcript update; each card goes out once.
+    func playCards(spokenIn text: String, turnId: UInt64) {
+        let spoken = Self.normalize(text)
+        let alreadyPlayed = Set(turns.first { $0.id == turnId }?.played ?? [])
+        for card in myHand where !alreadyPlayed.contains(card) && !cardsPlayed.contains("\(turnId) \(card)") {
+            if spoken.contains(Self.normalize(card)) {
+                cardsPlayed.insert("\(turnId) \(card)")
+                playCard(turnId, card: card)
+            }
+        }
+    }
+
+    static func normalize(_ s: String) -> String {
+        String(s.lowercased().map { $0.isLetter ? $0 : " " }).split(separator: " ").joined(separator: " ")
+    }
+
     func leave() { call("leave_room", Reducer.RoomId(roomId: roomId)) }
     func enter() { call("enter", Reducer.RoomId(roomId: roomId)) }
     func playCard(_ turnId: UInt64, card: String) { call("play_card", Reducer.TurnText(turnId: turnId, text: card)) }
@@ -279,6 +336,7 @@ final class BattleClient: SpacetimeClientDelegate {
 
     func endTurn(_ turnId: UInt64, _ text: String) {
         transcriptFlush?.cancel()
+        playCards(spokenIn: text, turnId: turnId)
         call("end_turn", Reducer.TurnText(turnId: turnId, text: text))
     }
 

@@ -44,7 +44,6 @@ final class TurnRecorder {
     @ObservationIgnored private var tasks: [Task<Void, Never>] = []
     @ObservationIgnored private var flushWaiters: [CheckedContinuation<Void, Never>] = []
     @ObservationIgnored private var pendingLineBreaks = 0
-    @ObservationIgnored private var playedCards = Set<String>()
     @ObservationIgnored private var lastVoiceMs = 0.0
     @ObservationIgnored private var rescuedLines = Set<Int>()
 
@@ -238,13 +237,7 @@ final class TurnRecorder {
 
     /// The formula reveal: a card counts as played when its words appear in the final text.
     private func matchCards() {
-        let spoken = Self.normalize(finals)
-        for card in battle.myHand where !playedCards.contains(card) {
-            if spoken.contains(Self.normalize(card)) {
-                playedCards.insert(card)
-                battle.playCard(turnId, card: card)
-            }
-        }
+        battle.playCards(spokenIn: finals, turnId: turnId)
     }
 
     private func checkFreeze(now: Double, clock: BeatClock) {
@@ -253,7 +246,7 @@ final class TurnRecorder {
         guard !rescuedLines.contains(line), let agent, let round = battle.currentRound else { return }
         rescuedLines.insert(line)
         let request = RescueRequest(transcript: finals + partial, hand: battle.myHand,
-                                    played: Array(playedCards), theme: round.theme)
+                                    played: battle.currentTurn?.played ?? [], theme: round.theme)
         let turnId = turnId
         Task {
             guard let rescue = try? await agent.rescue(request) else { return }
@@ -294,13 +287,8 @@ final class TurnRecorder {
         partial = ""
         hits = 0
         rescueCard = nil
-        playedCards.removeAll()
         rescuedLines.removeAll()
         pendingLineBreaks = 0
         clock = nil
-    }
-
-    static func normalize(_ s: String) -> String {
-        String(s.lowercased().map { $0.isLetter ? $0 : " " }).split(separator: " ").joined(separator: " ")
     }
 }

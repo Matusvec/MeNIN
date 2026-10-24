@@ -239,7 +239,7 @@ The scene's color layer for Practice and Bard. Call it about every 1.5 s while t
 
 Returns `{"weights": {"anger": 0.1, "grief": 0.8, "joy": 0, "awe": 0.1, "tenderness": 0.2, "fear": 0.1, "defiance": 0, "longing": 0.6}}`.
 
-- Only the latest ~40 words are read. `loudness` (0 to 1) and `pitch` (Hz) are hints.
+- Only the latest ~40 words are read. The words can be sent as `text` or `transcript`. `loudness` (0 to 1) and `pitch` (Hz) are hints; in battle, take them from the room's `prosody` row.
 - Weights run 0 to 1 each and don't sum to 1. The renderer normalizes and smooths them.
 - Keep every sample in order and send them to `/judge` as `emotionHistory`; Range is scored from them.
 - The classifier is Claude Haiku 5.5 with thinking off: about 1.1 s warm.
@@ -300,7 +300,7 @@ The arena sees a player with `named` = false. The agent PG-checks the name, coin
 
 Call about every 1.5 s while a battle turn is speaking. The agent classifies the speech, calls `set_scene [turn_id, 8 weights]`, and keeps the sample for that turn's Range.
 
-`{"turnId": 42, "text": "turn.transcript", "loudness": 0.7, "pitch": 180}` returns `{"weights": {…}}`, or `{"weights": null}` when there was nothing to read. A call made while one for the same turn is still running shares its result, so slow replies don't pile up.
+`{"turnId": 42, "transcript": "turn.transcript", "loudness": 0.7, "pitch": 180}` returns `{"weights": {…}}`, or `{"weights": null}` when there was nothing to read. A call made while one for the same turn is still running shares its result, so slow replies don't pile up.
 
 ### `POST /battle/verdict`
 

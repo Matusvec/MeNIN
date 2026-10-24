@@ -63,6 +63,8 @@ targets:
           - Fraunces.ttf
           - Fraunces-Italic.ttf
           - Inter.ttf
+          - BodoniModa.ttf
+          - BodoniModa-Italic.ttf
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft

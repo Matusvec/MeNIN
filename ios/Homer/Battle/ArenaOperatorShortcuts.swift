@@ -16,7 +16,7 @@ struct ArenaOperatorShortcuts: ViewModifier {
         content.background {
             // Zero-size buttons carry the shortcuts without taking space or focus.
             Group {
-                Button("Advance") { battle.advance() }
+                Button("Advance") { battle.advanceOnce() }
                     .keyboardShortcut(.rightArrow, modifiers: [])
                 Button("Start turn") { if let turn = battle.currentTurn { battle.startTurn(turn.id) } }
                     .keyboardShortcut("t", modifiers: .command)

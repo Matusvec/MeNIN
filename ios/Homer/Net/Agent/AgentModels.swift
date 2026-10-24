@@ -158,6 +158,17 @@ struct BattleDealRequest: Encodable, Sendable {
     var theme: String
 }
 
+struct BattlePoetRequest: Encodable, Sendable { var playerId: UInt64 }
+struct BattleVerdictRequest: Encodable, Sendable { var roundId: UInt64 }
+struct BattleSongRequest: Encodable, Sendable { var roomId: UInt64 }
+
+struct BattleEmotionRequest: Encodable, Sendable {
+    var turnId: UInt64
+    var transcript: String
+    var loudness: Double?
+    var pitch: Double?
+}
+
 struct BattleJudgeRequest: Encodable, Sendable {
     var turnId: UInt64
     var playerId: UInt64

@@ -44,6 +44,8 @@
 		<string>Fraunces.ttf</string>
 		<string>Fraunces-Italic.ttf</string>
 		<string>Inter.ttf</string>
+		<string>BodoniModa.ttf</string>
+		<string>BodoniModa-Italic.ttf</string>
 	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>

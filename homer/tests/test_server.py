@@ -19,7 +19,7 @@ def client(monkeypatch):
     server._judge = Judge(client=FakeClient(reply(), delay=0.005), cfg=cfg)
     with TestClient(server.app) as c:
         yield c
-    server._judge = None
+    server._judge = server._arena = None
 
 
 def test_health(client):
@@ -73,3 +73,17 @@ def test_lessons_and_feedback(client):
     assert body["landed"] is False and body["line"].startswith("Three hits.")
     assert client.post("/lesson/feedback", json={"lesson": "turn", "transcript": "we broke their gates"}).status_code == 501
     assert client.post("/lesson/feedback", json={"lesson": "nope"}).status_code == 404
+
+
+def test_emotion_takes_text_or_transcript(client, monkeypatch):
+    seen = []
+
+    async def classify(text, loudness=None, pitch=None):
+        seen.append((text, loudness))
+        return {"grief": 0.8}
+
+    monkeypatch.setattr(server.arena().classifier, "classify", classify)
+    assert client.post("/emotion", json={"transcript": "the grave is cold", "loudness": 0.4}).json() == {"weights": {"grief": 0.8}}
+    assert client.post("/emotion", json={"text": "the grave"}).status_code == 200
+    assert client.post("/emotion", json={"transcript": "  "}).status_code == 422
+    assert seen == [("the grave is cold", 0.4), ("the grave", None)]

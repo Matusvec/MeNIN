@@ -11,6 +11,11 @@ Phones at the venue must reach SpacetimeDB. A laptop on venue WiFi is the fragil
 - Clients: server URL `https://maincloud.spacetimedb.com` (the WebSocket is `wss://`), database `homer-calhacks`.
 - **Real devices develop on Maincloud too.** Phones can't reach the laptop's local server here (different networks), so local `homer` is for the simulator and the Mac only. A full demo battle (Mac arena, iPhone, simulator) passed on Maincloud on 2026-10-24.
 - dev-agent runs on Maincloud until builder's agent service takes over. It polls every 400 ms while a turn is live and every 1.5 s otherwise, to spare credits.
+- **The switch** (builder's Vultr deploy, Saturday morning):
+  1. Set builder's service key on `homer-calhacks`.
+  2. Builder calls `claim_service`.
+  3. **Stop dev-agent on Maincloud.** Don't run it with builder's host skipped: only one agent ever acts on the demo database.
+  4. Run one demo battle through the real agent.
 
 ## Recommendation: Maincloud
 

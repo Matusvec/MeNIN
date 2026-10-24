@@ -41,6 +41,13 @@ const [arena, ada, bo, agent, stranger] = await Promise.all([
   identity(),
 ]);
 check(await fails(stranger, 'claim_service', 'not-the-key-not-the-key'), 'wrong service key is refused');
+check(
+  !(await fails(agent, 'claim_service', 'not-the-key-not-the-key')),
+  'a registered service can re-claim after the key changes'
+);
+// The agent's registration probe: a no-op for a service, refused for anyone else.
+check(!(await fails(agent, 'set_scene', 0, 0, 0, 0, 0, 0, 0, 0, 0)), 'set_scene on turn 0 is a no-op for a service');
+check(await fails(stranger, 'set_scene', 0, 0, 0, 0, 0, 0, 0, 0, 0), 'set_scene is refused for a non-service');
 
 // 2 rounds, 2 bars a line (speak + rest), 2 lines, 120 bpm: a bar is 2 s, a turn 8 s.
 await call(arena, 'create_room', 'poetry', 2, 2, 2, 120, 'four_beat', false, false, false);

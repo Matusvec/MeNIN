@@ -1,53 +1,147 @@
 import SwiftUI
 
-enum Route: Hashable {
-    case arena
-    case player(code: String)
-    case diagnostics
-    case devSettings
-}
-
-/// Placeholder navigation shell. Styling is deliberately bare; the art lead owns the look.
+/// The app shell: the scene always on behind, and one screen in front chosen by AppModel.
+/// Screens are the art lead's views fed with props; battle screens are still placeholders.
 struct RootView: View {
-    // Dev: launch with `-startScreen diagnostics|arena|player` to open a screen directly.
-    @State private var path: [Route] = Self.startRoute.map { [$0] } ?? []
+    @State private var app = AppModel()
 
     var body: some View {
-        NavigationStack(path: $path) {
-            List {
-                Section("Battle") {
-                    NavigationLink("Arena", value: Route.arena)
-                    NavigationLink("Join as a poet", value: Route.player(code: ""))
+        ZStack {
+            SceneView(driver: app.scene)
+                .ignoresSafeArea()
+            content
+        }
+        .onOpenURL { app.open($0) }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch app.route {
+        case .firstOpen:
+            FirstOpenScreen(app: app)
+        case .home:
+            HomeView(
+                name: app.poetName.isEmpty ? "poet" : app.poetName,
+                collectionSummary: app.hoard.isEmpty ? "Coin a formula and it lands here" : "\(app.hoard.count) formulas",
+                initial: app.poetName.first.map { String($0).uppercased() },
+                onMode: { mode in
+                    switch mode.id {
+                    case "bard": app.route = .bard
+                    case "practice": app.route = .practice
+                    default: app.route = .battle
+                    }
+                },
+                onProfile: { app.route = .dev }
+            )
+        case .battle:
+            Routed(app: app, title: "Battle") { BattleChoiceView(app: app) }
+        case .arena:
+            Routed(app: app, title: "Arena") { ArenaScreen() }
+        case .player(let code):
+            Routed(app: app, title: "Poet") { PlayerScreen(initialCode: code) }
+        case .bard:
+            // TODO: Bard lessons 1–3 (/lessons, /lesson/feedback).
+            Routed(app: app, title: "Bard") { Text("Lessons are coming.") }
+        case .practice:
+            // TODO: Practice (/deal, /judge over SSE, the phone plays the beat).
+            Routed(app: app, title: "Practice") { Text("Sparring is coming.") }
+        case .dev:
+            Routed(app: app, title: "Dev") { DevMenu(app: app) }
+        }
+    }
+}
+
+/// A routed screen with a way home. Placeholder chrome; the art lead owns the look.
+private struct Routed<Content: View>: View {
+    let app: AppModel
+    let title: String
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        NavigationStack {
+            content
+                .navigationTitle(title)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Home") { app.route = .home }
+                    }
                 }
-                Section("Dev") {
-                    NavigationLink("Diagnostics: mic + Metal", value: Route.diagnostics)
-                    NavigationLink("Server", value: Route.devSettings)
-                }
-            }
-            .navigationTitle("Homer")
-            .navigationDestination(for: Route.self) { route in
-                switch route {
-                case .arena: ArenaScreen()
-                case .player(let code): PlayerScreen(initialCode: code)
-                case .diagnostics: DiagnosticsView()
-                case .devSettings: DevSettingsView()
-                }
+        }
+    }
+}
+
+private struct FirstOpenScreen: View {
+    let app: AppModel
+    @State private var flow: FirstOpenFlow?
+
+    var body: some View {
+        Group {
+            if let flow {
+                FirstOpenView(
+                    beat: flow.beat == .listening ? .listening : (flow.beat == .homerAnswers ? .homerAnswers : .homerSpeaks),
+                    caption: flow.homer.caption?.text ?? "",
+                    spoken: flow.homer.spoken,
+                    heard: flow.heard,
+                    level: flow.level
+                )
             }
         }
-        .onOpenURL { url in
-            // homer://join/ABCD, from the arena's QR code
-            if url.host() == "join", let code = url.pathComponents.dropFirst().first {
-                path = [.player(code: code.uppercased())]
+        .task {
+            let flow = FirstOpenFlow(scene: app.scene, agent: AgentClient.configured)
+            self.flow = flow
+            await flow.run()
+            app.finishFirstOpen()
+        }
+    }
+}
+
+private struct BattleChoiceView: View {
+    let app: AppModel
+    @State private var code = ""
+
+    var body: some View {
+        List {
+            Section {
+                Button("Host the arena on this screen") { app.route = .arena }
+            } footer: {
+                Text("A Mac or an iPad, or a phone in landscape as a backup.")
+            }
+            Section("Join a battle") {
+                TextField("Room code", text: $code)
+                    .textInputAutocapitalization(.characters)
+                    .autocorrectionDisabled()
+                Button("Join") { app.route = .player(code: code.uppercased()) }
+                    .disabled(code.count != 4)
             }
         }
     }
+}
 
-    private static var startRoute: Route? {
-        switch UserDefaults.standard.string(forKey: "startScreen") {
-        case "diagnostics": .diagnostics
-        case "arena": .arena
-        case "player": .player(code: UserDefaults.standard.string(forKey: "joinCode") ?? "")
-        default: nil
+private struct DevMenu: View {
+    let app: AppModel
+    @State private var mic = MicProsody()
+    @State private var labMic = false
+
+    var body: some View {
+        List {
+            NavigationLink("Diagnostics: mic + Metal") { DiagnosticsView() }
+            NavigationLink("Server") { DevSettingsView() }
+            NavigationLink("Scene lab") {
+                SceneLabView(driver: app.scene, isMicOn: $labMic)
+                    .ignoresSafeArea()
+                    .onChange(of: labMic) { _, on in
+                        if on {
+                            mic.onProsody = { [scene = app.scene] p in scene.prosody = p }
+                            Task { await mic.start() }
+                        } else {
+                            mic.stop()
+                            app.scene.prosody = .silent
+                        }
+                    }
+                    .onDisappear { mic.stop() }
+            }
+            NavigationLink("Design gallery") { DesignGalleryView() }
+            Button("Replay first open") { app.route = .firstOpen }
         }
     }
 }

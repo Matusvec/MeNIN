@@ -6,11 +6,12 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "smoke": "node scripts/smoke.mjs",
+    "smoke": "STDB_DB=${STDB_DB:-homer-test} node scripts/smoke.mjs",
     "dev-agent": "node scripts/dev-agent.mjs",
     "build": "spacetime build",
     "publish:local": "spacetime publish -s local -y homer",
     "publish:local:reset": "spacetime publish -s local --delete-data=always -y homer",
+    "publish:test": "spacetime publish -s local -y homer-test",
     "logs": "spacetime logs -s local homer"
   },
   "dependencies": {

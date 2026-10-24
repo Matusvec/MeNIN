@@ -1,10 +1,14 @@
 """Go or no-go before each judge at the table: is the agent service up, warm and fast?
 
-    python3 scripts/demo_check.py https://api.<domain>      # or http://127.0.0.1:8000 (the default)
+    python3 homer/scripts/demo_check.py https://api.<domain>      # from the repo root; default http://127.0.0.1:8000
 
-Standard library only, so it runs on any laptop with Python 3.9+ (the Mac's own python3 works). It makes
-one real judge call (Practice mode, so nothing is written to SpacetimeDB) and
-mints one voice token. Exit code 0 means go.
+Standard library only, so it runs on any laptop with Python 3.9+ (the Mac's own
+python3 works). It makes one real judge call (Practice mode, so nothing is
+written to SpacetimeDB) and mints one voice token. Exit code 0 means go.
+
+It never says GO on a dead demo: a service that can't write battles to
+SpacetimeDB, or a Homer with no voice, is a FAIL. A slow judge or a cold
+prompt cache is only a WARN.
 """
 
 from __future__ import annotations
@@ -64,7 +68,7 @@ def check_health(base: str) -> bool:
     if h.get("stdb") == "claimed":
         note("PASS", "spacetimedb", f"claimed on {h.get('stdbDb')}")
     else:
-        note("WARN", "spacetimedb", f"{h.get('stdb')} ({h.get('stdbDb')}): battles can't be written")
+        note("FAIL", "spacetimedb", f"{h.get('stdb')} ({h.get('stdbDb')}): battles can't be written")
     return True
 
 
@@ -117,7 +121,10 @@ def check_quick(base: str) -> None:
     status, v = get_json(base, "/voice/token", {"role": "solo"})
     if status == 200 and v.get("token"):
         voice = (v.get("tts") or {}).get("voiceId") or "NO VOICE ID"
-        note("PASS" if voice != "NO VOICE ID" else "WARN", "voice token", f"stt {v.get('stt', {}).get('model')}, tts voice {voice}")
+        if voice == "NO VOICE ID":
+            note("FAIL", "voice token", "no HOMER_VOICE_ID on the server: Homer is mute")
+        else:
+            note("PASS", "voice token", f"stt {v.get('stt', {}).get('model')}, tts voice {voice}")
     else:
         note("FAIL", "voice token", f"HTTP {status}: {v.get('detail', '')}")
 

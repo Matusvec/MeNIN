@@ -469,10 +469,13 @@ export const setServiceKey = spacetimedb.reducer({ key: t.string() }, (ctx, { ke
 });
 
 // The agent service calls this once with the key from its .env.
+// Already registered identities succeed whatever the key, so a key rotated
+// since (smoke sets a fresh one each run) doesn't break the agent's startup.
 export const claimService = spacetimedb.reducer({ key: t.string() }, (ctx, { key }) => {
+  if (ctx.db.service.identity.find(ctx.sender)) return;
   const c = ctx.db.config.id.find(0);
   if (!c || c.serviceKey === '' || c.serviceKey !== key) throw new SenderError('wrong key');
-  if (!ctx.db.service.identity.find(ctx.sender)) ctx.db.service.insert({ identity: ctx.sender });
+  ctx.db.service.insert({ identity: ctx.sender });
 });
 
 // ---------------------------------------------------------------- arena

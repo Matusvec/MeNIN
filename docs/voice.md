@@ -1,6 +1,6 @@
 # Voice pipeline (spike)
 
-Spike notes from the swift session, 2026-10-23. Covers Cartesia STT and TTS, browser auth, and the beat bleeding into the mic.
+Spike notes from the swift session, 2026-10-23, updated 2026-10-24 for the iOS app. Covers Cartesia STT and TTS, client auth, and the beat bleeding into the mic. What's built is in "iOS implementation" below.
 
 **Status:** docs research plus endpoint checks. There is no Cartesia key on this machine, so there are no live latency numbers yet. Every item marked **Live test** still needs one. The probe script that runs all of them is ready (see "Live tests still to run").
 
@@ -22,17 +22,17 @@ Already verified without a key: `POST https://api.cartesia.ai/access-token` exis
 ## Recommended pipeline
 
 ```
-Phone (poet)                         Agent service              Arena (shared screen)
-mic -> AudioWorklet                  POST /voice/token  <------ (arena: tts grant)
-  48k -> 16k mono, high-pass 150 Hz    mints Cartesia tokens
-  level + pitch + onsets + voice gate  never touches audio
-  |-- 100 ms PCM --> Cartesia STT (direct, access_token)
+Phone (poet)                          Agent service              Arena (Mac / iPad / phone)
+AVAudioEngine input tap (MicEngine)   POST /voice/token  <------ (arena: tts grant)
+  48k -> 16k mono s16 (AVAudioConverter)  mints Cartesia tokens
+  prosody, onsets, push-to-talk mute       never touches audio
+  |-- 100 ms PCM --> Cartesia STT (URLSessionWebSocketTask, access_token)
   |                   <-- partial/final text, words[]
-  |-- transcript ----------------------------------------> SpacetimeDB -> arena lane + transcript
-  |-- prosody ~20 Hz, onsets ----------------------------> SpacetimeDB -> scene instant layer, lane hits
-                                                         arena: Cartesia TTS socket (pre-opened)
-                                                           -> gapless player -> AnalyserNode -> scene
-                                                         arena: plays the beat, ducks it in speaking bars
+  |-- update_transcript, play_card, end_turn ------------> SpacetimeDB -> arena lane + transcript
+  |-- set_prosody ~20 Hz (loudness, pitch, hits) --------> SpacetimeDB -> scene instant layer, drum strikes
+  beat as Core Haptics; hits from on-device onsets        arena: Cartesia TTS socket (pre-opened)
+                                                            -> AVAudioPlayerNode -> level -> scene
+                                                          arena: plays the beat, ducks it in speaking bars
 ```
 
 The agent service only mints tokens. Audio goes phone to Cartesia and Cartesia to arena, with no extra hop.
@@ -209,15 +209,29 @@ Also: pass keyterms (section 1); try `noiseSuppression: true` (and Safari's voic
 
 Whatever we choose, do one test at the venue at demo volume, with the real speakers.
 
-## Phones: iOS Safari notes
+## iOS implementation
 
-- **The mic needs HTTPS.** A phone opening `http://<laptop-ip>:5173` gets no `getUserMedia`. For phone testing tonight, use Vite with HTTPS (`@vitejs/plugin-basic-ssl` or mkcert) or a tunnel (cloudflared).
-- **Taps:** the first tap must create or resume the `AudioContext` (ux-flow F0/H0). Ask for the mic in a later tap or step, per ux-flow.
-- **Silent switch:** on iPhone, the ringer switch can mute Web Audio output. Safari 17+ has `navigator.audioSession.type` (`"playback"`, or `"play-and-record"` while the mic is open) to change that. Verify on a device.
-- **Mic format:** capture is 48 kHz on iPhone. Resample to 16 kHz mono s16 in the AudioWorklet.
-- **Wake lock:** use `navigator.wakeLock.request("screen")` (Safari 16.4+), and re-request it on `visibilitychange`. A locked screen ends the mic track, so listen for the track's `ended` event and re-open it.
-- **Volume while recording:** with the mic open, iOS may play page audio more quietly (voice processing). In solo modes, close the mic track while Homer speaks; turns don't overlap anyway.
-- **If Matus picks native iOS:** use `AVAudioEngine` with voice processing on the input node (echo cancellation for the app's own output). There's also Apple's on-device `SpeechAnalyzer`/`SpeechTranscriber` (iOS 26+), which gives partial results and per-word audio time ranges with no network. It could be a fallback for the lane's labels, but Cartesia stays the STT for the sponsor track.
+Built in `ios/Homer/` (the swift session owns it). Verified with unit tests and a dev-only protocol stand-in; nothing has run against real Cartesia yet because there is no key.
+
+- **Mic (`Audio/MicEngine.swift`):** a single AVAudioEngine input tap feeds three outputs.
+  - Prosody for the scene, using the web prototype's RMS dBFS mapping and first-peak autocorrelation, done with Accelerate.
+  - 16 kHz mono `pcm_s16le` in 100 ms chunks for STT, via AVAudioConverter.
+  - Energy-rise onsets with epoch-ms timestamps, at least 120 ms apart. A unit test finds three synthetic syllables within 15 ms.
+  - Push-to-talk mute sends **zeros, never gaps**, so STT word times stay on the turn's clock.
+  - Voice processing (the system echo canceller) is a start option for solo modes, where the phone plays the beat itself.
+- **STT (`Net/Voice/CartesiaSTT.swift`):** URLSessionWebSocketTask on the manual endpoint. It handles partial (replace), final (append exactly), `flush_done`, `done` and `error`. `finalize` is sent as raw text.
+- **Turn (`Battle/TurnRecorder.swift`):**
+  - Gets a token from `POST /voice/token` and opens STT plus the mic while the poet is up next, before the count-in.
+  - One press of the talk button is one line. On release it sends `finalize`, and the line break lands on `flush_done`.
+  - Hits are onsets within ±120 ms of a speaking beat (`Audio/BeatClock.swift`), on a grid shifted by the clock offset `local receive − started_at`.
+  - The beat plays as one Core Haptics pattern for the whole turn: strong downbeats, medium speaking beats, faint rest bars. A hit adds an immediate strike.
+  - `set_prosody` runs at 20 Hz.
+  - `play_card` fires when a card's words appear in the final text.
+  - Freeze rescue: after more than 1 s with no onset during a speaking bar while talking, it calls `/rescue`, then `rescue`, once per line.
+  - The turn ends at `ends_at` or on Done: finalize, wait for the flush (1.5 s at most), then `end_turn`.
+- **Fallback:** if the agent or Cartesia is unreachable, the poet's screen offers typing. This is a dev fallback; with a key, the demo path is voice.
+- **Simulator caveat:** on the iOS 27 simulators, `AVAudioEngine.inputNode` can deadlock in `AURemoteIO::Initialize` ("RPC timeout. Apparently deadlocked. Aborting now"). Test voice on a device, or on the Mac as Designed for iPad.
+- **Still to build:** TTS playback for Homer (AVAudioPlayerNode over the TTS socket), the arena's beat with ducking, and pre-rendered fixed lines (first open, rescue whispers).
 
 ## Live tests still to run
 
@@ -248,17 +262,12 @@ The fixtures are synthetic: a clean TTS voice mixed digitally with no room, no p
 ## Handoffs (suggestions; the owners decide)
 
 - **`homer/` (agent service):**
-  - `POST /voice/token`, gated per room and player.
-  - `CARTESIA_API_KEY` in `.env.example`.
-- **`web/`** (logic kept separate from presentation, per AGENTS.md):
-  - `useMic`: an AudioWorklet that resamples, high-passes, and outputs level, pitch, syllable peaks and voice/no-voice, plus 100 ms PCM frames.
-  - `useStt`: token, socket, and partial, final and words events, plus `finalize` on the timer.
-  - `useHomerVoice`: a pre-opened TTS socket, the gapless player, and the analyser output for the scene.
-  - A clock-offset helper for `BeatLane.startedAt`.
+  - `POST /voice/token` is live (builder). It returns 503 until `CARTESIA_API_KEY` is set on the server.
+- **`ios/`**: built, see "iOS implementation" above.
 - **`spacetime/` (multiplayer owns the contract):**
   - The arena needs the speaking-bar state to duck the beat.
   - Phones need `startedAt` and `bpm` for the turn, and a whisper-window event (option G).
-- **`contracts.ts`:** `BeatWord.t` works with the clock math above. Consider adding an `onsetsMs: number[]` to `BeatLane` so the live layer and the replay don't depend on STT `words[]`.
+- **`Contracts.swift`:** `BeatWord.t` works with the clock math above. Consider adding an `onsetsMs: number[]` to `BeatLane` so the live layer and the replay don't depend on STT `words[]`.
 
 ## Sources
 

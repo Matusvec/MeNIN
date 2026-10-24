@@ -5,6 +5,7 @@ import SwiftUI
 struct ArenaScreen: View {
     @State private var battle = BattleClient(role: .arena)
     @State private var autopilot: DevAutopilot?
+    @State private var conductor: ArenaConductor?
 
     var body: some View {
         List {
@@ -13,6 +14,11 @@ struct ArenaScreen: View {
                 LabeledContent("Connection", value: "\(battle.connection)")
                 if let error = battle.lastError { Text(error).foregroundStyle(.red) }
                 if let error = battle.agentError { Text(error).foregroundStyle(.orange) }
+                if let error = conductor?.audioError { Text(error).foregroundStyle(.red) }
+                if let line = conductor?.homer.caption {
+                    // Placeholder caption; the art lead's CaptionView takes over.
+                    Text("Homer: \(line.text)").italic()
+                }
             }
             if let room = battle.room {
                 roomSection(room)
@@ -33,10 +39,14 @@ struct ArenaScreen: View {
         .task {
             battle.agent = AgentClient.configured
             battle.connect(to: ServerConfig.spacetime, database: ServerConfig.database)
+            let conductor = ArenaConductor(battle: battle, agent: AgentClient.configured)
+            conductor.start()
+            self.conductor = conductor
             autopilot = DevAutopilot(battle: battle)
             autopilot?.start()
         }
         .onDisappear {
+            conductor?.stop()
             autopilot?.stop()
             battle.disconnect()
         }

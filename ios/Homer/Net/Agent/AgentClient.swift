@@ -84,6 +84,23 @@ struct AgentClient: Sendable {
         _ = try await postRaw("battle/judge", request)
     }
 
+    func battlePoet(_ request: BattlePoetRequest) async throws {
+        _ = try await postRaw("battle/poet", request)
+    }
+
+    /// 422 (no words yet) and 503 (no reading in time) just mean "skip this tick".
+    func battleEmotion(_ request: BattleEmotionRequest) async throws {
+        _ = try await postRaw("battle/emotion", request)
+    }
+
+    func battleVerdict(_ request: BattleVerdictRequest) async throws {
+        _ = try await postRaw("battle/verdict", request)
+    }
+
+    func battleSong(_ request: BattleSongRequest) async throws {
+        _ = try await postRaw("battle/song", request)
+    }
+
     // MARK: plumbing
 
     private func makeRequest<B: Encodable>(_ path: String, _ body: B) throws -> URLRequest {

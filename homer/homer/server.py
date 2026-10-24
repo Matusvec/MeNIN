@@ -456,18 +456,23 @@ async def battle_song(req: BattleSongRequest) -> dict[str, Any]:
 
 
 class EmotionRequest(Model):
-    text: str  # the transcript so far; the latest ~40 words are read
-    loudness: float | None = None  # 0 to 1
+    text: str = ""  # the transcript so far; the latest ~40 words are read
+    transcript: str = ""  # the same, under the name turn.transcript uses
+    loudness: float | None = None  # 0 to 1, from the prosody row
     pitch: float | None = None  # Hz, 0 = unvoiced
     turn_id: int = 0  # battle only
+
+    @property
+    def words(self) -> str:
+        return self.text or self.transcript
 
 
 @app.post("/emotion")
 async def emotion_now(req: EmotionRequest) -> dict[str, Any]:
     """Weights over the eight emotions, for Practice and Bard. Keep them and send them to /judge as emotionHistory."""
-    if not req.text.strip():
+    if not req.words.strip():
         raise HTTPException(422, "nothing to read")
-    weights = await arena().classifier.classify(req.text, req.loudness, req.pitch)
+    weights = await arena().classifier.classify(req.words, req.loudness, req.pitch)
     if weights is None:
         raise HTTPException(503, "no reading in time")
     return {"weights": weights}
@@ -478,7 +483,7 @@ async def battle_emotion(req: EmotionRequest) -> dict[str, Any]:
     """Every ~1.5 s while a battle turn is speaking: classify, keep the sample for Range, call set_scene."""
     if not req.turn_id:
         raise HTTPException(400, "turnId is required")
-    weights = await written(arena().scene(req.turn_id, req.text, req.loudness, req.pitch))
+    weights = await written(arena().scene(req.turn_id, req.words, req.loudness, req.pitch))
     return {"weights": weights}
 
 

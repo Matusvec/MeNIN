@@ -64,8 +64,9 @@ final class DevAutopilot {
             done.insert(key)
             print("AUTOPILOT \(key)")
             Task {
-                try? await Task.sleep(for: .seconds(2))
-                battle.advance()
+                // The conductor advances auto-ready rooms itself once Homer's line ends.
+                try? await Task.sleep(for: .seconds(room.autoReady ? 12 : 2))
+                battle.advanceOnce()
             }
         case .finished:
             once("finished \(room.id)") {
