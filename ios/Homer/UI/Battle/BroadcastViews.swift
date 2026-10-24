@@ -24,13 +24,15 @@ extension PoetPlate {
 /// in from the left with their name on it.
 struct EntranceView: View {
     let poet: PoetPlate
+    /// "Enter" for the lobby entrance; "Up next" when a poet steps up.
+    var label: String = "Enter"
     @State private var landed = false
     @Environment(\.stage) private var stage
 
     var body: some View {
         let k = stage.scale
         VStack(alignment: .leading, spacing: Metrics.s2 * k) {
-            Text("Enter").tracked(13 * k, color: Palette.cream.opacity(0.85))
+            Text(label).tracked(13 * k, color: Palette.cream.opacity(0.85))
             Text(poet.name)
                 .font(Typeface.display(76 * k, weight: 900))
                 .foregroundStyle(Palette.cream)
@@ -58,7 +60,7 @@ struct EntranceView: View {
         .animation(.spring(response: 0.42, dampingFraction: 0.78), value: landed)
         .onAppear { landed = true }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Enter \(poet.fullName)")
+        .accessibilityLabel("\(label) \(poet.fullName)")
     }
 }
 

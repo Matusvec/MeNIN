@@ -20,6 +20,12 @@ struct DesignGalleryView: View {
             GalleryHostsDiscus().tag(9)
             GalleryTurnPieces().tag(10)
             GalleryHome().tag(11)
+            ForEach(Array(GallerySample.arenaMoments.enumerated()), id: \.offset) { i, m in
+                GalleryArena(model: m).tag(12 + i)
+            }
+            ForEach(Array(GallerySample.phoneMoments.enumerated()), id: \.offset) { i, m in
+                GalleryPhone(model: m).tag(30 + i)
+            }
         }
         .tabViewStyle(.page(indexDisplayMode: .always))
         .ignoresSafeArea()
@@ -287,6 +293,76 @@ private struct GalleryHome: View {
                      collectionSummary: "12 formulas · 2 battles · Herald")
                 .safeAreaPadding(.top, 50)
             HomeTabBar(selection: $tab)
+        }
+    }
+}
+
+extension GallerySample {
+    static var plates: [PoetPlate] { poets }
+
+    static var arenaMoments: [ArenaModel] {
+        let p = poets
+        var base = ArenaModel(code: "WKRD", joinURL: "homer://join/WKRD", round: 2, rounds: 3,
+                              theme: "A ship that never came home", poets: p)
+        var lobby = base
+        lobby.round = 0
+        lobby.theme = nil
+        lobby.moment = .lobby(entering: p[1])
+        lobby.homer = HomerLine(text: "Enter Sunya, Storm-Throated!", spoken: 0.7)
+        var speaking = base
+        speaking.liveId = "a"
+        speaking.moment = .speaking(poet: p[0], lane: lane(ago: 13.2),
+                                    transcript: ["Wine-dark sea took my brother's ship", "the whale-road swallowed his sails"],
+                                    played: [hand[0]], answer: AnswerPrompt(line: "The lamp burned out before the dawn", poet: "Sunya"))
+        var verdict = base
+        verdict.moment = .verdict(poet: p[0], card: card, reveal: 1, coined: "storm-throated")
+        verdict.homer = HomerLine(text: card.verdict, spoken: 1)
+        var end = base
+        end.moment = .roundEnd(bestLine: card.bestLine, by: "Matus, round two", carve: 1)
+        var finale = base
+        finale.round = 3
+        finale.moment = .finale(lines: ["Wine-dark sea took my brother's ship", "the whale-road swallowed his sails",
+                                        "The lamp burned out before the dawn", "and still the oars kept time"], current: 1)
+        var champ = base
+        champ.round = 3
+        champ.moment = .champion(p[1])
+        base.moment = .roundTitle
+        return [lobby, speaking, verdict, end, finale, champ, base]
+    }
+
+    static var phoneMoments: [PlayerModel] {
+        let me = poets[0]
+        var join = PlayerModel()
+        join.moment = .joining(error: nil)
+        var speak = PlayerModel(me: me, code: "WKRD", round: 2, rounds: 3, theme: "A ship that never came home")
+        speak.moment = .speaking(lane: lane(ago: 13.2), transcript: "Wine-dark sea took my brother's ship\nthe whale-road swallowed his sails",
+                                 hand: hand, rescueId: "2", talking: true, level: 0.6, pushToTalk: true)
+        speak.homer = HomerLine(text: "Grey-eyed Athena.", whisper: true)
+        var result = PlayerModel(me: me, code: "WKRD", round: 2, rounds: 3)
+        result.moment = .result(card: card, reveal: 1, coined: "storm-throated")
+        var final = PlayerModel(me: me, code: "WKRD", round: 3, rounds: 3)
+        final.moment = .final(place: 2, of: 3, champion: poets[1])
+        return [join, speak, result, final]
+    }
+}
+
+private struct GalleryArena: View {
+    let model: ArenaModel
+    var body: some View {
+        ZStack {
+            SceneView(emotion: EmotionWeights([.longing: 0.5, .awe: 0.5]), prosody: Prosody(energy: 0.4, pitch: 170))
+            ArenaView(model: model, actions: ArenaActions(begin: {}, pickTheme: { _ in }, advance: {}, rematch: {}, newPoets: {}))
+        }
+    }
+}
+
+private struct GalleryPhone: View {
+    let model: PlayerModel
+    var body: some View {
+        ZStack {
+            SceneView(emotion: EmotionWeights([.grief: 0.5, .longing: 0.5]), prosody: Prosody(energy: 0.4, pitch: 150))
+            PlayerView(model: model, actions: PlayerActions(join: { _, _ in }, imHere: {}, ready: {}, setTalking: { _ in }, done: {}))
+                .safeAreaPadding(.top, 54)
         }
     }
 }

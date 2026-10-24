@@ -75,7 +75,9 @@ private struct FirstOpenScreen: View {
     @State private var flow: FirstOpenFlow?
 
     var body: some View {
-        Group {
+        // A ZStack with a clear layer always exists, so `.task` fires before the flow does.
+        ZStack {
+            Color.clear
             if let flow {
                 FirstOpenView(
                     beat: flow.beat == .listening ? .listening : (flow.beat == .homerAnswers ? .homerAnswers : .homerSpeaks),

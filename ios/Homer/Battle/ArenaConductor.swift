@@ -26,13 +26,20 @@ final class ArenaConductor {
     }
 
     func start() {
-        do {
-            try audio.start(recording: false)
-        } catch {
-            audioError = "Audio failed to start: \(error.localizedDescription)"
-            return
-        }
         ticker?.cancel()
+        ticker = Task { [weak self, audio] in
+            do {
+                try await Task.detached { try audio.start(recording: false) }.value
+            } catch {
+                self?.audioError = "Audio failed to start: \(error.localizedDescription)"
+                return
+            }
+            guard !Task.isCancelled else { return }
+            self?.runTicker()
+        }
+    }
+
+    private func runTicker() {
         ticker = Task { [weak self] in
             while !Task.isCancelled {
                 self?.tick()

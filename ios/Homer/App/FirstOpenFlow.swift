@@ -22,9 +22,7 @@ final class FirstOpenFlow {
         speech: "Good. Now let me show you how I did it."
     )
 
-    private(set) var beat = Beat.homerSpeaks {
-        didSet { print("FIRSTOPEN beat \(beat)") }
-    }
+    private(set) var beat = Beat.homerSpeaks
     /// What Homer heard (live STT when available).
     private(set) var heard = ""
     var level: Double { mic.prosody.energy }
@@ -42,9 +40,7 @@ final class FirstOpenFlow {
 
     /// Runs the whole first open; returns when Homer has handed over.
     func run() async {
-        print("FIRSTOPEN start")
-        do { try audio.start(recording: true) } catch { print("FIRSTOPEN audio \(error)") }
-        print("FIRSTOPEN audio up")
+        try? await Task.detached { [audio] in try audio.start(recording: true) }.value
         beat = .homerSpeaks
         await homer.say(Self.opening)
 
