@@ -6,6 +6,8 @@ Logistics for judging day, Sunday Oct 25: what goes where, what gets charged, ho
 
 **Our gear (Matus's list):** one Mac (a MacBook Air), three iPhones and power banks. There's no iPad and no portable monitor. gtm checked the venue items against the Hacker Guide and the Cal Hacks announcements on Fri Oct 23, and marks them **(confirmed)** or **(not in the guide)**.
 
+**The build: TestFlight build 4** (0.1.0, `202610240956`; processing as of Sat ~10 AM). It has lesson 1 (verified live), debate, discus, the force-quit rejoin, the hall and the app key. **Build 4 judges the beat more strictly than build 3,** so the first-timer study, every Beat number in the pitch and Devpost, and every rehearsal run on build 4. Before each study session and each judge, check Settings → About in MeNIN (or the TestFlight app) for build `202610240956`. A later freeze build replaces it only if leader says so, and then the Beat numbers get rechecked.
+
 ## Sunday timeline
 
 | Time | What | Who |

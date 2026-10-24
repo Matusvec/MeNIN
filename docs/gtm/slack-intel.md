@@ -50,7 +50,7 @@ Read directly from the channels, Sat 9 AM. Each hint is quoted, and each one say
 | Cartesia STT retention: does it keep audio or transcripts, and can we turn it off? | Open. Nothing in #spons-cartesia. Ask at the booth at 2:30 PM ([booths.md](booths.md)). | |
 | DigitalOcean credits | Open. Ask the MLH coach at the MLH table at 9:45 AM. | |
 | A free .tech domain code | Open. Ask the MLH coach at the MLH table at 9:45 AM. | |
-| Must the whole team be present at judging? | **Conflicting.** One organizer said a team whose member leaves Sunday morning can still win ("yes!"); the guide says the whole team must be present. Plan for everyone to be there. | #0-ask-directors, Fri 6:29 PM (organizer) vs the Hacker Guide |
+| Must the whole team be present at judging? | **Answered: yes.** MLH: "If your entire team is not present while a judge comes, you will not be judged." That matches the Hacker Guide; one organizer's Friday "yes!" was the outlier. | #0-ask-directors, Sat 9:21 AM (MLH) |
 | How are table assignments sent out? | Open. Nothing posted yet. | |
 | **Can we tag Spacetime, Anthropic and MLH Gen AI / .Tech / DigitalOcean on Devpost?** | **Open, and urgent.** As of Sat 8:27 AM, the Devpost prize list has none of them; they're only in the Hacker Guide and on Hive. Organizers said the guide wins and asked hackers to report discrepancies (Thu). A hacker noted Anthropic "hasn't made it to the devpost yet" (Thu). Devpost's Figma list (5 prizes) also differs from Figma's doc (4). | Devpost overview page; #0-ask-directors, Thu Oct 22 5:55 PM (organizer) |
 | Are DigitalOcean credits real at this event? | **Doubtful.** No Slack post mentions DigitalOcean. MLH's cloud credits are Vultr (#1-ask-mlh, Fri 9:05 PM). The DigitalOcean prize is on Hive but not on Devpost. | #1-ask-mlh, Fri 9:05–9:13 PM (MLH) |
@@ -59,6 +59,12 @@ Read directly from the channels, Sat 9 AM. Each hint is quoted, and each one say
 
 | Time (PDT) | Channel | What it says | Means for us | Action (owner) |
 | --- | --- | --- | --- | --- |
+| Sat 9:49 AM | #cohost-spacetime | A hacker asked: "Do we need to submit anything on devpost if we do the scrabble bot challenge?" No answer yet. | The same open question applies to our bot | Forwarded to the scrabble session; watch the thread (gtm) |
+| Sat 9:42 AM | #0-ask-directors | Organizer: "two opportunities for merch distribution today" | Free merch later today | None |
+| Sat 9:28 AM | #1-ask-mlh | MLH, on its giveaway: "only one way to find out" | MLH is still handing out items at its table | Ask at the MLH table (anyone passing) |
+| Sat 9:27 AM | #spons-moss | Moss staff: "2 winners!" One is for good use of Moss, one for best engagement | Two shots: the dealer for good use, plus an engaging post | Logged on [opportunities.md](opportunities.md) #6 (gtm) |
+| Sat 9:21 AM | #0-ask-directors | MLH: "If your entire team is not present while a judge comes, you will not be judged." | Settles the conflict: the whole team stays at the table | Already in the run sheet (all) |
+| Sat 9:11 AM | #cohost-anthropic | A hacker reports that the $50 credit link is "unable to approve my request"; no staff reply yet | Credit claims can stall | Builder confirms our Console credits landed |
 | Sat 8:43 AM | #0-announcements | Organizer: "All boarding groups can now get breakfast!" | Everyone can eat now | None |
 | Sat 8:25 AM | #spons-cartesia | A hacker asked "Is cartesia gonna be at the hackathon today?"; no staff reply by 8:50 | Cartesia staff may not be at the booth on Saturday | Check #spons-cartesia before the 2:30 visit. If nobody's there, draft the retention question for #spons-cartesia and send it to leader for Matus to post (gtm) |
 | Sat 8:27 AM | Devpost page | The Devpost prize list lacks Spacetime, Anthropic, MLH Gen AI, .Tech and DigitalOcean. Its Figma prizes are the old five, not Figma's doc's four. It also says "three minutes to pitch and two minutes for judges to ask questions" (the guide says two), and that the video is for "sponsors evaluating asynchronously". | We may not be able to tag our two biggest sponsor tracks. Sponsor judges may score from the video alone. | Draft a #0-ask-directors question for Matus to post (sent to leader). Recheck Devpost each sweep (gtm) |

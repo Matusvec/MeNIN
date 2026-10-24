@@ -217,6 +217,7 @@ Main prizes are automatic.
 - [ ] README explains where SpacetimeDB is used (tables, reducers, the 20 Hz stream, the private hand, the SDK patches)
 - [ ] Video, 2:00, opening with the moment ([video.md](video.md))
 - [ ] Figma Slides link, files shared with "Anyone", whole team Edu verified
+- [ ] **Matus submits build 4 (0.1.0, `202610240956`) for external review (Beta App Review) as soon as it finishes processing.** Not build 2 or 3: build 4 has lesson 1, debate, discus and the force-quit rejoin, and its stricter Beat matches our study numbers.
 - [ ] TestFlight public link installs on an iPhone that isn't on our internal tester list
 - [ ] Cover image: an arena frame with the carved gold line, matte, no neon
 - [ ] Every `[bracket]` filled or deleted. Search the page for `[` before submitting.
