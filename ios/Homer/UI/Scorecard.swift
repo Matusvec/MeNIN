@@ -46,9 +46,10 @@ struct ScorecardView: View {
         }
     }
 
-    /// The server's fallback when the judge times out: a neutral 4/4/4 with this exact verdict.
+    /// The server's fallback when the judge never answers: a neutral 4/4/4 with this
+    /// exact verdict (homer/homer/judge.py SILENT_VERDICT). Older rows have none.
     static let neutralVerdict = "Homer is silent on this one."
-    private var isNeutral: Bool { ruling.verdict == Self.neutralVerdict }
+    private var isNeutral: Bool { ruling.verdict == Self.neutralVerdict || ruling.verdict.isEmpty }
 
     private var isDebate: Bool { ruling.axes.contains { ["claim", "poise"].contains($0.name.lowercased()) } }
 
