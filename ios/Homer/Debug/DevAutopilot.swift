@@ -42,7 +42,7 @@ final class DevAutopilot {
     }
 
     private func tick() {
-        guard battle.connection == .connected else { return }
+        guard battle.connection == .connected, battle.room?.event != "discus" else { return }
         switch battle.role {
         case .arena: arenaTick()
         case .player: playerTick()

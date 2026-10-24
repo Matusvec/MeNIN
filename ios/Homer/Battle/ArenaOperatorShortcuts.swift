@@ -11,6 +11,7 @@ import SwiftUI
 struct ArenaOperatorShortcuts: ViewModifier {
     let battle: BattleClient
     var themeCards: [String] = []
+    var onMuteMusic: (() -> Void)? = nil
 
     func body(content: Content) -> some View {
         content.background {
@@ -22,11 +23,13 @@ struct ArenaOperatorShortcuts: ViewModifier {
                     .keyboardShortcut("t", modifiers: .command)
                 Button("Skip turn") { if let turn = battle.currentTurn { battle.skipTurn(turn.id) } }
                     .keyboardShortcut("k", modifiers: .command)
+                Button("Mute music") { onMuteMusic?() }
+                    .keyboardShortcut("m", modifiers: .command)
                 Button("Rematch") { battle.rematch() }
                     .keyboardShortcut("r", modifiers: .command)
-                Button("New demo battle") { battle.createRoom(.demoMode) }
+                Button("New demo battle") { battle.createRoom(.preset(event: battle.room?.event ?? "poetry", demo: true)) }
                     .keyboardShortcut("n", modifiers: .command)
-                Button("New battle") { battle.createRoom(.standard) }
+                Button("New battle") { battle.createRoom(.preset(event: battle.room?.event ?? "poetry", demo: false)) }
                     .keyboardShortcut("n", modifiers: [.command, .shift])
                 ForEach(Array(themeCards.prefix(3).enumerated()), id: \.offset) { index, theme in
                     Button("Theme \(index + 1)") { battle.chooseTheme(theme) }
@@ -41,7 +44,7 @@ struct ArenaOperatorShortcuts: ViewModifier {
 }
 
 extension View {
-    func arenaOperatorShortcuts(_ battle: BattleClient, themeCards: [String] = []) -> some View {
-        modifier(ArenaOperatorShortcuts(battle: battle, themeCards: themeCards))
+    func arenaOperatorShortcuts(_ battle: BattleClient, themeCards: [String] = [], onMuteMusic: (() -> Void)? = nil) -> some View {
+        modifier(ArenaOperatorShortcuts(battle: battle, themeCards: themeCards, onMuteMusic: onMuteMusic))
     }
 }

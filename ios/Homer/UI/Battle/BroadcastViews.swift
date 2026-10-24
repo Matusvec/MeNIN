@@ -185,10 +185,12 @@ struct ScoreboardView: View {
 struct JoinCardView: View {
     let code: String
     let url: String
+    /// Smaller, for a side column (the hall).
+    var compact: Bool = false
     @Environment(\.stage) private var stage
 
     var body: some View {
-        let k = stage.scale
+        let k = stage.scale * (compact ? 0.62 : 1)
         ViewThatFits(in: .horizontal) {
             HStack(spacing: Metrics.s6 * k) { qr(k); words(k) }
             VStack(alignment: .leading, spacing: Metrics.s5 * k) { qr(k); words(k) }

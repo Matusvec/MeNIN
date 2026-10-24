@@ -19,9 +19,24 @@ enum Reducer {
 
         static let standard = CreateRoom(event: "poetry", rounds: 3, barsPerLine: 2, linesPerTurn: 4, bpm: 80, form: "four_beat", autoReady: false, themeChoice: false, demo: false)
         static let demoMode = CreateRoom(event: "poetry", rounds: 1, barsPerLine: 2, linesPerTurn: 2, bpm: 80, form: "four_beat", autoReady: true, themeChoice: false, demo: true)
+
+        /// A room for any event. Non-poetry events pass valid poetry fields the server ignores
+        /// for them: debate turns are a 3 s count-in then 45 s; discus is a 30 s window.
+        static func preset(event: String, demo: Bool) -> CreateRoom {
+            var room = demo ? demoMode : standard
+            room.event = event
+            switch event {
+            case "discus": room.rounds = 3  // throws each; best counts
+            case "debate": room.rounds = demo ? 1 : 3
+            default: break
+            }
+            return room
+        }
     }
 
     struct RoomId: Codable, Sendable { var roomId: UInt64 }
+    /// Arena only, from lobby or finished: switch an open hall to another event (P16).
+    struct SetEvent: Codable, Sendable { var roomId: UInt64; var event: String; var rounds: UInt32 }
     struct TurnId: Codable, Sendable { var turnId: UInt64 }
     struct ChooseTheme: Codable, Sendable { var roomId: UInt64; var theme: String }
 

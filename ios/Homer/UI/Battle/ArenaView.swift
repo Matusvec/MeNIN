@@ -40,6 +40,7 @@ private struct ArenaCanvas: View {
     /// Changes only when the kind of moment changes, so inner updates don't re-run transitions.
     private var momentKey: String {
         switch model.moment {
+        case .hall: "hall"
         case .lobby: "lobby"
         case .themePick: "theme"
         case .roundTitle: "title\(model.round)"
@@ -79,8 +80,10 @@ private struct ArenaCanvas: View {
     }
 
     private var isLobby: Bool {
-        if case .lobby = model.moment { return true }
-        return false
+        switch model.moment {
+        case .lobby, .hall: return true
+        default: return false
+        }
     }
 
     // MARK: Moments
@@ -89,6 +92,25 @@ private struct ArenaCanvas: View {
     private var moment: some View {
         let k = stage.scale
         switch model.moment {
+        case .hall(let entering, let events):
+            HStack(alignment: .top, spacing: Metrics.s6 * k) {
+                EventMenuView(events: events, onPick: actions.pickEvent.map { pick in { tile in
+                    if let kind = tile.kind { pick(kind) }
+                } }, showsHeader: false)
+                .frame(maxWidth: .infinity)
+                VStack(spacing: Metrics.s4 * k) {
+                    JoinCardView(code: model.code, url: model.joinURL, compact: true)
+                    hall
+                }
+                .frame(width: 300 * k)
+            }
+            .overlay(alignment: .bottom) {
+                if let entering {
+                    EntranceView(poet: entering).id(entering.id)
+                        .padding(.horizontal, -Metrics.s6 * k)
+                }
+            }
+
         case .lobby(let entering):
             HStack(alignment: .center, spacing: Metrics.s6 * k) {
                 JoinCardView(code: model.code, url: model.joinURL)
@@ -165,7 +187,12 @@ private struct ArenaCanvas: View {
 
         case .champion(let poet):
             HStack(alignment: .center, spacing: Metrics.s6 * k) {
-                ChampionView(poet: poet, onRematch: actions.rematch, onNewPoets: actions.newPoets)
+                VStack(spacing: Metrics.s4 * k) {
+                    ChampionView(poet: poet, onRematch: actions.rematch, onNewPoets: actions.newPoets)
+                    if let backToHall = actions.backToHall {
+                        Button("Back to the hall", action: backToHall).buttonStyle(.homer(.secondary))
+                    }
+                }
                 ScoreboardView(poets: model.poets, round: model.rounds, rounds: model.rounds)
             }
 
@@ -220,7 +247,7 @@ private struct ArenaCanvas: View {
                 }
                 .transition(.move(edge: .trailing).combined(with: .opacity))
             }
-            if let begin = actions.begin {
+            if let begin = actions.begin, !isHall {
                 Button(action: begin) { ArrowLabel(title: model.poets.count < 2 ? "Need two poets" : "Begin the Agon") }
                     .buttonStyle(HomerButtonStyle(kind: .cream))
                     .disabled(model.poets.count < 2)
@@ -231,6 +258,11 @@ private struct ArenaCanvas: View {
         .frame(minWidth: 260 * k, alignment: .leading)
         .paper(Palette.hero, radius: Metrics.radiusL * k)
         .animation(Motion.slide, value: model.poets.map(\.id))
+    }
+
+    private var isHall: Bool {
+        if case .hall = model.moment { return true }
+        return false
     }
 
     /// The poet on the mic: a seat-colored plate.

@@ -23,7 +23,13 @@ final class PracticeSession {
     static let barsPerLine = 2
 
     private(set) var phase = Phase.idle {
-        didSet { if phase != oldValue { Self.log.notice("practice phase \(String(describing: self.phase), privacy: .public)") } }
+        didSet {
+            guard phase != oldValue else { return }
+            Self.log.notice("practice phase \(String(describing: self.phase), privacy: .public)")
+            #if DEBUG
+            print("PRACTICE phase \(phase) t=\(Int(Date().timeIntervalSince1970 * 1000))")  // dev console (devicectl --console)
+            #endif
+        }
     }
     private static let log = Logger(subsystem: "com.matusvec.homer", category: "practice")
     private(set) var theme = ""
@@ -103,6 +109,7 @@ final class PracticeSession {
         guard phase == .ready || phase == .verdict else { return }
         resetTurn()
         phase = .announcing
+        MusicDirector.shared.stopLoop(fade: 0.6)
         await openVoice()
 
         mic.muted = true  // keep Homer's announcement out of the verse
@@ -113,6 +120,7 @@ final class PracticeSession {
         let nowMs = Date().timeIntervalSince1970 * 1000
         let clock = BeatClock(beatAtMs: nowMs + bar + 250, bpm: Self.bpm, barsPerLine: Self.barsPerLine, lines: Self.lines)
         self.clock = clock
+        MusicDirector.shared.setMicOpen(true)
         stage.playBeat(clock)
         haptics.play(clock)
         lastVoiceMs = clock.beatAtMs
@@ -128,6 +136,8 @@ final class PracticeSession {
         await waitForFlush(timeoutMs: 1500)
         let verse = transcript.trimmingCharacters(in: .whitespacesAndNewlines)
         stopListening()  // the engine stays up: Homer speaks the verdict through it
+        MusicDirector.shared.setMicOpen(false)
+        MusicDirector.shared.play(.trainingAmbience)
         await judge(verse)
     }
 
@@ -259,6 +269,9 @@ final class PracticeSession {
     // MARK: judge
 
     private func judge(_ verse: String) async {
+        #if DEBUG
+        print("PRACTICE transcript \(verse.replacingOccurrences(of: "\n", with: " | ")) | hits \(hits) | played \(played.sorted()) | emotion samples \(emotionHistory.count)")
+        #endif
         guard let agent, !verse.isEmpty else {
             verdictText = "No verse came. Again."
             phase = .verdict
@@ -288,6 +301,10 @@ final class PracticeSession {
     }
 
     private func accept(_ r: JudgeResult) {
+        #if DEBUG
+        print("PRACTICE scores \(r.scorecard.scores) total \(r.total ?? r.scorecard.scores.total) silent \(r.isSilent) declined \(r.isDeclined)")
+        print("PRACTICE verdict \(r.verdict) | best \(r.bestLine)")
+        #endif
         result = r
         if verdictText == nil {
             verdictText = r.isDeclined ? "Not in my hall. Give me another." : (r.isSilent ? "Homer is silent on this one." : r.verdict)

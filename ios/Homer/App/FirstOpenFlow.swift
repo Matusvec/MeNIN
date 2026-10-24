@@ -40,9 +40,13 @@ final class FirstOpenFlow {
 
     /// Runs the whole first open; returns when Homer has handed over.
     func run() async {
+        let music = MusicDirector.shared
+        music.play(.firstOpenBed)
         try? await Task.detached { [audio] in try audio.start(recording: true) }.value
+        try? await Task.sleep(for: .seconds(1))  // the bed's hit lands on "Rage"
         beat = .homerSpeaks
         await homer.say(Self.opening)
+        music.setMicOpen(true)
 
         beat = .listening
         mic.onProsody = { [scene] p in scene.prosody = p }
@@ -51,6 +55,7 @@ final class FirstOpenFlow {
         mic.onProsody = nil
         mic.stop()
         scene.prosody = .silent
+        music.setMicOpen(false)
 
         beat = .homerAnswers
         await homer.say(Self.answer)

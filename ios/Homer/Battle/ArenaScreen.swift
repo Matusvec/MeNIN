@@ -4,6 +4,7 @@ import SwiftUI
 /// The arena: the art lead's ArenaView fed by BattlePresenter once a room exists, and a bare
 /// start panel before that. Sound, Homer and auto-advance live in ArenaConductor.
 struct ArenaScreen: View {
+    var event = "poetry"
     @State private var battle = BattleClient(role: .arena)
     @State private var autopilot: DevAutopilot?
     @State private var conductor: ArenaConductor?
@@ -19,7 +20,7 @@ struct ArenaScreen: View {
             }
         }
         .navigationTitle("Arena")
-        .arenaOperatorShortcuts(battle)
+        .arenaOperatorShortcuts(battle, themeCards: conductor?.themeCards ?? [], onMuteMusic: { conductor?.toggleMusicMute() })
         .orientationLock(.landscape)
         .task {
             battle.agent = AgentClient.configured
@@ -45,8 +46,8 @@ struct ArenaScreen: View {
         return ArenaStartView(
             status: status,
             resumeCode: latest?.code,
-            onStart: { battle.createRoom(.standard) },
-            onDemo: { battle.createRoom(.demoMode) },
+            onStart: { battle.createRoom(.preset(event: event, demo: false)) },
+            onDemo: { battle.createRoom(.preset(event: event, demo: true)) },
             onResume: latest.map { room in { battle.watchRoom(room.id) } }
         )
     }

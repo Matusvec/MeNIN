@@ -31,6 +31,16 @@ struct DesignGalleryView: View {
             ForEach(Array(GallerySample.phoneMoments.enumerated()), id: \.offset) { i, m in
                 GalleryPhone(model: m).tag(30 + i)
             }
+            GalleryDiscusPhone(model: DiscusPhoneModel(phase: .winding(power: 0.62), attemptsLeft: 2, best: 41.2,
+                                                       notice: nil)).tag(35)
+            GalleryDiscusPhone(model: DiscusPhoneModel(phase: .safety)).tag(36)
+            GalleryDiscusPhone(model: DiscusPhoneModel(phase: .thrown(distance: 33.0, foul: true), attemptsLeft: 1, best: 41.2,
+                                                       notice: "That's a drop, not a throw.")).tag(37)
+            ZStack {
+                SceneView(emotion: EmotionWeights([.joy: 0.5, .awe: 0.5]))
+                DiscusArenaScreen(model: GallerySample.discusLanded, code: "WKRD")
+            }
+            .tag(22)
         }
         .tabViewStyle(.page(indexDisplayMode: .always))
         .ignoresSafeArea()
@@ -353,7 +363,20 @@ extension GallerySample {
                                                  recordHolder: "Ham", attempt: 2, attempts: 3,
                                                  board: [DiscusMark(poet: p[0], best: 38.4), DiscusMark(poet: p[1], best: 44.0),
                                                          DiscusMark(poet: p[2], best: 52.1)]))
-        return [lobby, speaking, verdict, end, finale, champ, base, debate, ruling, discus]
+        var hall = base
+        hall.round = 0
+        hall.theme = nil
+        hall.moment = .hall(entering: nil, events: EventTile.all)
+        hall.homer = HomerLine(text: "The hall is open. Choose the contest.", spoken: 1)
+        return [lobby, speaking, verdict, end, finale, champ, base, debate, ruling, discus, hall]
+    }
+
+    static var discusLanded: DiscusArenaModel {
+        DiscusArenaModel(thrower: poets[0], phase: .landed(foul: false), distance: 47.3, record: 47.3, recordHolder: "Matus",
+                         attempt: 3, attempts: 3,
+                         board: [DiscusMark(poet: poets[0], best: 47.3), DiscusMark(poet: poets[1], best: 44.0),
+                                 DiscusMark(poet: poets[2], best: 31.8)],
+                         landing: .hallBest, caption: "Forty-seven metres. Phayllos weeps.")
     }
 
     static var phoneMoments: [PlayerModel] {
@@ -378,9 +401,7 @@ extension GallerySample {
                                           FormulaCard(id: "m5", text: "Ask a question", kind: .move, used: false)],
                                   whisperedId: "m2", talking: true, level: 0.5, endsAt: Date().addingTimeInterval(23), seconds: 45)
         debate.homer = HomerLine(text: "What would a tyrant say to that?", whisper: true)
-        var discus = PlayerModel(event: .discus, me: me, code: "WKRD")
-        discus.moment = .discus(DiscusPhoneModel(phase: .winding(power: 0.62), attemptsLeft: 2))
-        return [join, speak, result, final, debate, discus]
+        return [join, speak, result, final, debate]
     }
 }
 
@@ -389,7 +410,20 @@ private struct GalleryArena: View {
     var body: some View {
         ZStack {
             SceneView(emotion: EmotionWeights([.longing: 0.5, .awe: 0.5]), prosody: Prosody(energy: 0.4, pitch: 170))
-            ArenaView(model: model, actions: ArenaActions(begin: {}, pickTheme: { _ in }, advance: {}, rematch: {}, newPoets: {}))
+            ArenaView(model: model, actions: ArenaActions(begin: {}, pickTheme: { _ in }, advance: {}, rematch: {}, newPoets: {},
+                                                          pickEvent: { _ in }, backToHall: {}))
+        }
+    }
+}
+
+private struct GalleryDiscusPhone: View {
+    let model: DiscusPhoneModel
+    var body: some View {
+        ZStack {
+            SceneView(emotion: EmotionWeights([.defiance: 0.5, .joy: 0.5]), prosody: Prosody(energy: 0.5, pitch: 200))
+            DiscusPhoneView(model: model, onSafetyAck: {})
+                .padding(.horizontal, Metrics.s4)
+                .safeAreaPadding(.top, 54)
         }
     }
 }

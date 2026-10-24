@@ -99,7 +99,7 @@ final class BattleClient: SpacetimeClientDelegate {
     /// The arena asks the agent for battle work when the phase calls for it, once per step.
     /// Results come back through the subscription; every call is safe to retry.
     private func askAgentIfNeeded() {
-        guard let agent, let room else { return }
+        guard let agent, let room, room.event != "discus" else { return }  // discus has no Claude
         /// Fire and forget, for calls whose failure only means "try again next tick".
         func quietly(_ key: String, _ work: @escaping @Sendable () async throws -> Void) {
             guard !agentAsked.contains(key) else { return }
@@ -232,7 +232,8 @@ final class BattleClient: SpacetimeClientDelegate {
 
     // MARK: reducers
 
-    private func call<A: Encodable>(_ reducer: String, _ args: A) {
+    /// Internal so event modules (Events/Discus) can add their own reducers in extensions.
+    func call<A: Encodable>(_ reducer: String, _ args: A) {
         guard let client else {
             lastError = "Not connected"
             return
@@ -271,6 +272,8 @@ final class BattleClient: SpacetimeClientDelegate {
     }
     func skipTurn(_ turnId: UInt64) { call("skip_turn", Reducer.TurnId(turnId: turnId)) }
     func rematch() { call("rematch", Reducer.RoomId(roomId: roomId)) }
+    /// The hall stays open (P16): switch events without a new room; poets and seats stay.
+    func setEvent(_ event: String, rounds: UInt32) { call("set_event", Reducer.SetEvent(roomId: roomId, event: event, rounds: rounds)) }
 
     // Both
 

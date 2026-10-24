@@ -8,14 +8,21 @@ import Observation
 final class AppModel {
     enum Route: Hashable {
         case firstOpen
+        /// E0, the event menu: one tile per event (docs/ux-flow.md section 7).
         case home
+        /// E1, a tile opened onto its choices. Poetry opens onto Learn, Train, Fight.
+        case event(String)
         case bard
         case practice
-        case battle  // pick: host the arena or join as a poet
-        case arena
+        case battle(event: String)  // host the arena or join as a poet
+        case arena(event: String)
         case player(code: String)
         case dev
     }
+
+    /// Events playable on this build (SPEC "The games": a tile that can't run 5 times in a row
+    /// stays locked for the demo). A config switch, not code.
+    static let liveEvents: Set<String> = ["poetry", "debate", "discus"]
 
     var route: Route
     /// The always-on scene (SPEC "The scene"): whoever is live writes it, no view re-renders.
@@ -43,7 +50,7 @@ final class AppModel {
         route = defaults.bool(forKey: Keys.firstOpenDone) ? .home : .firstOpen
         // Dev: `-startScreen arena|player|dev|home|first` jumps straight in (smoke tests, the operator).
         switch defaults.string(forKey: "startScreen") {
-        case "arena": route = .arena
+        case "arena": route = .arena(event: defaults.string(forKey: "event") ?? "poetry")
         case "player": route = .player(code: defaults.string(forKey: "joinCode") ?? "")
         case "dev", "diagnostics": route = .dev
         case "home": route = .home
@@ -53,9 +60,26 @@ final class AppModel {
         }
     }
 
+    /// F4: the first launch lands on the event menu with the poetry tile already open.
     func finishFirstOpen() {
         defaults.set(true, forKey: Keys.firstOpenDone)
-        route = .home
+        route = .event("poetry")
+    }
+
+    /// Music for the screen we're on (docs/ux-flow.md section 10). The arena's battle music is
+    /// ArenaConductor's; a phone in a hall never plays music, since it's a mic.
+    func routeChanged() {
+        let music = MusicDirector.shared
+        switch route {
+        case .home, .event, .battle:
+            music.play(.hallTheme)
+        case .bard, .practice:
+            music.play(.trainingAmbience)
+        case .player:
+            music.stopAll()
+        case .arena, .firstOpen, .dev:
+            break
+        }
     }
 
     func coin(_ formula: String) {

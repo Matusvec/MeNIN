@@ -190,6 +190,9 @@ struct EventTile: Identifiable, Equatable {
 }
 
 extension EventTile {
+    /// The playable event this tile starts; nil for a locked tile.
+    var kind: EventKind? { locked ? nil : EventKind(rawValue: id) }
+
     /// The events in the spec, in menu order. Locked tiles are the future.
     static let all: [EventTile] = [
         EventTile(id: "poetry", title: "Poetry Battle", host: .homer, blurb: "Improvise verse over the beat", art: .lyre),
@@ -207,27 +210,60 @@ struct EventMenuView: View {
     var onPick: ((EventTile) -> Void)? = nil
     /// Shown on the arena while phones are joined: "4 poets in the hall".
     var hallNote: String? = nil
+    /// The wordmark row; off when the screen already has a top bar (the arena hall).
+    var showsHeader: Bool = true
 
     @Environment(\.stage) private var stage
 
     var body: some View {
         let k = stage.scale
-        let columns = [GridItem(.adaptive(minimum: 150 * k, maximum: 300 * k), spacing: Metrics.s4 * k)]
         VStack(alignment: .leading, spacing: Metrics.s5 * k) {
-            HStack(alignment: .bottom) {
-                WordmarkView(size: 31 * k)
-                Spacer()
-                if let hallNote { Text(hallNote).chip(11 * k) }
-            }
-            Text("Choose your event").chip(11 * k)
-            LazyVGrid(columns: columns, spacing: Metrics.s4 * k) {
-                ForEach(events) { event in
-                    Button { onPick?(event) } label: { EventTileView(event: event) }
-                        .buttonStyle(TilePress())
-                        .disabled(event.locked)
+            if showsHeader {
+                HStack(alignment: .bottom) {
+                    WordmarkView(size: 31 * k)
+                    Spacer()
+                    if let hallNote { Text(hallNote).chip(11 * k) }
                 }
             }
+            Text("Choose your event").chip(11 * k)
+            if stage.isArena { arenaLayout } else { phoneLayout }
         }
+    }
+
+    /// Phone: a two-column grid of every tile.
+    private var phoneLayout: some View {
+        let k = stage.scale
+        let columns = [GridItem(.adaptive(minimum: 150 * k, maximum: 300 * k), spacing: Metrics.s4 * k)]
+        return LazyVGrid(columns: columns, spacing: Metrics.s4 * k) {
+            ForEach(events) { tile($0) }
+        }
+    }
+
+    /// Arena: the live events as big equal tiles, the future as a quiet row of "soon".
+    private var arenaLayout: some View {
+        let k = stage.scale
+        let live = events.filter { !$0.locked }
+        let soon = events.filter(\.locked)
+        return VStack(alignment: .leading, spacing: Metrics.s4 * k) {
+            HStack(alignment: .top, spacing: Metrics.s4 * k) {
+                ForEach(live) { tile($0).frame(maxWidth: .infinity) }
+            }
+            if !soon.isEmpty {
+                HStack(spacing: Metrics.s2 * k) {
+                    Text("Soon").tracked(10 * k, color: Palette.ink2)
+                    ForEach(soon) { Text($0.title).chip(10 * k, fill: Palette.paper2, color: Palette.ink3) }
+                }
+                .padding(.horizontal, Metrics.s3 * k)
+                .padding(.vertical, Metrics.s2 * k)
+                .paper(Palette.paper, radius: 100, lifted: false)
+            }
+        }
+    }
+
+    private func tile(_ event: EventTile) -> some View {
+        Button { onPick?(event) } label: { EventTileView(event: event) }
+            .buttonStyle(TilePress())
+            .disabled(event.locked || onPick == nil)
     }
 }
 

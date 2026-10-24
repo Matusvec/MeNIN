@@ -88,6 +88,8 @@ final class HomerVoice {
     }
 
     private func speak(_ line: Line) async {
+        MusicDirector.shared.setHostSpeaking(true)
+        defer { MusicDirector.shared.setHostSpeaking(false) }
         caption = line
         spoken = 0
         let estimate = max(1.2, Double(line.text.count) * 0.065)

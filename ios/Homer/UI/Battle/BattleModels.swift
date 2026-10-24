@@ -37,6 +37,8 @@ struct ArenaModel: Equatable {
 }
 
 enum ArenaMoment: Equatable {
+    /// The hall: everyone joined, choosing the next event (SPEC: the hall stays open between events).
+    case hall(entering: PoetPlate?, events: [EventTile])
     /// H1 · Poets join; `entering` plays the entrance for a poet who just passed the mic check.
     case lobby(entering: PoetPlate?)
     /// Demo mode: three theme cards; the judges pick one.
@@ -75,14 +77,21 @@ struct ArenaActions {
     var advance: (() -> Void)?
     var rematch: (() -> Void)?
     var newPoets: (() -> Void)?
+    /// The hall: start the chosen event with everyone in it (BattleClient.setEvent).
+    var pickEvent: ((EventKind) -> Void)?
+    /// Champion and round end: go back to the hall instead of a rematch.
+    var backToHall: (() -> Void)?
 
     init(begin: (() -> Void)? = nil, pickTheme: ((Int) -> Void)? = nil, advance: (() -> Void)? = nil,
-         rematch: (() -> Void)? = nil, newPoets: (() -> Void)? = nil) {
+         rematch: (() -> Void)? = nil, newPoets: (() -> Void)? = nil,
+         pickEvent: ((EventKind) -> Void)? = nil, backToHall: (() -> Void)? = nil) {
         self.begin = begin
         self.pickTheme = pickTheme
         self.advance = advance
         self.rematch = rematch
         self.newPoets = newPoets
+        self.pickEvent = pickEvent
+        self.backToHall = backToHall
     }
 }
 
@@ -123,9 +132,7 @@ enum PlayerMoment: Equatable {
                   talking: Bool, level: Double, endsAt: Date?, seconds: Double)
     /// Your judged turn in any event.
     case ruling(Ruling, reveal: Double)
-
-    // Discus.
-    case discus(DiscusPhoneModel)
+    // Discus on the phone is its own screen: DiscusPhoneView, routed by the discus presenter.
 }
 
 struct PlayerActions {
@@ -136,18 +143,15 @@ struct PlayerActions {
     var done: (() -> Void)?
     /// Debate: a move card tapped as the speaker makes it (the card's id).
     var playMove: ((String) -> Void)?
-    /// Discus: thumb down (true) and lifted to throw (false).
-    var holdDiscus: ((Bool) -> Void)?
 
     init(join: ((String, String) -> Void)? = nil, imHere: (() -> Void)? = nil, ready: (() -> Void)? = nil,
          setTalking: ((Bool) -> Void)? = nil, done: (() -> Void)? = nil,
-         playMove: ((String) -> Void)? = nil, holdDiscus: ((Bool) -> Void)? = nil) {
+         playMove: ((String) -> Void)? = nil) {
         self.join = join
         self.imHere = imHere
         self.ready = ready
         self.setTalking = setTalking
         self.done = done
         self.playMove = playMove
-        self.holdDiscus = holdDiscus
     }
 }

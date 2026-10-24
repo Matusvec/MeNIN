@@ -18,6 +18,8 @@ final class ArenaConductor {
     @ObservationIgnored private var beatFor: String?
     @ObservationIgnored private var lastHits: (turn: UInt64, hits: UInt32) = (0, 0)
     @ObservationIgnored private var said = Set<String>()
+    @ObservationIgnored private var lastPhase: String?
+    @ObservationIgnored private let music = MusicDirector.shared
     @ObservationIgnored private let agent: AgentClient?
     let homer: HomerVoice
 
@@ -62,12 +64,18 @@ final class ArenaConductor {
 
     func stop() {
         ticker?.cancel()
+        music.setMicOpen(false)
         homer.silence()
         audio.stop()
     }
 
     private func tick() {
-        guard let room = battle.room else { return }
+        // Discus runs its own reveal (Events/Discus); checked per tick since set_event can switch a live hall.
+        guard let room = battle.room, room.event != "discus" else {
+            stopBeatIfPlaying()
+            return
+        }
+        cueMusic(room)
         speakIfDue(room)
         guard let turn = battle.currentTurn else {
             stopBeatIfPlaying()
@@ -158,6 +166,38 @@ final class ArenaConductor {
         default:
             break
         }
+    }
+
+    /// docs/ux-flow.md section 10: where each cue plays on the arena.
+    private func cueMusic(_ room: RoomRow) {
+        music.demoDucked = room.demo
+        music.setMicOpen(room.phaseValue == .speaking)
+        guard room.phase != lastPhase else { return }
+        let previous = lastPhase
+        lastPhase = room.phase
+        switch room.phaseValue {
+        case .lobby, .theme:
+            music.play(.hallTheme)
+        case .dealing where previous == RoomPhase.finished.rawValue:
+            music.play(.rematch)
+        case .dealing, .ready:
+            // The event's intro once, as the battle leaves the lobby.
+            let fromLobby = previous == nil || previous == RoomPhase.lobby.rawValue || previous == RoomPhase.theme.rawValue
+            if room.roundNo == 1 && fromLobby {
+                music.stopLoop(fade: 0.5)
+                music.play(room.event == "debate" ? .debateIntro : room.event == "discus" ? .discusIntro : .poetryIntro)
+            }
+        case .roundEnd:
+            music.play(.roundEnd)
+        case .finished:
+            music.play(.champion)
+        default:
+            break
+        }
+    }
+
+    func toggleMusicMute() {
+        music.muted.toggle()
     }
 
     private func speak(_ key: String, _ text: String) async {

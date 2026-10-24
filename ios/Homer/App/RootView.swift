@@ -21,6 +21,7 @@ struct RootView: View {
             content
         }
         .onOpenURL { app.open($0) }
+        .onChange(of: app.route, initial: true) { app.routeChanged() }
     }
 
     @ViewBuilder
@@ -29,6 +30,20 @@ struct RootView: View {
         case .firstOpen:
             FirstOpenScreen(app: app)
         case .home:
+            EventMenuView(events: EventTile.all.map { tile in
+                var t = tile
+                t.locked = tile.locked || !AppModel.liveEvents.contains(tile.id)
+                return t
+            }, onPick: { tile in
+                guard !tile.locked else { return }
+                app.route = .event(tile.id)
+            })
+            .overlay(alignment: .topTrailing) {
+                if Self.devMenuEnabled {
+                    Button("Dev") { app.route = .dev }.padding()
+                }
+            }
+        case .event("poetry"):
             HomeView(
                 name: app.poetName.isEmpty ? "poet" : app.poetName,
                 collectionSummary: app.hoard.isEmpty ? "Coin a formula and it lands here" : "\(app.hoard.count) formulas",
@@ -37,15 +52,19 @@ struct RootView: View {
                     switch mode.id {
                     case "bard": app.route = .bard
                     case "practice": app.route = .practice
-                    default: app.route = .battle
+                    default: app.route = .battle(event: "poetry")
                     }
                 },
-                onProfile: Self.devMenuEnabled ? { app.route = .dev } : nil
+                onProfile: { app.route = .home }
             )
-        case .battle:
-            Routed(app: app, title: "Battle") { BattleChoiceView(app: app) }
-        case .arena:
-            Routed(app: app, title: "Arena") { ArenaScreen() }
+        case .event(let id):
+            Routed(app: app, title: EventTile.all.first { $0.id == id }?.title ?? id) {
+                EventChoicesView(app: app, event: id)
+            }
+        case .battle(let event):
+            Routed(app: app, title: "Fight") { BattleChoiceView(app: app, event: event) }
+        case .arena(let event):
+            Routed(app: app, title: "Arena") { ArenaScreen(event: event) }
         case .player(let code):
             Routed(app: app, title: "Poet") { PlayerScreen(initialCode: code) }
         case .bard:
@@ -105,14 +124,39 @@ private struct FirstOpenScreen: View {
     }
 }
 
+/// E1 for events whose choices aren't a designed screen yet (debate, discus). Placeholder
+/// chrome; the art lead owns the look. The host's one line comes with the tile.
+private struct EventChoicesView: View {
+    let app: AppModel
+    let event: String
+
+    var body: some View {
+        List {
+            switch event {
+            case "debate":
+                // TODO(spec): Train = spar with Socrates, best of three (needs the debate brain).
+                Button("Train with Socrates") {}.disabled(true)
+                Button("Fight") { app.route = .battle(event: "debate") }
+            case "discus":
+                // TODO: Throw = multiplayer's DiscusSoloScreen (ios/Homer/Events/Discus/) once it lands.
+                Button("Throw") {}.disabled(true)
+                Button("Fight") { app.route = .battle(event: "discus") }
+            default:
+                Button("Fight") { app.route = .battle(event: event) }
+            }
+        }
+    }
+}
+
 private struct BattleChoiceView: View {
     let app: AppModel
+    let event: String
     @State private var code = ""
 
     var body: some View {
         List {
             Section {
-                Button("Host the arena on this screen") { app.route = .arena }
+                Button("Host the arena on this screen") { app.route = .arena(event: event) }
             } footer: {
                 Text("A Mac or an iPad, or a phone in landscape as a backup.")
             }

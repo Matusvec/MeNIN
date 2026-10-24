@@ -37,7 +37,6 @@ struct PlayerView: View {
         case .final: "final"
         case .debating: "debate"
         case .ruling: "ruling"
-        case .discus: "discus"
         }
     }
 
@@ -203,9 +202,6 @@ struct PlayerView: View {
                 ScorecardView(ruling: ruling, reveal: reveal, poet: model.me?.fullName)
             }
             .scrollIndicators(.hidden)
-
-        case .discus(let discus):
-            DiscusPhoneView(model: discus, onHold: actions.holdDiscus)
         }
     }
 }

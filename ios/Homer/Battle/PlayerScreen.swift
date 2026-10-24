@@ -17,6 +17,7 @@ struct PlayerScreen: View {
             .safeAreaInset(edge: .bottom) { typedFallback }
             .toolbar(battle.me == nil ? .automatic : .hidden, for: .navigationBar)
             .task {
+                MusicDirector.shared.stopAll()
                 battle.connect(to: ServerConfig.spacetime, database: ServerConfig.database)
                 let recorder = TurnRecorder(battle: battle, agent: AgentClient.configured)
                 recorder.attach()
