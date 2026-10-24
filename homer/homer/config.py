@@ -11,8 +11,11 @@ ROOT = Path(__file__).resolve().parents[1]  # the homer/ service folder
 
 
 def load_env(path: Path = ROOT / ".env") -> None:
-    """Read KEY=VALUE lines into os.environ without overriding what's set."""
-    if not path.is_file():
+    """Read KEY=VALUE lines into os.environ without overriding what's set.
+
+    HOMER_DOTENV=0 skips the file (the tests set it).
+    """
+    if os.environ.get("HOMER_DOTENV") == "0" or not path.is_file():
         return
     for line in path.read_text(encoding="utf-8").splitlines():
         line = line.strip()
@@ -46,7 +49,7 @@ def settings() -> Settings:
     return Settings(
         judge_model=_env("HOMER_JUDGE_MODEL", "claude-opus-5-5"),
         judge_effort=_env("HOMER_JUDGE_EFFORT", "low"),
-        judge_speed=_env("HOMER_JUDGE_SPEED"),
+        judge_speed=_env("HOMER_JUDGE_SPEED", "fast"),
         judge_thinking=_env("HOMER_JUDGE_THINKING", "off"),
         judge_timeout=float(_env("HOMER_JUDGE_TIMEOUT", "10")),
         fallbacks=_env("HOMER_FALLBACKS", "1") not in ("0", "false", "no"),

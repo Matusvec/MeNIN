@@ -96,7 +96,9 @@ async def run_config(spec: str, n: int) -> dict:
 async def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=20)
-    ap.add_argument("--configs", nargs="*", default=[f"{settings().judge_model}:{settings().judge_effort}"])
+    cfg = settings()
+    default = f"{cfg.judge_model}:{cfg.judge_effort}" + (":fast" if cfg.judge_speed == "fast" else "")
+    ap.add_argument("--configs", nargs="*", default=[default])
     ap.add_argument("--out", type=Path)
     args = ap.parse_args()
     results = []

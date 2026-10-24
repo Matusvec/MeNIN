@@ -74,6 +74,10 @@ def _by_key() -> dict[tuple[str, ...], Formula]:
     return {key(f.text): f for f in bank()}
 
 
+def in_bank(text: str) -> bool:
+    return key(text) in _by_key()
+
+
 def card(text: str) -> Formula:
     """The bank entry for a card's text, or an ad-hoc one (a coined hoard card)."""
     return _by_key().get(key(text)) or Formula(id=slug(text), text=text.strip())

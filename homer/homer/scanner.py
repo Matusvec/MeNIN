@@ -441,6 +441,18 @@ def _pattern(text: str, toks: list[_Token], words: list[WordScan], break_after: 
     return "".join(out)
 
 
+def stresses(text: str) -> int:
+    """Strong stresses in a stretch of speech, counted plainly (no beat fitting)."""
+    toks, _, _ = _tokenize(text)
+    tails = _compound_tails(toks)
+    return sum(
+        1
+        for i, t in enumerate(toks)
+        for w, _ in _weights(t.norm, stress(t.text)[0], i in tails)
+        if w == STRONG
+    )
+
+
 def strong_hits(phrase: str) -> int:
     """How many of a line's hits a phrase fills, read as a half-line.
 

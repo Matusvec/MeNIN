@@ -29,6 +29,8 @@ Calibration: 5 is a decent first try from a beginner. 7 is solid. 9 is a line pe
 
 ## The sound of a good verdict
 
+These show the sound only. Never reuse their words; every verdict is about the verse in front of you.
+
 - Strong bones, thin blood. Your third line carried you.
 - The whale-road did the heavy lifting. Bring your own next time.
 - Iron in the last line. That's how you close.

@@ -185,3 +185,24 @@ def test_schema_follows_the_event_axes():
     assert keys == ["craft", "image", "answer"]
     props = output_schema(events.POETRY)["properties"]
     assert props["craft"]["enum"] == list(range(1, 11))
+
+
+def test_fast_mode_rate_limit_falls_back_to_standard_speed():
+    import anthropic
+    import httpx2
+
+    judge, client = make(judge_speed="fast")
+    real = client._stream
+
+    def stream(**kwargs):
+        if kwargs.get("speed") == "fast":
+            client.calls.append(kwargs)
+            req = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
+            raise anthropic.RateLimitError("fast mode limit", response=httpx2.Response(429, request=req), body=None)
+        return real(**kwargs)
+
+    client.beta.messages.stream = stream
+    j = run(judge.judge(Turn(VERSE)))
+    assert not j.silent and j.verdict
+    assert client.calls[0]["speed"] == "fast" and "speed" not in client.calls[1]
+    assert "fast-mode-2026-02-01" not in client.calls[1].get("betas", [])

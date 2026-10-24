@@ -21,6 +21,7 @@ from __future__ import annotations
 import asyncio
 import difflib
 import json
+import logging
 import re
 import time
 from collections.abc import Awaitable, Callable
@@ -35,6 +36,8 @@ from .events import Event
 from .formulas import Formula
 from .prompts import block, judge_system, quote_untrusted
 from .scanner import TimedWord, VerseScan, scan_verse, strong_hits
+
+log = logging.getLogger("homer")
 
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
 FAST_BETA = "fast-mode-2026-02-01"
@@ -232,7 +235,7 @@ class Judge:
 
         try:
             text, final = await asyncio.wait_for(
-                self._stream(self.request(turn, event, scan), j, t0, on_verdict), self.cfg.judge_timeout
+                self._call(self.request(turn, event, scan), j, t0, on_verdict), self.cfg.judge_timeout
             )
         except (asyncio.TimeoutError, anthropic.APIError) as exc:
             j.silent, j.error = True, type(exc).__name__
@@ -266,9 +269,23 @@ class Judge:
         j.coined = self._coined(str(data.get("coined", "")), turn, lines, j.scores.get("craft", 0))
         return j
 
-    async def _stream(self, kwargs: dict[str, Any], j: Judgment, t0: float, on_verdict: OnVerdict | None):
+    async def _call(self, kwargs: dict[str, Any], j: Judgment, t0: float, on_verdict: OnVerdict | None):
+        """Fast mode has its own rate limit: on a 429 go straight to standard speed, no backoff."""
+        if kwargs.get("speed") == "fast":
+            fast = self.client.with_options(max_retries=0) if hasattr(self.client, "with_options") else self.client
+            try:
+                return await self._stream(fast, kwargs, j, t0, on_verdict)
+            except anthropic.RateLimitError:
+                log.warning("fast mode rate-limited; judging at standard speed")
+                kwargs = {k: v for k, v in kwargs.items() if k != "speed"}
+                kwargs["betas"] = [b for b in kwargs["betas"] if b != FAST_BETA]
+                if not kwargs["betas"]:
+                    del kwargs["betas"]
+        return await self._stream(self.client, kwargs, j, t0, on_verdict)
+
+    async def _stream(self, client: Any, kwargs: dict[str, Any], j: Judgment, t0: float, on_verdict: OnVerdict | None):
         text, sent = "", False
-        async with self.client.beta.messages.stream(**kwargs) as stream:
+        async with client.beta.messages.stream(**kwargs) as stream:
             async for ev in stream:
                 if ev.type == "content_block_start" and ev.content_block.type == "text":
                     text = ""  # a fresh text block (after a fallback) starts over

@@ -16,10 +16,19 @@ from dataclasses import dataclass, field
 from typing import TypeVar
 
 from . import events
+from .deal import CANDIDATES, deal, pick_theme
 from .judge import Judge, Judgment, Turn
 from .stdb import Stdb
 
 T = TypeVar("T")
+
+
+@dataclass
+class Poet:
+    player_id: int
+    name: str = ""
+    epithet: str = ""
+    hoard: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -41,7 +50,8 @@ class Arena:
     def __init__(self, judge: Judge, db: Stdb) -> None:
         self.judge, self.db = judge, db
         self.history: dict[int, list[dict[str, float]]] = {}  # turn_id -> emotion samples, in order
-        self.dealt: dict[int, list[str]] = {}  # player_id -> every card dealt this battle
+        self.dealt: dict[int, list[str]] = {}  # player_id -> every card offered this battle
+        self.themes_used: dict[int, list[str]] = {}  # room_id -> themes dealt, so a rematch gets fresh ones
         self._inflight: dict[tuple, asyncio.Task] = {}
 
     async def once(self, key: tuple, work: Callable[[], Awaitable[T]]) -> T:
@@ -81,6 +91,26 @@ class Arena:
             return "post_score", j
 
         return await self.once(("judge", bt.turn_id), work)
+
+    async def deal_round(self, room_id: int, round_no: int, theme: str, poets: list[Poet]) -> tuple[str, dict[int, list[str]]]:
+        """Pick the theme if none was chosen, deal every poet, and call deal_round."""
+
+        async def work() -> tuple[str, dict[int, list[str]]]:
+            t = theme.strip() or pick_theme(avoid=self.themes_used.get(room_id, []))
+            offered: set[str] = set()  # poets in one round get different cards
+            hands: list[list] = []
+            for p in poets:
+                cards = deal(t, p.hoard, n=CANDIDATES, exclude=[*self.dealt.get(p.player_id, []), *offered])
+                texts = [c.text for c in cards]
+                offered.update(texts)
+                hands.append([p.player_id, texts])
+            await self.db.call("deal_round", room_id, round_no, t, hands)
+            for pid, texts in hands:
+                self.dealt.setdefault(pid, []).extend(texts)
+            self.themes_used.setdefault(room_id, []).append(t)
+            return t, {pid: texts for pid, texts in hands}
+
+        return await self.once(("deal", room_id, round_no), work)
 
     def forget_room(self, turn_ids: list[int], player_ids: list[int]) -> None:
         for t in turn_ids:

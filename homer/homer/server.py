@@ -12,6 +12,7 @@ import asyncio
 import json
 import logging
 import os
+import random
 from contextlib import asynccontextmanager
 from dataclasses import asdict, is_dataclass
 from typing import Any, Literal
@@ -22,8 +23,9 @@ from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 from . import events, formulas
-from .arena import Arena, BattleTurn
+from .arena import Arena, BattleTurn, Poet
 from .config import settings
+from .deal import Card, deal, pick_theme, rescue, themes
 from .judge import EmptyVerse, Judge, Judgment, Turn
 from .scanner import TimedWord, VerseScan, beat_lane, scan_verse
 from .stdb import Refused, Stdb, StdbError
@@ -217,6 +219,79 @@ async def judge_turn(req: JudgeRequest, request: Request):
             task.cancel()
 
     return StreamingResponse(stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
+
+
+def card_json(c: Card) -> dict[str, Any]:
+    """`FormulaCard` in Contracts.swift, plus beats and hoard."""
+    return {"id": c.id, "text": c.text, "kind": c.kind, "used": False, "beats": c.beats, "hoard": c.hoard}
+
+
+@app.get("/themes")
+async def get_themes(n: int = 3, demo: bool = False) -> dict[str, Any]:
+    """Theme cards for the arena or Practice. Demo mode gets the three rehearsed themes."""
+    pool = list(themes())
+    if demo:
+        return {"themes": pool[:n]}
+    return {"themes": random.sample(pool, min(n, len(pool)))}
+
+
+class DealRequest(Model):
+    theme: str = ""
+    hoard: list[str] = Field(default_factory=list)
+    exclude: list[str] = Field(default_factory=list)  # cards already held or spent
+    n: int = 5
+
+
+@app.post("/deal")
+async def deal_hand(req: DealRequest) -> dict[str, Any]:
+    """A hand for Practice (battle hands come from /battle/deal). An empty theme gets a random one."""
+    theme = req.theme.strip() or pick_theme()
+    return {"theme": theme, "hand": [card_json(c) for c in deal(theme, req.hoard, n=max(1, min(req.n, 8)), exclude=req.exclude)]}
+
+
+class RescueRequest(Model):
+    transcript: str = ""
+    hand: list[str]
+    played: list[str] = Field(default_factory=list)
+    theme: str = ""
+
+
+@app.post("/rescue")
+async def rescue_card(req: RescueRequest) -> dict[str, Any]:
+    """The card Homer whispers when the poet freezes. No model call."""
+    c = rescue(req.transcript, req.hand, played=req.played, theme=req.theme)
+    if c is None:
+        raise HTTPException(409, "no unplayed card in the hand")
+    return {"formula": c.text, "card": card_json(c)}
+
+
+class PoetIn(Model):
+    player_id: int
+    name: str = ""
+    epithet: str = ""
+    hoard: list[str] = Field(default_factory=list)
+
+
+class BattleDealRequest(Model):
+    room_id: int
+    round_no: int
+    theme: str = ""
+    event: str = "poetry"
+    form: str = "four_beat"
+    poets: list[PoetIn]
+
+
+@app.post("/battle/deal")
+async def battle_deal(req: BattleDealRequest) -> dict[str, Any]:
+    """Pick the theme if it's empty, deal every poet, and call deal_round. Safe to retry."""
+    poets = [Poet(p.player_id, p.name, p.epithet, p.hoard) for p in req.poets]
+    try:
+        theme, hands = await arena().deal_round(req.room_id, req.round_no, req.theme, poets)
+    except Refused as exc:
+        raise HTTPException(409, str(exc)) from None
+    except StdbError as exc:
+        raise HTTPException(502, str(exc)) from None
+    return {"theme": theme, "hands": {str(k): v for k, v in hands.items()}}
 
 
 class BattleJudgeRequest(Model):
