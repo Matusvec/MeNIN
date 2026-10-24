@@ -30,7 +30,7 @@ MeNIN is ancient Greek Wii Sports: party games from the Greek *agon* (contest), 
 
 | Event | Host | What you do | Status |
 | --- | --- | --- | --- |
-| Poetry battle | Homer | Improvise verse over the beat | Core. The rest of this spec describes it |
+| Poetry battle | Homer | Spit free verse on a theme; Homer judges | Core. The rest of this spec describes it |
 | Socratic debate | Socrates | Argue a question in timed spoken turns | In build now |
 | Discus | Homer announces | Swing your phone; its motion sensors measure the throw | In build now |
 | Other events | | Locked tiles on the event menu | Not building |
@@ -43,7 +43,7 @@ MeNIN is ancient Greek Wii Sports: party games from the Greek *agon* (contest), 
 
 ## Music
 
-MeNIN has an original soundtrack composed by a teammate: a hall and menu theme, an intro per event, the discus throw and fanfare, a champion sting, and training ambience. Music never plays while any mic in the room is open; no sound effects beyond the beat and a soft strike on a hit (Matus: weird effects are worse than silence); during poetry turns only the procedural beat plays, and music ducks under Homer's and Socrates' voices. In a hall, only the arena plays music. In demo mode the hall theme stays ducked, and an operator key mutes all music. The brief for the composer (cue list, lengths, formats, loudness, loop points) is `docs/audio.md`.
+MeNIN has an original soundtrack composed by a teammate: a hall and menu theme, an intro per event, the discus throw and fanfare, a champion sting, and training ambience. Music never plays while any mic in the room is open; no sound effects beyond the beat and a soft strike on a hit (Matus: weird effects are worse than silence); battle turns are silent apart from the poet's voice, Homer's stitched song keeps its beat, and music ducks under Homer's and Socrates' voices. In a hall, only the arena plays music. In demo mode the hall theme stays ducked, and an operator key mutes all music. The brief for the composer (cue list, lengths, formats, loudness, loop points) is `docs/audio.md`.
 
 ## First open
 
@@ -89,7 +89,7 @@ Solo reps with no lesson structure. Same turn as battle mode (below), with Homer
 
 Two to five human poets in one room, Jackbox-style:
 
-- **The arena** is one big shared screen: the app in arena mode on a Mac (Apple Silicon runs iPhone apps), an iPad, or a phone mirrored to a TV. It shows the scene, the beat lane, the scoreboard, and a QR code to join.
+- **The arena** is one big shared screen: the website, full screen in a laptop's browser (see Platform). It shows the live scene, the poet's live words, the scoreboard, and a QR code to join.
 - **Your phone** is your mic and Homer's phrases. Join by scanning the QR code or typing the room code; no account needed. Your phrases are private and dealt fresh each round.
 
 How a battle runs:
@@ -110,7 +110,7 @@ Shared by practice and battle. This is the core loop; get it right first.
 1. **Theme.** Fresh every round: Homer generates a vivid, specific theme of six words or fewer with a feeling in it, never one of the last twenty ("The text you never sent"), and announces it aloud. The written themes are the fallback.
 2. **Homer's phrases.** Optional help, not homework: your phone shows three stock phrases that fit the theme and the beat ("the whale-road", "grey-eyed Athena"), under one line: "Stuck? Use one of Homer's phrases. It scores Craft." Using one pops "+Craft".
 3. **Speak.** In a battle you spit free, with no metronome behind you (Matus, Sat 3:30 PM: "I just want to spit poetry without the metronome"). A 3-2-1 with a haptic tick, then SPEAK fills the phone and the arena in the poet's color, once, for the whole verse. No drum, no beat haptics, no per-line Speak/Breathe while a poet speaks: you get one window (20 seconds in demo mode) with a countdown ring, and "I'm done" ends early. Your words show live on the arena; the scene answers your voice's loudness and feeling. A phrase card lights up when you use it. Lines are whatever you say between breaths. The beat lives in Bard lessons, which teach it, and under Homer's stitched song.
-4. **Freeze rescue.** If you go silent for about a second mid-turn, your hand glows and Homer whispers one formula that fits.
+4. **Freeze rescue.** If you go silent for about 1.5 seconds mid-turn (lessons: about a second inside a speaking bar), your phrases glow and Homer whispers one that fits; at most once every 6 seconds and twice a turn, so an ordinary breath never triggers it.
 5. **Scene.** Reacts as you speak (see below).
 6. **Judge.** Scores 1 to 10 on five axes, speaks a one-line verdict, quotes your best line.
 7. **Hoard.** A new formula you coin that scans and that the judge rates well joins your hoard.
@@ -160,7 +160,7 @@ Full-screen, always on, behind every mode. It paints the speaker's emotion live.
 
 Judging is a 2-minute pitch with a live demo at a shared table, three times over. Demo mode is the same live engine with a shorter battle, never a mock:
 
-- 1 round, 2 poets, 2 lines per turn. Poets are auto-ready.
+- 1 round, 2 poets, a 20-second free-verse window per turn. Poets are auto-ready.
 - Scores count up while Homer speaks the verdict.
 - The carved line appears once, at round end. No hoard step, no tally.
 - The stitched song is capped at 4 lines; the crown is one line.
@@ -183,8 +183,8 @@ The script is `docs/gtm/demo-script.md`.
 
 If time runs out, cut in this order: discus, Socratic debate, ranks, spectator reactions, hoard persistence across sessions, Homer mode, Bard lessons 4 to 6, the stitched finale.
 
-Never cut: Bard lessons 1 to 3, the turn (beat, beat lane, freeze rescue, scene, judge), two-player battle on the arena.
+Never cut: Bard lessons 1 to 3 (with the beat and the beat lane), the turn (SPEAK, live words, freeze rescue, scene, judge), two-player battle on the arena.
 
 ## Open questions
 
-- Turn length (30 s) and lines per turn (4).
+- Turn window: 20 s in demo, 10 s a line otherwise. Practice is free verse too; only Bard lessons use the beat.

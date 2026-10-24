@@ -2,7 +2,7 @@
 
 This doc is for Matus to design against. It covers the flow, the states, the timing and what each screen shows. Visual design is Matus's, so this doc describes what is shown and what changes, never how it looks. Words like "large" or "pinned" describe hierarchy.
 
-`SPEC.md` (as of commit 9a6cfdc) is the source of truth. Anything not in it is marked **Proposal Pn** and waits on Matus.
+`SPEC.md` (as of commit 5fb8baf) is the source of truth. Anything not in it is marked **Proposal Pn** and waits on Matus.
 
 MeNIN is ancient Greek Wii Sports, with Homer as the host: party events on one shared screen, with phones as controllers. The poetry battle is the core (sections 1 to 6). Socratic debate and discus are in build now (sections 8 and 9). The event menu ties them together (section 7), and section 10 says where the music plays.
 
@@ -12,7 +12,7 @@ MeNIN is ancient Greek Wii Sports, with Homer as the host: party events on one s
 
 MeNIN is one universal iOS app (iPhone and iPad), distributed through TestFlight, plus the website, which is the arena. In a battle, the website is the one big screen, and each phone runs the app as a player.
 
-- **Arena**: the one big shared screen. It's the website, full screen in a laptop browser at its public URL (spec: the website is the only arena people see). It shows the scene, the beat lane, the transcript and the scoreboard, plays Homer's voice and the beat, and shows the QR code to join. The app's own arena mode stays behind the Dev screen as an emergency fallback.
+- **Arena**: the one big shared screen. It's the website, full screen in a laptop browser at its public URL (spec: the website is the only arena people see). It shows the scene, the live words, the countdown ring and the scoreboard, plays Homer's voice and the song's beat, and shows the QR code to join. The app's own arena mode stays behind the Dev screen as an emergency fallback.
 - **Phone**: the app on each poet's iPhone, which is their mic and their private hand.
 - **Solo modes:** Bard and Practice run on a single device. The Arena line describes the layout on a large screen (iPad or Mac), and the Phone line describes it on an iPhone.
 
@@ -42,14 +42,15 @@ MeNIN is one universal iOS app (iPhone and iPad), distributed through TestFlight
 
 **Approved by Matus. These are in SPEC.md now, so the body below treats them as spec without tags.**
 
-- **The beat:** a slow drum-and-lyre loop, four beats a bar, one line per bar. A stressed syllable that hits a beat sounds a soft strike.
-- **Freeze rescue:** about 1 s of silence mid-turn brings Homer's phrases forward, and Homer whispers one that fits. Lesson 2 teaches it.
+- **The beat lives in the lessons and the song:** a slow drum-and-lyre loop, four beats a bar, one line per bar. A stressed syllable that hits a beat sounds a soft strike. Bard lessons teach with it, and Homer performs the stitched song over it.
+- **Free verse in battle** (Matus, Sat 3:30 PM: "I just want to spit poetry without the metronome"): no drum, no beat haptics and no Speak/Breathe while a poet speaks. One SPEAK, one window with a countdown ring (20 s in demo mode), and "I'm done" ends it early. A line is whatever you say between breaths.
+- **Freeze rescue:** silence mid-turn brings Homer's phrases forward, and Homer whispers one that fits. SPEC says about 1 s; for battles see P22. Lesson 2 teaches it.
 - **Arena and phones:** the website is the one shared screen, and each phone is that poet's mic and private phrases. You join by QR code or room code.
 - **A fresh epithet every battle:** Homer coins a new one for each poet in each battle, never one of their last five (Matus: the same one every time is boring). The one you forge in lesson 3 ("___, Breaker of Deadlines") joins your hoard and is only the fallback.
 - **A fresh theme every round:** Homer writes it: six words or fewer, vivid and specific, with a feeling in it, and never one of the last twenty ("The text you never sent"). The written themes are the fallback.
 - **Homer's phrases:** optional help, not homework. Your phone shows three stock phrases that fit the theme and the beat, under one line: "Stuck? Use one of Homer's phrases. It scores Craft." Using one pops "+Craft". They replace the hand of five.
-- **3-2-1, then SPEAK:** a 3, 2, 1 on the count-in's beats, then "SPEAK" fills the phone and the arena in the poet's color, so the start is unmistakable.
-- **Flow:** the Beat axis is shown as Flow (its key stays `beat`). It asks whether you kept a steady rhythm, about four stresses a line, and it's forgiving. It counts for less in the total than Image, Answer and Craft.
+- **3-2-1, then SPEAK:** a 3, 2, 1 with a haptic tick on each, then "SPEAK" fills the phone and the arena in the poet's color, once, for the whole verse. The start is unmistakable.
+- **Flow:** the Beat axis is shown as Flow (its key stays `beat`). It asks whether the verse moved: a natural rhythm of roughly four stresses a line, judged from the words alone with no drum timing, and forgiving. It counts for less in the total than Image, Answer and Craft.
 - **Hands-free mic:** in battles the mic opens with a haptic thump when your turn goes live and stays open for the whole verse. Your words show live on the arena, and "I'm done" ends early.
 - **Carved line:** the best line of each round is carved in gold across the arena.
 - **The stitched song:** at the finale Homer stitches every verse into one poem and performs it over the beat while the scene replays the battle's colors, then crowns the champion.
@@ -76,6 +77,7 @@ Leader approved these as delegator, and Matus can veto any of them. Approved ite
 | P20 | **Score number in lessons.** After each try in a lesson, your scanner score (1 to 10) shows small beside Homer's note, so you can watch it climb. The first-timer study (`docs/study.md`) and the video's before-and-after shot both read it off the screen (L4). Builds 4 and 5 label it "Beat". If the lesson screen is renamed to Flow, the study names it the same way. | Approved |
 | P21 | **The call to step up.** As each turn starts, the host calls the speaker by name. The round's first poet gets the theme's call ("Priya, Salt-Tongued. The sea is yours."). Every later poet gets "Answer that.", since they answer the line before (P7). In debate, the host says your side (T1 in sections 5 and 8). | Approved, built in the app and the website |
 | P21b | **A call for a fresh theme.** Only the written themes have a call, so with fresh themes the first poet nearly always hears "The floor is yours." Homer writes a call of five words or fewer in the same step as the theme ("The text you never sent" → "Send it now."). | Approved, in builder's plan: the theme and its call come from one call |
+| P22 | **The freeze in free verse.** With no bars, a breath between lines is a pause too, and lines are split at pauses. At SPEC's 1 s, the rescue could fire between ordinary lines. In battle and Practice, the rescue fires after about 1.5 s of silence, including right after SPEAK, at most once every 8 s. Lessons keep 1 s inside a speaking bar. | Proposed |
 
 P1 to P6 were approved by Matus and are listed above.
 
@@ -230,7 +232,7 @@ Theme, then Homer's phrases, then your turn (section 5), then the full breakdown
 
 #### R1 · Full breakdown · until you move on
 
-- **Arena:** Everything the turn's verdict shows, plus a one-sentence reason for each of the five axes, a replay of the beat lane with every hit and miss, the quoted best line, and any formula added to your hoard.
+- **Arena:** Everything the turn's verdict shows, plus a one-sentence reason for each of the five axes, your verse line by line with the stresses the scanner counted, the quoted best line, and any formula added to your hoard.
 - **Phone:** Same, with the axes as a list you scroll.
 - **Homer:** The verdict line from the turn, nothing more. The reasons are text only.
 - **Next:** A tap.
@@ -250,7 +252,7 @@ Each round Homer goes first and you answer him. First to two rounds wins.
 
 #### S2 · Homer's verse · ~12 s
 
-- **Arena:** Homer performs over the beat and the scene moves with his voice. His stresses land on the lane, and with P8 his formula cards turn over as he uses them.
+- **Arena:** Homer performs his verse free, the way a battle turn runs, and the scene moves with his voice. With P8 his phrase cards turn over as he uses them.
 - **Phone:** Same. Homer's phrases stay visible so you can plan.
 - **Homer:** His verse.
 - **Next:** The verse ends.
@@ -296,7 +298,7 @@ Two to five poets in one room, with the arena and their phones.
 
 #### H0 · Open the hall (arena) · until tap
 
-- **Arena:** The website, open on the laptop that will be the arena: "Host a battle on this screen". The settings sit behind it: rounds (3), lines per turn (4), turn length (30 s), Homer mode, and demo mode. The mic is always hands-free in battles.
+- **Arena:** The website, open on the laptop that will be the arena: "Host a battle on this screen". The settings sit behind it: rounds (3), turn length (30 s), Homer mode, and demo mode. The mic is always hands-free in battles.
 - **Next:** The tap creates the room and puts this device in arena mode.
 
 #### H1 · Lobby · until the host begins
@@ -405,7 +407,7 @@ Practice and Battle share this. The spec's order is theme, hand, speak, freeze r
 
 #### T1 · Step up · ~3 s
 
-- **Arena:** The poet's name and epithet. With P7, the previous poet's best line is pinned and labeled as the line to answer; for the first poet of a round, the theme is pinned instead. The beat lane resets to 4 lines of 4 beats.
+- **Arena:** The poet's name and epithet. With P7, the previous poet's best line is pinned and labeled as the line to answer; for the first poet of a round, the theme is pinned instead. The countdown ring is full.
 - **Phone:** A **Ready** button, Homer's phrases, and the theme.
 - **Homer (P21):** calls the poet up in MC voice, using the name and this battle's epithet.
   - **The round's first poet:** "{name}, {title}." and then the theme's call, like "Matus, Breaker of Deadlines. Send it now." A fresh theme gets the call Homer wrote with it (P21b). A written fallback theme gets its call from the table below, and anything else gets "The floor is yours."
@@ -432,30 +434,32 @@ Practice and Battle share this. The spec's order is theme, hand, speak, freeze r
 | The house you grew up in | "Take us home." |
 - **Next:** A tap on Ready, or automatically after 5 s.
 
-#### T2 · Count-in: 3, 2, 1, SPEAK · one bar, ~3 s
+#### T2 · 3, 2, 1, SPEAK · ~3 s
 
-- **Arena:** The drum enters and counts one bar, and a large 3, 2, 1 lands on its beats. Then "SPEAK" fills the arena in the poet's color as the first speaking bar starts.
-- **Phone:** The same 3, 2, 1, then "SPEAK" fills the whole phone in the poet's color, with the mic level under it. The mic opens hands-free, with a haptic thump, when the turn goes live, so the first word isn't clipped. It stays open for the whole verse. In solo modes it opens at the start of the count-in.
+- **Arena:** A large 3, 2, 1 with no drum, then "SPEAK" fills the arena in the poet's color.
+- **Phone:** The same 3, 2, 1 with a haptic tick on each, then "SPEAK" fills the whole phone in the poet's color. The mic opens hands-free, with a haptic thump, when the turn goes live, so the first word isn't clipped, and it stays open for the whole verse. In solo modes it opens at the start of the count.
+- **Lessons are different:** there the count-in is a bar of the drum, and each line gets a speaking bar and a rest bar (section 2).
 - **Next:** SPEAK → T3.
 
-#### T3 · Speak · ~24 s, 30 s at most
+#### T3 · Speak · one window: 20 s in demo mode, 30 s otherwise
+
+Free verse: no drum, no beat lane, no beat haptics, and no Speak/Breathe per line (spec).
 
 - **Arena:**
-  - The beat lane. Your words land on it live. A stressed syllable that hits a beat is marked on the lane and sounds a soft strike.
-  - The live transcript.
-  - The scene moving with you: the instant layer follows loudness and pitch, and the color layer shifts about every 1.5 s.
+  - Your words, live and large, as you speak. That's the main element now. A new line starts where you pause for breath.
+  - The countdown ring, emptying.
+  - The scene moving with you: the instant layer follows loudness and pitch, and the color layer shifts with the feeling about every 1.5 s.
   - When you speak one of Homer's phrases, it's marked as played with "+Craft" (with P8, it turns over onto the arena).
-  - Time left, counted in bars.
   - With P7, the pinned line.
-- **Phone:** "SPEAK" in your color during each speaking bar. Each rest bar shows "Breathe", then counts you into the next line. Under it: your mic level, line N of N, your last line, and Homer's phrases. One you use lights up and pops "+Craft". There's also **I'm done**. In a battle the phone carries the beat as haptics, one tap per beat, because the arena ducks the drum while you speak (spec).
+- **Phone:** "SPEAK" stays up in your color for the whole verse, with the countdown ring. Under it: your mic level, your last line, and Homer's phrases. One you use lights up and pops "+Craft". Then **I'm done**.
 - **Homer:** Silent, except for the freeze rescue.
-- **Next:** Four lines are complete, 30 s pass, or the poet taps I'm done.
-- **Bars:** Each line is one speaking bar followed by one rest bar. At about 80 BPM, four lines take 8 bars, about 24 s. The bars also tell us where each line ends.
-- **Freeze rescue:** If about 1 s passes with no speech during a speaking bar, Homer's phrases come forward on your phone, the one that fits is raised and shown first, and Homer whispers it. Rest bars and the mid-line break don't count as silence.
+- **Next:** The ring empties or the poet taps I'm done.
+- **Lines:** a line is whatever you say between breaths. The pause length that splits lines is builder's to tune. It has to be shorter than the freeze (P22), or every line break would raise a rescue.
+- **Freeze rescue (P22):** after about 1.5 s of silence, including right after SPEAK, Homer's phrases come forward on your phone, the one that fits is raised and shown first, and Homer whispers it. At most once every 8 s.
 
 #### T4 · Settle · from the end of the turn to ~0.6 s
 
-- **Arena:** The drum lands a closing hit and stops. The transcript locks and the lane holds still with the hits marked. Then the loading mark and "Homer is weighing your verse…" until the verdict starts.
+- **Arena:** The mic closes and the transcript locks. Then the loading mark and "Homer is weighing your verse…" until the verdict starts.
 - **Phone:** The same loading mark and line.
 - **Next:** The verdict is ready.
 
@@ -476,7 +480,7 @@ Practice and Battle share this. The spec's order is theme, hand, speak, freeze r
 
 - **Arena:** The quoted line, alone and large. With P11, the scene replays that line's colors.
 - **Phone:** The same line.
-- **Homer:** Re-reads your line in his own voice, over the beat.
+- **Homer:** Re-reads your line in his own voice.
 - **Next:** Automatic.
 
 #### T8 · Hoard · ~2 s, only when earned
@@ -496,7 +500,7 @@ The goal: Homer starts speaking the verdict about 3 s after the turn ends. For t
 | After the turn ends | What happens | Source | Budget |
 | --- | --- | --- | --- |
 | 0 | Turn end detected | on device | – |
-| 0–0.3 s | Closing drum hit, mic closes, lane holds, loading line | on device | no network |
+| 0–0.3 s | Mic closes, transcript locks, loading line | on device | no network |
 | by 0.6 s | Final transcript | Cartesia STT | 600 ms |
 | by 0.7 s | Flow score | meter scanner | 100 ms |
 | by 0.7 s | Range score | emotion engine, which already ran during the turn | ~0 |
@@ -530,7 +534,7 @@ When it runs late:
 
 1. Homer's first-open line, replayed by the operator: "The first word of Western literature is mēnin. Rage."
 2. A judge picks the battleground.
-3. 3, 2, 1, SPEAK, then a verse over the beat: stresses land as soft strikes, and the scene paints the voice.
+3. 3, 2, 1, SPEAK, then a free verse: the words land live on the arena, the ring runs down, and the scene paints the voice.
 4. The freeze rescue, staged but running live: Homer whispers one of his phrases, the poet uses it, and "+Craft" pops.
 5. A spoken verdict starting about 3 s after the turn, with the five axes counting up under it.
 6. The carved line, and the 4-line song stitched from the verses the table just heard.
@@ -543,8 +547,7 @@ Demo mode is in SPEC.md. Rows marked P14 are extras, approved by leader.
 | --- | --- | --- | --- |
 | Rounds | 3 | 1 | spec |
 | Poets | 2 to 5 | 2 team poets. Judges pick the theme and watch | spec, demo script |
-| Lines per turn | 4 | 2 | spec |
-| Rest bars | One after every line | Kept, but droppable if we run long | spec |
+| Turn window | 30 s, with the countdown ring | 20 s, with the countdown ring | spec |
 | Ready and mic check | Ready tap, mic check on join | Auto-ready, no mic check | spec |
 | Verdict and scores | Verdict, then scores | Scores count up while Homer speaks the verdict | spec |
 | Best-line re-read and hoard step | Every turn | Off. The best line is carved once, at round end | spec |
@@ -571,7 +574,7 @@ This is the home screen, Wii Sports style: one tile per event, and each tile ope
 
   | Tile | Host | One line | Opens to |
   | --- | --- | --- | --- |
-  | Poetry battle | Homer | Improvise verse over the beat. | Learn, Train, Fight |
+  | Poetry battle | Homer | Spit verse on a theme. Homer judges. | Learn, Train, Fight |
   | Socratic debate | Socrates | Argue a question out loud, on the clock. | Train, Fight |
   | Discus | Homer announces | Swing your phone. Let go of the button, not the phone. | Throw, Fight |
   | Chariot race, Javelin, Wrestling | none | Locked | nothing |
@@ -607,9 +610,9 @@ Debate runs on the poetry engine. Anything not listed here works as in sections 
 | Each round | A theme | A question with two sides |
 | Sides | None | Dealt by turn order, alternating (P18). Turn order rotates, so in a two-player battle everyone argues both sides |
 | Hand | Homer's phrases: three, optional | Five moves: at least one each of open, attack, defend and close |
-| Beat | Drum and lyre, the beat lane, haptics | None. No drum, no lane, no haptic beat |
-| Turn length | 4 lines, about 24 s | 45 s (suggested), with a "Ten seconds" call |
-| Freeze rescue | About 1 s of silence; Homer whispers a formula | About 2 s of silence; Socrates whispers a question to ask |
+| Beat | None in battle: free verse. Lessons and the song have it | None |
+| Turn length | One window with a countdown ring: 30 s, 20 s in demo mode | 45 s (suggested), with a "Ten seconds" call |
+| Freeze rescue | About 1.5 s of silence (P22); Homer whispers a phrase | About 2 s of silence; Socrates whispers a question to ask |
 | Using a card | A spoken phrase is matched in the transcript and pops "+Craft" | You tap the card as you make the move (P17). The judge checks you made it |
 | Rubric | Flow, Craft, Image, Answer, Range | Claim, Reason, Answer, Craft, Poise |
 | The axis Claude doesn't score | Flow, from the scanner | Poise, from fillers, pace and silence |
@@ -617,7 +620,7 @@ Debate runs on the poetry engine. Anything not listed here works as in sections 
 | Round end | The best line is carved | Same |
 | Finale | The stitched song | Socrates' last question, about 10 s. He quotes the strongest point of the night, then asks the one question nobody answered |
 | Practice | Reps, and spar with Homer | Spar with Socrates, best of three. He takes the other side and argues mostly by asking you questions |
-| Music | `poetry-intro` opens a battle or spar. Only the beat plays in turns | `debate-intro` opens a battle or spar. Nothing plays in turns. The round-end and champion stings are shared |
+| Music | `poetry-intro` opens a battle or spar. Nothing plays in turns | `debate-intro` opens a battle or spar. Nothing plays in turns. The round-end and champion stings are shared |
 
 ### The debate turn
 
@@ -740,7 +743,7 @@ MeNIN has an original soundtrack by a teammate (spec, "Music"). The composer's b
 **Rules**
 
 - **Never under an open mic** (spec). Music fades out over about 0.3 s before any mic in the room opens, and stays out until it closes. That includes the mic check (J2) and the line in first open (F2). Music bleeding into a phone's mic hurts STT the same way the beat does (see "Risk" below).
-- **Never with the beat.** In poetry turns and lessons, only the procedural drum-and-lyre beat plays (spec). Music fades out before the beat starts.
+- **Never with the beat.** In lessons and under the stitched song, only the procedural drum-and-lyre beat plays. In battle turns nothing plays at all, only the poet's voice (free verse). Music fades out before the beat starts.
 - **Ducks under a host** (spec). When Homer or Socrates speaks, music drops about 12 dB and comes back about 0.5 s after he stops. The exception is the first-open bed, which is written to sit under Homer and plays at full level.
 - **The arena plays it** (spec). In a hall, only the arena plays music. Phones never do, since they're the mics. In solo modes the one device plays it.
 - **Demo mode** (spec, P19): the hall theme stays at its ducked level, and an operator key mutes all music.
@@ -762,7 +765,7 @@ MeNIN has an original soundtrack by a teammate (spec, "Music"). The composer's b
 | `champion` | The winner appears | Under the crown line | B7, S6 (if you won), D6 (after the last throw), the debate crown |
 | `rematch` | Rematch is tapped | During the reset | B7, then B2 |
 
-Everything else has no music: the turn (T0 to T8), round titles (B2), the tally (B5) and the song (B6). In poetry, the beat carries them.
+Everything else has no music: the turn (T0 to T8), round titles (B2), the tally (B5) and the song (B6). The beat carries the song. Battle turns stay quiet apart from the voice.
 
 **The beat's sounds.** The composer also records the beat's single hits: six lyre notes (`lyre-d3`, `lyre-f3`, `lyre-g3`, `lyre-a3`, `lyre-c4`, `lyre-d4`), `drum-kick` and `drum-rim`. They're dry, mono, 48 kHz, and start on the first sample. They replace the synthesized kick, rim and pluck in the beat. The app still schedules every hit, so the beat stays procedural, and the strike on a hit is the kick and rim together, played soft (spec).
 
@@ -796,14 +799,17 @@ Player slips aren't failures when the app handles them as designed: a freeze get
 
 ### Poetry
 
-- **One run:** a full demo-mode battle. The poetry tile opens and Homer gives the theme. Both poets take one turn of 2 lines, then come the verdicts, the round verdict with the carved line, the 4-line song and the crown, and then **Rematch** until the next battle is ready.
+- **One run:** a full demo-mode battle. The poetry tile opens and Homer gives the theme. Both poets take one free-verse turn in the 20 s window (two or three lines is plenty), then come the verdicts, the round verdict with the carved line, the 4-line song and the crown, and then **Rematch** until the next battle is ready.
 - **Themes and epithets are fresh every run,** so there's no fixed theme, hand or epithet to rehearse. Play whatever Homer deals. That's what the runs test: the poets improvise on a theme they've never seen, the way they will at the table. If theme cards are on, the recorder picks one. Write the theme and both epithets in the table.
 - **Who plays:** the demo cast. The poet is Poet 1 and uses at least one of Homer's phrases on purpose, so every run checks "+Craft". Matus is Poet 2 and does the staged freeze. The operator runs the arena.
 - **Also a failure:**
   - A verdict starts more than 4 s after a turn ends.
-  - Matus's staged freeze gets no whisper within about 2 s.
-  - The 3, 2, 1 or SPEAK is missing on the phone or the arena, SPEAK isn't in the poet's color, or the first word gets clipped.
-  - The drum, the beat lane or the soft strikes are missing.
+  - Matus's staged freeze gets no whisper within about 3 s of going silent.
+  - The 3, 2, 1 or SPEAK is missing on the phone or the arena, SPEAK isn't in the poet's color or doesn't stay up for the whole verse, or the first word gets clipped.
+  - Anything from the old beat shows up during a turn: a drum, beat haptics, a beat lane, strikes, or Speak/Breathe per line.
+  - The countdown ring is missing, or the turn doesn't end when the ring empties or when I'm done is tapped.
+  - A rescue fires between ordinary lines, while the poet is only breathing.
+  - The stitched song plays without its beat.
   - A clearly spoken line comes back empty or garbled in the transcript.
   - A phone doesn't show three of Homer's phrases under "Stuck? Use one of Homer's phrases. It scores Craft."
   - One of the three is clearly spoken and gets no "+Craft".
@@ -864,6 +870,8 @@ Add rows for any restarted series. If an event never gets 5 clean in a row by 9 
 
 ## Risk: the beat bleeds into the speaker's mic
 
+**Mostly settled by free verse (SPEC 5fb8baf):** no beat plays while a poet speaks in battle, and the song's beat plays with every mic closed. Lessons run on one device, where voice processing removes the device's own beat. What's left in battles is the rescue whisper from the arena (open question 2) and the hall itself. The analysis below is kept for reference.
+
 If the arena plays the beat and the poet speaks into their phone, the phone's mic picks up the beat. A device's echo cancellation only removes sound that the device itself played, so the phone can't remove what the arena's speaker plays. The same goes for Homer's whisper if it plays from the arena, and for a loud hall.
 
 What it can break:
@@ -872,7 +880,7 @@ What it can break:
 - The live drum strikes and the instant layer of the scene, which would react to the drum even when the poet is silent.
 - The transcript: the rescue whisper could be transcribed as the poet's own words.
 
-**Decided in SPEC.md: B plus D.** In a battle, the arena ducks the drum while a poet speaks, and the speaker's phone carries the beat as haptics. The rescue whisper still needs a test, since it can play from the arena during a speaking bar. The full set of options is below for reference.
+**Decided in SPEC.md before free verse: B plus D.** In a battle, the arena ducked the drum while a poet spoke, and the speaker's phone carried the beat as haptics. The rescue whisper still needs a test, since it can play from the arena during a speaking bar. The full set of options is below for reference.
 
 | Option | How it works | What it gives up |
 | --- | --- | --- |
@@ -889,7 +897,7 @@ B, E and F combine with any of the others. Whichever we choose, test it once at 
 
 These shape the UX. They are flagged here for whoever builds each part.
 
-- **The drum strike on a hit has to be decided on the device holding the mic, within about 50 ms.** It can't wait for the transcript. The practical signal is a loudness onset close to a beat, since stressed syllables are louder. The Flow score comes later, from the scanner on the transcript, so the two can disagree (open question 3). When the mic is on a phone and the drum is on the arena, the strike also crosses the network and can land 100 to 200 ms late. With a mic on the arena, everything stays on one device.
+- **In lessons, the strike on a hit has to be decided on the device holding the mic, within about 50 ms.** Battles have no strikes now. It can't wait for the transcript. The practical signal is a loudness onset close to a beat, since stressed syllables are louder. The Flow score comes later, from the scanner on the transcript, so the two can disagree (open question 3). When the mic is on a phone and the drum is on the arena, the strike also crosses the network and can land 100 to 200 ms late. With a mic on the arena, everything stays on one device.
 - **The instant layer across devices:** the mic is on the phone but the scene is on the arena, so loudness and pitch have to travel from phone to arena, about 20 updates a second, smoothed on the arena. Expect 100 to 200 ms of lag, which still reads as live.
 - **The app keeps the screen awake** during a battle and a lesson, or the mic and the hand vanish when the phone locks.
 - **iOS notes:**
@@ -925,7 +933,7 @@ This is the list of layouts to design. The states above describe what changes in
 3. Waiting, or watching someone else's turn (J3, B3)
 4. Homer's phrases (from B2 on)
 5. On deck and ready (T0–T1)
-6. Speaking: 3-2-1, SPEAK, Breathe, with Homer's phrases and "+Craft" (T2–T3)
+6. Speaking: 3-2-1, one SPEAK with the countdown ring, Homer's phrases and "+Craft" (T2–T3)
 7. Your result (T5–T8)
 8. Final (B7)
 9. Event menu, or "The arena is picking" in a hall (E0)
@@ -935,8 +943,8 @@ This is the list of layouts to design. The states above describe what changes in
 ## Open questions for Matus
 
 1. **Decided by leader (Matus can veto):** after first open, the poetry tile suggests Learn (Bard lesson 1), so "Now let me show you how I did it" pays off.
-2. Where does the rescue whisper play? From the arena, it can bleed into the speaker's mic during a speaking bar. From the speaker's phone, voice processing removes it, but the room doesn't hear it.
-3. The live drum strikes come from loudness and the Flow score comes from the scanner, so they can disagree. Is that acceptable? And should the Flow score also check timing against the drum?
+2. Where does the rescue whisper play? From the arena, it can bleed into the speaker's mic while they speak. From the speaker's phone, voice processing removes it, but the room doesn't hear it.
+3. In lessons, the live strikes come from loudness and the Beat score comes from the scanner, so they can disagree. Is that acceptable?
 4. Demo mode: when a judge stays after 2:00 for a rematch, do they take a poet's seat (the poet's iPhone and headset), or does a third team iPhone join as a third poet?
 5. **Settled by the fresh themes (SPEC 7866476):** Homer's phrases are dealt fresh each round, so nothing carries over (B2).
 6. A battle tie: one-line sudden death between the tied poets, or a shared crown?
