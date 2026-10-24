@@ -1,113 +1,68 @@
-"""Offline stand-ins for the Anthropic client, shaped like `client.beta.messages.create`."""
+"""An offline stand-in for `AsyncAnthropic().beta.messages.stream`."""
 
 from __future__ import annotations
 
-import itertools
+import asyncio
 import json
-import re
 from types import SimpleNamespace
-from typing import Any, Callable
-
-from homer.scansion import scan_poem
-
-_ids = itertools.count(1)
+from typing import Any
 
 
-def text(t: str) -> SimpleNamespace:
-    return SimpleNamespace(type="text", text=t)
+def reply(**overrides: Any) -> dict[str, Any]:
+    """A judge reply in schema order, with sensible defaults."""
+    out = {
+        "fit": True,
+        "verdict": "Strong bones, thin blood. Your third line carried you.",
+        "best_line": "the sea kept time and so did I",
+        "craft": 6,
+        "image": 7,
+        "answer": 5,
+        "coined": "",
+    }
+    out.update(overrides)
+    return out
 
 
-def tool(name: str, inp: dict[str, Any]) -> SimpleNamespace:
-    return SimpleNamespace(type="tool_use", id=f"toolu_{next(_ids)}", name=name, input=inp)
+class FakeStream:
+    def __init__(self, text: str, stop_reason: str, chunk: int, delay: float, model: str):
+        self.text, self.stop_reason, self.chunk, self.delay, self.model = text, stop_reason, chunk, delay, model
 
+    async def __aenter__(self) -> FakeStream:
+        return self
 
-def response(*blocks: SimpleNamespace, stop_reason: str | None = None) -> SimpleNamespace:
-    if stop_reason is None:
-        stop_reason = "tool_use" if any(b.type == "tool_use" for b in blocks) else "end_turn"
-    return SimpleNamespace(content=list(blocks), stop_reason=stop_reason)
+    async def __aexit__(self, *exc: Any) -> bool:
+        return False
+
+    def __aiter__(self):
+        return self._events()
+
+    async def _events(self):
+        yield SimpleNamespace(type="content_block_start", content_block=SimpleNamespace(type="text"))
+        for i in range(0, len(self.text), self.chunk):
+            if self.delay:
+                await asyncio.sleep(self.delay)
+            yield SimpleNamespace(
+                type="content_block_delta", delta=SimpleNamespace(type="text_delta", text=self.text[i : i + self.chunk])
+            )
+
+    async def get_final_message(self) -> SimpleNamespace:
+        return SimpleNamespace(
+            stop_reason=self.stop_reason,
+            model=self.model,
+            content=[SimpleNamespace(type="text", text=self.text)],
+            usage=SimpleNamespace(input_tokens=200, output_tokens=60, cache_read_input_tokens=1400, cache_creation_input_tokens=0),
+        )
 
 
 class FakeClient:
-    """Replays a script. Each item is a response, or a callable(kwargs) -> response."""
+    """Streams a fixed reply (a dict is sent as JSON, in key order)."""
 
-    def __init__(self, script: list[Any] | Callable[[dict], SimpleNamespace]):
-        self.script = script
+    def __init__(self, data: dict | str, stop_reason: str = "end_turn", chunk: int = 9, delay: float = 0.0):
+        self.text = data if isinstance(data, str) else json.dumps(data)
+        self.stop_reason, self.chunk, self.delay = stop_reason, chunk, delay
         self.calls: list[dict[str, Any]] = []
-        self.beta = SimpleNamespace(messages=SimpleNamespace(create=self._create))
+        self.beta = SimpleNamespace(messages=SimpleNamespace(stream=self._stream))
 
-    def _create(self, **kwargs: Any) -> SimpleNamespace:
-        # Snapshot messages: the agent keeps appending to the same list.
-        self.calls.append({**kwargs, "messages": list(kwargs["messages"])})
-        if callable(self.script):
-            return self.script(kwargs)
-        item = self.script.pop(0)
-        return item(kwargs) if callable(item) else item
-
-
-def last_tool_results(kwargs: dict) -> list[dict]:
-    content = kwargs["messages"][-1]["content"]
-    return content if isinstance(content, list) else []
-
-
-ENTRY_RE = re.compile(r'<entry label="([A-Z])">\n(.*?)\n</entry>', re.S)
-
-
-class ScriptedHomer:
-    """A deterministic fake Homer for battle simulations.
-
-    It really calls scan_poem through the agent, scores each entry from the
-    scansion (so better meter wins), and responds to the app's phase prompts.
-    """
-
-    def __init__(self, themes: list[str]):
-        self.themes = themes
-        self.pending_text = ""
-        self.seen_entries: list[str] = []
-
-    def __call__(self, kwargs: dict) -> SimpleNamespace:
-        last = kwargs["messages"][-1]["content"]
-        if isinstance(last, list):  # tool results came back
-            if any(r.get("is_error") for r in last):
-                raise AssertionError(f"unexpected tool error: {last}")
-            if any(json.loads(r["content"]).get("line_count") is not None for r in last if r["content"].startswith("{")):
-                return self._record()
-            return response(text(self.pending_text))
-        if "<entry" in last:
-            self.entries = ENTRY_RE.findall(last)
-            self.seen_entries.append(last)
-            return response(*(tool("scan_poem", {"text": t}) for _, t in self.entries))
-        match = re.search(r"announce_round(?: \(round_number (\d+)\))?", last)
-        if "Crown the champion" in last:
-            return response(text("Sing, Muse, of the champion! " + re.search(r"Champion: (\w+)", last).group(1) + " takes the laurel."))
-        if match:
-            number = int(match.group(1) or re.search(r"round: (\d+)", last).group(1))
-            required = re.search(r"required theme for round \d+: (.+)", last)
-            theme = required.group(1).strip() if required else "a tiebreaker: the dawn"
-            self.pending_text = f"Round {number}! Sing of {theme}."
-            return response(tool("announce_round", {"round_number": number, "theme": theme, "constraint": "include one trochaic inversion"}))
-        return response(text("The bard nods."))
-
-    def _record(self) -> SimpleNamespace:
-        entries = []
-        for label, verse in self.entries:
-            scan = scan_poem(verse)
-            fits = [l["elided_fit"] or l for l in scan["lines"]]
-            off = sum(abs(f["syllable_count"] - 10) + len(f["conflicts"]) for f in fits) / max(scan["line_count"], 1)
-            metrical = max(1, min(10, round(10 - 2 * off)))
-            entries.append(
-                {
-                    "label": label,
-                    "syllable_counts": [l["syllable_count"] for l in scan["lines"]],
-                    "scores": {"metrical_accuracy": metrical, "naturalness": metrical, "imagery_diction": 7, "overall_craft": metrical},
-                    "on_theme": True,
-                    "meets_constraint": True,
-                    "disqualified": False,
-                    "disqualification_reason": "",
-                    "summary": f"Entry {label} scored on meter.",
-                }
-            )
-        totals = {e["label"]: sum(e["scores"].values()) for e in entries}
-        best = max(totals.values())
-        winners = sorted(l for l, t in totals.items() if t == best)
-        self.pending_text = "Entry " + " and ".join(winners) + " takes the round."
-        return response(tool("record_round", {"entries": entries, "winner_labels": winners, "close_call_note": ""}))
+    def _stream(self, **kwargs: Any) -> FakeStream:
+        self.calls.append(kwargs)
+        return FakeStream(self.text, self.stop_reason, self.chunk, self.delay, kwargs["model"])

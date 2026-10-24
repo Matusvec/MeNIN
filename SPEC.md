@@ -101,7 +101,7 @@ Shared by practice and battle. This is the core loop; get it right first.
 
 1. **Theme.** Homer announces it aloud ("A ship that never came home").
 2. **Hand.** You are dealt five formulas that fit the beat, drawn from the theme and your hoard: "the whale-road", "grey-eyed Athena", "when rose-fingered Dawn came early".
-3. **Speak.** Homer plays the beat: a slow drum-and-lyre loop, four beats a bar, one line per bar. In a battle the arena ducks the drum while a poet speaks, and the speaker's phone carries the beat as haptics, so the beat doesn't bleed into the mic. Thirty seconds, four lines (configurable). The beat lane shows the pulses; your words land on it live, and a stressed syllable that hits a beat sounds like a drum strike. A formula card lights up when you use it. The live transcript is always visible.
+3. **Speak.** Homer plays the beat: a slow drum-and-lyre loop, four beats a bar. Each line is one bar, followed by a rest bar to breathe (demo mode may drop the rests if we run long). In a battle the arena ducks the drum while a poet speaks, and the speaker's phone carries the beat as haptics, so the beat doesn't bleed into the mic. Thirty seconds, four lines (configurable). The beat lane shows the pulses; your words land on it live, and a stressed syllable that hits a beat sounds like a drum strike. A formula card lights up when you use it. The live transcript is always visible.
 4. **Freeze rescue.** If you go silent for about a second mid-turn, your hand glows and Homer whispers one formula that fits.
 5. **Scene.** Reacts as you speak (see below).
 6. **Judge.** Scores 1 to 10 on five axes, speaks a one-line verdict, quotes your best line.

@@ -39,10 +39,14 @@ export async function sql(who, query) {
 }
 
 // A fresh identity registered as a service. Needs the `spacetime` CLI
-// logged in as the database owner, to set the key.
+// logged in as the database owner, to set the key. STDB_CLI_CONFIG points
+// the CLI at another cli.toml when the owner isn't the default login.
 export async function serviceIdentity() {
   const key = randomBytes(16).toString('hex');
-  execFileSync('spacetime', ['call', '-s', SERVER, DB, 'set_service_key', key], { stdio: 'ignore' });
+  const cfg = process.env.STDB_CLI_CONFIG ? ['--config-path', process.env.STDB_CLI_CONFIG] : [];
+  execFileSync('spacetime', [...cfg, 'call', '-s', SERVER, DB, 'set_service_key', key], {
+    stdio: 'ignore',
+  });
   const who = await identity();
   await call(who, 'claim_service', key);
   return who;

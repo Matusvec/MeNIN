@@ -1,0 +1,57 @@
+"""Settings from the environment, with homer/.env (gitignored) filled in first."""
+
+from __future__ import annotations
+
+import os
+from dataclasses import dataclass
+from functools import cache
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]  # the homer/ service folder
+
+
+def load_env(path: Path = ROOT / ".env") -> None:
+    """Read KEY=VALUE lines into os.environ without overriding what's set."""
+    if not path.is_file():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        os.environ.setdefault(k.strip(), v.strip().strip("'\""))
+
+
+def _env(name: str, default: str = "") -> str:
+    return os.environ.get(name, default).strip()
+
+
+@dataclass(frozen=True)
+class Settings:
+    judge_model: str
+    judge_effort: str  # low | medium | high
+    judge_speed: str  # "" or "fast" (Opus fast mode)
+    judge_thinking: str  # "off" where the model allows it, else "adaptive"
+    judge_timeout: float  # seconds before Homer is silent on Craft, Image and Answer
+    fallbacks: bool  # server-side refusal fallbacks where the model supports them
+    stdb_url: str
+    stdb_db: str
+    stdb_token: str
+    service_key: str
+
+
+@cache
+def settings() -> Settings:
+    load_env()
+    return Settings(
+        judge_model=_env("HOMER_JUDGE_MODEL", "claude-opus-5-5"),
+        judge_effort=_env("HOMER_JUDGE_EFFORT", "low"),
+        judge_speed=_env("HOMER_JUDGE_SPEED"),
+        judge_thinking=_env("HOMER_JUDGE_THINKING", "off"),
+        judge_timeout=float(_env("HOMER_JUDGE_TIMEOUT", "10")),
+        fallbacks=_env("HOMER_FALLBACKS", "1") not in ("0", "false", "no"),
+        stdb_url=_env("STDB_URL", "http://127.0.0.1:3000").rstrip("/"),
+        stdb_db=_env("STDB_DB", "homer"),
+        stdb_token=_env("STDB_TOKEN"),
+        service_key=_env("HOMER_SERVICE_KEY"),
+    )

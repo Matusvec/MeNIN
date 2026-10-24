@@ -1,49 +1,38 @@
-"""Assemble Homer's system prompt: shared persona plus exactly one mode section."""
+"""Assemble system prompts: the event's host persona plus one task section.
+
+System prompts are built only from files and the event config, never from
+request data, so they are byte-identical across calls and stay cached.
+"""
 
 from __future__ import annotations
 
 from functools import cache
 from pathlib import Path
 
-from .state import CURRICULUM, Mode
+from .events import Event
 
 PROMPT_DIR = Path(__file__).parent / "prompts"
-DEFAULT_SWITCH_HINT = "choose another mode from the mode selector, or type `/mode bard`, `/mode judge`, or `/mode battle`."
 
 
 @cache
 def _read(name: str) -> str:
-    return (PROMPT_DIR / f"{name}.md").read_text(encoding="utf-8")
+    return (PROMPT_DIR / f"{name}.md").read_text(encoding="utf-8").strip()
 
 
-def build_system_prompt(mode: Mode | str, switch_hint: str = DEFAULT_SWITCH_HINT) -> str:
-    mode = Mode(mode)
-    persona = _read("persona").replace("{{SWITCH_HINT}}", switch_hint)
-    section = _read(mode.value)
-    if mode is Mode.BARD:
-        steps = "\n".join(f"{i}. `{sid}`: {title}" for i, (sid, title) in enumerate(CURRICULUM, 1))
-        section = section.replace("{{CURRICULUM}}", steps)
-    footer = f"# Current mode\n\nThe app has set this session to **{mode.value}** mode."
-    return f"{persona.strip()}\n\n{section.strip()}\n\n{footer}\n"
+@cache
+def judge_system(event: Event) -> str:
+    axes = "\n".join(f"- `{a.key}` ({a.name}): {a.measures}" for a in event.claude_axes)
+    task = _read(event.judge_prompt).replace("{{AXES}}", axes)
+    return f"{_read(event.persona)}\n\n{task}\n"
 
 
 def quote_untrusted(text: str) -> str:
     """Neutralise anything in user text that could pose as our own markup.
 
-    Only angle brackets are touched, so apostrophes and quotes in verse survive
-    intact for scansion.
+    Only angle brackets are touched, so apostrophes and quotes in verse survive.
     """
     return text.replace("<", "&lt;").replace(">", "&gt;")
 
 
-def wrap_submission(text: str) -> str:
-    return f"<submission>\n{quote_untrusted(text)}\n</submission>"
-
-
-def wrap_entry(label: str, text: str) -> str:
-    return f'<entry label="{label}">\n{quote_untrusted(text)}\n</entry>'
-
-
-def app_state_block(lines: list[str] | str) -> str:
-    body = lines if isinstance(lines, str) else "\n".join(lines)
-    return f"<app_state>\n{body}\n</app_state>"
+def block(tag: str, text: str) -> str:
+    return f"<{tag}>\n{quote_untrusted(text.strip())}\n</{tag}>"

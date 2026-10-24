@@ -2,6 +2,15 @@
 
 Phones at the venue must reach SpacetimeDB. A laptop on venue WiFi is the fragile option: client isolation, a changing IP, plain `ws://`. Two real options follow. Development stays on the local server either way.
 
+## Status: live on Maincloud (2026-10-24)
+
+- Database `homer-calhacks`, owned by Matus's Maincloud login. Dashboard: https://spacetimedb.com/homer-calhacks
+- Maincloud runs SpacetimeDB **2.13.0** (`GET /v1/health`), the same version as our CLI and module.
+- `npm run smoke` against it: all 52 checks pass, including the scheduled turn timer and row-level security on hands.
+- HTTP round trip from the venue laptop: p50 about 73 ms.
+- Clients: server URL `https://maincloud.spacetimedb.com` (the WebSocket is `wss://`), database `homer-calhacks`.
+- Development stays on the local `homer` for now.
+
 ## Recommendation: Maincloud
 
 Maincloud is Clockwork Labs' hosted SpacetimeDB. It takes minutes to set up, needs no operations work, comes with TLS (`wss://`), and it's the Spacetime track's own platform. Start on Free and move to Pro if the pausing below worries us.
@@ -29,7 +38,7 @@ All of that is under 10% of the 3M free calls. Egress is also small: one prosody
 ## Moving to Maincloud (once Matus has logged in)
 
 1. `spacetime login` (Matus, in a browser).
-2. `cd spacetime && spacetime publish -s maincloud homer-calhacks`. Names must match `^[a-z0-9]+(-[a-z0-9]+)*$`. **Do a test publish today**: the docs don't say which 2.x version Maincloud runs.
+2. `cd spacetime && spacetime publish -s maincloud -y homer-calhacks`. Done; it runs 2.13.0.
 3. `spacetime call -s maincloud homer-calhacks set_service_key <key>`. The new owner is Matus's Maincloud identity.
 4. The agent service gets `STDB_URL=https://maincloud.spacetimedb.com`, `STDB_DB=homer-calhacks` and a fresh token from `POST https://maincloud.spacetimedb.com/v1/identity`. Then it calls `claim_service`.
 5. The app's server URL becomes `https://maincloud.spacetimedb.com` (the WebSocket is `wss://`) with database `homer-calhacks`. Each device gets a new identity, because tokens don't carry across servers.
