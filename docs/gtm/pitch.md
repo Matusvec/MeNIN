@@ -55,15 +55,15 @@ The new frame raises the ceiling on Most Creative, Hacker's Choice and Meta. It 
 
 Goal: every sponsor judge has played Homer before Sunday. Open the app first and talk second. **The route, times, booth numbers and what to show at each are in [booths.md](booths.md).** These are the 30-second lines.
 
-**Spacetime** (Tyler Cloutier, Julien)
+**Spacetime**
 > "MeNIN is ancient Greek party games, and SpacetimeDB *is* the arena. Every event runs on one shared state: turn order, scoring and the winner in reducers. Each phone streams its voice at about twenty hertz so the arena's scene moves with whoever's speaking. The client is Swift on iPhone. Want to take a turn?"
 Ask them: "What would make this a top-three Spacetime project for you?" Write down the answer and build toward it.
 
-**Cartesia** (Grant Timmerman, Vikram, Kelly Arifin)
+**Cartesia**
 > "Voice is the whole game. We feed your hand to the recognizer, so it hears the wine-dark sea through the drum: in our tests, 3% word error with the drum at full volume using ink-2 keyterms, 20% without. The final transcript lands about 75 ms after you stop. Homer is Carl on Sonic 3.6, with first audio in about 100 ms. He judges you like a title-fight MC and whispers you a line when you freeze. [If debate shipped:] Socrates hosts the debate in a completely different voice: quick, wry, always asking."
 Ask them: "How many winners are there, and what does great 'impact and responsibility' look like to you?"
 
-**Anthropic** (Arinze Obiezue)
+**Anthropic**
 > "For slam poets between open mics. Claude judges every verse with a stress count from our scanner, so it never guesses the beat, and every score shows its quote. The app is also being built by a team of Claude Code sessions."
 Keep the Anthropic story on the poets and on training (Bard mode). The party frame is why people come back, not the public-benefit claim.
 Ask them: "Is our community narrow enough?"
@@ -71,7 +71,7 @@ Ask them: "Is our community narrow enough?"
 **Meta** (find them at their workshop)
 > "Party games for one room: one screen, everyone's phone is a controller. The main event is a poetry battle where the judge scores how well you answer the person before you, and at the end Homer stitches everyone's lines into one song."
 
-**Figma** (Booth #35, TK Dang)
+**Figma** (Booth #35)
 > "One designer and six Claude Code sessions, with Figma as the source of truth between them. We're keeping a stage log, including what broke, like the web-to-iOS pivot."
 Ask them: "What makes a stage log win?"
 

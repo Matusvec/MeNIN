@@ -8,15 +8,15 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 
 | Time | Where | Who's there | Why now |
 | --- | --- | --- | --- |
-| **9:45 AM** | **MLH**, upstairs on the Mezzanine (map sponsor-46) | Ryan (MLH): "I'm at the MLH table upstairs!" (Sat 6:50 AM) | Right after the 9:15–9:35 discus tuning. Quick, and no demo needed. |
+| **9:45 AM** | **MLH**, upstairs on the Mezzanine (map sponsor-46) | MLH's coach: "I'm at the MLH table upstairs!" (#1-ask-mlh, Sat 6:50 AM) | Right after the 9:15–9:35 discus tuning. Quick, and no demo needed. |
 | 10:00–11:30 AM | *Matus is at the Microsoft workshop (10:00–10:45), then the coffee chat (11:00).* | | |
-| **11:45 AM** | **Figma, Booth #35**: the coffee cart activation, 10 AM–2 PM | TK (Thien-Kim) Dang, Stephanie Zhou | **Matus goes**, since the designer shows the workflow best, and it's before the 12 PM lunch rush. Bring every teammate's Edu verification proof. Their stage log is worth $2,000 on its own. |
-| 1–2 PM *(optional)* | Anthropic workshop, Theater: "Building Agents & Multi-Agent Teams with Claude" | Arinze Obiezue, Tyler Lacroix | Our build is literally a multi-agent team. Catch Arinze afterwards. |
+| **11:45 AM** | **Figma, Booth #35**: the coffee cart activation, 10 AM–2 PM | Figma's team | **Matus goes**, since the designer shows the workflow best, and it's before the 12 PM lunch rush. Bring every teammate's Edu verification proof. Their stage log is worth $2,000 on its own. |
+| 1–2 PM *(optional)* | Anthropic workshop, Theater: "Building Agents & Multi-Agent Teams with Claude" | Anthropic's track team | Our build is literally a multi-agent team. Catch the track lead afterwards. |
 | **2 PM** | *The battle checkpoint (reality-check.md).* The tour below only shows the battle if it passed. If it failed, show Practice Spar on one phone, or skip the tour. | | |
-| **2:30 PM** | **Cartesia**, main floor (sponsor-11), "near the big stairs", beside Meta | Grant Timmerman, Vikram Srinivasan, Kelly Arifin | After the checkpoint, so they hear Homer judge a real turn. Hours are unconfirmed; check #spons-cartesia first. |
+| **2:30 PM** | **Cartesia**, main floor (sponsor-11), "near the big stairs", beside Meta | Cartesia's team | After the checkpoint, so they hear Homer judge a real turn. Hours are unconfirmed; check #spons-cartesia first. |
 | 2:45 PM *(optional)* | Meta, main floor (sponsor-06), right next to Cartesia | No staff named. Their workshop is 2–3 PM at Gate 4. | Two booths in one stop |
-| **3:30 PM** | **Spacetime**, main floor (sponsor-14), next to Anthropic, or Tyler in the Theater ("all weekend") | Tyler Cloutier. Julien is unconfirmed. | Before their 4–5 PM workshop in the Theater, while Tyler's free |
-| 3:45 PM *(optional)* | Anthropic, main floor (sponsor-13), next to Spacetime | Arinze Obiezue, Tyler Lacroix | One step over from Spacetime |
+| **3:30 PM** | **Spacetime**, main floor (sponsor-14), next to Anthropic, or Spacetime's CEO in the Theater ("all weekend") | Spacetime's CEO and team | Before their 4–5 PM workshop in the Theater, while the CEO is free |
+| 3:45 PM *(optional)* | Anthropic, main floor (sponsor-13), next to Spacetime | Anthropic's track team | One step over from Spacetime |
 | 5:00 PM | Back at the table for the main video shoot ([video.md](video.md)) | | |
 
 **Who goes:** two people. The poet performs, and one more person explains the tech (Matus, or the operator if Matus is designing). The Mac stays at the build table.
@@ -35,11 +35,11 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 - **Ask for DigitalOcean credits.** The prize text says to "reach out to your MLH Coach for credits". Our agent service already runs on a DigitalOcean droplet, so ask whether the credits can go on our existing account.
 - **Ask for the free .tech domain code**, then register `playmenin.tech` with it. The .Tech prize includes a .tech domain for up to 10 years.
 - **Opt in to the Commit Fellowship** category, if the team wants it.
-- Show nothing unless asked. If Ryan's curious, hand him a phone.
+- Show nothing unless asked. If the coach is curious, hand them a phone.
 
 ### Figma (Booth #35, 11:45 AM)
 - **If Matus's coffee chat runs past 12:15,** a teammate goes instead, by 1:30 PM at the latest (the activation ends at 2). Open the Directions file in the Figma app on a phone, or on the Mac, and use the same talking points.
-- **Edu verification first.** Anyone not verified: TK's fix is to give her your email at the booth.
+- **Edu verification first.** Anyone not verified: Figma's team said to give them your email at the booth (#spons-figma, Fri 7:48 PM).
 - **Show the file, then the app.** Open "MeNIN · Directions" (figma.com/design/qyaXnV3HbIUPIfYVbyqKwv):
   - One variable collection with two modes, Atelier and Cut paper. Flip the mode and the whole screen changes direction.
   - Every variable carries its Swift name (`Palette.hero`), so one mode switch in Figma matches one launch flag in the app.
@@ -67,9 +67,9 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 ### Spacetime (sponsor-14 or the Theater, 3:30 PM)
 - **Show the Swift client live.** A phone joins the room and the arena reacts at once. Then the scene moving with the poet's voice, which is the 20 Hz stream into one table the arena subscribes to.
 - **The line:** "The whole battle is a phase machine in reducers, from the lobby to the crown, with a scheduled reducer for the turn timer. Your hand is in a private table only your phone can read. The iPhone client is the community Swift SDK, and we patched it. Upstream, every client subscribes to whole tables, so every phone got every room's voice stream. Now each phone subscribes to its own room."
-- **Tyler will care about the patches.** Ask him whether they'd want them upstream.
+- **The CEO will care about the patches.** Ask whether they'd want them upstream.
 - **Ask:** "What would make this a top-three Spacetime project for you?" Write the answer down and tell leader.
-- **Credits:** `spacetimedb.com/redeem?code=CALHACKS13` (Tyler, #cohost-spacetime, Sat 12:10 AM).
+- **Credits:** `spacetimedb.com/redeem?code=CALHACKS13` (#cohost-spacetime, Sat 12:10 AM, Spacetime staff).
 
 ### Anthropic (sponsor-13, optional)
 - **Show** a verdict, then point at the five scores: "Beat is a deterministic stress scanner, not Claude's opinion. Claude scores the rest with your hand and the verse you answered in front of it."

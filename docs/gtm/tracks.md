@@ -57,9 +57,9 @@ Credit the composer by name everywhere, and state honestly how the score was mad
 2. Show the ~20 Hz voice stream in the pitch.
 3. Say "zero sync code" in the pitch.
 
-**iOS note:** the Swift client is community-built (for example `avias8/spacetimedb-swift`, v0.21, iOS 17+). I found no official Swift SDK. Smoke-test two phones and the arena before anyone sleeps. Tell Tyler at the booth that we're on Swift, since it's novel and his team may help.
+**iOS note:** the Swift client is community-built (for example `avias8/spacetimedb-swift`, v0.21, iOS 17+). I found no official Swift SDK. Smoke-test two phones and the arena before anyone sleeps. Tell Spacetime's team at the booth that we're on Swift, since it's novel and they may help.
 
-**People:** Tyler Cloutier (CEO, onsite) and Julien.
+**People:** Spacetime's CEO is onsite. Route and times: [booths.md](booths.md).
 **Side quest:** the separate Scrabblebot tournament ($1,024 / $512 / $256) is Sat 11:59 PM in the Theater, signup at scrabblebot.spacetimedb.com. Only enter it if a spare Claude session can build the bot without pulling a human off the critical path.
 
 ---
@@ -89,7 +89,7 @@ Criteria: Workflow Design, Adoptability ("a measurable before and after"), Outpu
 **The problem today:** the artist's log says no Figma file exists yet, because the session had no Figma connector. **Matus has to design the arena and phone screens in Figma and connect the Figma MCP Saturday morning**, or the Workflow prize is gone. The friction going from Figma to SwiftUI (Dev Mode has SwiftUI snippets; Make outputs React) is honest friction worth logging.
 
 **Log:** [figma-stage-log.md](figma-stage-log.md).
-**Booth:** #35, with an activation Sat 10 AM to 2 PM; bring proof of Edu verification. People: TK Dang and Stephanie Zhou.
+**Booth:** #35, with an activation Sat 10 AM to 2 PM; bring proof of Edu verification. People: Figma's booth team.
 
 ---
 
@@ -141,7 +141,7 @@ These hit "Voice clear, responsive, and natural?" directly. The keyterm trick is
 - A PG name filter before TTS speaks names (already in ux-flow)
 - What we store: decide it, then say it. My proposal: no audio stored, transcripts kept only for the room's lifetime. Only claim this once it's true.
 
-**People:** Grant Timmerman, Vikram, Kelly Arifin. Booth "near SpaceX, behind all the chairs", "Near the big stairs".
+**People:** Cartesia's team. Booth "near SpaceX, behind all the chairs", "Near the big stairs".
 **Code:** `CARTESIACALHACKS` (a month of the startup plan). Docs: docs.cartesia.ai/calhacks
 
 ---
@@ -167,7 +167,7 @@ No Meta staff have posted in Slack. Their workshop is "From Chatbots to Agent Te
 
 **Criteria.** Two versions exist; satisfy both.
 
-Slack (Arinze Obiezue, Fri 4:37 PM, the newer one):
+Slack (#cohost-anthropic, Fri 4:37 PM, Anthropic staff; the newer one):
 1. "A named community: 'Students' is too broad."
 2. "A real problem: You've lived it or you've talked to someone who has."
 3. "A working high-impact product... It should also be clear **how you plan to measure its impact** on your target community"
@@ -192,7 +192,7 @@ Hacker Guide and Hive add: "One thing done well and usable on Monday beats a bro
    - A judge that roasts could sting a nervous beginner, so roasts stay gentle and only in Battle; Bard is a calm coach
 6. **"Usable Monday" on iOS:** a TestFlight public link, if Apple's beta review approves it before Sunday. Say "any iPhone", not "anyone". Without a public link, this criterion is weak.
 
-**People:** Arinze Obiezue (track lead, credits), Tyler Lacroix, and judge Raghuram Malpe Pai.
+**People:** Anthropic's track lead (who also runs credits), their team, and at least one Anthropic judge.
 **Credits:** $50 per hacker through the form in #cohost-anthropic. It goes to the Console, not claude.ai.
 
 ---

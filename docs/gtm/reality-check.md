@@ -76,7 +76,7 @@ It was Matus's call, and it buys real things: the haptic beat, native audio, and
 
 | Risk | Mitigation |
 | --- | --- |
-| The SpacetimeDB Swift client is community-built, not official | A two-phone smoke test before anyone sleeps (now a hard checkpoint). Show Tyler at the booth. |
+| The SpacetimeDB Swift client is community-built, not official | A two-phone smoke test before anyone sleeps (now a hard checkpoint). Show Spacetime's team at the booth. |
 | The TestFlight public link needs Apple's beta review, and "usable Monday" depends on it | Submit the first stable build Saturday morning. Have a fallback line ready for Q&A. |
 | Judges and hackers can't just open a link | The judges were never going to join in 2 minutes anyway. For Hacker's Choice, run battles on our phones. |
 | The web scene work was thrown away mid-build | The artist reports the shader math carries over to Metal. Log the friction (it's good for the Figma log). |
