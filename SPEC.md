@@ -22,7 +22,7 @@ MeNIN is a universal iOS app (SwiftUI, iOS 18+, iPhone and iPad), shared with th
 
 **The website** (Matus's call, Sat 12:20 PM) is the big screen anyone can open: MeNIN's hall of Greek games in a browser, at a public HTTPS URL. Open it on a laptop and it becomes the arena; phones join its room with the app, the same way they join the Mac arena. It is deployed, never localhost: judges must be able to open it themselves. It's static files served from our droplet, talking to the same SpacetimeDB database and agent service as the app. It replaces the Mac arena in the demo only after it passes the same 5-runs-in-a-row check; until then the Mac app is the arena and the website is the link judges can open.
 
-The look is **Atelier** (Matus's pick, Sat 11:55 AM): cream cards with Bodoni display type and Inter UI, wine and gold accents, over the full-screen scene of matte, painted color. Open and simple, lots of negative space, no glow or neon. Names and the wordmark must read from 2 m away on a laptop screen.
+The look is **Atelier** (Matus's pick, Sat 11:55 AM): cream cards with Bodoni display type and Inter UI, wine and gold accents, over the full-screen scene of matte, painted color. Open and simple, lots of negative space, no glow or neon. Names and the wordmark must read from 2 m away on a laptop screen. On a phone, every screen is one vertical stack: context at the top (event, theme, who's up), content in the middle, and one primary action at the bottom in the thumb zone. Nothing clips, overflows or needs scrolling mid-turn on any iPhone from the SE to the Pro Max.
 
 ## The games
 
