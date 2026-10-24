@@ -87,6 +87,10 @@ Voice is the whole game: you play by speaking, and Homer answers out loud.
 - **Beat is never the model's opinion.** A deterministic stress scanner (CMU Pronouncing Dictionary) counts it, and Claude gets that count with your hand and the verse you're answering. Range comes from an emotion classifier (Claude Haiku 5.5) that reads your words and voice every ~1.5 s.
 - **Built with Claude, too:** the whole app was built by a team of Claude Code sessions (leader, product, art, multiplayer, iOS, agent service and go-to-market), each in its own folder, working from one spec ([`SPEC.md`](SPEC.md)).
 
+## Apify: Epithet Miner
+
+Part of the stock-phrase bank was mined by our Apify Actor, **Epithet Miner** ([`apify/`](apify/), Store: [link]). It reads four public-domain Homer translations from Project Gutenberg and finds noun-epithet formulas with readable rules, no language model. Then it counts their beats with our scanner's rule and ranks them by how often they recur. It mined 150 candidates. A person kept 55, so the bank grew from 158 to 213. It runs at build time only, and the game never calls Apify. How it was built, honestly: [`apify/BUILD_LOG.md`](apify/BUILD_LOG.md).
+
 ## Fetch.ai: Homer on Agentverse
 
 [Keep only if it's live.] Homer's dealer and judge also run as the agent **homer-bard** on Agentverse (`agent1qf8cydj43pd7tue06mk9avnp45avcc4ss9gjm98r4lkjczsw0gskzw97edc`), with the Agent Chat Protocol, so a whole battle turn works inside an ASI:One chat. Ask for a theme and get five formulas, then send a verse and get judged. It sits behind a switch, off the demo path. See [`homer/AGENTVERSE.md`](homer/AGENTVERSE.md). Try it: [ASI:One link].

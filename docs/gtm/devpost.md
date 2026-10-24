@@ -175,12 +175,12 @@ swift · swiftui · metal · avfoundation · core-haptics · [core-motion] · sp
 
 Every integration below runs behind a switch, off the demo path (SPEC `5a6a8fe`). Fill each bracket with what's true, or delete the blurb.
 
-**Apify: Epithet Miner.** Homer improvised with stock phrases, and so do you: every turn deals you five. Our Apify Actor, **Epithet Miner**, builds that bank:
-- It reads public-domain Homer translations on Project Gutenberg and pulls out the recurring epithets and formulas ("the wine-dark sea", "rosy-fingered Dawn").
-- It counts how often each one appears, and outputs them in our bank's format, with the source.
-- Our stress scanner counts each phrase's beats, and a person reviews every candidate before it joins the bank.
+**Apify: Epithet Miner.** Homer improvised with stock phrases, and so do you: every turn deals you five. Our Apify Actor, **Epithet Miner**, mined part of that bank:
+- **Sources:** four public-domain Homer translations on Project Gutenberg, 3.2 million characters in all: Lang, Leaf and Myers's Iliad, Butcher and Lang's Odyssey, and Samuel Butler's Iliad and Odyssey.
+- **How it works:** it finds noun-epithet formulas with readable rules and no language model. It folds Roman names to Greek (Jove becomes Zeus) and merges synonyms. It counts each phrase's beats with the same CMU-dictionary rule as our stress scanner, and ranks phrases by how often and how widely they recur ("aegis-bearing Zeus" appears 60 times across two translations).
+- **What it produced:** 150 candidates. A person reviewed them and kept 55, so the bank grew from 158 to 213 formulas: about a quarter of what Homer can deal you now came from the Actor.
 
-[N] of the [M] phrases you can be dealt came from the Actor. We built it with [Apify AI Chat / the Apify MCP in Claude Code: say which, honestly] and published it at [Apify Store link].
+The Actor was written by an AI coding agent (Claude Opus 5.5 in Claude Code) on the Apify SDK and Crawlee, and it's published at [Apify Store link]. It runs at build time; the game never calls Apify live. The full, honest build log is in `apify/BUILD_LOG.md`, including what went wrong: the first list was full of "dear son" and "great wealth".
 
 **Fetch.ai: Homer on Agentverse.** The whole battle turn works inside an ASI:One conversation. Ask Homer for a theme, and he deals you five stock phrases that fit it. Write your verse with them, and he judges it with the same scanner and Claude judge that run our live battles: five scores, your best line quoted and a one-line verdict.  It's an agent registered on Agentverse that speaks the Agent Chat Protocol, running inside our agent service behind a switch, so the battle never depends on it. Agent: `homer-bard` (`agent1qf8cydj43pd7tue06mk9avnp45avcc4ss9gjm98r4lkjczsw0gskzw97edc`). Try it: [ASI:One link].
 
@@ -203,7 +203,7 @@ Every integration below runs behind a switch, off the demo path (SPEC `5a6a8fe`)
 - [ ] **Fetch.ai: Best Use of Fetch.ai** (only if Homer's judge is live on Agentverse and usable from ASI:One)
 - [ ] **Moss: Best Use of Moss** (only if theme-fitting dealing really ships behind its switch)
 - [ ] MLH: Best Use of DigitalOcean (the agent service runs there)
-- [ ] **Apify: Best use** and **Best Actor** (only once Epithet Miner's formulas are really in the bank)
+- [ ] **Apify: Best use** and **Best Actor.** The formulas are in the bank (55 of 213, committed). Tag both once the Store link works.
 
 Main prizes are automatic.
 
