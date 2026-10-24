@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 /// Maps live battle state onto the art lead's value models (UI/Battle/BattleModels.swift).
 /// Pure functions of their inputs: the views only render, the presenters only map.
@@ -61,7 +62,9 @@ enum BattlePresenter {
 
     // MARK: arena
 
-    static func arena(_ battle: BattleClient, conductor: ArenaConductor?) -> ArenaModel? {
+    /// `inHall`: the arena operator went back to the hall after a crown (P16), so the event
+    /// tiles show while everyone stays joined.
+    static func arena(_ battle: BattleClient, conductor: ArenaConductor?, inHall: Bool = false) -> ArenaModel? {
         guard let room = battle.room else { return nil }
         let homer = conductor?.homer
         var model = ArenaModel(
@@ -75,6 +78,14 @@ enum BattlePresenter {
             homer: homerLine(homer)
         )
         model.event = event(room)
+        if inHall {
+            model.moment = .hall(entering: nil, events: EventTile.all.map { tile in
+                var t = tile
+                t.locked = tile.locked || !AppModel.liveEvents.contains(tile.id)
+                return t
+            })
+            return model
+        }
         let turn = battle.currentTurn
         let poet = turn.flatMap { battle.player($0.playerId) }.map(plate)
         let saying = conductor?.saying
@@ -146,7 +157,7 @@ enum BattlePresenter {
         return model
     }
 
-    static func arenaActions(_ battle: BattleClient, conductor: ArenaConductor?) -> ArenaActions {
+    static func arenaActions(_ battle: BattleClient, conductor: ArenaConductor?, inHall: Binding<Bool>? = nil) -> ArenaActions {
         guard let room = battle.room else { return ArenaActions() }
         let config = Reducer.CreateRoom(event: room.event, rounds: room.rounds, barsPerLine: room.barsPerLine,
                                         linesPerTurn: room.linesPerTurn, bpm: room.bpm, form: room.form,
@@ -157,7 +168,13 @@ enum BattlePresenter {
             pickTheme: room.phaseValue == .theme ? { i in if themes.indices.contains(i) { battle.chooseTheme(themes[i]) } } : nil,
             advance: { battle.advanceOnce() },
             rematch: room.phaseValue != .lobby ? { battle.rematch() } : nil,
-            newPoets: { battle.createRoom(config) }
+            newPoets: { battle.createRoom(config) },
+            pickEvent: inHall?.wrappedValue == true ? { kind in
+                // P16: switch the open hall to the picked event; poets, epithets and seats stay.
+                battle.setEvent(kind.rawValue, rounds: Reducer.CreateRoom.preset(event: kind.rawValue, demo: room.demo).rounds)
+                inHall?.wrappedValue = false
+            } : nil,
+            backToHall: room.phaseValue == .finished && inHall != nil ? { inHall?.wrappedValue = true } : nil
         )
     }
 

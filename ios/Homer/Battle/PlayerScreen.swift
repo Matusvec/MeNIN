@@ -24,9 +24,13 @@ struct PlayerScreen: View {
             }
         }
             .toolbar(.hidden, for: .navigationBar)
+            .onChange(of: battle.room?.phase) { _, phase in
+                if phase == RoomPhase.finished.rawValue { LastBattle.clear() }  // nothing to come back to
+            }
             .task {
                 MusicDirector.shared.stopAll()
                 battle.connect(to: ServerConfig.spacetime, database: ServerConfig.database)
+                rejoinIfReturning()
                 let recorder = TurnRecorder(battle: battle, agent: AgentClient.configured)
                 recorder.attach()
                 self.recorder = recorder
@@ -39,6 +43,16 @@ struct PlayerScreen: View {
                 autopilot?.stop()
                 battle.disconnect()
             }
+    }
+
+    /// Reopened mid-battle: rejoin the remembered room as soon as the connection is up.
+    private func rejoinIfReturning() {
+        guard let last = LastBattle.recent(), last.code == initialCode.uppercased() else { return }
+        Task {
+            for _ in 0..<100 where battle.connection != .connected { try? await Task.sleep(for: .milliseconds(100)) }
+            guard battle.connection == .connected, battle.me == nil else { return }
+            battle.join(code: last.code, name: last.name)
+        }
     }
 
     private var model: PlayerModel {
@@ -55,6 +69,7 @@ struct PlayerScreen: View {
             join: { code, name in
                 savedName = name
                 battle.join(code: code, name: name)
+                LastBattle.save(code: code, name: name)
             },
             imHere: { battle.enter() },
             ready: { if let turn = battle.currentTurn { battle.startTurn(turn.id) } },
@@ -73,6 +88,7 @@ struct PlayerScreen: View {
             },
             leave: {
                 if battle.me != nil { battle.leave() }
+                LastBattle.clear()
                 onLeave?()
             }
         )
@@ -98,5 +114,24 @@ struct PlayerScreen: View {
             .padding()
             .background(.thinMaterial)
         }
+    }
+}
+
+/// The battle this phone is in, so a crash or force-quit drops the poet straight back into it.
+enum LastBattle {
+    private static let key = "lastBattle"
+    static let freshFor: TimeInterval = 30 * 60
+
+    static func save(code: String, name: String) {
+        UserDefaults.standard.set(["code": code.uppercased(), "name": name, "at": Date().timeIntervalSince1970], forKey: key)
+    }
+
+    static func clear() { UserDefaults.standard.removeObject(forKey: key) }
+
+    static func recent() -> (code: String, name: String)? {
+        guard let d = UserDefaults.standard.dictionary(forKey: key), let code = d["code"] as? String,
+              let name = d["name"] as? String, let at = d["at"] as? Double,
+              Date().timeIntervalSince1970 - at < freshFor else { return nil }
+        return (code, name)
     }
 }

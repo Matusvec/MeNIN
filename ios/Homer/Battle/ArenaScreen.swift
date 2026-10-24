@@ -8,6 +8,7 @@ struct ArenaScreen: View {
     @State private var battle = BattleClient(role: .arena)
     @State private var autopilot: DevAutopilot?
     @State private var conductor: ArenaConductor?
+    @State private var inHall = false
 
     var body: some View {
         Group {
@@ -15,8 +16,8 @@ struct ArenaScreen: View {
                 // Discus runs its own canvas and reveal (Events/Discus); Homer's lines go through the conductor's voice.
                 DiscusArenaRoot(battle: battle, homer: conductor?.homer)
                     .toolbar(.hidden, for: .navigationBar)
-            } else if let model = BattlePresenter.arena(battle, conductor: conductor) {
-                ArenaView(model: model, actions: BattlePresenter.arenaActions(battle, conductor: conductor))
+            } else if let model = BattlePresenter.arena(battle, conductor: conductor, inHall: inHall) {
+                ArenaView(model: model, actions: BattlePresenter.arenaActions(battle, conductor: conductor, inHall: $inHall))
                     .overlay(alignment: .topTrailing) { problems }
                     .toolbar(.hidden, for: .navigationBar)
             } else {

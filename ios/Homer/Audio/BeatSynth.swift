@@ -60,7 +60,31 @@ enum BeatSynth {
 
     // MARK: voices
 
+    /// The composer's recorded hits (docs/audio.md): dry, mono, 48 kHz. When a file is bundled it
+    /// replaces the synthesized voice; the app still schedules every hit, so the beat stays procedural.
+    private static let noteNames: [Double: String] = [146.83: "lyre-d3", 174.61: "lyre-f3", 196.00: "lyre-g3",
+                                                      220.00: "lyre-a3", 261.63: "lyre-c4", 293.66: "lyre-d4"]
+    nonisolated(unsafe) private static var samples: [String: [Float]] = [:]
+    nonisolated(unsafe) private static var missing = Set<String>()
+
+    private static func sample(_ name: String, sampleRate: Double, gain: Float) -> [Float]? {
+        if missing.contains(name) { return nil }
+        if samples[name] == nil {
+            let url = ["caf", "wav", "m4a"].lazy.compactMap { Bundle.main.url(forResource: name, withExtension: $0) }.first
+            guard let url, let file = try? AVAudioFile(forReading: url, commonFormat: .pcmFormatFloat32, interleaved: false),
+                  file.processingFormat.sampleRate == sampleRate,
+                  let buffer = AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: AVAudioFrameCount(file.length)),
+                  (try? file.read(into: buffer)) != nil, let data = buffer.floatChannelData?[0] else {
+                missing.insert(name)
+                return nil
+            }
+            samples[name] = Array(UnsafeBufferPointer(start: data, count: Int(buffer.frameLength)))
+        }
+        return samples[name].map { $0.map { $0 * gain } }
+    }
+
     static func kick(_ sr: Double, gain: Float) -> [Float] {
+        if let recorded = sample("drum-kick", sampleRate: sr, gain: gain) { return recorded }
         let n = Int(0.4 * sr)
         var phase = 0.0
         return (0..<n).map { i in
@@ -72,6 +96,7 @@ enum BeatSynth {
     }
 
     static func rim(_ sr: Double, gain: Float) -> [Float] {
+        if let recorded = sample("drum-rim", sampleRate: sr, gain: gain) { return recorded }
         let n = Int(0.09 * sr)
         var rng = SplitMix(seed: 7)
         var lowpassed: Float = 0
@@ -86,6 +111,7 @@ enum BeatSynth {
 
     /// Karplus-Strong plucked string.
     static func pluck(_ hz: Double, sampleRate sr: Double, seconds: Double, gain: Float) -> [Float] {
+        if let name = noteNames[hz], let recorded = sample(name, sampleRate: sr, gain: gain) { return recorded }
         let period = max(2, Int(sr / hz))
         var rng = SplitMix(seed: UInt64(hz * 100))
         var line = (0..<period).map { _ in Float.random(in: -1...1, using: &rng) }

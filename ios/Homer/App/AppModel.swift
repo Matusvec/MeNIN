@@ -48,6 +48,11 @@ final class AppModel {
         poetName = defaults.string(forKey: Keys.name) ?? ""
         hoard = defaults.stringArray(forKey: Keys.hoard) ?? []
         route = defaults.bool(forKey: Keys.firstOpenDone) ? .home : .firstOpen
+        // Back into a live battle after a crash or force-quit: same Keychain identity, so join_room
+        // is a reconnect and the poet gets their seat and score back (spacetime/CONTRACT.md).
+        if let code = LastBattle.recent()?.code, defaults.bool(forKey: Keys.firstOpenDone) {
+            route = .player(code: code)
+        }
         // Dev: `-startScreen arena|player|dev|home|first` jumps straight in (smoke tests, the operator).
         switch defaults.string(forKey: "startScreen") {
         case "arena": route = .arena(event: defaults.string(forKey: "event") ?? "poetry")
