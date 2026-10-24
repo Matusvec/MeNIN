@@ -47,7 +47,7 @@ MeNIN is one universal iOS app (iPhone and iPad), distributed through TestFlight
 - **Carved line:** the best line of each round is carved in gold across the arena.
 - **The stitched song:** at the finale Homer stitches every verse into one poem and performs it over the beat while the scene replays the battle's colors, then crowns the champion.
 
-**Proposals P7 to P19**
+**Proposals P7 to P20**
 
 Leader approved these as delegator, and Matus can veto any of them. Approved items keep their Pn tag in the body, so a veto is easy to trace.
 
@@ -66,6 +66,7 @@ Leader approved these as delegator, and Matus can veto any of them. Approved ite
 | P17 | **Tap to play a move.** In debate, you tap a move card on your phone as you make the move. It lands on the arena, and the judge checks that you really made it (section 8). | Approved, and in SPEC.md |
 | P18 | **Sides are dealt.** In debate, sides alternate by turn order, so you often argue a side you don't hold (section 8). | Approved, and in SPEC.md |
 | P19 | **Demo mode music.** At the judging table, the hall theme stays at its ducked level the whole time, because we talk over the menu. An operator key mutes all music (sections 6 and 10). | Approved, and in SPEC.md "Music" |
+| P20 | **Beat number in lessons.** After each try in a lesson, your Beat score (1 to 10) shows small beside Homer's note, so you can watch it climb. The first-timer study (`docs/study.md`) and the video's before-and-after shot both read it off the screen (L4). | Proposed |
 
 P1 to P6 were approved by Matus and are listed above.
 
@@ -185,7 +186,7 @@ Lesson 1 is used as the example. A lesson runs 2 to 5 minutes, which fits about 
 
 #### L4 · One note · ~3–4 s
 
-- **Arena:** The single spot Homer is talking about is marked on your lane: a missed stress, a rushed break, or the half that wasn't a formula. Only ever one spot.
+- **Arena:** The single spot Homer is talking about is marked on your lane: a missed stress, a rushed break, or the half that wasn't a formula. Only ever one spot. With P20, the try's Beat score (1 to 10) shows small beside it.
 - **Phone:** Same.
 - **Homer:** One thing, no more. "Three hits. You owe me one more." / "You rushed the break. Let it breathe."
 - **Next:** Landed → L5. Otherwise back to L3.
