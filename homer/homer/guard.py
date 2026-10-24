@@ -21,21 +21,24 @@ from dataclasses import dataclass
 APP_KEY_HEADER = "x-homer-key"
 
 # path -> (calls, window seconds) per client IP. Calls Claude or Cartesia unless noted.
+# Sized for three judging tables behind one venue IP, about four times over: one
+# table's busiest minute is ~40 emotion calls and a handful of the rest. The
+# hourly Budget, not these, caps what abuse can spend.
 LIMITS: dict[str, tuple[int, float]] = {
-    "/judge": (20, 60),
-    "/battle/judge": (30, 60),
-    "/emotion": (150, 60),  # ~every 1.5 s while a poet speaks
-    "/battle/emotion": (150, 60),
-    "/spar": (10, 60),
-    "/debate/whispers": (20, 60),
-    "/lesson/feedback": (20, 60),
-    "/battle/poet": (30, 60),
-    "/battle/verdict": (10, 60),
-    "/battle/song": (10, 60),
-    "/voice/token": (30, 60),
-    "/battle/deal": (20, 60),  # no model call, but it writes to SpacetimeDB
+    "/judge": (80, 60),
+    "/battle/judge": (120, 60),
+    "/emotion": (600, 60),  # ~every 1.5 s while a poet speaks
+    "/battle/emotion": (600, 60),
+    "/spar": (40, 60),
+    "/debate/whispers": (80, 60),
+    "/lesson/feedback": (80, 60),
+    "/battle/poet": (120, 60),
+    "/battle/verdict": (40, 60),
+    "/battle/song": (40, 60),
+    "/voice/token": (120, 60),
+    "/battle/deal": (80, 60),  # no model call, but it writes to SpacetimeDB
 }
-CHEAP_LIMIT = (300, 60)  # every other path, each on its own: no model call, but keep the CPU sane
+CHEAP_LIMIT = (1200, 60)  # every other path, each on its own: no model call, but keep the CPU sane
 OPEN = frozenset({"/health"})  # never limited: the demo gate and Docker's healthcheck
 KEYED = frozenset(LIMITS)  # endpoints that need the app key when it's required
 

@@ -28,7 +28,7 @@ from pydantic.alias_generators import to_camel
 from . import debate, events, formulas, moss_dealer
 from .arena import Arena, BattleTurn, NotFound, Poet
 from .config import settings
-from .deal import Card, deal, pick_theme, rescue, themes
+from .deal import Card, call_for, deal, pick_theme, rescue, themes
 from .host import Host
 from .lessons import Attempt, demo_lane, feedback as lesson_feedback, lessons, spoken_demo
 from .judge import EmptyVerse, Judge, Judgment, Turn
@@ -365,12 +365,20 @@ def question_json(q: debate.Question) -> dict[str, Any]:
 
 
 @app.get("/themes")
-async def get_themes(n: int = 3, demo: bool = False) -> dict[str, Any]:
-    """Theme cards for the arena or Practice. Demo mode gets the three rehearsed themes."""
+async def get_themes(n: int = 3, demo: bool = False, event: str = "poetry") -> dict[str, Any]:
+    """Theme cards for the arena or Practice, each with Homer's call to the first poet (`calls`, same order).
+
+    Demo mode gets the three rehearsed themes. A debate's cards are its questions,
+    and its demo gets the one fixed question; Socrates calls the side, so no calls.
+    """
+    if event == "debate":
+        asks = [q.ask for q in debate.questions()]
+        fixed = debate.question(debate.DEMO_QUESTION)
+        picked = [fixed.ask] if demo and fixed else random.sample(asks, min(n, len(asks)))
+        return {"themes": picked, "calls": ["" for _ in picked]}
     pool = list(themes())
-    if demo:
-        return {"themes": pool[:n]}
-    return {"themes": random.sample(pool, min(n, len(pool)))}
+    picked = pool[:n] if demo else random.sample(pool, min(n, len(pool)))
+    return {"themes": picked, "calls": [call_for(t) for t in picked]}
 
 
 class DealRequest(Model):
@@ -474,7 +482,8 @@ async def battle_deal(req: BattleDealRequest) -> dict[str, Any]:
         raise HTTPException(409, str(exc)) from None
     except StdbError as exc:
         raise HTTPException(502, str(exc)) from None
-    return {"theme": theme, "hands": {str(k): v for k, v in hands.items()}}
+    debating = debate.question(theme) is not None
+    return {"theme": theme, "call": "" if debating else call_for(theme), "hands": {str(k): v for k, v in hands.items()}}
 
 
 class BattleJudgeRequest(Model):

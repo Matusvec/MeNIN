@@ -78,7 +78,7 @@ The repo is private, so copy what the image needs instead of cloning:
 
 ```bash
 cd ..   # repo root
-rsync -az --delete --exclude .venv --exclude __pycache__ --exclude .pytest_cache --exclude '.env*' \
+rsync -az --delete --exclude .venv --exclude __pycache__ --exclude .pytest_cache --exclude '.env*' --exclude web \
   homer content matus@<ip>:~/menin/
 scp homer/.env.prod matus@<ip>:~/menin/homer/.env
 ssh matus@<ip> chmod 600 '~/menin/homer/.env'

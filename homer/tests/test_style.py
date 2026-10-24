@@ -17,7 +17,7 @@ def examples(name: str) -> list[str]:
 
 def test_the_checks():
     verse = "the hollow ships came back with no one aboard\nmy mother still sets a plate by the door"
-    assert voice_problems("A plate by the door. That's the whole war in four words.", verse) == []
+    assert voice_problems("A plate by the door. That's the whole war in one picture.", verse) == []
     assert "doesn't quote their words" in voice_problems("Strong bones, thin blood. Heavy.", verse)
     assert any(p.startswith("talks about the rules") for p in voice_problems("Two lines, but the plate by the door hit.", verse))
     assert any(p.startswith("names a feeling") for p in voice_problems("You sound so sad. A plate by the door."))
@@ -26,6 +26,7 @@ def test_the_checks():
     assert "more than two sentences" in voice_problems("A plate. By the door. Knockout.")
     assert quoted_run("my mother still sets it", verse) == 4
     assert "no call: only their words" in voice_problems("My mother still sets a plate.", verse)
+    assert any(p.startswith("talks about the rules") for p in voice_problems("The light box. Two cards on the table, now light a fire."))
 
 
 @pytest.mark.parametrize("prompt", ["judge_poetry", "judge_debate"])

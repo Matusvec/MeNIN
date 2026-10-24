@@ -89,3 +89,23 @@ def test_emotion_takes_text_or_transcript(client, monkeypatch):
     assert client.post("/emotion", json={"text": "the grave"}).status_code == 200
     assert client.post("/emotion", json={"transcript": "  "}).status_code == 422
     assert seen == [("the grave is cold", 0.4), ("the grave", None)]
+
+
+def test_themes_carry_homers_call_and_debate_has_a_demo_question():
+    from homer import server
+    from fastapi.testclient import TestClient
+    with TestClient(server.app) as c:
+        demo = c.get("/themes?demo=true").json()
+        assert demo["themes"][:3] == ["A ship that never came home", "The night before the deadline", "The war between two brothers"]
+        assert demo["calls"] == ["The sea is yours.", "The clock is yours.", "Pick a brother."]
+        some = c.get("/themes?n=5").json()
+        assert len(some["calls"]) == len(some["themes"]) == 5 and all(some["calls"])
+        debate = c.get("/themes?event=debate&demo=true").json()
+        assert debate == {"themes": ["Is it cheating to let an AI write your love letter?"], "calls": [""]}
+        assert len(c.get("/themes?event=debate").json()["themes"]) == 3
+
+
+def test_call_for_any_theme():
+    from homer.deal import FLOOR, THEME_CALLS, call_for, themes
+    assert all(call_for(t) == THEME_CALLS[t] for t in themes()) and len(THEME_CALLS) == 16
+    assert call_for("  a SHIP that never came home ") == "The sea is yours." and call_for("My own theme") == FLOOR

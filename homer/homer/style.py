@@ -14,7 +14,8 @@ JARGON = ("iamb", "trochee", "dactyl", "scansion", "meter", "metre", "stanza", "
 FEELINGS = re.compile(r"\byou (?:sound|seem|feel|felt|are so)\b|\b(?:sad|sadness|angry|anger|anxious|happy|joyful|"
                       r"emotional|heartbroken|depressed|furious|scared)\b", re.I)
 NUMBER = re.compile(r"\b\d+\b|\b(?:out of ten|points?|score[sd]?)\b", re.I)
-META = re.compile(r"\b(?:two lines|one line|short turn|rescues?|the clock|your cards?|your hand)\b", re.I)
+META = re.compile(r"\b(?:(?:one|two|three|four|five|\d+) (?:lines?|cards?|rescues?|words|seconds|hits)|short turn|rescues?|"
+                  r"the clock|your cards?|your hand)\b", re.I)
 WORD = re.compile(r"[a-z0-9']+")
 VERDICT_WORDS = 16  # judge_poetry.md and judge_debate.md: "At most sixteen words"
 

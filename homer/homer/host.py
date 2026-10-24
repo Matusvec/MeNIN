@@ -25,6 +25,7 @@ from .scanner import VerseScan, scan_verse, strong_hits
 
 NAME_MAX, EPITHET_MAX = 24, 32
 SONG_MAX, DEMO_SONG_MAX = 16, 4
+SONG_MIN_HITS = 3  # a frozen fragment under this is never sung; a line a hit short, Homer completes
 CALL_MAX_WORDS = 12  # the round call, before the carved line: ~7 s together (docs/gtm/demo-script.md)
 
 STR = {"type": "string"}
@@ -66,6 +67,19 @@ def _match_line(quoted: str, candidates: list[str]) -> str | None:
             return line
     close = difflib.get_close_matches(q, [line.lower() for line in candidates], n=1, cutoff=0.7)
     return next((line for line in candidates if line.lower() == close[0]), None) if close else None
+
+
+def _on_the_beat(lines: list[tuple[int, str]], cap: int) -> list[tuple[int, str]]:
+    """The song as it will be sung over the beat: no fragments, and the four-hit lines first when it's too long.
+
+    Order stays the battle's, and the closing line always stays: the song builds to it.
+    """
+    hits = {i: (scan_verse(text).lines or [None])[0] for i, (_, text) in enumerate(lines)}
+    keep = [i for i, scan in hits.items() if scan is not None and scan.hits >= SONG_MIN_HITS] or list(hits)[:cap]
+    if len(keep) > cap:
+        last = keep[-1]
+        keep = sorted(sorted(keep[:-1], key=lambda i: abs(hits[i].hits - 4))[: cap - 1] + [last])
+    return [lines[i] for i in keep]
 
 
 class Host:
@@ -161,7 +175,7 @@ class Host:
                 out.append((int(item["turn"]), text))
         if not out:  # Claude failed: the poets' own best lines, in battle order
             out = [(v.turn_id, v.best_line or _lines(v.transcript)[0]) for v in spoken]
-        return out[:cap]
+        return _on_the_beat(out, cap)
 
     # ----- Homer's own verse (spar, lessons) ---------------------------------
 

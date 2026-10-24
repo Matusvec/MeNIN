@@ -106,6 +106,16 @@ def test_the_song_request_shows_each_lines_hits():
     assert '<verse turn="1" poet="Ada, Iron-Hearted" hits="4 4">' in sent and 'hits="' in sent.split("<verse turn=\"2\"")[1]
 
 
+def test_the_song_drops_fragments_and_prefers_four_hit_lines():
+    from homer.host import _on_the_beat
+    lines = [(1, "the wine dark sea took my brother's ship"), (2, "the war was long"),
+             (1, "the hollow ships came back with no one aboard"), (2, "and the sea kept time"),
+             (1, "I stand on the shore with salt in my teeth")]
+    assert _on_the_beat(lines, 16) == [lines[0], lines[2], lines[3], lines[4]]  # "the war was long" has two hits
+    assert _on_the_beat(lines, 3) == [lines[0], lines[2], lines[4]]  # nearest four wins (ties keep battle order); the close stays
+    assert _on_the_beat([(1, "the war was long")], 4) == [(1, "the war was long")]  # nothing else: sing what there is
+
+
 def test_song_without_claude_uses_the_poets_best_lines():
     assert run(host("x").song([ADA, BO])) == [(1, ADA.best_line), (2, BO.best_line)]
 

@@ -42,6 +42,33 @@ DEFAULT_THEMES = (
     "The house you grew up in",
 )
 
+# Homer's call to the round's first poet, after "{name}, {title}." (docs/ux-flow.md, T1 / P21).
+THEME_CALLS = {
+    "A ship that never came home": "The sea is yours.",
+    "The night before the deadline": "The clock is yours.",
+    "The war between two brothers": "Pick a brother.",
+    "A city that never sleeps": "The streets are yours.",
+    "The last train out": "The platform is yours.",
+    "A feast for a returning hero": "Raise the cup.",
+    "The forge at midnight": "Strike while it's hot.",
+    "A storm on the open sea": "The storm is yours.",
+    "The road that brought you here": "The road is yours.",
+    "A letter never sent": "Send it now.",
+    "Dawn after the long battle": "The dawn is yours.",
+    "The wolf at the edge of the wood": "Mind the wolf.",
+    "A crown nobody wanted": "The crown is yours.",
+    "The fire that took the hall": "The fire is yours.",
+    "The gods are watching": "Give them a show.",
+    "The house you grew up in": "Take us home.",
+}
+FLOOR = "The floor is yours."  # any other theme, a typed one included
+
+
+def call_for(theme: str) -> str:
+    key = " ".join(theme.split()).lower()
+    return next((call for t, call in THEME_CALLS.items() if t.lower() == key), FLOOR)
+
+
 # Words in a theme that point at the bank's theme tags (content/README.md).
 TAG_WORDS = {
     "sea": "sea ocean ship ships sail sailor wave waves harbor harbour shore boat tide island",

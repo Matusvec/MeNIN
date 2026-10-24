@@ -149,7 +149,9 @@ Returns:
 
 ### `GET /themes?n=3&demo=false`
 
-`{"themes": ["A ship that never came home", "…", "…"]}`. These are the arena's theme cards. With `demo=true` you get the three rehearsed demo themes, in order.
+`{"themes": ["A ship that never came home", "…", "…"], "calls": ["The sea is yours.", "…", "…"]}`. These are the arena's theme cards. With `demo=true` you get the three rehearsed demo themes, in order. `calls[i]` is Homer's call to the round's first poet for `themes[i]` (docs/ux-flow.md, T1 / P21), said after "{name}, {title}."; a theme not in the table gets "The floor is yours."
+
+`?event=debate` returns the debate's questions as the cards (`calls` empty: Socrates calls the side). With `demo=true` it returns only the demo's fixed question, `ai-love-letter`: "Is it cheating to let an AI write your love letter?" Pass it back as the round's `theme`.
 
 ### `POST /deal`
 
@@ -213,7 +215,7 @@ The arena calls this in `dealing`, or early in `round_end` to deal round_no + 1.
 
 - `theme` is `room.next_theme` when the judges picked one. Empty means the agent picks one this room hasn't had yet.
 - Poets and their hoards are read from SQL. Each poet is offered 8 candidates, different from the other poets' and from anything offered to them earlier in the battle. The module tops each hand up to 5.
-- Returns `{"theme": "…", "hands": {"<playerId>": ["card", …]}}`.
+- Returns `{"theme": "…", "call": "The sea is yours.", "hands": {"<playerId>": ["card", …]}}`. `call` is the round's step-up call (as in `/themes`), empty in a debate.
 
 ### `POST /battle/judge`
 
