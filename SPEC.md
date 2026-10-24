@@ -109,7 +109,7 @@ Shared by practice and battle. This is the core loop; get it right first.
 
 1. **Theme.** Fresh every round: Homer generates a vivid, specific theme of six words or fewer with a feeling in it, never one of the last twenty ("The text you never sent"), and announces it aloud. The written themes are the fallback.
 2. **Homer's phrases.** Optional help, not homework: your phone shows three stock phrases that fit the theme and the beat ("the whale-road", "grey-eyed Athena"), under one line: "Stuck? Use one of Homer's phrases. It scores Craft." Using one pops "+Craft".
-3. **Speak.** The start is unmistakable: a 3-2-1 on the count-in beats, then "SPEAK" fills the phone and the arena in the poet's color. Homer plays the beat: a slow drum-and-lyre loop, four beats a bar. Each line is one bar, followed by a rest bar to breathe (demo mode may drop the rests if we run long). In a battle the arena ducks the drum while a poet speaks, and the speaker's phone carries the beat as haptics, so the beat doesn't bleed into the mic. Thirty seconds, four lines (configurable). The beat lane shows the pulses; your words land on it live, and a stressed syllable that hits a beat sounds like a drum strike. A formula card lights up when you use it. The live transcript is always visible.
+3. **Speak.** In a battle you spit free, with no metronome behind you (Matus, Sat 3:30 PM: "I just want to spit poetry without the metronome"). A 3-2-1 with a haptic tick, then SPEAK fills the phone and the arena in the poet's color, once, for the whole verse. No drum, no beat haptics, no per-line Speak/Breathe while a poet speaks: you get one window (20 seconds in demo mode) with a countdown ring, and "I'm done" ends early. Your words show live on the arena; the scene answers your voice's loudness and feeling. A phrase card lights up when you use it. Lines are whatever you say between breaths. The beat lives in Bard lessons, which teach it, and under Homer's stitched song.
 4. **Freeze rescue.** If you go silent for about a second mid-turn, your hand glows and Homer whispers one formula that fits.
 5. **Scene.** Reacts as you speak (see below).
 6. **Judge.** Scores 1 to 10 on five axes, speaks a one-line verdict, quotes your best line.
@@ -119,7 +119,7 @@ Shared by practice and battle. This is the core loop; get it right first.
 
 | Axis | What it measures | Source |
 | --- | --- | --- |
-| Flow (shown as Flow; key `beat`) | Did you keep a steady rhythm: about four stresses a line, forgiving | Meter scanner, not Claude's guess. Weighted below Image, Answer and Craft in the total |
+| Flow (shown as Flow; key `beat`) | Did the verse move: a natural rhythm of roughly four stresses a line, judged from the words with no drum timing | Meter scanner, not Claude's guess. Weighted below Image, Answer and Craft in the total |
 | Craft | Used formulas, varied them, coined new ones | Claude, with the hand and the scanner output |
 | Image | Strength of the imagery | Claude |
 | Answer | Responded to the last verse (or the theme, if first) | Claude, with the previous verse |
