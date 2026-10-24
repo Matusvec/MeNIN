@@ -724,3 +724,103 @@ struct BattleEntryView: View {
         actions.join?(code)
     }
 }
+
+// MARK: - Phone home
+
+struct PhoneHomeActions {
+    /// Join a battle with the four-letter code shown on the website.
+    var join: ((String) -> Void)?
+    var bard: (() -> Void)?
+    var practice: (() -> Void)?
+    /// The solo discus throw: no server, no second phone.
+    var discus: (() -> Void)?
+
+    init(join: ((String) -> Void)? = nil, bard: (() -> Void)? = nil, practice: (() -> Void)? = nil,
+         discus: (() -> Void)? = nil) {
+        self.join = join
+        self.bard = bard
+        self.practice = practice
+        self.discus = discus
+    }
+}
+
+/// The phone's front door. The website on a laptop is the big screen; the
+/// phone joins it (the one primary action) or trains on its own (Bard,
+/// Practice). Plain words for what to do.
+struct PhoneHomeView: View {
+    var name: String? = nil
+    /// The website's address, if it should be spelled out ("menin.app").
+    var site: String? = nil
+    /// The Bard row's second line, e.g. "Continue: Lesson 2 · The formula".
+    var lessonLine: String? = nil
+    var joinError: String? = nil
+    var actions = PhoneHomeActions()
+
+    @State private var code = ""
+    @FocusState private var typing: Bool
+
+    var body: some View {
+        PhoneScaffold(eyebrow: name.map { "Welcome, \($0)" } ?? "Welcome", title: "Battle, or train?") {
+            WordmarkView(size: 20)
+        } middle: {
+            VStack(alignment: .leading, spacing: Metrics.s4) {
+                battleCard
+                VStack(alignment: .leading, spacing: Metrics.s2) {
+                    Text("Training").chip(10)
+                    EntryRow(title: "Bard", subtitle: lessonLine ?? "Lessons in the four-beat line", action: actions.bard)
+                    EntryRow(title: "Practice", subtitle: "Spar with Homer, full judge breakdown", action: actions.practice)
+                    if let discus = actions.discus {
+                        EntryRow(title: "Discus", subtitle: "Throw against Phayllos, on your own", action: discus)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+        } action: {
+            Button(action: join) { ArrowLabel(title: "Join the battle") }
+                .buttonStyle(.homer(wide: true))
+                .disabled(code.count != 4 || actions.join == nil)
+        }
+    }
+
+    private var battleCard: some View {
+        VStack(alignment: .leading, spacing: Metrics.s3) {
+            Text("Battle").tracked(11, color: Palette.onHero2)
+            Text(site.map { "Open \($0) on a laptop, then join here." } ?? "Open the website on a laptop, then join here.")
+                .font(Typeface.display(22))
+                .displayLeading(22, 1.15)
+                .foregroundStyle(Palette.onHero)
+                .fixedSize(horizontal: false, vertical: true)
+            TextField("CODE", text: $code)
+                .font(Typeface.display(38, weight: 500))
+                .tracking(10)
+                .foregroundStyle(Palette.ink)
+                .textInputAutocapitalization(.characters)
+                .autocorrectionDisabled()
+                .submitLabel(.join)
+                .focused($typing)
+                .onChange(of: code) { code = String(code.uppercased().filter(\.isLetter).prefix(4)) }
+                .onSubmit(join)
+                .padding(.horizontal, Metrics.s4)
+                .padding(.vertical, Metrics.s2)
+                .background(Palette.paper, in: RoundedRectangle(cornerRadius: Metrics.radiusM, style: .continuous))
+                .accessibilityLabel("Room code")
+            if let joinError {
+                Text(joinError).font(Typeface.text(13, weight: 600)).foregroundStyle(Palette.cream)
+                    .padding(.horizontal, Metrics.s3).padding(.vertical, Metrics.s1)
+                    .background(Palette.vermilion, in: Capsule(style: .continuous))
+            }
+            Text("Or point your camera at the QR code on the screen.")
+                .font(Typeface.text(13))
+                .foregroundStyle(Palette.onHero2)
+        }
+        .padding(Metrics.s5)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .paper(Palette.hero, radius: Metrics.radiusL)
+    }
+
+    private func join() {
+        guard code.count == 4 else { return }
+        typing = false
+        actions.join?(code)
+    }
+}

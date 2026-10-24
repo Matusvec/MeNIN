@@ -46,6 +46,8 @@ struct RootView: View {
                     Button("Dev") { app.route = .dev }.font(.caption).padding()
                 }
             }
+            // Any build: a 3 s press on the hall opens Dev (the in-app arena lives there as a fallback).
+            .simultaneousGesture(LongPressGesture(minimumDuration: 3).onEnded { _ in app.route = .dev })
         case .event("poetry"):
             HomeView(
                 name: app.poetName.isEmpty ? "poet" : app.poetName,
@@ -72,8 +74,9 @@ struct RootView: View {
             }
         case .battle(let event):
             Routed(app: app, title: "Fight") {
+                // One big screen: the website hosts battles. The in-app arena is a Dev fallback (Matus, Sat 2:30).
                 BattleEntryView(event: EventKind(rawValue: event) ?? .poetry, actions: BattleEntryActions(
-                    host: { app.route = .arena(event: event) },
+                    host: nil,
                     join: { code in app.route = .player(code: code.uppercased()) },
                     back: { app.route = .event(event) }
                 ))
@@ -181,6 +184,11 @@ private struct DevMenu: View {
                     .onDisappear { mic.stop() }
             }
             NavigationLink("Design gallery") { DesignGalleryView() }
+            Section("Fallback: host the arena on this device") {
+                ForEach(["poetry", "debate", "discus"], id: \.self) { event in
+                    Button("Arena: \(event)") { app.route = .arena(event: event) }
+                }
+            }
             Button("Replay first open") { app.route = .firstOpen }
         }
     }
