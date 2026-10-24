@@ -2,7 +2,7 @@
 
 This doc is for Matus to design against. It covers the flow, the states, the timing and what each screen shows. Visual design is Matus's, so this doc describes what is shown and what changes, never how it looks. Words like "large" or "pinned" describe hierarchy.
 
-`SPEC.md` (as of commit 2fb21bf) is the source of truth. Anything not in it is marked **Proposal Pn** and waits on Matus.
+`SPEC.md` (as of commit f3eabe7) is the source of truth. Anything not in it is marked **Proposal Pn** and waits on Matus.
 
 MeNIN is ancient Greek Wii Sports, with Homer as the host: party events on one shared screen, with phones as controllers. The poetry battle is the core (sections 1 to 6). Socratic debate and discus are in build now (sections 8 and 9). The event menu ties them together (section 7), and section 10 says where the music plays.
 
@@ -65,7 +65,7 @@ Leader approved these as delegator, and Matus can veto any of them. Approved ite
 | P16 | **The hall stays open between events.** When an event ends, the arena goes back to the event menu with everyone still joined, so nobody rejoins to switch events (section 7). | Approved, and in SPEC.md |
 | P17 | **Tap to play a move.** In debate, you tap a move card on your phone as you make the move. It lands on the arena, and the judge checks that you really made it (section 8). | Approved, and in SPEC.md |
 | P18 | **Sides are dealt.** In debate, sides alternate by turn order, so you often argue a side you don't hold (section 8). | Approved, and in SPEC.md |
-| P19 | **Demo mode music.** At the judging table, the hall theme stays at its ducked level the whole time, because we talk over the menu. An operator key mutes all music (sections 6 and 10). | Proposed |
+| P19 | **Demo mode music.** At the judging table, the hall theme stays at its ducked level the whole time, because we talk over the menu. An operator key mutes all music (sections 6 and 10). | Approved, and in SPEC.md "Music" |
 
 P1 to P6 were approved by Matus and are listed above.
 
@@ -524,7 +524,7 @@ Demo mode is in SPEC.md. Rows marked P14 are extras, approved by leader.
 | Push-to-talk (P13) | On in battles | On, with wired headsets | spec |
 | Replay opening | n/a | An operator key replays Homer's first-open line on the arena | demo script |
 | Operator keys | None | Replay opening, advance, retry the turn, skip, rematch | P14 |
-| Music | Every cue (section 10) | The same cues. The replayed opening brings its bed. The hall theme stays at its ducked level because we talk over the menu, and an operator key mutes all music | P19 |
+| Music | Every cue (section 10) | The same cues. The replayed opening brings its bed. The hall theme stays at its ducked level because we talk over the menu, and an operator key mutes all music. The poetry intro plays under the theme cards and never delays them | spec (P19), demo script |
 
 ---
 
@@ -706,10 +706,11 @@ MeNIN has an original soundtrack by a teammate (spec, "Music"). The composer's b
 
 **Rules**
 
-- **Never under an open mic.** Music fades out over about 0.3 s before any mic in the room opens, and stays out until it closes. That includes the mic check (J2) and the line in first open (F2). Music bleeding into a phone's mic hurts STT the same way the beat does (see "Risk" below).
+- **Never under an open mic** (spec). Music fades out over about 0.3 s before any mic in the room opens, and stays out until it closes. That includes the mic check (J2) and the line in first open (F2). Music bleeding into a phone's mic hurts STT the same way the beat does (see "Risk" below).
 - **Never with the beat.** In poetry turns and lessons, only the procedural drum-and-lyre beat plays (spec). Music fades out before the beat starts.
 - **Ducks under a host** (spec). When Homer or Socrates speaks, music drops about 12 dB and comes back about 0.5 s after he stops. The exception is the first-open bed, which is written to sit under Homer and plays at full level.
-- **The arena plays it.** In a hall, only the arena plays music. Phones never do, since they're the mics. In solo modes the one device plays it.
+- **The arena plays it** (spec). In a hall, only the arena plays music. Phones never do, since they're the mics. In solo modes the one device plays it.
+- **Demo mode** (spec, P19): the hall theme stays at its ducked level, and an operator key mutes all music.
 - **Stings start on their cue, with no delay,** and play once. A host line can start over a sting's tail, ducked.
 - **Loops fade out.** `hall-theme` and `training-ambience` loop until their screen ends, then fade out over about 1 s.
 
@@ -730,6 +731,8 @@ MeNIN has an original soundtrack by a teammate (spec, "Music"). The composer's b
 | `rematch` | Rematch is tapped | During the reset | B7, then B2 |
 
 Everything else has no music: the turn (T0 to T8), round titles (B2), the tally (B5) and the song (B6). In poetry, the beat carries them.
+
+**The beat's sounds.** The composer also records the beat's single hits: six lyre notes (`lyre-d3`, `lyre-f3`, `lyre-g3`, `lyre-a3`, `lyre-c4`, `lyre-d4`), `drum-kick` and `drum-rim`. They're dry, mono, 48 kHz, and start on the first sample. They replace the synthesized kick, rim and pluck in the beat. The app still schedules every hit, so the beat stays procedural, and the drum strike is the kick and rim together. Until the files arrive, the synthesized sounds stay. The full spec for these files is in `docs/audio.md`.
 
 ---
 

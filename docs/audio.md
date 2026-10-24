@@ -1,6 +1,6 @@
 # MeNIN: music brief
 
-This is the brief for MeNIN's original soundtrack. It covers the feel, the one hard rule, every cue with its length, and how to send the files. If anything here is unclear, ask Matus.
+This is the brief for MeNIN's original soundtrack. It covers the feel, the one hard rule, every cue with its length, the sounds for the beat, and how to send the files. If anything here is unclear, ask Matus.
 
 ## What MeNIN is
 
@@ -23,7 +23,7 @@ Instruments that fit: the lyre or kithara (plucked strings), the aulos (a double
 
 **No music ever plays while a player is speaking.**
 
-- In a poetry turn, the only sound is the app's own drum-and-lyre beat (see "The beat we already have" below). You don't need to write it.
+- In a poetry turn, the only sound is the app's own drum-and-lyre beat. The app decides when each drum hit and lyre note plays, so you don't write the beat. We'd like you to record its sounds, though (see "The beat's sounds" below).
 - Whenever a microphone is open, the music fades out completely.
 - When Homer or Socrates talks, the music drops well down (about 12 dB) and comes back up when he stops. He talks over a few cues (the notes on each cue say which), so leave room for a deep male voice: keep the melody out of his way there.
 
@@ -47,7 +47,7 @@ Eleven cues, each its own file. The file name is the name in the first column.
 
 ### hall-theme
 
-MeNIN's main song, the one people hum on the way out. It plays on the home menu, where you pick an event, and in the lobby while players scan in to join. Homer talks over it to announce each player ("Enter Priya, Keeper of the Rubric!"). In the live demo, we also talk over it while we pitch to the judges, so make it catchy but not busy.
+MeNIN's main song, the one people hum on the way out. It plays on the home menu, where you pick an event, and in the lobby while players scan in to join. Homer talks over it to announce each player ("Enter Priya, Keeper of the Rubric!"). In the live demo, we talk over it while we pitch to the judges, so there it plays turned down the whole time. Make it catchy but not busy.
 
 ### first-open-bed
 
@@ -60,7 +60,7 @@ The first time someone opens MeNIN, Homer speaks before any menu: "The first wor
 
 ### poetry-intro
 
-The poetry battle's title card. It plays as the battle begins, then Homer opens: "Three rounds. Every poet speaks. I judge." In the demo, it's the first cue the judges hear after the menu. It should feel like walking into the ring.
+The poetry battle's title card. It plays as the battle begins, then Homer opens: "Three rounds. Every poet speaks. I judge." In the demo, it plays under the theme cards while Matus asks the judges to pick one, so it's the first cue they hear after the menu. It should feel like walking into the ring.
 
 ### debate-intro
 
@@ -90,11 +90,30 @@ Homer's hall at night: low fire, a distant sea, an occasional lyre note. There's
 
 Plays when someone taps Rematch, while the app resets for a new battle. In the demo we may hear it three times in a row, so keep it tiny and punchy, like a bell before the next round.
 
-## The beat we already have
+## The beat's sounds
 
-Poetry turns run on a beat the app generates itself. It plays at about 80 BPM in 4/4, with a kick drum, a rim click and a plucked lyre. The lyre notes are D, F, G, A, C and D (D Dorian).
+Poetry turns and lessons run on a beat the app plays itself, at about 80 BPM in 4/4. Each bar has a kick on beats 1 and 3, a rim click on 2 and 4, and a few plucked lyre notes. Right now the app makes those sounds with a synthesizer. **We'd like real ones from you.** The app still decides when each sound plays, so you only record single hits.
 
-Music and the beat never play at the same time, so you don't need to match the tempo. But writing the poetry cues in D (D minor or D Dorian) will make the whole app feel like one piece.
+This matters more than any single cue. The beat plays under every turn and every lesson, so it's the sound people hear most.
+
+| File name | What it is |
+| --- | --- |
+| `lyre-d3` | One plucked lyre note: D3 |
+| `lyre-f3` | F3 |
+| `lyre-g3` | G3 |
+| `lyre-a3` | A3 |
+| `lyre-c4` | C4 |
+| `lyre-d4` | D4 |
+| `drum-kick` | A low, round hit in the center of a frame drum, played with the hand |
+| `drum-rim` | A sharp tap on the frame drum's edge |
+
+- **Dry:** no reverb or echo, so each hit stays crisp in a loud hall and when hits overlap.
+- **Trimmed tight:** the hit starts on the very first sample. The lyre notes ring for about 1.5 s, and the drums stop as soon as they've decayed.
+- **Even:** play all six lyre notes at the same strength, and keep them in tune (A = 440).
+- **Together:** when a poet's stressed word lands on the beat, the app plays the kick and the rim at once as a "drum strike", so check that the two sound good together.
+- **Format:** WAV, 48 kHz, 24-bit, mono, with peaks around -6 dB. The app sets the mix, so you don't need to match loudness for these.
+
+The lyre notes make D Dorian (D, F, G, A, C, D). Music and the beat never play at the same time, so you don't need to match the tempo. But writing the poetry cues in D (D minor or D Dorian) will make the whole app feel like one piece.
 
 ## What to avoid
 
@@ -106,9 +125,9 @@ Music and the beat never play at the same time, so you don't need to match the t
 
 ## How to send the files
 
-- **Format:** WAV or AIFF, 48 kHz, stereo, 24-bit.
+- **Format:** WAV or AIFF, 48 kHz, stereo, 24-bit. The beat's sounds are the exception: mono (see above).
 - **Loudness:** about -16 LUFS integrated, with peaks below -1 dB true peak. Stings are too short to measure reliably, so match them to the hall theme by ear.
-- **One file per cue,** named exactly as in the table: `hall-theme.wav`, `poetry-intro.wav`, and so on.
+- **One file per cue or sound,** named exactly as in the tables: `hall-theme.wav`, `lyre-d3.wav`, and so on.
 - **Mark the loop points** on `hall-theme` and `training-ambience`. The simplest way is to make the file exactly one loop, so its last sample flows straight into its first. If the loop has an intro before it, write the loop's start and end times in a `notes.txt`.
 - **Check on a phone.** Most people will hear MeNIN through an iPhone, iPad or MacBook speaker in a loud hall. Those speakers drop deep bass, so make sure the melody and the hits are clear without it. Before sending, play each file on your phone's speaker.
 - **Where:** the shared folder Matus picks. **[Matus adds the link here.]** We'll commit the files into the app.
@@ -122,12 +141,14 @@ A rough version with the right length and file name is worth more early than a p
 | Priority | Cues | Why |
 | --- | --- | --- |
 | 1 | `hall-theme`, `first-open-bed`, `poetry-intro`, `round-end`, `champion`, `rematch` | The judges hear all of them in the 2-minute demo |
-| 2 | `discus-intro`, `discus-whoosh`, `discus-fanfare`, `debate-intro` | The other events, if they make the demo |
-| 3 | `training-ambience` | Lessons and practice, which the judges don't see live |
+| 2 | The beat's sounds: the six `lyre-` notes, `drum-kick`, `drum-rim` | They play under every turn and lesson |
+| 3 | `discus-intro`, `discus-whoosh`, `discus-fanfare`, `debate-intro` | The other events, if they make the demo |
+| 4 | `training-ambience` | Lessons and practice, which the judges don't see live |
 
 **Suggested deadlines** (Matus confirms):
 
 - **Priority 1 by Sat 6 PM,** so it's in the build for the hall noise test at 9 PM.
+- **The beat's sounds as soon as you can after that.** The noise test also sets the beat's level, so it helps to have the real sounds in by then.
 - **Everything by Sat 9 PM.**
 - **Sat 11 PM is feature freeze.** After that, only fixes to files we already have. The demo video is recorded around then too, and it may use the hall theme.
 
@@ -138,13 +159,15 @@ Only after everything above:
 - `discus-crowd`: a crowd that builds while the thrower winds up, 1–4 s, cut off at the release.
 - `discus-fanfare-big`: a bigger fanfare for a new record.
 - `lesson-landed`: a 1–2 s sting when a player lands a lesson.
+- `drum-kick-soft` and `drum-rim-soft`: the same hits played gently. While a poet speaks, the beat plays quietly, and a soft hit sounds more natural than a loud one turned down.
 
 ## Before you send
 
-- [ ] Every file is named exactly as in the table
-- [ ] WAV or AIFF, 48 kHz, stereo, 24-bit
-- [ ] About -16 LUFS, peaks below -1 dB
+- [ ] Every file is named exactly as in the tables
+- [ ] WAV or AIFF, 48 kHz, 24-bit, stereo (the beat's sounds: mono)
+- [ ] Cues at about -16 LUFS, peaks below -1 dB
 - [ ] No silence at the start of any file
 - [ ] The two loops loop without a click or a gap
+- [ ] The beat's sounds are dry, in tune, mono, and start right on the hit
 - [ ] No sung words and no borrowed melodies
 - [ ] Played once on a phone speaker
