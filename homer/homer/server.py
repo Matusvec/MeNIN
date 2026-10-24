@@ -532,6 +532,8 @@ async def battle_judge(req: BattleJudgeRequest) -> dict[str, Any]:
                  j.timing.get("done", "-"), " SILENT " + j.error if j.silent else "")
     except EmptyVerse as exc:
         raise HTTPException(422, str(exc)) from None
+    except NotFound as exc:
+        raise HTTPException(404, str(exc)) from None
     except Refused as exc:
         raise HTTPException(409, str(exc)) from None
     except StdbError as exc:

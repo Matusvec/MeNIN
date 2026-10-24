@@ -210,10 +210,11 @@ class Db:
             q = request.content.decode()
             table = q.split("FROM ")[1].split()[0]
             rows = {
-                "room": (["id", "event", "demo"], [[1, self.event, True]]),
+                "room": (["id", "event", "demo", "phase"], [[1, self.event, True, "round_end"]]),
                 "player": (["id", "room_id", "name", "epithet", "hoard", "seat"], [[10, 1, "Ada", "", [], 0], [20, 1, "Bo", "", [], 1]]),
                 "round": (["id", "room_id", "round_no", "theme"], [[5, 1, 1, ASK]]),
-                "turn": (["id", "room_id", "round_id", "player_id", "turn_no", "transcript"], [[1, 1, 5, 10, 0, ARGUMENT], [2, 1, 5, 20, 1, PREVIOUS]]),
+                "turn": (["id", "room_id", "round_id", "player_id", "turn_no", "transcript", "status", "played", "rescues"],
+                         [[1, 1, 5, 10, 0, ARGUMENT, "judging", ["counterexample", "ask for proof"], 0], [2, 1, 5, 20, 1, PREVIOUS, "scored", [], 0]]),
                 "score": (["turn_id", "room_id", "round_id", "total", "best_line"], [[1, 1, 5, 31, A.best_line], [2, 1, 5, 25, B.best_line]]),
             }[table]
             return httpx2.Response(200, json=[{"schema": {"elements": [{"name": {"some": c}} for c in rows[0]]}, "rows": rows[1]}])

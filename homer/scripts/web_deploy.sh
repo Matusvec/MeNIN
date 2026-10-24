@@ -3,6 +3,7 @@
 #
 #   homer/scripts/web_deploy.sh matus@<ip>                 # from the repo root
 #   homer/scripts/web_deploy.sh matus@<ip> --placeholder   # the "hall opens soon" page
+#   homer/scripts/web_deploy.sh --check                     # build only: publish nothing
 #
 # The site is web/ at the repo root (or homer/web/ while it sits there). It is
 # built in a scratch copy, so the site's folder is never written to:
@@ -16,7 +17,9 @@
 # the files are swapped in place, so it's safe at any time.
 set -euo pipefail
 
-host=${1:?usage: web_deploy.sh user@host [--placeholder]}
+host=${1:?usage: web_deploy.sh user@host [--placeholder] | web_deploy.sh --check}
+check=""
+if [[ "$host" == "--check" ]]; then check=1; fi
 root=$(cd "$(dirname "$0")/../.." && pwd)
 src=""
 
@@ -64,6 +67,10 @@ fi
 if [[ -z "$src" || ! -f "$src/index.html" ]]; then
   echo "nothing to publish: the build made no index.html" >&2
   exit 1
+fi
+if [[ -n "$check" ]]; then
+  echo "build ok: $(find "$src" -type f | wc -l | tr -d ' ') files, $(du -sh "$src" | cut -f1), nothing published"
+  exit 0
 fi
 
 rsync -az --delete --delay-updates --exclude node_modules --exclude '.env*' --exclude '.git' "$src/" "$host:/srv/menin-web/"

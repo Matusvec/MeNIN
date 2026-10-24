@@ -221,6 +221,8 @@ The arena calls this in `dealing`, or early in `round_end` to deal round_no + 1.
 
 The arena calls this when a turn reaches `judging`. The agent then calls `post_score [turn_id, [beat, craft, image, answer, range], verdict, best_line, coined]`, or `decline_turn [turn_id]`.
 
+The live turn is the truth: the agent reads it from SQL first, answers 409 (with no Claude call) unless its status is `judging`, and judges the turn's own `transcript`, `played` and `rescues`, whatever the request says. So a forged call can only spend on a real turn being judged.
+
 ```json
 {
   "turnId": 42, "playerId": 7, "transcript": "turn.transcript",
@@ -312,7 +314,7 @@ Lessons 4 to 6:
 
 The arena sees a player with `named` = false. The agent PG-checks the name, coins an epithet if the poet brought none, and calls `name_poet`.
 
-`{"playerId": 12}` is all that's needed: the name and epithet are read from SQL, or can be sent as `name` and `epithet`. Returns `{"name": "Matus", "epithet": "Breaker of Deadlines"}`.
+`{"playerId": 12}` is all that's needed: the name and epithet are always read from SQL (a `name` or `epithet` in the request is ignored), and a poet already named costs nothing. Returns `{"name": "Matus", "epithet": "Breaker of Deadlines"}`.
 
 ### `POST /battle/emotion`
 

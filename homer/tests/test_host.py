@@ -153,7 +153,7 @@ def test_spar_strips_notation_and_caps_lines():
 
 TABLES = {
     "round": (["id", "room_id", "round_no", "theme"], [[5, 1, 1, "A ship that never came home"]]),
-    "room": (["id", "demo"], [[1, True]]),
+    "room": (["id", "demo", "phase"], [[1, True, "round_end"]]),
     "turn": (["id", "room_id", "round_id", "player_id", "turn_no", "transcript", "status"],
              [[2, 1, 5, 20, 1, BO.transcript, "scored"], [1, 1, 5, 10, 0, ADA.transcript, "scored"],
               [3, 1, 5, 30, 2, "", "skipped"]]),

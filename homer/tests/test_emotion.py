@@ -65,6 +65,9 @@ def test_scene_posts_the_eight_weights_in_order_and_keeps_the_sample():
     calls = []
 
     def handler(request):
+        if request.url.path.endswith("/sql"):  # the turn is live
+            return httpx2.Response(200, json=[{"schema": {"elements": [{"name": {"some": "id"}}, {"name": {"some": "status"}}]},
+                                               "rows": [[7, "speaking"]]}])
         calls.append((request.url.path.rsplit("/", 1)[-1], json.loads(request.content)))
         return httpx2.Response(200)
 

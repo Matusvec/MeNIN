@@ -16,6 +16,7 @@ follow the event.
 from __future__ import annotations
 
 import asyncio
+import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import TypeVar
@@ -25,7 +26,7 @@ from .emotion import EMOTIONS, Classifier
 from .deal import CANDIDATES, deal, pick_theme
 from .host import Host, Verse
 from .judge import Judge, Judgment, Turn
-from .stdb import Stdb
+from .stdb import Refused, Stdb
 
 T = TypeVar("T")
 
@@ -69,6 +70,7 @@ class Arena:
         self.dealt: dict[int, list[str]] = {}  # player_id -> every card offered this battle
         self.themes_used: dict[int, list[str]] = {}  # room_id -> themes dealt, so a rematch gets fresh ones
         self._inflight: dict[tuple, asyncio.Task] = {}
+        self._live: dict[int, tuple[float, bool]] = {}  # turn_id -> (checked at, speaking or judging)
 
     async def once(self, key: tuple, work: Callable[[], Awaitable[T]]) -> T:
         """Run `work` once per key at a time; a retry while it runs shares the result."""
@@ -83,15 +85,23 @@ class Arena:
         """Judge a verse and post the score (or decline it). Returns the reducer called."""
 
         async def work() -> tuple[str, Judgment]:
+            # The live turn, not the request, says what's judged: only a turn in `judging`
+            # costs a Claude call, and its words, cards and rescues come from the database.
+            rows = await self.db.sql(f"SELECT * FROM turn WHERE id = {int(bt.turn_id)}")
+            if not rows:
+                raise NotFound(f"no turn {bt.turn_id}")
+            live = rows[0]
+            if live.get("status") != "judging":
+                raise Refused(f"turn {bt.turn_id} is {live.get('status')}, not judging")
             event = events.get(bt.event)
             turn = Turn(
-                transcript=bt.transcript,
+                transcript=live.get("transcript") or "",
                 mode="battle",
                 event=bt.event,
                 theme=bt.theme,
                 hand=self.dealt.get(bt.player_id, []),
-                played=bt.played,
-                rescues=bt.rescues,
+                played=list(live.get("played") or []),
+                rescues=int(live.get("rescues") or 0),
                 previous=bt.previous,
                 lines_expected=bt.lines_expected,
                 emotion_history=self.history.get(bt.turn_id, []),
@@ -169,6 +179,8 @@ class Arena:
         """
 
         async def work() -> dict[str, float] | None:
+            if not await self._turn_is_live(turn_id):
+                raise Refused(f"turn {turn_id} isn't speaking or judging")
             weights = await self.classifier.classify(text, loudness, pitch)
             if weights is None:
                 return None
@@ -178,16 +190,30 @@ class Arena:
 
         return await self.once(("scene", turn_id), work)
 
+    async def _turn_is_live(self, turn_id: int, ttl: float = 5.0) -> bool:
+        """Whether a turn is speaking or judging, from SQL at most every `ttl` seconds (emotion runs every 1.5 s)."""
+        hit = self._live.get(turn_id)
+        if hit and time.monotonic() - hit[0] < ttl:
+            return hit[1]
+        rows = await self.db.sql(f"SELECT * FROM turn WHERE id = {int(turn_id)}")
+        live = bool(rows) and rows[0].get("status") in ("speaking", "judging")
+        self._live[turn_id] = (time.monotonic(), live)
+        return live
+
     async def name_poet(self, player_id: int, name: str | None = None, epithet: str | None = None) -> tuple[str, str]:
-        """PG-check the name, coin an epithet if there is none, and call name_poet."""
+        """PG-check the poet's name, coin an epithet if there is none, and call name_poet.
+
+        The player row is the truth: a poet already named costs nothing, and the
+        request's name and epithet are ignored (they'd be free text into Claude).
+        """
 
         async def work() -> tuple[str, str]:
-            n, e = name, epithet
             rows = await self.db.sql(f"SELECT * FROM player WHERE id = {int(player_id)}")
             if not rows:
                 raise NotFound(f"no player {player_id}")
-            if n is None:
-                n, e = rows[0]["name"], rows[0]["epithet"]
+            n, e = rows[0]["name"], rows[0]["epithet"]
+            if rows[0].get("named"):
+                return n, e
             event = await self.event_of(rows[0]["room_id"])
             n, e, _ = await self.host.name_poet(n, e or "", event)
             await self.db.call("name_poet", player_id, n, e)
@@ -218,7 +244,12 @@ class Arena:
             if not rows:
                 raise NotFound(f"no round {round_id}")
             rnd = rows[0]
-            event = await self.event_of(rnd["room_id"])
+            if rnd.get("verdict"):  # called already: say it again, don't pay for it again
+                return rnd["verdict"], int(rnd.get("best_turn_id") or 0), rnd.get("best_line", "")
+            room = await self.room(rnd["room_id"])
+            if room.get("phase") != "round_end":
+                raise Refused(f"round {round_id}'s room is in {room.get('phase')}, not round_end")
+            event = events.get(room.get("event") or "poetry")
             verses = await self._verses(rnd["room_id"], f"round_id = {int(round_id)}")
             verdict, best_turn, line = await self.host.round_verdict(rnd.get("theme", ""), verses, event)
             await self.db.call("post_verdict", round_id, verdict, best_turn, line)
@@ -236,6 +267,8 @@ class Arena:
 
         async def work() -> list[tuple[int, str]]:
             room = await self.room(room_id)
+            if room.get("phase") not in ("round_end", "finale"):
+                raise Refused(f"room {room_id} is in {room.get('phase')}: the song is stitched at a round's end")
             event = events.get(room.get("event") or "poetry")
             verses = await self._verses(room_id, f"room_id = {int(room_id)}")
             if event.hand == "moves":
