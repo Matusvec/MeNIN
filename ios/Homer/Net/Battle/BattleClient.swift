@@ -24,6 +24,8 @@ final class BattleClient: SpacetimeClientDelegate {
     @ObservationIgnored private let tokens: KeychainTokenStore
     @ObservationIgnored private var database = ""
     @ObservationIgnored private var transcriptFlush: Task<Void, Never>?
+    @ObservationIgnored private var pendingTranscript: (turnId: UInt64, text: String)?
+    @ObservationIgnored private var lastTranscriptSent = Date.distantPast
     @ObservationIgnored private var awaitingCreatedRoom = false
 
     init(role: Role) {
@@ -399,18 +401,37 @@ final class BattleClient: SpacetimeClientDelegate {
     func rescue(_ turnId: UInt64, card: String) { call("rescue", Reducer.TurnText(turnId: turnId, text: card)) }
     func react(_ kind: String) { call("react", Reducer.React(roomId: roomId, kind: kind)) }
 
-    /// Live transcript, coalesced to at most about 4 writes a second.
+    /// Live transcript, at most about 4 writes a second, always ending on the latest text. A
+    /// throttle, not a debounce: the old debounce restarted its 250 ms wait on every change, so a
+    /// phone whose words changed faster than that sent nothing until the poet paused (Matus's
+    /// phone, Sat afternoon: words landed only at pauses, beside the rescue, and turns ended empty).
     func updateTranscript(_ turnId: UInt64, _ text: String) {
-        transcriptFlush?.cancel()
-        transcriptFlush = Task {
-            try? await Task.sleep(for: .milliseconds(250))
-            guard !Task.isCancelled else { return }
-            call("update_transcript", Reducer.TurnText(turnId: turnId, text: text))
+        pendingTranscript = (turnId, text)
+        let now = Date()
+        if now.timeIntervalSince(lastTranscriptSent) >= 0.25 {
+            sendPendingTranscript()
+        } else if transcriptFlush == nil {
+            let wait = 0.25 - now.timeIntervalSince(lastTranscriptSent)
+            transcriptFlush = Task { [weak self] in
+                try? await Task.sleep(for: .milliseconds(Int(wait * 1000)))
+                self?.transcriptFlush = nil
+                guard !Task.isCancelled else { return }
+                self?.sendPendingTranscript()
+            }
         }
+    }
+
+    private func sendPendingTranscript() {
+        guard let (turnId, text) = pendingTranscript else { return }
+        pendingTranscript = nil
+        lastTranscriptSent = Date()
+        call("update_transcript", Reducer.TurnText(turnId: turnId, text: text))
     }
 
     func endTurn(_ turnId: UInt64, _ text: String) {
         transcriptFlush?.cancel()
+        transcriptFlush = nil
+        pendingTranscript = nil
         playCards(spokenIn: text, turnId: turnId)
         call("end_turn", Reducer.TurnText(turnId: turnId, text: text))
     }

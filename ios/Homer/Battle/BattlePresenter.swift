@@ -47,7 +47,11 @@ enum BattlePresenter {
     }
 
     static func ruling(_ score: ScoreRow, event: EventKind) -> Ruling {
-        Ruling(event: event, values: score.axes.map(Int.init), verdict: score.verdict, bestLine: score.bestLine)
+        // Poetry's total is the server's weighted one, out of 100 (post_score); debate sums its axes.
+        event == .poetry
+            ? Ruling(event: event, values: score.axes.map(Int.init), verdict: score.verdict, bestLine: score.bestLine,
+                     weightedTotal: Int(score.total), outOf: 100)
+            : Ruling(event: event, values: score.axes.map(Int.init), verdict: score.verdict, bestLine: score.bestLine)
     }
 
     static func endsAt(_ turn: TurnRow) -> Date? { turn.endsAt.isSet ? turn.endsAt.date : nil }
