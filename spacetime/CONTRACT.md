@@ -113,7 +113,7 @@ All public tables carry `room_id`, so a client subscribes to exactly one room. *
 | hoard | [String] | the phone's coined formulas, sent at join so the dealer can use them |
 | seat | u32 | join order; turn order rotates over seats each round |
 | total | u32 | running battle total |
-| connected | bool | has a live WebSocket connection. HTTP callers always read as false. |
+| connected | bool | has at least one live WebSocket connection (counted per connection, so an old socket closing after a reconnect doesn't clear it). HTTP-only callers read as false. |
 | joined_at | Timestamp | |
 
 ### `round` (public). Writer: agent.
@@ -194,7 +194,7 @@ Every `set_scene` also appends `id, room_id, turn_id, ms` (milliseconds since `s
 
 ### Private tables
 
-`config` (the owner and the service key), `service` (the agent identities), and `turn_timer` (the scheduled turn ends). No client sees these.
+`config` (the owner and the service key), `service` (the agent identities), `turn_timer` (the scheduled turn ends), and `presence` (one row per open connection: connection_id, identity; `player.connected` is true while an identity has any). No client sees these.
 
 ## Reducers
 
@@ -215,7 +215,7 @@ Every `set_scene` also appends `id, room_id, turn_id, ms` (milliseconds since `s
 
 | Reducer | Args | When | Effect |
 | --- | --- | --- | --- |
-| `join_room` | code, name, epithet (may be `''`), hoard [String] | J1 Enter | Joins in the lobby. Calling it again from the same identity is a reconnect, in any phase but `finished` (the app's auto-rejoin after a force-quit); seat, total, hand and turns are kept. In the lobby a rejoin may also rename, and `''` and `[]` keep the current epithet and hoard. A new identity with the **same name as a disconnected poet** takes over that seat (a phone that died rejoins and keeps its scores). Errors: `no such room`, `the hall is full`, `that name is taken`, `the battle has already begun`. |
+| `join_room` | code, name, epithet (may be `''`), hoard [String] | J1 Enter | Joins in the lobby. Calling it again from the same identity is a reconnect, in any phase, `finished` included, since the hall stays open between events (the app's auto-rejoin after a force-quit); seat, total, hand and turns are kept. In the lobby a rejoin may also rename, and `''` and `[]` keep the current epithet and hoard. A new identity with the **same name as a disconnected poet** takes over that seat (a phone that died rejoins and keeps its scores). Errors: `no such room` (also for anyone new once the room is `finished`), `the hall is full`, `that name is taken`, `the battle has already begun`. |
 | `leave_room` | room_id | Leave | Lobby: removes the poet. Later: marks them disconnected. |
 | `enter` | room_id | The mic check heard you | `entered` = true; the arena announces the entrance |
 | `start_turn` | turn_id | Ready tap in `ready` | `speaking`. Sets started_at, beat_at and ends_at, and schedules the timer. |
@@ -324,7 +324,7 @@ cd spacetime && npm install
 npm run typecheck
 npm run publish:local                    # keeps data; publish:local:reset wipes it
 npm run publish:test                     # the isolated test database `homer-test` (no dev-agent, no shared key)
-npm run smoke                            # poetry, discus, set_event and debate over HTTP against homer-test, 98 checks (~90 s)
+npm run smoke                            # poetry, discus, set_event and debate over HTTP against homer-test, 100 checks (~90 s)
 npm run logs
 ```
 

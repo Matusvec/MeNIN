@@ -208,6 +208,8 @@ await call(agent, 'post_song', R.id, [T.id, T.id], ['line one', 'line two']);
 check((await sql(null, `SELECT * FROM song_line WHERE room_id = ${R.id}`)).length === 2, 'the song is posted');
 await call(arena, 'advance', R.id);
 check((await room(R.id)).phase === 'finished', 'finished');
+check(!(await fails(ada, 'join_room', R.code, 'Ada', '', [])), 'a same-device rejoin on the finished screen is a reconnect');
+check(await fails(stranger, 'join_room', R.code, 'Cy', '', []), 'a finished room takes no one new');
 
 // ---------------------------------------------------------------- rematch
 

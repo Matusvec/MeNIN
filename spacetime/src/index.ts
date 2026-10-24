@@ -242,6 +242,17 @@ const turnTimer = table(
   }
 );
 
+// Private: one row per open connection. A poet is connected while any of their
+// sockets is open, so a phone that reconnects before the server notices its old
+// socket died isn't marked gone when that old socket finally closes.
+const presence = table(
+  {},
+  {
+    connectionId: t.connectionId().primaryKey(),
+    identity: t.identity().index('btree'),
+  }
+);
+
 const spacetimedb = schema({
   room,
   player,
@@ -258,6 +269,7 @@ const spacetimedb = schema({
   config,
   service,
   turnTimer,
+  presence,
 });
 export default spacetimedb;
 
@@ -557,12 +569,18 @@ export const init = spacetimedb.init(ctx => {
 });
 
 export const onConnect = spacetimedb.clientConnected(ctx => {
+  if (ctx.connectionId && !ctx.db.presence.connectionId.find(ctx.connectionId)) {
+    ctx.db.presence.insert({ connectionId: ctx.connectionId, identity: ctx.sender });
+  }
   for (const p of [...ctx.db.player.identity.filter(ctx.sender)]) {
     if (!p.connected) ctx.db.player.id.update({ ...p, connected: true });
   }
 });
 
 export const onDisconnect = spacetimedb.clientDisconnected(ctx => {
+  if (ctx.connectionId) ctx.db.presence.connectionId.delete(ctx.connectionId);
+  // Another socket of this identity is still open: a reconnect that beat this close.
+  if ([...ctx.db.presence.identity.filter(ctx.sender)].length > 0) return;
   for (const p of [...ctx.db.player.identity.filter(ctx.sender)]) {
     if (p.connected) ctx.db.player.id.update({ ...p, connected: false });
   }
@@ -767,14 +785,15 @@ export const joinRoom = spacetimedb.reducer(
   { code: t.string(), name: t.string(), epithet: t.string(), hoard: t.array(t.string()) },
   (ctx, args) => {
     const r = ctx.db.room.code.find(args.code.trim().toUpperCase());
-    if (!r || r.phase === 'finished') throw new SenderError('no such room');
+    if (!r) throw new SenderError('no such room');
     const name = text(args.name, 'name', 1, 24);
     const epithet = text(args.epithet, 'epithet', 0, 48);
     const hoard = args.hoard.slice(0, 20).map(c => text(c, 'hoard card', 1, 60));
     const players = playersOf(ctx, r.id);
     const lobby = r.phase === 'lobby';
 
-    // Back on the same device: a reconnect, in any phase. In the lobby it may also
+    // Back on the same device: a reconnect, in any phase, finished included (the
+    // hall stays open between events, P16). In the lobby it may also
     // rename; '' and [] keep the current epithet and hoard, so a rejoin that only
     // knows the name doesn't wipe an epithet the agent coined.
     const mine = players.find(p => p.identity.isEqual(ctx.sender));
@@ -788,6 +807,7 @@ export const joinRoom = spacetimedb.reducer(
       ctx.db.player.id.update({ ...mine, ...next, connected: true, ...(changed ? { named: false } : {}) });
       return;
     }
+    if (r.phase === 'finished') throw new SenderError('no such room');
 
     // Back on a new device: take over the dropped seat with the same name.
     const dropped = players.find(p => !p.connected && p.name.toLowerCase() === name.toLowerCase());
