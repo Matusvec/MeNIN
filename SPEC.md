@@ -14,13 +14,29 @@ The feel is professional and badass, never academic. Homer is a legendary bard, 
 
 ## Platform
 
-Homer is an iOS app (SwiftUI, iOS 17+), shared with the team through TestFlight. There is no web app. The same app runs every mode; in a battle each device runs it as either the arena or a player.
+Homer is a universal iOS app (SwiftUI, iOS 18+, iPhone and iPad), shared with the team through TestFlight. Universal so the arena runs full-screen on an iPad or a Mac. There is no web app. The same app runs every mode; in a battle each device runs it as either the arena or a player.
 
 The look: colorful but matte, open and simple. Flat layered color fields like cut paper, lots of negative space, no glow or neon.
 
+## The games
+
+Homer is ancient Greek Wii Sports: party games from the Greek *agon* (contest), on one shared screen with phones as controllers. It's historically real: the Greeks didn't separate sport from poetry, and at the Panathenaic Games rhapsodes competed reciting Homer alongside the athletes.
+
+| Event | Host | What you do | Status |
+| --- | --- | --- | --- |
+| Poetry battle | Homer | Improvise verse over the beat | Core. The rest of this spec describes it |
+| Socratic debate | Socrates | Argue a question in timed spoken turns | After the poetry demo passes the Sat 2 PM checkpoint |
+| Discus | Homer announces | Swing your phone; its motion sensors measure the throw | After the same checkpoint |
+| Other events | | Locked tiles on the event menu | Not building |
+
+- Each event is a config on one engine: host, hand, rubric, turn length, beat on or off.
+- **Socratic debate** reuses the poetry battle's turns, scene, and verdict. Your hand holds rhetorical moves instead of formulas ("define your terms", "counterexample", "analogy"). The freeze rescue becomes Socrates whispering a question to ask. It has its own five-axis rubric and no beat.
+- **Discus** is a self-contained motion minigame: no voice, no Claude. Core Motion measures the swing and the release, and the arena shows the throw.
+- Bard mode and Practice mode are the training, like Wii Sports Training.
+
 ## The three modes
 
-Learn, train, fight. No mode is locked behind another; anyone can open a link and battle.
+Learn, train, fight. No mode is locked behind another.
 
 ### 1. Bard mode: learn from Homer
 
@@ -134,6 +150,7 @@ Judging is a 2-minute pitch with a live demo at a shared table, three times over
 - The stitched song is capped at 4 lines; the crown is one line.
 - Optional: the judges pick from 3 theme cards on the arena (first thing to cut).
 - Rematch resets in under 10 seconds.
+- Judges play on team iPhones handed to them, already on the join screen. Judges can't install TestFlight builds at the table.
 
 The script is `docs/gtm/demo-script.md`.
 
@@ -146,7 +163,7 @@ The script is `docs/gtm/demo-script.md`.
 
 ## Cut order
 
-If time runs out, cut in this order: ranks, spectator reactions, hoard persistence across sessions, Homer mode, Bard lessons 4 to 6, the stitched finale.
+If time runs out, cut in this order: discus, Socratic debate, ranks, spectator reactions, hoard persistence across sessions, Homer mode, Bard lessons 4 to 6, the stitched finale.
 
 Never cut: Bard lessons 1 to 3, the turn (beat, beat lane, freeze rescue, scene, judge), two-player battle on the arena.
 

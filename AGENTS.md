@@ -6,7 +6,7 @@
 
 ## Stack
 
-- App: iOS only (SwiftUI, iOS 17+), Metal shaders for the scene, AVAudioEngine for the mic, project generated with XcodeGen. No web app.
+- App: iOS only (SwiftUI, iOS 18+, universal iPhone and iPad), Metal shaders for the scene, AVAudioEngine for the mic, project generated with XcodeGen. No web app.
 - Real-time state: SpacetimeDB (rooms, players, turns, verses, scores, scene state).
 - Agent service: Python + FastAPI (Claude calls, meter scanner, formula bank).
 - Voice: Cartesia (streaming STT, TTS).
