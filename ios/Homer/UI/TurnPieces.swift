@@ -17,19 +17,19 @@ struct AnswerLineView: View {
     var body: some View {
         let k = stage.scale
         HStack(alignment: .top, spacing: Metrics.s3 * k) {
-            Rectangle().fill(Palette.gold).frame(width: 3 * k)
+            Capsule().fill(Palette.accent).frame(width: 3 * k)
             VStack(alignment: .leading, spacing: Metrics.s1 * k) {
-                Text(poet.map { "Answer \($0)" } ?? "The theme").tracked(10 * k, color: Palette.gold)
+                Text(poet.map { "Answer \($0)" } ?? "The theme").tracked(10 * k, color: Palette.accent)
                 Text(poet == nil ? line : "“\(line)”")
-                    .font(Typeface.display(20 * k, weight: 650, italic: poet != nil))
-                    .foregroundStyle(Palette.paper)
+                    .font(Typeface.display(21 * k, italic: poet != nil))
+                    .foregroundStyle(Palette.ink)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
         .fixedSize(horizontal: false, vertical: true)
         .padding(.horizontal, Metrics.s4 * k)
         .padding(.vertical, Metrics.s3 * k)
-        .paper(Palette.ink, radius: Metrics.radiusM * k)
+        .paper(Palette.paper, radius: Metrics.radiusM * k)
         .accessibilityElement(children: .combine)
     }
 }
@@ -82,7 +82,7 @@ private struct CardBack: View {
                 .stroke(Palette.gold.opacity(0.8), lineWidth: 2 * k)
                 .frame(height: 12 * k)
                 .padding(.horizontal, Metrics.s3 * k)
-            Text("MeNIN").font(Typeface.display(15 * k, weight: 900)).foregroundStyle(Palette.paper)
+            Text("MeNIN").font(Typeface.display(16 * k, weight: 500)).foregroundStyle(Palette.cream)
                 .padding(.horizontal, Metrics.s2 * k)
                 .background(Palette.wine)
         }
@@ -122,7 +122,7 @@ struct MicLevelView: View {
     /// 0...1, from Prosody.energy.
     let level: Double
     var bars: Int = 18
-    var tint: Color = Palette.vermilion
+    var tint: Color = Palette.accent
 
     @Environment(\.stage) private var stage
 
@@ -133,7 +133,7 @@ struct MicLevelView: View {
                 let center = abs(Double(i) - Double(bars - 1) / 2) / (Double(bars) / 2)
                 let h = max(0.12, min(1, level * 1.25 - center * 0.55))
                 Capsule()
-                    .fill(level > 0.05 ? tint : Palette.paper.opacity(0.35))
+                    .fill(level > 0.05 ? tint : Palette.ink3.opacity(0.35))
                     .frame(width: 5 * k, height: 44 * k * h)
             }
         }
@@ -154,16 +154,16 @@ struct HoldToTalkView: View {
 
     var body: some View {
         VStack(spacing: Metrics.s4) {
-            MicLevelView(level: isHeld ? level : 0, tint: Palette.paper)
+            MicLevelView(level: isHeld ? level : 0, tint: isHeld ? Palette.onHero : Palette.accent)
             Text(isHeld ? "Speaking" : "Hold to speak")
-                .font(Typeface.display(30, weight: 800))
-                .foregroundStyle(isHeld ? Palette.paper : Palette.ink)
+                .font(Typeface.display(32))
+                .foregroundStyle(isHeld ? Palette.onHero : Palette.ink)
             Text(isHeld ? "Let go when the line is done" : "Homer hears you only while you hold")
                 .font(Typeface.text(14, weight: 500))
-                .foregroundStyle(isHeld ? Palette.paper.opacity(0.8) : Palette.ink2)
+                .foregroundStyle(isHeld ? Palette.onHero2 : Palette.ink2)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .paper(isHeld ? Palette.vermilion : Palette.paper, radius: Metrics.radiusL)
+        .paper(isHeld ? Palette.hero : Palette.paper, radius: Metrics.radiusL)
         .scaleEffect(isHeld ? 0.98 : 1)
         .opacity(enabled ? 1 : 0.5)
         .contentShape(Rectangle())

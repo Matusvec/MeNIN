@@ -39,40 +39,44 @@ struct FormulaCardView: View {
 
     var body: some View {
         let k = stage.scale
-        HStack(spacing: 0) {
-            // A colored tab cut into the slip's edge says what kind of formula it is.
-            Rectangle().fill(card.used ? Palette.ink3 : tab).frame(width: 5 * k)
+        HStack(spacing: Metrics.s3 * k) {
+            // A colored mark says what kind of formula it is.
+            Capsule().fill(card.used ? Palette.ink3.opacity(0.5) : tab)
+                .frame(width: 3 * k)
+                .padding(.vertical, 2 * k)
             VStack(alignment: .leading, spacing: 3 * k) {
                 HStack(spacing: Metrics.s2 * k) {
-                    Text(kind).tracked(9 * k, color: card.used ? Palette.paper.opacity(0.5) : Palette.ink3)
+                    Text(kind).tracked(9 * k, color: Palette.ink2)
                     if raised {
-                        Text("Homer whispers").tracked(9 * k, color: Palette.goldDeep)
+                        Text("Homer whispers").tracked(9 * k, color: Palette.accent)
                             .transition(.opacity)
                     }
                     Spacer(minLength: 0)
                     if card.used {
-                        Text("Played").tracked(9 * k, color: Palette.gold)
+                        Text("Played").tracked(9 * k, color: Palette.goldDeep)
                             .transition(.scale(scale: 1.6).combined(with: .opacity))
                     }
                 }
                 Text(card.text)
                     // Verse formulas are set in the bard's serif; debate moves are argument, set plain.
-                    .font(card.kind == .move ? Typeface.text(17 * k, weight: 650) : Typeface.display(20 * k, weight: 700))
-                    .foregroundStyle(card.used ? Palette.paper.opacity(0.75) : Palette.ink)
+                    .font(card.kind == .move ? Typeface.text(16 * k, weight: 600) : Typeface.display(22 * k))
+                    .foregroundStyle(card.used ? Palette.ink3 : Palette.ink)
+                    .strikethrough(card.used, color: Palette.ink3)
                     .lineLimit(2)
                     .minimumScaleFactor(0.7)
             }
-            .padding(.horizontal, Metrics.s4 * k)
-            .padding(.vertical, Metrics.s3 * k)
-            .frame(maxWidth: stage.isArena ? 260 * k : .infinity, alignment: .leading)
+            .frame(maxWidth: stage.isArena ? 240 * k : .infinity, alignment: .leading)
         }
+        .padding(.leading, 14 * k)
+        .padding(.trailing, Metrics.s4 * k)
+        .padding(.vertical, Metrics.s3 * k)
         .fixedSize(horizontal: false, vertical: true)
-        .paper(card.used ? Palette.ink : Palette.paper, radius: Metrics.radiusS * k)
+        .paper(card.used ? Palette.paper2 : Palette.paper, radius: Metrics.radiusM * k, lifted: raised)
         .overlay {
-            RoundedRectangle(cornerRadius: Metrics.radiusS * k, style: .continuous)
-                .strokeBorder(Palette.gold, lineWidth: raised ? 2.5 * k : 0)
+            RoundedRectangle(cornerRadius: Metrics.radiusM * k, style: .continuous)
+                .strokeBorder(Palette.accent, lineWidth: raised ? 1.5 * k : 0)
         }
-        .clipShape(RoundedRectangle(cornerRadius: Metrics.radiusS * k, style: .continuous).inset(by: -40))
+        .clipShape(RoundedRectangle(cornerRadius: Metrics.radiusM * k, style: .continuous).inset(by: -40))
         // Raised: in the arena's row the card lifts; in the phone's stack it steps forward.
         .offset(y: raised && stage.isArena ? -14 * k : 0)
         .scaleEffect(raised ? (stage.isArena ? 1.04 : 1.025) : 1)
@@ -93,9 +97,9 @@ struct FormulaCardView: View {
 
     private var tab: Color {
         switch card.kind {
-        case .epithet: Palette.gold
+        case .epithet: Palette.wine
         case .kenning: Palette.sea
-        case .halfLine: Palette.wine
+        case .halfLine: Palette.gold
         case .move: Palette.lilac
         }
     }

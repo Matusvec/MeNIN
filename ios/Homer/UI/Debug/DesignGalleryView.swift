@@ -19,6 +19,7 @@ struct DesignGalleryView: View {
             GalleryHall().tag(8)
             GalleryHostsDiscus().tag(9)
             GalleryTurnPieces().tag(10)
+            GalleryHome().tag(11)
         }
         .tabViewStyle(.page(indexDisplayMode: .always))
         .ignoresSafeArea()
@@ -270,6 +271,22 @@ private struct GalleryTurnPieces: View {
             }
             .padding(Metrics.s4)
             .padding(.top, 50)
+        }
+    }
+}
+
+private struct GalleryHome: View {
+    @State private var tab = "atelier"
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            SceneView(emotion: EmotionWeights())
+            HomeView(name: "Alex",
+                     lesson: .init(path: "Bard / Lesson 02", title: "The formula,\nhalf a line for free",
+                                   meta: "Four-beat line · 4 min", progress: 0.6),
+                     collectionSummary: "12 formulas · 2 battles · Herald")
+                .safeAreaPadding(.top, 50)
+            HomeTabBar(selection: $tab)
         }
     }
 }

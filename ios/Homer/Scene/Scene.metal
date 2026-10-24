@@ -25,7 +25,8 @@ struct FieldUniforms {
 };
 
 struct FinishUniforms {
-    float4 a; // res.xy, time, unused
+    float4 a; // res.xy, time, vignette strength
+    float4 b; // white point rgb (the grade maps 1.0 here), unused
 };
 
 // Mirrors Fleck in SceneMotion.swift.
@@ -295,7 +296,7 @@ fragment float4 finish_fragment(FullOut in [[stage_in]],
     float3 col = scene.sample(linear, in.uv).rgb;
 
     // Matte finish: lift the blacks and ease the whites, like pigment on paper.
-    col = mix(float3(0.06, 0.05, 0.07), float3(0.965, 0.95, 0.925), col);
+    col = mix(float3(0.06, 0.05, 0.07), U.b.rgb, col);
 
     // Paper tooth (fixed to the sheet) and a whisper of moving grain.
     float2 px = in.position.xy;
@@ -307,7 +308,7 @@ fragment float4 finish_fragment(FullOut in [[stage_in]],
 
     float2 v = in.uv - 0.5;
     v.x *= U.a.x / U.a.y;
-    col *= 1.0 - 0.16 * smoothstep(0.4, 1.15, length(v));
+    col *= 1.0 - U.a.w * smoothstep(0.4, 1.15, length(v));
 
     return float4(col, 1.0);
 }

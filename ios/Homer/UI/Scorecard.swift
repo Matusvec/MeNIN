@@ -20,7 +20,7 @@ struct ScorecardView: View {
                 VStack(alignment: .leading, spacing: 2 * k) {
                     Text(poet ?? "The judge").tracked(10 * k, color: Palette.ink3)
                     Text(card.verdict)
-                        .font(Typeface.display(19 * k, weight: 600, soft: 50, italic: true))
+                        .font(Typeface.display(20 * k, italic: true))
                         .foregroundStyle(Palette.ink)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -28,7 +28,7 @@ struct ScorecardView: View {
                 let totalShown = Int((Double(card.scores.total) * min(1, max(0, step - 5))).rounded())
                 HStack(alignment: .lastTextBaseline, spacing: 2 * k) {
                     Text("\(totalShown)")
-                        .font(Typeface.display(52 * k, weight: 900))
+                        .font(Typeface.display(56 * k, weight: 500))
                         .foregroundStyle(Palette.ink)
                         .contentTransition(.numericText(value: Double(totalShown)))
                     Text("/50").font(Typeface.numeral(13 * k, weight: 600)).foregroundStyle(Palette.ink3)
@@ -47,7 +47,7 @@ struct ScorecardView: View {
             HStack(alignment: .top, spacing: Metrics.s3 * k) {
                 Rectangle().fill(Palette.gold).frame(width: 3 * k)
                 Text("“\(card.bestLine)”")
-                    .font(Typeface.display(20 * k, weight: 700))
+                    .font(Typeface.display(22 * k))
                     .foregroundStyle(Palette.ink)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -80,13 +80,13 @@ private struct AxisRow: View {
             HStack(spacing: 3 * k) {
                 ForEach(0..<10, id: \.self) { i in
                     RoundedRectangle(cornerRadius: 2 * k, style: .continuous)
-                        .fill(i < value ? (value >= 8 ? Palette.goldDeep : Palette.ink) : Palette.ink.opacity(0.09))
+                        .fill(i < value ? (value >= 8 ? Palette.gold : Palette.accent) : Palette.paper2)
                         .frame(height: 12 * k)
                         .scaleEffect(y: i == value - 1 ? 1.25 : 1)
                 }
             }
             Text("\(value)")
-                .font(Typeface.numeral(15 * k, weight: 750))
+                .font(Typeface.display(18 * k, weight: 500))
                 .foregroundStyle(Palette.ink)
                 .frame(width: 22 * k, alignment: .trailing)
                 .contentTransition(.numericText(value: Double(value)))

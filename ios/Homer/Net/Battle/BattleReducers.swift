@@ -9,7 +9,7 @@ enum Reducer {
         static let name = "create_room"
         var event: String
         var rounds: UInt32
-        var turnSeconds: UInt32
+        var barsPerLine: UInt32  // 2 = speaking bar + rest bar, 1 = no rests
         var linesPerTurn: UInt32
         var bpm: UInt32
         var form: String
@@ -17,8 +17,8 @@ enum Reducer {
         var themeChoice: Bool
         var demo: Bool
 
-        static let standard = CreateRoom(event: "poetry", rounds: 3, turnSeconds: 30, linesPerTurn: 4, bpm: 80, form: "four_beat", autoReady: false, themeChoice: false, demo: false)
-        static let demoMode = CreateRoom(event: "poetry", rounds: 1, turnSeconds: 30, linesPerTurn: 2, bpm: 80, form: "four_beat", autoReady: true, themeChoice: false, demo: true)
+        static let standard = CreateRoom(event: "poetry", rounds: 3, barsPerLine: 2, linesPerTurn: 4, bpm: 80, form: "four_beat", autoReady: false, themeChoice: false, demo: false)
+        static let demoMode = CreateRoom(event: "poetry", rounds: 1, barsPerLine: 2, linesPerTurn: 2, bpm: 80, form: "four_beat", autoReady: true, themeChoice: false, demo: true)
     }
 
     struct RoomId: Codable, Sendable { var roomId: UInt64 }

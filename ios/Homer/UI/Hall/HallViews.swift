@@ -7,16 +7,19 @@ import SwiftUI
 
 /// MeNIN, the first word of the Iliad: μῆνιν, rage.
 struct WordmarkView: View {
-    var size: CGFloat = 56
-    var showsGreek: Bool = true
-    var color: Color = Palette.paper
+    var size: CGFloat = 31
+    var showsGreek: Bool = false
+    var color: Color = Palette.brand
 
     var body: some View {
-        VStack(spacing: size * 0.06) {
-            Text("MeNIN")
-                .font(Typeface.display(size, weight: 900))
-                .tracking(-size * 0.02)
-                .foregroundStyle(color)
+        VStack(alignment: .leading, spacing: size * 0.06) {
+            HStack(spacing: size * 0.29) {
+                Image("icon-feather-nav").renderingMode(.template).resizable()
+                    .frame(width: size * 0.74, height: size * 0.74)
+                Text("MeNIN")
+                    .font(Typeface.display(size))
+            }
+            .foregroundStyle(color)
             if showsGreek {
                 Text("μῆνιν · rage")
                     .font(.system(size: size * 0.24, weight: .regular, design: .serif).italic())
@@ -48,10 +51,10 @@ struct FirstOpenView: View {
             Spacer()
             if beat == .listening {
                 VStack(spacing: Metrics.s4) {
-                    MicLevelView(level: level, tint: Palette.paper)
+                    MicLevelView(level: level, tint: Palette.onHero)
                         .padding(.horizontal, Metrics.s5)
                         .padding(.vertical, Metrics.s3)
-                        .background(Capsule().fill(Palette.ink))
+                        .background(Capsule().fill(Palette.hero))
                     if !heard.isEmpty {
                         TranscriptView(lines: [heard], listening: true, maxLines: 1)
                             .transition(.opacity)
@@ -79,7 +82,7 @@ enum EventHost: String, Sendable {
 
     var name: String { self == .homer ? "Homer" : "Socrates" }
     var greek: String { self == .homer ? "ΟΜΗΡΟΣ" : "ΣΩΚΡΑΤΗΣ" }
-    var ink: Color { self == .homer ? Palette.sea : Color(hex: 0x6E7A2E) } // Socrates: olive
+    var ink: Color { self == .homer ? Palette.wine : Palette.olive }
 }
 
 /// A host's medallion, struck like an ancient coin: name around the rim in
@@ -92,10 +95,10 @@ struct HostMedallion: View {
     var body: some View {
         ZStack {
             Circle().fill(host.ink)
-            Circle().strokeBorder(Palette.paper.opacity(0.9), lineWidth: size * 0.018).padding(size * 0.05)
-            Circle().strokeBorder(Palette.paper.opacity(0.35), lineWidth: size * 0.01).padding(size * 0.2)
+            Circle().strokeBorder(Palette.cream.opacity(0.9), lineWidth: size * 0.018).padding(size * 0.05)
+            Circle().strokeBorder(Palette.cream.opacity(0.35), lineWidth: size * 0.01).padding(size * 0.2)
             RimText(text: host.greek, radius: size * 0.36, fontSize: size * 0.1)
-                .foregroundStyle(Palette.paper)
+                .foregroundStyle(Palette.cream)
             Group {
                 switch host {
                 case .homer:
@@ -104,7 +107,7 @@ struct HostMedallion: View {
                         .frame(width: size * 0.3, height: size * 0.34)
                 case .socrates:
                     Text("?")
-                        .font(Typeface.display(size * 0.42, weight: 900))
+                        .font(Typeface.display(size * 0.44, weight: 600))
                         .foregroundStyle(Palette.gold)
                         .offset(y: -size * 0.01)
                 }
@@ -212,8 +215,7 @@ struct EventMenuView: View {
         let columns = [GridItem(.adaptive(minimum: 150 * k, maximum: 300 * k), spacing: Metrics.s4 * k)]
         VStack(alignment: .leading, spacing: Metrics.s5 * k) {
             HStack(alignment: .bottom) {
-                WordmarkView(size: 44 * k, showsGreek: false)
-                    .shadow(color: Color(hex: 0x0E0814).opacity(0.45), radius: 0, x: 0, y: 2)
+                WordmarkView(size: 31 * k)
                 Spacer()
                 if let hallNote { Text(hallNote).chip(11 * k) }
             }
@@ -259,13 +261,13 @@ struct EventTileView: View {
             .clipped()
             VStack(alignment: .leading, spacing: 2 * k) {
                 Text(event.title)
-                    .font(Typeface.display(19 * k, weight: 800))
+                    .font(Typeface.display(22 * k))
                     .foregroundStyle(event.locked ? Palette.ink3 : Palette.ink)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 Text(event.host.map { "Hosted by \($0.name)" } ?? "Locked")
-                    .font(Typeface.text(12 * k, weight: 550))
-                    .foregroundStyle(Palette.ink3)
+                    .font(Typeface.text(12 * k))
+                    .foregroundStyle(Palette.ink2)
             }
             .padding(.horizontal, Metrics.s4 * k)
             .padding(.vertical, Metrics.s3 * k)
@@ -280,13 +282,13 @@ struct EventTileView: View {
         if event.locked { return Palette.paper3 }
         switch event.art {
         case .lyre: return Palette.wine
-        case .debate: return Color(hex: 0x6E7A2E)
+        case .debate: return Palette.olive
         case .discus: return Palette.vermilion
         default: return Palette.paper3
         }
     }
 
-    private var artInk: Color { event.locked ? Palette.ink2 : Palette.paper }
+    private var artInk: Color { event.locked ? Palette.ink2 : Palette.cream }
     private var accent: Color { event.locked ? Palette.ink3 : Palette.gold }
 }
 

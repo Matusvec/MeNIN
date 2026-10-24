@@ -138,10 +138,16 @@ final class SceneRenderer: NSObject, MTKViewDelegate {
 
         pass.colorAttachments[0].loadAction = .dontCare
         if let enc = commands.makeRenderCommandEncoder(descriptor: pass) {
-            var finish = SIMD4<Float>(Float(size.width), Float(size.height), motion.time, 0)
+            // Atelier grades up to the concept's page color with a whisper of vignette;
+            // Cut paper eases its whites and darkens the corners more.
+            let atelier = Direction.current == .atelier
+            var finish = [
+                SIMD4<Float>(Float(size.width), Float(size.height), motion.time, atelier ? 0.05 : 0.16),
+                atelier ? SIMD4<Float>(0.995, 0.99, 0.975, 0) : SIMD4<Float>(0.965, 0.95, 0.925, 0),
+            ]
             enc.setRenderPipelineState(finishPipeline)
             enc.setFragmentTexture(fieldTexture, index: 0)
-            enc.setFragmentBytes(&finish, length: MemoryLayout<SIMD4<Float>>.stride, index: 0)
+            enc.setFragmentBytes(&finish, length: MemoryLayout<SIMD4<Float>>.stride * 2, index: 0)
             enc.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
             enc.endEncoding()
         }

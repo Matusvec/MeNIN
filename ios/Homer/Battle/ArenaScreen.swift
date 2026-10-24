@@ -27,6 +27,7 @@ struct ArenaScreen: View {
             }
         }
         .navigationTitle("Arena")
+        .arenaOperatorShortcuts(battle)
         .task {
             battle.connect(to: ServerConfig.spacetime, database: ServerConfig.database)
             autopilot = DevAutopilot(battle: battle)

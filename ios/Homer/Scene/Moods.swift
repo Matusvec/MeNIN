@@ -84,10 +84,22 @@ struct MoodStyle {
 extension Mood {
     var style: MoodStyle { Mood.styles[rawValue] }
 
-    static let styles: [MoodStyle] = Mood.allCases.map(\.makeStyle)
+    /// The styles for the current design direction. Only `rest` differs: Atelier
+    /// rests on the cream page, Cut paper on the wine-dark sea.
+    static var styles: [MoodStyle] { Direction.current == .atelier ? atelierStyles : cutPaperStyles }
 
-    private var makeStyle: MoodStyle {
+    private static let atelierStyles = Mood.allCases.map { $0.makeStyle(.atelier) }
+    private static let cutPaperStyles = Mood.allCases.map { $0.makeStyle(.cutPaper) }
+
+    private func makeStyle(_ direction: Direction) -> MoodStyle {
         switch self {
+        case .rest where direction == .atelier:
+            // The page from the concept (#F7F3EC), with faint paper layers in it.
+            return MoodStyle(
+                inks: [0xE4D7CC, 0xEBE3D8, 0xF1EBE2, 0xF7F3EC],
+                field: FieldMotion(speed: 0.05, drift: [0.02, 0], turb: 1.1, jag: 0, detail: 0.2, scale: 0.85, tremble: 0, lightY: -0.45, lightAmt: 0.1, soft: 0.004, lift: 0.08, tilt: -0.45, amp: 0.38),
+                flecks: FleckMotion(spawn: .anywhere, vel: [0.008, 0.016], radial: 0, jitter: 0.02, bounce: 0, sway: 0.01, drag: 0.2, life: 8...12, size: 2...4, shape: .dot, alpha: 0.5, ink: 0),
+                wash: .below)
         case .rest:
             return MoodStyle(
                 inks: [0x1A1325, 0x4B1834, 0x1F5361, 0xD9C6A5],

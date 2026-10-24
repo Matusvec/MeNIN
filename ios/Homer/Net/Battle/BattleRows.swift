@@ -36,7 +36,7 @@ struct RoomRow: Codable, Sendable, Identifiable, Equatable {
     var phase: String
     var roundNo: UInt32
     var rounds: UInt32
-    var turnSeconds: UInt32
+    var turnSeconds: UInt32  // derived, display only; count down to turn.ends_at
     var linesPerTurn: UInt32
     var bpm: UInt32
     var form: String
@@ -47,8 +47,11 @@ struct RoomRow: Codable, Sendable, Identifiable, Equatable {
     var nextTheme: String
     var currentTurnId: UInt64
     var createdAt: SpacetimeTimestamp
+    var barsPerLine: UInt32  // 2 = a speaking bar then a rest bar; 1 = no rests
 
     var phaseValue: RoomPhase? { RoomPhase(rawValue: phase) }
+    /// One bar is four beats.
+    var barSeconds: Double { 4 * 60 / Double(max(bpm, 1)) }
 }
 
 struct PlayerRow: Codable, Sendable, Identifiable, Equatable {

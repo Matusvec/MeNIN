@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// The live transcript: what Homer heard, always visible while a mic is open.
-/// The poet's words sit on ink (Homer's captions sit on paper), so they read
+/// The poet's words sit on wine (Homer's captions sit on paper), so they read
 /// on any scene. The line being spoken is full strength; earlier lines step
 /// back. Formula phrases from the hand are underlined in gold.
 struct TranscriptView: View {
@@ -18,16 +18,15 @@ struct TranscriptView: View {
             if listening {
                 HStack(spacing: Metrics.s2 * k) {
                     LiveDot(size: 8 * k)
-                    Text("Homer hears").tracked(10 * k, color: Palette.paper.opacity(0.7))
+                    Text("Homer hears").tracked(10 * k, color: Palette.onHero2)
                 }
             }
             let shown = Array(lines.suffix(maxLines))
             ForEach(Array(shown.enumerated()), id: \.offset) { i, line in
                 let current = i == shown.count - 1
                 Text(marked(line))
-                    .font(Typeface.display((current ? 24 : 19) * k, weight: current ? 700 : 550))
-                    .foregroundStyle(Palette.paper)
-                    .opacity(current ? 1 : 0.6)
+                    .font(Typeface.display((current ? 25 : 19) * k))
+                    .foregroundStyle(current ? Palette.onHero : Palette.onHero2)
                     .fixedSize(horizontal: false, vertical: true)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
@@ -35,7 +34,7 @@ struct TranscriptView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, Metrics.s5 * k)
         .padding(.vertical, Metrics.s4 * k)
-        .paper(Palette.ink, radius: Metrics.radiusM * k)
+        .paper(Palette.hero, radius: Metrics.radiusL * k)
         .animation(Motion.slide, value: lines)
         .accessibilityElement(children: .combine)
     }

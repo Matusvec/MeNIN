@@ -16,10 +16,10 @@ struct CaptionView: View {
         let k = stage.scale
         HStack(alignment: .firstTextBaseline, spacing: Metrics.s3 * k) {
             Text(speaker)
-                .tracked(10 * k, color: Palette.sea)
+                .tracked(10 * k, color: Palette.accent)
                 .fixedSize()
             Text(attributed)
-                .font(Typeface.display((whisper ? 19 : 22) * k, weight: whisper ? 500 : 600, soft: 50, italic: true))
+                .font(Typeface.display((whisper ? 20 : 23) * k, italic: true))
                 .lineSpacing(2 * k)
                 .fixedSize(horizontal: false, vertical: true)
                 .animation(.linear(duration: 0.12), value: spoken)
@@ -40,7 +40,7 @@ struct CaptionView: View {
         var said = AttributedString(String(chars[..<min(cut, chars.count)]))
         said.foregroundColor = Palette.ink
         var rest = AttributedString(String(chars[min(cut, chars.count)...]))
-        rest.foregroundColor = Palette.ink.opacity(0.28)
+        rest.foregroundColor = Palette.ink.opacity(0.25)
         return said + rest
     }
 }

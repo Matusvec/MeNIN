@@ -2,10 +2,41 @@ import CoreText
 import SwiftUI
 import UIKit
 
-// MeNIN's design tokens, from Matus's concept art (Figma: "MeNIN user
-// interface concept art", frame "Homer · Atelier"). A cream page, Bodoni Moda
-// display, Inter for the interface, wine as the one strong accent. Matte:
-// flat fills and hairlines, never gloss. The scene brings the color.
+// MeNIN's design tokens. Two directions share one set of semantic tokens, so
+// every component renders in either and Matus can compare them side by side
+// (Figma: "MeNIN · Directions", one variable collection, one mode each):
+//
+// - Atelier: from Matus's concept frame "Homer · Atelier". A cream page,
+//   Bodoni Moda, wine as the one strong accent, hairline cards.
+// - Cut paper: the first art pass. Bold Fraunces, paper and ink slabs with
+//   cut-paper shadows over a dark, colorful scene.
+//
+// Both are matte: flat fills, never gloss or glow. The scene brings the color.
+
+// MARK: - Direction
+
+enum Direction: String, CaseIterable, Sendable {
+    case atelier, cutPaper
+
+    /// Chosen at launch (a debug setting until Matus picks). Views read it
+    /// through Palette and Typeface; rebuild the view tree after changing it.
+    nonisolated(unsafe) static var current: Direction = .atelier
+
+    var title: String { self == .atelier ? "Atelier" : "Cut paper" }
+
+    /// Reads the saved choice (key `menin.direction`). Call once at launch, before any view.
+    static func loadSaved() {
+        if let raw = UserDefaults.standard.string(forKey: "menin.direction"), let d = Direction(rawValue: raw) {
+            current = d
+        }
+    }
+
+    /// Saves a new choice. Rebuild the view tree (or relaunch) to see it everywhere.
+    static func save(_ d: Direction) {
+        current = d
+        UserDefaults.standard.set(d.rawValue, forKey: "menin.direction")
+    }
+}
 
 // MARK: - Color
 
@@ -20,53 +51,83 @@ extension Color {
 }
 
 enum Palette {
-    // The page and its paper (Figma: #F7F3EC page, #FFFCF7 cards, #E4DCD2 hairlines).
-    static let page = Color(hex: 0xF7F3EC)
-    static let paper = Color(hex: 0xFFFCF7)
-    static let paper2 = Color(hex: 0xF2ECE2)
-    static let paper3 = Color(hex: 0xE4DCD2)
-    static let line = Color(hex: 0xE4DCD2)
-    /// Text and buttons laid on wine (Figma: #FFF8ED).
-    static let cream = Color(hex: 0xFFF8ED)
+    private static func pick(_ atelier: UInt32, _ cutPaper: UInt32) -> Color {
+        Color(hex: Direction.current == .atelier ? atelier : cutPaper)
+    }
 
-    // Ink (Figma: #302A29 text, #82756E secondary).
-    static let ink = Color(hex: 0x302A29)
-    static let ink2 = Color(hex: 0x82756E)
-    static let ink3 = Color(hex: 0xA69A92)
+    // The page and its paper.
+    static var page: Color { pick(0xF7F3EC, 0x1A1325) }
+    static var paper: Color { pick(0xFFFCF7, 0xF3EADB) }
+    static var paper2: Color { pick(0xF2ECE2, 0xE9DCC6) }
+    static var paper3: Color { pick(0xE4DCD2, 0xDCCAB0) }
+    /// Hairlines on paper. Cut paper has none: its edges are shadows.
+    static var line: Color { Direction.current == .atelier ? Color(hex: 0xE4DCD2) : .clear }
 
-    // Wine: the accent (Figma: #682C3E, #542232 track, #DDC3C5 labels on wine).
-    static let wine = Color(hex: 0x682C3E)
-    static let wineDeep = Color(hex: 0x542232)
-    static let wineTint = Color(hex: 0xDDC3C5)
+    // Ink.
+    static var ink: Color { pick(0x302A29, 0x1C1524) }
+    static var ink2: Color { pick(0x82756E, 0x4B4153) }
+    static var ink3: Color { pick(0xA69A92, 0x8B8090) }
 
-    // Supporting inks, each with one job. Matte, pulled toward the page's warmth.
-    static let gold = Color(hex: 0xC99A3E)      // hits, best lines, the hoard
-    static let goldDeep = Color(hex: 0x9A7128)  // gold on the page
-    static let vermilion = Color(hex: 0xC8452C) // live: the mic, the clock
-    static let sea = Color(hex: 0x2D5C66)       // Homer's voice
-    static let olive = Color(hex: 0x6E7A2E)     // Socrates
-    static let lilac = Color(hex: 0x8A72C4)     // debate moves
+    // The hero surface: the poet's words, the carved line, a chosen card.
+    static var hero: Color { pick(0x682C3E, 0x1C1524) }
+    static var onHero: Color { pick(0xFFF8ED, 0xF3EADB) }
+    static var onHero2: Color { pick(0xDDC3C5, 0xA79EA3) }
+    /// Light text on any dark or colored slab (seat plates, the scoreboard).
+    static var cream: Color { pick(0xFFF8ED, 0xF3EADB) }
+
+    /// Text set straight on the page (Atelier's cream, Cut paper's dark sea).
+    static var onPage: Color { pick(0x302A29, 0xF3EADB) }
+    static var onPage2: Color { pick(0x82756E, 0xB9AFA8) }
+    /// The wordmark and other brand marks on the page.
+    static var brand: Color { pick(0x682C3E, 0xF3EADB) }
+
+    /// The accent on paper: labels, marks, the beat that's playing now.
+    static var accent: Color { pick(0x682C3E, 0x1F5361) }
+
+    // Supporting inks, each with one job.
+    static var wine: Color { pick(0x682C3E, 0x6B1F3E) }
+    static var gold: Color { pick(0xC99A3E, 0xE8B73A) }      // hits, best lines, the hoard
+    static var goldDeep: Color { pick(0x9A7128, 0xA8720F) }  // gold on paper
+    static var vermilion: Color { pick(0xC8452C, 0xEC4A1C) } // live: the mic, the clock
+    static var sea: Color { pick(0x2D5C66, 0x1F5361) }       // Homer's voice
+    static var olive: Color { pick(0x6E7A2E, 0x6E7A2E) }     // Socrates
+    static var lilac: Color { pick(0x8A72C4, 0xAE84FF) }     // debate moves
 
     /// One ink per poet seat, so a poet keeps their color all battle.
-    static let seats: [Color] = [Color(hex: 0x682C3E), Color(hex: 0x2D5C66), Color(hex: 0xC99A3E), Color(hex: 0x6E7A2E), Color(hex: 0xC8452C)]
+    static var seats: [Color] {
+        Direction.current == .atelier
+            ? [0x682C3E, 0x2D5C66, 0xC99A3E, 0x6E7A2E, 0xC8452C].map { Color(hex: $0) }
+            : [0xEC4A1C, 0x2C6FD6, 0xE8B73A, 0x2E9C7A, 0xC2569A].map { Color(hex: $0) }
+    }
 }
 
 // MARK: - Type
 
-/// Bodoni Moda (variable: wght 400–900, opsz 6–96) is the voice of the legend:
-/// verse, names, titles. Regular for the calm of Bard and Practice, heavy for
-/// the Agon. Inter (variable: wght, opsz) for everything that works.
+/// Display type is the voice of the legend: verse, names, titles.
+/// Atelier: Bodoni Moda (wght 400–900, opsz 6–96), Regular for the calm of
+/// Bard and Practice, heavy for the Agon. Cut paper: Fraunces, set 300 units
+/// heavier. Inter (wght, opsz) for everything that works, in both.
 @MainActor
 enum Typeface {
     private static var cache: [String: Font] = [:]
 
-    /// `opticalSize` defaults to the point size (as Figma does); lower it for sturdier hairlines.
+    /// `weight` is in Atelier's scale (400 regular ... 900 black).
+    /// `opticalSize` defaults to the point size, as Figma does.
     static func display(_ size: CGFloat, weight: CGFloat = 400, italic: Bool = false, opticalSize: CGFloat? = nil) -> Font {
-        let key = "d\(size)-\(weight)-\(italic)-\(opticalSize ?? 0)"
+        let direction = Direction.current
+        let key = "d\(direction)-\(size)-\(weight)-\(italic)-\(opticalSize ?? 0)"
         if let f = cache[key] { return f }
-        let f = variable(name: italic ? "BodoniModa-Italic" : "BodoniModa-Regular", size: size, axes: [
-            "opsz": min(96, max(6, opticalSize ?? size)), "wght": min(900, max(400, weight)),
-        ], fallback: UIFont(descriptor: UIFont.systemFont(ofSize: size).fontDescriptor.withDesign(.serif)!, size: size))
+        let serif = UIFont(descriptor: UIFont.systemFont(ofSize: size).fontDescriptor.withDesign(.serif)!, size: size)
+        let f: Font
+        if direction == .atelier {
+            f = variable(name: italic ? "BodoniModa-Italic" : "BodoniModa-Regular", size: size, axes: [
+                "opsz": min(96, max(6, opticalSize ?? size)), "wght": min(900, max(400, weight)),
+            ], fallback: serif)
+        } else {
+            f = variable(name: italic ? "Fraunces-9ptBlackItalic" : "Fraunces-9ptBlack", size: size, axes: [
+                "opsz": min(144, max(9, opticalSize ?? size)), "wght": min(900, weight + 300), "SOFT": 0, "WONK": 0,
+            ], fallback: serif)
+        }
         cache[key] = f
         return f
     }
@@ -106,6 +167,26 @@ enum Typeface {
     }
 }
 
+/// Multi-line display text with a set leading (Figma's line height, e.g.
+/// 1.12). SwiftUI can't tighten line height below the font's own, and Bodoni's
+/// is loose, so explicit lines are stacked at the right pitch.
+struct LeadedText: View {
+    let text: String
+    let font: Font
+    let size: CGFloat
+    var leading: CGFloat = 1.12
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(text.components(separatedBy: "\n").enumerated()), id: \.offset) { _, line in
+                Text(line).font(font).frame(height: size * leading, alignment: .center)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text.replacingOccurrences(of: "\n", with: " "))
+    }
+}
+
 // MARK: - Space
 
 enum Metrics {
@@ -126,7 +207,7 @@ enum Metrics {
     /// The page's side margin (Figma: 24).
     static let margin: CGFloat = 24
 
-    static let labelTracking: CGFloat = 0.8
+    static var labelTracking: CGFloat { Direction.current == .atelier ? 0.8 : 1.4 }
 }
 
 // MARK: - Stage
@@ -188,26 +269,29 @@ enum Motion {
 
 // MARK: - Paper
 
-/// A matte surface, as in the concept: flat fill, a hairline on light paper,
-/// and the same grain as the scene. Lifted surfaces float over the scene with
-/// a soft, low shadow. Never a glow, never a gradient.
+/// A matte surface. Atelier: flat fill with a hairline and a soft, low shadow
+/// when it floats over the scene. Cut paper: a crisp lip and a cast shadow.
+/// Both carry the scene's grain. Never a glow, never a gradient.
 struct PaperSurface: ViewModifier {
     var fill: Color = Palette.paper
     var radius: CGFloat = Metrics.radiusM
     var lifted: Bool = true
 
     func body(content: Content) -> some View {
+        let atelier = Direction.current == .atelier
         let light = fill == Palette.paper || fill == Palette.page || fill == Palette.paper2 || fill == Palette.cream
         content.background {
             RoundedRectangle(cornerRadius: radius, style: .continuous)
                 .fill(fill)
-                .colorEffect(ShaderLibrary.paperGrain(.float(0.02)))
+                .colorEffect(ShaderLibrary.paperGrain(.float(atelier ? 0.02 : 0.035)))
                 .overlay {
-                    if light {
+                    if atelier && light {
                         RoundedRectangle(cornerRadius: radius, style: .continuous).strokeBorder(Palette.line, lineWidth: 1)
                     }
                 }
-                .shadow(color: Color(hex: 0x302A29).opacity(lifted ? 0.10 : 0), radius: 20, x: 0, y: 10)
+                .shadow(color: .black.opacity(lifted && !atelier ? 0.22 : 0), radius: 0, x: 0, y: 1.5)
+                .shadow(color: Color(hex: atelier ? 0x302A29 : 0x0E0814).opacity(lifted ? (atelier ? 0.10 : 0.32) : 0),
+                        radius: atelier ? 20 : 22, x: 0, y: atelier ? 10 : 14)
         }
     }
 }

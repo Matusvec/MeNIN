@@ -1,8 +1,10 @@
 import SwiftUI
 
-/// Buttons. Flat ink on paper, or paper on ink; they press down like a stamp.
+/// Buttons, after the concept's "Resume": a 12-radius slab, Inter semibold,
+/// an optional arrow. Primary is wine on the page; `.cream` sits on wine
+/// cards; secondary is paper with a hairline. They press down, never glow.
 struct HomerButtonStyle: ButtonStyle {
-    enum Kind { case primary, secondary, quiet }
+    enum Kind { case primary, cream, secondary, quiet }
 
     var kind: Kind = .primary
     @Environment(\.stage) private var stage
@@ -10,25 +12,31 @@ struct HomerButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         let k = stage.scale
         configuration.label
-            .font(Typeface.text(17 * k, weight: 700))
+            .font(Typeface.text(15 * k, weight: 600))
             .foregroundStyle(foreground)
-            .padding(.horizontal, Metrics.s6 * k)
-            .padding(.vertical, Metrics.s4 * k)
-            .frame(minHeight: 52 * k)
+            .padding(.horizontal, 18 * k)
+            .frame(minHeight: 44 * k)
             .background {
                 if kind != .quiet {
-                    Capsule(style: .continuous)
+                    RoundedRectangle(cornerRadius: Metrics.radiusS * k, style: .continuous)
                         .fill(fill)
-                        .shadow(color: .black.opacity(configuration.isPressed ? 0 : 0.25), radius: 0, x: 0, y: configuration.isPressed ? 0 : 2 * k)
+                        .overlay {
+                            if kind == .secondary {
+                                RoundedRectangle(cornerRadius: Metrics.radiusS * k, style: .continuous)
+                                    .strokeBorder(Palette.line, lineWidth: 1)
+                            }
+                        }
                 }
             }
-            .offset(y: configuration.isPressed ? 2 * k : 0)
+            .opacity(configuration.isPressed ? 0.85 : 1)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .animation(Motion.stamp, value: configuration.isPressed)
     }
 
     private var fill: Color {
         switch kind {
-        case .primary: Palette.vermilion
+        case .primary: Palette.hero
+        case .cream: Palette.onHero
         case .secondary: Palette.paper
         case .quiet: .clear
         }
@@ -36,9 +44,20 @@ struct HomerButtonStyle: ButtonStyle {
 
     private var foreground: Color {
         switch kind {
-        case .primary: Palette.paper
+        case .primary: Palette.onHero
+        case .cream, .quiet: Palette.hero
         case .secondary: Palette.ink
-        case .quiet: Palette.paper
+        }
+    }
+}
+
+/// A button label with the concept's trailing arrow.
+struct ArrowLabel: View {
+    let title: String
+    var body: some View {
+        HStack(spacing: 9) {
+            Text(title)
+            Image("icon-arrow-right").renderingMode(.template).resizable().frame(width: 16, height: 16)
         }
     }
 }

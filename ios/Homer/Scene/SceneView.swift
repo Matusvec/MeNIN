@@ -45,8 +45,8 @@ private struct SceneMetalView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> MTKView {
         let view = MTKView(frame: .zero, device: MTLCreateSystemDefaultDevice())
-        // The resting sea's darkest ink, shown for the instant before the first frame.
-        view.backgroundColor = UIColor(red: 0x1A / 255, green: 0x13 / 255, blue: 0x25 / 255, alpha: 1)
+        // The page color, shown for the instant before the first frame.
+        view.backgroundColor = UIColor(Palette.page)
         view.isOpaque = true
         if let renderer = SceneRenderer(view: view, driver: driver) {
             view.delegate = renderer

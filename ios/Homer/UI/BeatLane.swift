@@ -43,7 +43,7 @@ struct BeatLaneView: View {
         let k = stage.scale
         return VStack(alignment: .leading, spacing: Metrics.s4 * k) {
             HStack(alignment: .firstTextBaseline) {
-                Text(c.elapsed < 0 ? "Count in" : "The beat").tracked(10 * k, color: Palette.paper.opacity(0.7))
+                Text(c.elapsed < 0 ? "Count in" : "The beat").tracked(10 * k, color: Palette.ink2)
                 Spacer()
                 barsLeft(c, size: 10 * k)
             }
@@ -53,7 +53,7 @@ struct BeatLaneView: View {
             }
         }
         .padding(Metrics.s5 * k)
-        .paper(Palette.ink, radius: Metrics.radiusL * k)
+        .paper(Palette.paper, radius: Metrics.radiusL * k)
     }
 
     private func row(_ line: Int, _ c: LaneClock) -> some View {
@@ -65,20 +65,20 @@ struct BeatLaneView: View {
                 let cell = w / CGFloat(lane.beatsPerLine)
                 let mid = geo.size.height / 2
                 ZStack(alignment: .topLeading) {
-                    Rectangle().fill(Palette.paper.opacity(0.18))
+                    Rectangle().fill(Palette.line)
                         .frame(width: w, height: 1)
                         .offset(y: mid)
 
                     // The pause in the middle of the line.
                     Text("/")
-                        .font(Typeface.display(18 * k, weight: 400))
-                        .foregroundStyle(Palette.paper.opacity(0.4))
+                        .font(Typeface.display(18 * k))
+                        .foregroundStyle(Palette.ink3)
                         .position(x: cell * CGFloat(lane.beatsPerLine) / 2, y: mid)
 
                     ForEach(words.indices, id: \.self) { i in
                         let word = words[i]
                         Capsule()
-                            .fill(word.stressed ? (word.onBeat ? Palette.gold : Palette.paper) : Palette.paper.opacity(0.5))
+                            .fill(word.stressed ? (word.onBeat ? Palette.gold : Palette.ink) : Palette.ink3)
                             .frame(width: 2.5 * k, height: (word.stressed ? 22 : 10) * k)
                             .position(x: (c.beatPosition(word) + 0.5) * cell, y: mid)
                     }
@@ -99,8 +99,8 @@ struct BeatLaneView: View {
             .frame(height: 34 * k)
 
             Text(lineText(words))
-                .font(Typeface.display(17 * k, weight: 600))
-                .foregroundStyle(Palette.paper)
+                .font(Typeface.display(19 * k))
+                .foregroundStyle(Palette.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
                 .frame(height: 22 * k, alignment: .leading)
@@ -111,7 +111,7 @@ struct BeatLaneView: View {
         var out = AttributedString()
         for (i, word) in words.enumerated() {
             var a = AttributedString((i == 0 ? "" : " ") + word.text)
-            a.foregroundColor = word.stressed && word.onBeat ? Palette.gold : (word.stressed ? Palette.paper : Palette.paper.opacity(0.6))
+            a.foregroundColor = word.stressed && word.onBeat ? Palette.goldDeep : (word.stressed ? Palette.ink : Palette.ink2)
             out += a
         }
         return out
@@ -125,7 +125,7 @@ struct BeatLaneView: View {
         return VStack(spacing: Metrics.s4 * k) {
             HStack(alignment: .firstTextBaseline) {
                 Text(c.elapsed < 0 ? "Count in" : (c.inSpeakingBar ? "Line \(line + 1) of \(lane.lines)" : "Breathe"))
-                    .tracked(11 * k, color: Palette.paper.opacity(0.75))
+                    .tracked(10 * k, color: Palette.ink2)
                 Spacer()
                 barsLeft(c, size: 11 * k)
             }
@@ -134,21 +134,21 @@ struct BeatLaneView: View {
                     BeatPad(state: c.padState(line: line, beat: beat), pulse: c.pulse(line: line, beat: beat), size: 44 * k)
                         .frame(maxWidth: .infinity)
                     if beat == lane.beatsPerLine / 2 - 1 {
-                        Text("/").font(Typeface.display(30 * k, weight: 400)).foregroundStyle(Palette.paper.opacity(0.4))
+                        Text("/").font(Typeface.display(30 * k)).foregroundStyle(Palette.ink3)
                     }
                 }
             }
             .opacity(c.inSpeakingBar || c.elapsed < 0 ? 1 : 0.45)
         }
         .padding(Metrics.s5 * k)
-        .paper(Palette.ink, radius: Metrics.radiusL * k)
+        .paper(Palette.paper, radius: Metrics.radiusL * k)
     }
 
     private func barsLeft(_ c: LaneClock, size: CGFloat) -> some View {
         let left = c.barsLeft
         return Text(left == 1 ? "1 bar left" : "\(left) bars left")
             .font(Typeface.numeral(size + 1, weight: 650))
-            .foregroundStyle(left <= 2 && c.elapsed >= 0 ? Palette.vermilion : Palette.paper.opacity(0.7))
+            .foregroundStyle(left <= 2 && c.elapsed >= 0 ? Palette.vermilion : Palette.ink2)
             .contentTransition(.numericText(countsDown: true))
     }
 }
@@ -167,13 +167,13 @@ private struct BeatPad: View {
         ZStack {
             switch state {
             case .ahead:
-                Circle().strokeBorder(Palette.paper.opacity(0.35), lineWidth: max(1.5, size * 0.09))
+                Circle().strokeBorder(Palette.ink3.opacity(0.6), lineWidth: max(1.2, size * 0.07))
             case .now:
-                Circle().fill(Palette.paper)
+                Circle().fill(Palette.accent)
             case .hit:
                 Circle().fill(Palette.gold)
             case .passed:
-                Circle().fill(Palette.paper.opacity(0.22)).padding(size * 0.28)
+                Circle().fill(Palette.paper3).padding(size * 0.28)
             }
         }
         .frame(width: size, height: size)
