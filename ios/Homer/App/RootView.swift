@@ -211,6 +211,7 @@ private struct DevMenu: View {
 
 struct DevSettingsView: View {
     @State private var preset = ServerConfig.preset
+    @State private var echoCancel = MicEngine.echoCancelSolo
 
     var body: some View {
         Form {
@@ -223,6 +224,8 @@ struct DevSettingsView: View {
                 LabeledContent("URL", value: ServerConfig.spacetime.absoluteString)
                 LabeledContent("Database", value: ServerConfig.database)
                 LabeledContent("Agent", value: ServerConfig.agent?.absoluteString ?? "not deployed")
+                Toggle("Echo cancel in lessons and practice", isOn: $echoCancel)
+                    .onChange(of: echoCancel) { _, on in UserDefaults.standard.set(on, forKey: "echoCancelSolo") }
             } footer: {
                 Text("Reopen the battle screen after switching. Each server has its own identity.")
             }

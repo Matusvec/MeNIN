@@ -62,7 +62,7 @@ final class SoloVoiceTurn {
         mic.onOnset = { [weak self] onset in Task { @MainActor in self?.handle(onset) } }
         micProsody.onProsody = { [scene] p in scene.prosody = p }
         mic.muted = true
-        await micProsody.start(voiceProcessing: true)
+        await micProsody.start(voiceProcessing: MicEngine.echoCancelSolo)
         if let error = micProsody.error { voiceNote = error }
         try? await Task.detached { [stage] in try stage.start(recording: true) }.value
         haptics.prepare()

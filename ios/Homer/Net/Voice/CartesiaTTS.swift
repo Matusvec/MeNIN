@@ -12,6 +12,8 @@ final class CartesiaTTS: @unchecked Sendable {
     private let lock = NSLock()
     private var streams: [String: AsyncThrowingStream<[Float], Error>.Continuation] = [:]
     private var wordTimes: [String: [Word]] = [:]
+    /// Bytes of a float split across two chunks, carried into the next chunk of the same context.
+    private var carry: [String: Data] = [:]
 
     /// A word and where it sits in the rendered audio, in seconds.
     struct Word: Sendable, Equatable {
@@ -81,7 +83,10 @@ final class CartesiaTTS: @unchecked Sendable {
     }
 
     private func finish(_ contextId: String, error: Error? = nil) {
-        let continuation = lock.withLock { streams.removeValue(forKey: contextId) }
+        let continuation = lock.withLock { () -> AsyncThrowingStream<[Float], Error>.Continuation? in
+            carry.removeValue(forKey: contextId)
+            return streams.removeValue(forKey: contextId)
+        }
         if let error { continuation?.finish(throwing: error) } else { continuation?.finish() }
     }
 
@@ -125,8 +130,18 @@ final class CartesiaTTS: @unchecked Sendable {
         guard let m = try? JSONDecoder().decode(Message.self, from: data), let id = m.context_id else { return }
         switch m.type {
         case "chunk":
-            if let b64 = m.data, let bytes = Data(base64Encoded: b64) {
-                let samples = bytes.withUnsafeBytes { Array($0.bindMemory(to: Float.self)) }
+            if let b64 = m.data, let chunk = Data(base64Encoded: b64) {
+                // Decode on 4-byte boundaries: a chunk can end mid-sample, and binding it as-is turns
+                // everything after the split into noise.
+                let samples: [Float] = lock.withLock {
+                    var bytes = carry.removeValue(forKey: id) ?? Data()
+                    bytes.append(chunk)
+                    let whole = bytes.count / 4 * 4
+                    if whole < bytes.count { carry[id] = bytes.suffix(from: bytes.startIndex + whole) }
+                    return bytes.prefix(whole).withUnsafeBytes { raw in
+                        (0..<whole / 4).map { raw.loadUnaligned(fromByteOffset: $0 * 4, as: Float.self) }
+                    }
+                }
                 _ = lock.withLock { streams[id]?.yield(samples) }
             }
             if m.done == true { finish(id) }

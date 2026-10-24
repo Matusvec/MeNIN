@@ -168,7 +168,7 @@ final class PracticeSession {
         }
         mic.onOnset = { [weak self] onset in Task { @MainActor in self?.handle(onset) } }
         micProsody.onProsody = { [scene] p in scene.prosody = p }
-        await micProsody.start(voiceProcessing: true)
+        await micProsody.start(voiceProcessing: MicEngine.echoCancelSolo)
         if let error = micProsody.error, voiceNote == nil { voiceNote = error }
         try? await Task.detached { [stage] in try stage.start(recording: true) }.value
         haptics.prepare()

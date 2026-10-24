@@ -27,6 +27,7 @@ struct BardScreen: View {
         var m = LessonModel(number: lesson?.n ?? 1, title: lesson?.title ?? "", move: lesson?.move ?? "",
                             tryNo: s.tryNo, homer: BattlePresenter.homerLine(s.turn.homer),
                             typed: s.turn.voiceNote == nil ? nil : s.turn.typed)
+        if s.turn.homer.fetching { m.wait = .warmingUp }
         switch s.phase {
         case .loading: m.phase = .loading
         case .failed(let why): m.phase = .failed(why)

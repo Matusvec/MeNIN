@@ -32,6 +32,7 @@ struct PracticeScreen: View {
                               transcript: BattlePresenter.lines(s.transcript), listening: s.phase == .live,
                               level: s.level, rescueId: s.rescueCard, homer: BattlePresenter.homerLine(s.homer),
                               typed: s.voiceNote == nil ? nil : s.typed)
+        if s.homer.fetching { m.wait = .warmingUp }
         m.lane = s.clock.map { BeatLane(bpm: $0.bpm, beatsPerLine: 4, lines: $0.lines, startedAt: $0.beatAtMs, words: s.hitMarks) }
         switch s.phase {
         case .idle: m.phase = .idle(themes: themes)

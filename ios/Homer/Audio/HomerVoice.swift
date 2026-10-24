@@ -1,4 +1,5 @@
 import AVFoundation
+import CryptoKit
 import Observation
 import os
 
@@ -55,6 +56,12 @@ final class HomerVoice {
     /// main thread or a cellular hiccup (Matus: "the voice is super glitchy").
     static let leadSeconds = 0.4
     static let minBufferSeconds = 0.25
+    /// Live lines play whole: fetched complete (~10x realtime, so ~0.4 s for a 4 s line), then
+    /// scheduled as one buffer, the path the clean baked verse takes. Streaming chunk by chunk
+    /// was choppy on Matus's phone (Sat 2:40); kept behind this switch.
+    static let streamLive = false
+    /// A live line is being fetched: views show "Homer is about to speak".
+    private(set) var fetching = false
 
     /// Queues a line; returns when it has been spoken (or skipped).
     func say(_ text: String, whisper: Bool = false) async {
@@ -135,6 +142,30 @@ final class HomerVoice {
         if let key = line.key, let samples = Self.bundled(key) {
             audio.enqueueVoice(samples)
             played = Double(samples.count) / StageAudio.sampleRate
+        } else if !line.whisper, let samples = Self.baked(line.speech ?? line.text) {
+            // A fixed line baked into the app (lesson scripts, rules, canned feedback): no network at all.
+            audio.enqueueVoice(samples)
+            played = Double(samples.count) / StageAudio.sampleRate
+        } else if !Self.streamLive {
+            // "Homer is about to speak" only if the fetch takes over 300 ms, so fast lines never flash it.
+            let flag = Task { [weak self] in
+                try? await Task.sleep(for: .milliseconds(300))
+                guard !Task.isCancelled else { return }
+                self?.fetching = true
+            }
+            defer { flag.cancel(); fetching = false }
+            let fetchStart = Date()
+            if let tts = await connectedTTS(), let whole = try? await tts.render(line.speech ?? line.text, speed: line.whisper ? 0.9 : 1, host: host), !whole.samples.isEmpty {
+                flag.cancel()
+                fetching = false
+                audio.enqueueVoice(whole.samples)
+                played = Double(whole.samples.count) / StageAudio.sampleRate
+                start = Date()
+                Self.log.info("tts whole line in \(Int(Date().timeIntervalSince(fetchStart) * 1000)) ms, \(played, format: .fixed(precision: 2)) s: \(line.text, privacy: .public)")
+            } else {
+                voiceError = "Homer's voice is offline (captions only)"
+                self.tts = nil
+            }
         } else if let tts = await connectedTTS() {
             do {
                 var firstMs: Double?
@@ -171,6 +202,27 @@ final class HomerVoice {
         }
         caption = nil
     }
+
+    /// Homer's fixed lines, baked by scratchpad bake_lines.py: Resources/Voice/line-<key>.m4a, where
+    /// key = the first 16 hex of SHA-256 over the text lowercased with whitespace collapsed.
+    static func bakedKey(_ text: String) -> String {
+        let norm = text.lowercased().split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        return SHA256.hash(data: Data(norm.utf8)).map { String(format: "%02x", $0) }.joined().prefix(16).description
+    }
+
+    static func baked(_ text: String) -> [Float]? {
+        let key = "line-" + bakedKey(text)
+        if let hit = bakedCache[key] { return hit }
+        guard let url = Bundle.main.url(forResource: key, withExtension: "m4a"),
+              let file = try? AVAudioFile(forReading: url, commonFormat: .pcmFormatFloat32, interleaved: false),
+              file.processingFormat.sampleRate == StageAudio.sampleRate,
+              let buffer = AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: AVAudioFrameCount(file.length)),
+              (try? file.read(into: buffer)) != nil, let data = buffer.floatChannelData?[0] else { return nil }
+        let samples = Array(UnsafeBufferPointer(start: data, count: Int(buffer.frameLength)))
+        bakedCache[key] = samples
+        return samples
+    }
+    private static var bakedCache: [String: [Float]] = [:]
 
     /// Bundled audio for a fixed line, if it was rendered at the stage's format.
     static func bundled(_ key: String) -> [Float]? {

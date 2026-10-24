@@ -48,6 +48,13 @@ final class MicEngine: @unchecked Sendable {
 
     /// `voiceProcessing` turns on the system echo canceller, so the phone's own playback
     /// (the beat, Homer's voice in solo modes) stays out of the mic.
+    /// Solo modes (lessons, practice) share one engine for the mic and Homer, so the system echo
+    /// canceller keeps the phone's own drum out of the mic, but it also processes Homer's playback.
+    /// Dev → Server has a switch to compare on a device (default on).
+    static var echoCancelSolo: Bool {
+        UserDefaults.standard.object(forKey: "echoCancelSolo") as? Bool ?? true
+    }
+
     func start(voiceProcessing: Bool = false) throws {
         let input = engine.inputNode
         if voiceProcessing != input.isVoiceProcessingEnabled {
