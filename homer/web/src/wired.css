@@ -850,6 +850,9 @@ body:has(.menin-scene.on) .mode-scene {
   grid-column: 1;
   display: grid;
   justify-items: center;
+  align-content: center;
+  /* One height for 3 · SPEAK · Breathe, so the verse above never jumps between cues. */
+  min-height: clamp(8.5rem, 17vh, 11rem);
   gap: 0.4rem;
   margin-top: 1rem;
   padding: clamp(1.2rem, 2.6vw, 2.2rem);
