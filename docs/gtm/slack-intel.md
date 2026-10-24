@@ -20,7 +20,7 @@ Read-only: we never post, reply or react in Slack. Anything we'd need to say the
 | Time (PDT) | Channel | What it says | Means for us | Action (owner) |
 | --- | --- | --- | --- | --- |
 | Sat 6:50 AM | #1-ask-mlh | MLH's Ryan: "I'm at the MLH table upstairs!" (Mezzanine) | That's where we get DigitalOcean credits and the .tech code | Visit at 9:45 ([booths.md](booths.md)) (Matus) |
-| Sat 2:20 AM | #0-ask-directors | Organizer: the repo must be public | Already on our checklist | Make the repo public before 9 AM Sun, after a key scan (leader) |
+| Sat 2:20 AM | #0-ask-directors | Organizer (Sumin): the repo must be public | It stays private today (Matus's call) and goes public right before submitting | Leader reruns the full-history secret scan Sat ~11 PM; Sunya flips it public by 8:00 AM Sun; someone checks it in a logged-out browser before the 8:45 submit ([run-sheet.md](run-sheet.md)) |
 | Sat 2:09 AM | #0-ask-directors | Organizer: there are no isolated judging spots, even for Bluetooth demos | Our demo runs at a loud shared table; wired EarPods and push-to-talk stay | None; already planned |
 | Sat 12:10 AM | #cohost-spacetime | Tyler: credits at `spacetimedb.com/redeem?code=CALHACKS13` | Free Maincloud credits | Redeem (multiplayer) |
 | Fri night | #0-ask-directors | Two teams report dead table ethernet: one got no DHCP address, one had a tripped cable | Our table might have dead ethernet | The run sheet's hall check covers it: no IP means tell a director right away and use Wi-Fi meanwhile (operator) |

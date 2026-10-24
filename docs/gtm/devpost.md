@@ -176,7 +176,9 @@ Main prizes are automatic.
 ## Submission checklist
 
 - [ ] Every teammate added on Devpost
-- [ ] Repo public, with no keys (`.env` gitignored, `.env.example` committed)
+- [ ] No keys in the repo: `.env` gitignored, `.env.example` committed, and the leader's full-history secret scan rerun after the Sat ~11 PM freeze
+- [ ] **Repo public by 8:00 AM Sunday:** Sunya (the owner) flips it in Settings → General → Danger Zone. It stays private until then (Matus's call). Matus pings Sunya Saturday night.
+- [ ] The GitHub link opens in a logged-out browser (a private window) before the 8:45 submit
 - [ ] README has a **Cartesia section**: setup (XcodeGen, signing, `.env`), the Cartesia features used, known limitations
 - [ ] README explains where SpacetimeDB is used (tables, reducers, the 20 Hz stream, the private hand, the SDK patches)
 - [ ] Video, 2:00, opening with the moment ([video.md](video.md))

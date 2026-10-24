@@ -12,8 +12,11 @@ Logistics for judging day, Sunday Oct 25: what goes where, what gets charged, ho
 | --- | --- | --- |
 | Sat 11 PM | Feature freeze. The demo build goes to TestFlight and is installed on all three iPhones and the Mac. Write the build number here: ______ | iOS lead |
 | Sat night | Everything charges overnight to 100% (see Power). Five rematch drills in a row, timed. Save the backup video (`menin-backup-90s.mp4`; spec in [video.md](video.md)) to the Mac **and** to all three phones, in **Files → On My iPhone**, and play it once in Airplane Mode. On the Mac, confirm `python3 --version` works (it needs Xcode or the Command Line Tools) and that the repo is pulled, then run the demo check once against the production URL. | All |
+| Sat night | Matus pings Sunya (the repo owner) so they're ready to flip the repo public at 8:00 Sunday. | Matus |
+| Sat ~11 PM | After the freeze: rerun the **full-history secret scan** on the repo. The repo stays private until Sunday morning (Matus's call). | Leader |
 | Sun 7:00 | Pack, using the list at the bottom. | All |
-| 8:00 | At the venue. | All |
+| 8:00 | At the venue. **By 8:00, Sunya makes the repo public** (GitHub → Settings → General → Danger Zone → Change visibility). Organizers require it (#0-ask-directors, Sat 2:20 AM). | Sunya |
+| 8:00–8:40 | Open the GitHub link in a **logged-out browser** (a private window) and confirm it loads, before the Devpost submit. | Anyone but Sunya |
 | 8:45 | Devpost submitted, every track tagged. The hard deadline is 9:00. | Matus |
 | 9:00–9:20 | **Get our judging table number and move there.** The Hacker Guide: "Shortly after the 9:00 AM submission deadline, all projects will be assigned a table number. You will need to move to your assigned table by 10:30 AM." Watch #0-announcements and the app. The table may not be where we hacked. | Matus |
 | 9:20–10:00 | Hall check **at the assigned table**: find the nearest hardline switch (there's one every 3 tables, per the announcements), plug in ethernet, and **run the demo check until it says GO with no no-go warnings** (see Before each judge). Then set sound at demo volume, run the noise test, and do two full warm-up runs. If no switch reaches, tell a director immediately. Two teams had dead table ethernet on Friday night: one got no DHCP address, and one had a tripped cable. If the Mac shows no IP address on ethernet, tell a director right away and use venue Wi-Fi meanwhile. | All |
