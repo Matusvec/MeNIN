@@ -5,22 +5,30 @@ Five people who have never freestyled take MeNIN's first lesson, and we write do
 - **Who runs it:** the poet (`docs/gtm/README.md`, step 8). One person can run it alone.
 - **When:** Saturday, 6 to 8 PM. It takes about 45 minutes for five people, including finding them.
 - **Where:** anywhere at the venue with a little less noise. It doesn't need to be quiet.
+- **The study build:** **build 5** if it passes today's gate, otherwise build 4. The leader confirms which one after 1:30 PM, and its TestFlight number goes here. **[Waiting on the leader. Build 4 is 0.1.0 (202610240956).]**
+- **Finish by 8 PM.** The poet is Poet 1 in the Sat 8 PM poetry runs (`docs/ux-flow.md`, "Sat 8 PM runs"), which start around 8:30 after debate and discus.
+
+**Before 6 PM**
+
+- **5:30:** update MeNIN in TestFlight to the study build, and charge the phone.
+- **5:45:** the dry run below.
+- **6:00:** start recruiting.
 
 ## What you need
 
-- [ ] An iPhone with **build 4** of MeNIN from TestFlight, charged above 50%. In TestFlight, MeNIN shows it as version 0.1.0, build 202610240956.
+- [ ] An iPhone with the study build of MeNIN from TestFlight, charged above 50%.
 - [ ] Wired EarPods, the same ones we use in the demo
 - [ ] A second phone with a stopwatch
 - [ ] This page, open or printed, and the score sheet below
 - [ ] **A dry run, 10 minutes before the first person.** Check four things:
-  - **The build.** Open TestFlight, tap MeNIN, and check that it says 0.1.0 (202610240956). If it's older, update it before anything else.
+  - **The build.** Open TestFlight, tap MeNIN, and check that its number matches the study build at the top of this page. If it doesn't, update it before anything else.
   - Take lesson 1 yourself once. Homer speaks and the drum plays.
   - After each try, the screen shows a **Beat** number from 1 to 10.
   - Your try gets feedback from Homer.
 
   If any of these fails, message the leader before you start. Don't run the study on another build or in a different mode on your own.
 
-**Why build 4 matters:** it judges the beat more strictly than build 3. A hit has to land closer to the drum, and each drum beat counts one hit at most. So the same try can score lower on build 4 than on build 3. Every person in the study has to be on build 4, or their numbers can't be compared. If the build changes partway through, stop and message the leader.
+**Why the build matters:** since build 4, the beat is judged more strictly than in build 3. A hit has to land closer to the drum, and each drum beat counts one hit at most. Every person in the study has to be on the same build, or their numbers can't be compared. It should also be the build the judges will see. If the build changes partway through, stop and message the leader.
 
 ## Who counts
 
