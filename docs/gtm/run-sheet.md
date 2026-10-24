@@ -87,13 +87,14 @@ Before every run:
 - [ ] The operator key "replay opening" is ready.
 - [ ] The backup room code is written down, and the backup video is paused at 0:00 on the Mac.
 - [ ] **Run the demo check** on the Mac, from the repo root, in a Terminal on a second desktop (never over the arena while a judge is looking):
-  `python3 homer/scripts/demo_check.py https://<agent-ip>.sslip.io` *(the agent runs on DigitalOcean; leader sends the real URL, and it goes here once it's known)*
-  It takes about 5 s. It checks the agent's health, times one real judged turn (Practice mode, so nothing is written to the room), and checks the themes, the freeze rescue and the voice token. **Read the lines, not just the last one.** It prints GO whenever nothing FAILs. Builder is turning the first two below into FAILs; until the repo has that change, treat them as no-go even if they print WARN:
-  - `WARN spacetimedb ... battles can't be written`: **no battle.** Run Practice Spar for this judge and tell leader.
-  - `WARN voice token ... NO VOICE ID`: **Homer is mute.** Fix it before the judge sits down, or use the backup video.
+  `python3 homer/scripts/demo_check.py https://206.189.237.157.sslip.io` *(the agent service on its DigitalOcean server)*
+  It takes about 5 s. It checks the agent's health, times one real judged turn (Practice mode, so nothing is written to the room), and checks the themes, the freeze rescue and the voice token. **Read the lines, not just the last one.** It prints GO whenever nothing FAILs.
+  - `FAIL spacetimedb ... battles can't be written`: **no battle.** Run Practice Spar for this judge and tell leader.
+  - `FAIL voice token ... Homer is mute`: fix it before the judge sits down, or use the backup video.
+  - Any other `FAIL`: **NO-GO.** Use the fallbacks below.
   - `WARN judge cache ... cold`: run the check again. The second run warms it.
   - `WARN judge ... verdict in X s` over 2.5 s: still GO. Expect the stall line, and tell Matus.
-  - Any `FAIL`: **NO-GO.** Use the fallbacks below.
+  - `WARN this python3 uses LibreSSL 2.8`: this Mac has no Homebrew python3, so the HTTPS checks may fail. Fix it on Saturday night (`brew install python`), never at the table.
 - [ ] The latency HUD shows the last run's verdict under 3.5 s.
 - [ ] Mac battery: ____%. If it's under 30%, tell Matus, and only then turn on Low Power Mode.
 - [ ] Phones come off their banks only when the judge sits down.

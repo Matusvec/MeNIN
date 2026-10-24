@@ -46,6 +46,8 @@ Other events show as locked tiles, because we only unlock what's solid.
 
 **The scene.** Behind everything, a full-screen procedural scene paints the speaker's voice: matte layered color fields, like cut paper. Loudness and pitch move it at 60 fps, and every ~1.5 s an emotion read shifts its colors. Homer never names your emotion; the scene shows it.
 
+**The score.** MeNIN has an original soundtrack composed by [composer's name], on our team: a hall and menu theme, an intro for each event, the discus throw and its fanfare, a champion sting, and ambience for training. It never plays under a speaking poet. During a turn, only the procedural beat plays, and the music ducks under Homer's voice. [How it was made: instruments, DAW, and whether any AI tools were used. Write it honestly.]
+
 **Bard mode.** Short voiced lessons from Homer, one move each: the beat, the formula, the epithet. Homer shows the move, names it in a sentence, and gives you one note per try until you land it. The epithet you coin becomes your battle name.
 
 **Practice mode.** Spar with Homer, best of three.
@@ -75,6 +77,7 @@ Other events show as locked tiles, because we only unlock what's solid.
 - **The stress scanner** (Python, CMU Pronouncing Dictionary) counts the beat deterministically. The **Beat** score never comes from the model's opinion.
 - **Python + FastAPI** service for the Claude calls, the scanner and the formula bank, running on **DigitalOcean**.
 - **Figma** [only once true: designs, palettes, and the Figma-to-SwiftUI handoff; stage log linked below].
+- **Original score by [composer's name].**
 - Built by one designer and a team of Claude Code sessions (leader, product, art, multiplayer, iOS, go-to-market) working from one spec.
 
 ### Judge axes

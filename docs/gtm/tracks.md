@@ -12,7 +12,15 @@ Since going iOS-only (SPEC `dc4363b`), the judges and other hackers can't instal
 
 ## Re-score after the party-games frame (SPEC "The games", `41bece4`)
 
-Events: the poetry battle (core); Socratic debate and discus (only if the poetry demo passes the Sat 2 PM checkpoint); the rest as locked tiles.
+Events: the poetry battle (core); Socratic debate and discus (in build now, SPEC `2fb21bf`; each reaches the demo only if it runs 5 times in a row without failing by Sat 8 PM); the rest as locked tiles.
+
+**Original soundtrack (SPEC "Music", `2fb21bf`):** **no prize at Cal Hacks rewards original music.** I checked all 58 prizes on Hive. The only music mentions are AI generation: MLH Gemini ("generate creative content like code, scripts, music") and MLH ElevenLabs. Both are wrong for us, because our score is human-made and ElevenLabs competes with Cartesia. The score still earns its place:
+- **Most Creative** and the main **Creativity** criterion: one more unexpected layer, and it's ours.
+- **Hacker's Choice:** the fanfare and the champion sting make a room cheer.
+- **Intentionality** ("every design choice should feel purposeful"): the music never plays under a speaking poet, and it ducks under Homer.
+- **The video:** we own the music, so YouTube won't mute or claim it.
+- **Cartesia**'s "Voice clear?": the score gets out of Homer's way. Say that in the README.
+Credit the composer by name everywhere, and state honestly how the score was made.
 
 | Track | Before | Now | Why | Condition |
 | --- | --- | --- | --- | --- |
