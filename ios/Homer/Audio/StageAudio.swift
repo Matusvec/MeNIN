@@ -50,7 +50,19 @@ final class StageAudio: @unchecked Sendable {
             engine.prepare()
             try engine.start()
         }
-        ([beat, strike, voice] + sfx).forEach { $0.play() }
+        ([beat, strike, voice] + sfx).forEach { ensurePlaying($0) }
+    }
+
+    /// `AVAudioPlayerNode.play()` raises (an uncatchable crash) when the engine isn't running, and
+    /// can block the main thread waiting for an IO cycle when it's stopping. Play a node only on a
+    /// running engine (restarting it once if an interruption stopped it), and only when it isn't
+    /// already playing; stopping never re-plays (field crashes on Matus's phone, Sat 12:12 and 12:55).
+    @discardableResult
+    private func ensurePlaying(_ node: AVAudioPlayerNode) -> Bool {
+        if !engine.isRunning { try? engine.start() }
+        guard engine.isRunning else { return false }
+        if !node.isPlaying { node.play() }
+        return true
     }
 
     func stop() {
@@ -63,7 +75,7 @@ final class StageAudio: @unchecked Sendable {
     /// Schedules the count-in bar and every line of the turn on the beat grid.
     func playBeat(_ clock: BeatClock) {
         beat.stop()
-        beat.play()
+        guard ensurePlaying(beat) else { return }
         let sr = Self.sampleRate
         beat.scheduleBuffer(BeatSynth.countIn(bpm: clock.bpm, sampleRate: sr), at: Self.time(atMs: clock.beatAtMs - clock.barMs))
         for n in 0..<clock.lines {
@@ -74,11 +86,11 @@ final class StageAudio: @unchecked Sendable {
 
     func stopBeat() {
         beat.stop()
-        beat.play()
     }
 
     /// A stressed syllable hit the beat (cosmetic on the arena; may lag 100–200 ms).
     func playStrike() {
+        guard ensurePlaying(strike) else { return }
         strike.scheduleBuffer(strikeBuffer, at: nil)
     }
 
@@ -86,6 +98,7 @@ final class StageAudio: @unchecked Sendable {
     func playSound(_ buffer: AVAudioPCMBuffer) {
         let node = sfx[nextSfx]
         nextSfx = (nextSfx + 1) % sfx.count
+        guard ensurePlaying(node) else { return }
         node.scheduleBuffer(buffer, at: nil, options: .interrupts)
     }
 
@@ -97,6 +110,7 @@ final class StageAudio: @unchecked Sendable {
               let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(samples.count)) else { return }
         buffer.frameLength = AVAudioFrameCount(samples.count)
         samples.withUnsafeBufferPointer { buffer.floatChannelData![0].update(from: $0.baseAddress!, count: samples.count) }
+        guard ensurePlaying(voice) else { return }
         voice.scheduleBuffer(buffer, at: nil)
     }
 
@@ -106,12 +120,12 @@ final class StageAudio: @unchecked Sendable {
               let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(samples.count)) else { return }
         buffer.frameLength = AVAudioFrameCount(samples.count)
         samples.withUnsafeBufferPointer { buffer.floatChannelData![0].update(from: $0.baseAddress!, count: samples.count) }
+        guard ensurePlaying(voice) else { return }
         voice.scheduleBuffer(buffer, at: Self.time(atMs: epochMs))
     }
 
     func stopVoice() {
         voice.stop()
-        voice.play()
         voiceLevel.withLock { $0 = 0 }
     }
 

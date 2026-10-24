@@ -4,6 +4,7 @@ import SwiftUI
 /// Screens are the art lead's views fed with props; battle screens are still placeholders.
 struct RootView: View {
     @State private var app = AppModel()
+    @Environment(\.horizontalSizeClass) private var sizeClass
 
     /// The dev menu (server switch, diagnostics, scene lab) is for the team, not reviewers.
     static var devMenuEnabled: Bool {
@@ -31,6 +32,20 @@ struct RootView: View {
         switch app.route {
         case .firstOpen:
             FirstOpenScreen(app: app)
+        case .home where sizeClass == .compact:
+            // Phones are join-first: the battle screen is the website (Matus, Sat 2:30); training below.
+            PhoneHomeView(
+                name: app.poetName.isEmpty ? nil : app.poetName,
+                site: "play.206.189.237.157.sslip.io",
+                lessonLine: "Lesson 1 · The beat",
+                actions: PhoneHomeActions(
+                    join: { code in app.route = .player(code: code.uppercased()) },
+                    bard: { app.route = .bard },
+                    practice: { app.route = .practice },
+                    discus: { app.route = .discusThrow }
+                )
+            )
+            .simultaneousGesture(LongPressGesture(minimumDuration: 3).onEnded { _ in app.route = .dev })
         case .home:
             EventMenuView(events: EventTile.all.map { tile in
                 var t = tile
@@ -94,7 +109,7 @@ struct RootView: View {
             Routed(app: app, title: "Throw") {
                 DiscusSoloRoot()
                     .overlay(alignment: .topLeading) {
-                        BackButton { app.route = .event("discus") }.padding(.leading, 16).padding(.top, 8)
+                        BackButton { app.route = .home }.padding(.leading, 16).padding(.top, 8)
                     }
             }
         case .dev:

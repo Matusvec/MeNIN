@@ -54,7 +54,7 @@ struct BardScreen: View {
             next: nil,  // TODO(spec): lessons 2 and 3 after the study
             spar: { app.route = .practice },
             type: { s.turn.typed = $0 },
-            back: { app.route = .event("poetry") }
+            back: { app.route = .home }
         )
     }
 }

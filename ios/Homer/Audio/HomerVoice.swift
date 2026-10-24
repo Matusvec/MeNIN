@@ -46,7 +46,15 @@ final class HomerVoice {
         self.audio = audio
         self.agent = agent
         self.role = role
+        // Token and socket ready before the first line (they cost ~0.5 s, more on cellular).
+        if agent != nil { Task { [weak self] in _ = await self?.connectedTTS() } }
     }
+
+    /// Audio held back before Homer starts, and the smallest buffer scheduled after that: Cartesia
+    /// sends ~0.15–0.2 s chunks, and scheduling each the moment it lands left no slack for a busy
+    /// main thread or a cellular hiccup (Matus: "the voice is super glitchy").
+    static let leadSeconds = 0.4
+    static let minBufferSeconds = 0.25
 
     /// Queues a line; returns when it has been spoken (or skipped).
     func say(_ text: String, whisper: Bool = false) async {
@@ -121,7 +129,7 @@ final class HomerVoice {
         caption = line
         spoken = 0
         let estimate = max(1.2, Double(line.text.count) * 0.065)
-        let start = Date()
+        var start = Date()
         var played = 0.0
 
         if let key = line.key, let samples = Self.bundled(key) {
@@ -130,10 +138,22 @@ final class HomerVoice {
         } else if let tts = await connectedTTS() {
             do {
                 var firstMs: Double?
+                var pending: [Float] = []
+                var started = false
+                let sr = StageAudio.sampleRate
                 for try await samples in tts.speak(line.speech ?? line.text, speed: line.whisper ? 0.9 : 1, host: host) {
                     firstMs = firstMs ?? Date().timeIntervalSince(start) * 1000
-                    audio.enqueueVoice(samples)
-                    played += Double(samples.count) / StageAudio.sampleRate
+                    pending += samples
+                    played += Double(samples.count) / sr
+                    if Double(pending.count) / sr >= (started ? Self.minBufferSeconds : Self.leadSeconds) {
+                        if !started { started = true; start = Date() }  // the caption runs with the audio
+                        audio.enqueueVoice(pending)
+                        pending.removeAll(keepingCapacity: true)
+                    }
+                }
+                if !pending.isEmpty {
+                    if !started { start = Date() }
+                    audio.enqueueVoice(pending)
                 }
                 Self.log.info("tts first audio \(Int(firstMs ?? -1)) ms, \(played, format: .fixed(precision: 2)) s: \(line.text, privacy: .public)")
             } catch {
