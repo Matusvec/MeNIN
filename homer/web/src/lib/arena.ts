@@ -30,7 +30,10 @@ export const DEMO_ROOM = {
   demo: true,
 }
 
-export type GameEvent = 'poetry' | 'debate' | 'discus'
+export type GameEvent = 'poetry' | 'debate' | 'discus' | 'coach'
+
+/** Free-verse turns (a 3-2-1, one SPEAK window, the arena silent): poetry, and coach ("Talk to Homer"). */
+export const freeVerse = (event: string): boolean => event === 'poetry' || event === 'coach'
 
 /** The demo's one debate question, our thesis: "Is it cheating to let an AI write your love letter?" */
 const DEMO_QUESTION = 'ai-love-letter'
@@ -40,6 +43,7 @@ export const PRESETS: Record<GameEvent, typeof DEMO_ROOM> = {
   poetry: DEMO_ROOM,
   debate: { ...DEMO_ROOM, event: 'debate', rounds: 1 },
   discus: { ...DEMO_ROOM, event: 'discus', rounds: 3 },
+  coach: { ...DEMO_ROOM, event: 'coach', rounds: 1 }, // Talk to Homer: the module keeps it open until End
 }
 
 /** What a game's conductor gets each tick (discus: lib/discus.ts, multiplayer's). */
@@ -57,6 +61,7 @@ export type Conductor = {
 }
 
 const TICK_MS = 300
+const FINALE_CAP_MS = 45000 // a finale still on screen this long is advanced (a song + crown is ~20 s): insurance only
 const STEP_UP_MS = 2000 // auto-ready: a short beat before each turn starts (debate, discus; and after a reconnect)
 // Poetry: ready to SPEAK in about 6 s. The phone warms its mic for MIN_READY_MS of `ready`, and the
 // count-in (SPEAK = start_turn + 2.25 s) starts while Homer still has OVERLAP_MS to say, so he ends
@@ -77,6 +82,7 @@ export type ArenaView = {
   poets: Player[]
   round: Round | null
   turn: Turn | null
+  turns: Turn[] // this room's turns in order (Talk to Homer's conversation log)
   scores: Score[]
   song: string[]
   line: string // what Homer is saying now
@@ -186,6 +192,8 @@ export class Arena {
   private voiceNote = ''
   private comeback: { turnId: bigint; name: string; until: number } | null = null // the absent poet the arena waits for
   private skipWait = false // the operator pressed Skip
+  private finaleSince: { key: string; at: number; done: boolean } | null = null
+  private prosodyListeners = new Set<() => void>() // the backdrop, told the moment a prosody frame lands
   private heardEntrance = new Set<bigint>() // poets whose "Enter X, epithet!" was spoken in this hall
   private onsets = { turn: 0n, count: 0, armed: true } // the live verse's voice onsets
 
@@ -261,6 +269,7 @@ export class Arena {
         const db = conn.db
         db.prosody.onUpdate((_ctx, _old, row) => {
           this.countOnset(row)
+          for (const listener of this.prosodyListeners) listener()
           if (this.room()?.event === 'discus') this.publish()
         })
         for (const table of [db.room, db.player, db.round, db.turn, db.score, db.songLine, db.discusThrow]) {
@@ -328,6 +337,11 @@ export class Arena {
 
   startBattle(): void {
     this.call(() => this.conn!.reducers.startBattle({ roomId: this.roomId }))
+  }
+
+  /** Talk to Homer never ends on its own: the host closes it (end_battle → finished). */
+  endConversation(): void {
+    this.call(() => this.conn!.reducers.endBattle({ roomId: this.roomId }))
   }
 
   rematch(): void {
@@ -422,6 +436,21 @@ export class Arena {
     if (room.event === 'discus') conductDiscus(this.conductor(room))
     else this.speakIfDue(room)
     if (room.event === 'debate') this.debateClock(room)
+    this.finaleBackstop(room)
+  }
+
+  /** A finale that never advances (a stuck line, a missing song) moves on after FINALE_CAP_MS, by the clock. */
+  private finaleBackstop(room: Room): void {
+    if (room.phase !== 'finale') {
+      this.finaleSince = null
+      return
+    }
+    const key = `${room.id}.${this.generation}`
+    if (this.finaleSince?.key !== key) this.finaleSince = { key, at: Date.now(), done: false }
+    else if (!this.finaleSince.done && Date.now() - this.finaleSince.at > FINALE_CAP_MS) {
+      this.finaleSince.done = true
+      this.advanceOnce()
+    }
   }
 
   private conductor(room: Room): Conductor {
@@ -492,7 +521,7 @@ export class Arena {
   verseWindow(): { key: string; startMs: number; endMs: number } | null {
     const room = this.disposed ? null : this.room()
     const turn = room && this.currentTurn(room)
-    if (!room || !turn || room.event !== 'poetry' || turn.status !== 'speaking') return null
+    if (!room || !turn || !freeVerse(room.event) || turn.status !== 'speaking') return null
     if (turn.beatAt.toMillis() === 0n || turn.endsAt.toMillis() === 0n) return null
     const offset = this.offsetFor(turn)
     return {
@@ -552,7 +581,7 @@ export class Arena {
     if (this.autoStarted === key) return
     this.autoStarted = key
     // Every wait here is capped by the clock, not by counting sleeps: a hidden tab's timers are throttled.
-    const poetry = room.event === 'poetry'
+    const poetry = freeVerse(room.event)
     const overlap = poetry ? OVERLAP_MS : 0 // other events keep the count-in after Homer's last word
     const homerDone = async () => {
       const cap = Date.now() + QUEUE_CAP_MS
@@ -730,7 +759,7 @@ export class Arena {
     if (gen !== this.generation) return
     // Homer is silent while a verse is live: a line still queued when the count-in starts is dropped.
     const now = this.room()
-    if (now?.event === 'poetry' && now.phase === 'speaking') return then?.()
+    if (now && freeVerse(now.event) && now.phase === 'speaking') return then?.()
     this.line = text
     this.speaking = true
     this.publish()
@@ -841,6 +870,7 @@ export class Arena {
         const round = this.currentRound(room)
         const poet = turn && poets.find((p) => p.id === turn.playerId)
         if (!round || !turn || !poet) return
+        if (room.event === 'coach') return this.coachCallUp(round, turn, poet, poets.length)
         // The theme once, as the round opens. Then P21: the round's first poet gets the theme's call,
         // every later poet answers the line before, and a retry is just "Again." The theme and the first
         // call-up are one line: one trip to the voice, so the count-in starts sooner.
@@ -893,6 +923,21 @@ export class Arena {
     }
   }
 
+  /** Talk to Homer: the opening once per conversation, then only names (2+ poets) or "Again." Homer's
+   *  replies are the verdicts (scored). The opening matches the agent's opening_line (homer/homer/arena.py),
+   *  so what Homer said and what he remembers saying agree. */
+  private coachCallUp(round: Round, turn: Turn, poet: Player, poets: number): void {
+    const key = `up ${turn.id} ${turn.attempt}`
+    if (turn.attempt > 1) return this.say(key, 'Again.')
+    if (!this.said.has(`theme ${round.id}`)) {
+      this.said.add(`theme ${round.id}`)
+      const t = round.theme.trim().replace(/\.$/, '')
+      const opening = t ? `Give me a verse about ${t.slice(0, 1).toLowerCase()}${t.slice(1)}.` : 'Give me a verse.'
+      return this.say(key, poets > 1 ? `${opening} ${poet.name}, you first.` : opening)
+    }
+    if (poets > 1) this.say(key, `${poet.name}.`)
+  }
+
   private carvedBy(room: Room): string {
     const round = this.currentRound(room)
     const turn = round?.bestTurnId ? this.turns().find((t) => t.id === round.bestTurnId) : undefined
@@ -907,6 +952,12 @@ export class Arena {
   }
 
   // ----- the view ---------------------------------------------------------------
+
+  /** Call `listener` on every prosody frame (~20 Hz), so the scene answers a syllable at once. */
+  onProsody(listener: () => void): () => void {
+    this.prosodyListeners.add(listener)
+    return () => this.prosodyListeners.delete(listener)
+  }
 
   /** The backdrop's inputs, cheap enough to read 20 times a second: one prosody row and one scene row. */
   sceneFeed(): SceneFeed {
@@ -927,7 +978,12 @@ export class Arena {
       emotion: this.sceneWeights,
       energy: live ? p.loudness : breath,
       pitch: live && p.pitch > 0 ? p.pitch : null,
-      hits: room.event === 'poetry' ? (turn && this.onsets.turn === turn.id ? this.onsets.count : 0) : (p?.hits ?? 0),
+      // Build 19+ phones count loud syllables in prosody.hits; older ones send 0, so fall back to our onsets.
+      hits:
+        room.event === 'discus' ? (p?.hits ?? 0)
+        : p && p.hits > 0 ? p.hits
+        : turn && this.onsets.turn === turn.id ? this.onsets.count
+        : 0,
       turnKey: String(turn?.id ?? ''),
     }
   }
@@ -942,6 +998,7 @@ export class Arena {
       poets: room ? this.poets() : [],
       round: room ? this.currentRound(room) : null,
       turn: room ? this.currentTurn(room) : null,
+      turns: room ? this.turns().sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)) : [],
       scores: room ? [...this.conn!.db.score.iter()].filter((s) => s.roomId === this.roomId) : [],
       song: room ? this.songLines() : [],
       line: this.line,

@@ -5,30 +5,48 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import QRCode from 'qrcode'
+import CoachPanel from './Coach'
 import DiscusPanel from './Discus'
 import { Arena, QUIET_SCENE, SILENT_VERDICT, STDB_DB, type ArenaView, type GameEvent, type SceneFeed } from './lib/arena'
 import { webJoinLink } from './lib/links'
+import type { SceneTheme } from './scene/moods'
 import SceneBackdrop from './scene/SceneBackdrop'
+import TailVerse, { type WordMark } from './TailVerse'
 import './wired.css'
 
 const FEED_MS = 50 // the phones send prosody at ~20 Hz
 
 /** artist's painted sea (src/scene/), behind the page. It reads the driver at prosody rate on its own,
  *  so a speaker's voice moves the sea without re-rendering the arena. */
-function Backdrop({ feed }: { feed: () => SceneFeed }) {
+function Backdrop({
+  feed,
+  subscribe,
+  theme,
+  word,
+}: {
+  feed: () => SceneFeed
+  subscribe: (listener: () => void) => () => void
+  theme: SceneTheme
+  word: WordMark | null
+}) {
   const [scene, setScene] = useState(feed)
   useEffect(() => {
-    const id = window.setInterval(() => {
+    const pull = () => {
       const next = feed()
       setScene((was) =>
         was.emotion === next.emotion && was.energy === next.energy && was.pitch === next.pitch && was.hits === next.hits && was.turnKey === next.turnKey
           ? was
           : next,
       )
-    }, FEED_MS)
-    return () => window.clearInterval(id)
-  }, [feed])
-  return <SceneBackdrop {...scene} />
+    }
+    const stop = subscribe(pull) // a syllable reaches the sea the moment its prosody frame lands
+    const id = window.setInterval(pull, FEED_MS)
+    return () => {
+      stop()
+      window.clearInterval(id)
+    }
+  }, [feed, subscribe])
+  return <SceneBackdrop {...scene} theme={theme} word={word} />
 }
 
 // Each rubric's bars in display order, as [label, index into score.axes]; score.axes keeps
@@ -43,6 +61,7 @@ const AXES: Record<string, Array<[string, number]>> = {
 const SEAT_INKS = ['#2D5C66', '#B5832F', '#6E7A2E', '#C8452C', '#5B3F73']
 const GAMES: Array<[GameEvent, string]> = [
   ['poetry', 'Poetry battle'],
+  ['coach', 'Talk to Homer'],
   ['debate', 'Socratic debate'],
   ['discus', 'Discus'],
 ]
@@ -86,11 +105,11 @@ function waitingFor(view: ArenaView | null): string {
     case 'speaking':
       return speaker && room.event !== 'discus' ? `${speaker.name} is speaking` : ''
     case 'lobby':
-      return view.poets.length < 2 ? 'Waiting for poets — scan to join' : ''
+      return view.poets.length < (room.event === 'coach' ? 1 : 2) ? 'Waiting for poets — scan to join' : ''
     case 'dealing':
       return `${host} is dealing…`
     case 'judging':
-      return room.event === 'debate' ? 'Socrates is weighing the argument…' : room.event === 'discus' ? '' : 'Homer is weighing the verse…'
+      return room.event === 'debate' ? 'Socrates is weighing the argument…' : room.event === 'discus' ? '' : room.event === 'coach' ? 'Homer is answering…' : 'Homer is weighing the verse…'
     case 'round_end':
       return room.event !== 'discus' && !view.round?.verdict ? 'Calling the round…' : ''
     case 'finale':
@@ -124,6 +143,11 @@ export default function ArenaPanel({
   const goneSince = useRef(new Map<bigint, number>()) // poet id -> when we first saw them disconnected
   const feed = useCallback(() => arena.current?.sceneFeed() ?? QUIET_SCENE, [])
   const verseWindow = useCallback(() => arena.current?.verseWindow() ?? null, [])
+  const subscribe = useCallback((listener: () => void) => arena.current?.onProsody(listener) ?? (() => {}), [])
+  const [word, setWord] = useState<WordMark | null>(null)
+  const onWord = useCallback((next: WordMark | null) => {
+    setWord((was) => (was === next || (was && next && was.n === next.n && was.x === next.x && was.y === next.y) ? was : next))
+  }, [])
   useEffect(() => {
     // Dev server only: read the backdrop's feed from the console (window.sceneFeed()).
     if (import.meta.env.DEV) (window as unknown as { sceneFeed?: () => SceneFeed }).sceneFeed = feed
@@ -171,8 +195,11 @@ export default function ArenaPanel({
   )
 
   // The sea is the first child of every screen that shows it, so React keeps one canvas from the
-  // opening screen into the battle. Poetry only for now; debate and discus keep the page's own scene.
-  const backdrop = <Backdrop feed={feed} />
+  // opening screen into the battle. Poetry, debate and coach rooms; discus keeps its own field.
+  const event = view?.room?.event
+  const sceneTheme: SceneTheme = view?.room?.phase !== 'lobby' && (event === 'debate' || event === 'coach') ? event : 'poetry'
+  const live = view?.room && ['speaking', 'judging'].includes(view.room.phase)
+  const backdrop = <Backdrop feed={feed} subscribe={subscribe} theme={sceneTheme} word={live ? word : null} />
 
   if (!view || view.status === 'connecting') {
     return (
@@ -238,26 +265,35 @@ export default function ArenaPanel({
   }
 
   const discus = room.event === 'discus'
+  const coach = room.event === 'coach' // Talk to Homer: a conversation, no scorecard (Coach.tsx)
   const begun = room.phase !== 'lobby'
   const over = room.phase === 'finale' || room.phase === 'finished'
   const top = over ? [...view.poets].sort((a, b) => b.total - a.total)[0] : undefined
   const champion = top && top.total > 0 ? top : null // nobody scored, nobody crowned
   const speaker = view.turn ? view.poets.find((p) => p.id === view.turn!.playerId) : undefined
-  const showVerse = !discus && view.turn?.transcript && ['speaking', 'judging'].includes(room.phase)
+  const showVerse = !discus && !coach && view.turn?.transcript && ['speaking', 'judging'].includes(room.phase)
   // Ranked once the battle starts; discus keeps join order (a total would give a throw away before its arc lands).
   const board = begun && !discus ? [...view.poets].sort((a, b) => b.total - a.total || a.seat - b.seat) : view.poets
 
   return (
     <>
-      {room.event === 'poetry' && backdrop}
+      {room.event !== 'discus' && backdrop}
       <div className="arena" data-phase={room.phase}>
         {begun && <span className="join-chip">Join · {room.code}</span>}
 
-        <Heading
-          kicker={room.phase === 'lobby' ? `Room ${room.code}` : `Room ${room.code} · Round ${room.roundNo} of ${room.rounds}`}
-          title={room.phase === 'lobby' ? 'Enter the hall' : view.round?.theme || PHASES[room.phase] || room.phase}
-          note={room.phase === 'lobby' ? PHASES.lobby : room.phase === 'ready' && speaker ? `${speaker.name} steps up` : ''}
-        />
+        {coach ? (
+          <Heading
+            kicker={`Talk to Homer · Room ${room.code}`}
+            title={room.phase === 'lobby' ? 'Talk to Homer' : view.round?.theme || 'Talk to Homer'}
+            note={room.phase === 'lobby' ? 'Join with the MeNIN app, then speak when SPEAK comes up on your phone' : ''}
+          />
+        ) : (
+          <Heading
+            kicker={room.phase === 'lobby' ? `Room ${room.code}` : `Room ${room.code} · Round ${room.roundNo} of ${room.rounds}`}
+            title={room.phase === 'lobby' ? 'Enter the hall' : view.round?.theme || PHASES[room.phase] || room.phase}
+            note={room.phase === 'lobby' ? PHASES.lobby : room.phase === 'ready' && speaker ? `${speaker.name} steps up` : ''}
+          />
+        )}
 
         {room.phase === 'lobby' && (
           <div className="join-card">
@@ -269,7 +305,7 @@ export default function ArenaPanel({
           </div>
         )}
 
-        <div className="scoreboard">
+        {(!coach || !begun) && <div className="scoreboard">
           {board.map((poet, i) => (
             <div
               key={poet.id.toString()}
@@ -283,17 +319,19 @@ export default function ArenaPanel({
               <small className="status">{champion?.id === poet.id ? 'Champion' : away(poet.id, poet.connected) ? 'away' : ' '}</small>
             </div>
           ))}
-        </div>
+        </div>}
+
+        {coach && <CoachPanel view={view} onWord={onWord} />}
 
         {showVerse && (
-          <blockquote className="live-verse">
-            {view.turn!.transcript
-              .split('\n')
-              .filter((line) => line.trim())
-              .map((line, i) => (
-                <span key={i}>{withFormulas(line, view.turn!.played)}</span>
-              ))}
-          </blockquote>
+          <TailVerse
+            turnKey={`${view.turn!.id}-${view.turn!.attempt}`}
+            text={view.turn!.transcript}
+            className="live-verse"
+            lines
+            mark={(text) => withFormulas(text, view.turn!.played)}
+            onWord={onWord}
+          />
         )}
 
         {room.event === 'poetry' && room.phase === 'speaking' && speaker && (
@@ -302,7 +340,7 @@ export default function ArenaPanel({
 
         {discus && <DiscusPanel view={view} />}
 
-        {room.phase === 'scored' && score && !discus && (
+        {room.phase === 'scored' && score && !discus && !coach && (
           // A judge that never answered posts SILENT_VERDICT and a neutral score: grey it and say so.
           <div className={`score-panel five${!score.verdict || score.verdict === SILENT_VERDICT ? ' neutral' : ''}`}>
             {(!score.verdict || score.verdict === SILENT_VERDICT) && (
@@ -355,13 +393,13 @@ export default function ArenaPanel({
 
         <div className="wired-actions">
           {room.phase === 'lobby' && (
-            <button className="primary-action" disabled={view.poets.length < 2} onClick={() => arena.current?.startBattle()}>
-              {view.poets.length < 2 ? 'Waiting for two poets' : 'Begin'}
+            <button className="primary-action" disabled={view.poets.length < (coach ? 1 : 2)} onClick={() => arena.current?.startBattle()}>
+              {view.poets.length < (coach ? 1 : 2) ? (coach ? 'Waiting for a poet' : 'Waiting for two poets') : 'Begin'}
             </button>
           )}
           {room.phase === 'finished' && (
             <button className="primary-action" onClick={() => arena.current?.rematch()}>
-              Rematch
+              {coach ? 'New conversation' : 'Rematch'}
             </button>
           )}
           {view.comeback && (
@@ -369,7 +407,12 @@ export default function ArenaPanel({
             Skip
           </button>
         )}
-        {!view.comeback && !['lobby', 'finished', 'speaking'].includes(room.phase) && (
+        {coach && !['lobby', 'finished'].includes(room.phase) && (
+          <button className="secondary-action operator" onClick={() => arena.current?.endConversation()}>
+            End
+          </button>
+        )}
+        {!coach && !view.comeback && !['lobby', 'finished', 'speaking'].includes(room.phase) && (
             <button className="secondary-action operator" onClick={() => arena.current?.advanceOnce()}>
               Next
             </button>
