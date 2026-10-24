@@ -5,7 +5,7 @@ Lesson scripts and the formula bank. The agent service and the app both read the
 | File | What it is |
 | --- | --- |
 | `lessons.md` | The six Bard lesson scripts: demo verse, spoken lines, feedback, and when each lesson lands. The conventions are at the top of the file. |
-| `formulas.json` | The formula bank: 216 entries, dealt into hands and whispered by the freeze rescue. 161 were written by hand, and 55 were mined from public-domain Homer translations (see "Mined entries" below). |
+| `formulas.json` | The formula bank: 180 entries, dealt as Homer's phrases and whispered by the freeze rescue. 125 were written by hand, and 55 were mined from public-domain Homer translations (see "Mined entries" below). Everything comes from Homer's world (SPEC): nothing invented after the Bronze Age, so the 36 modern entries (phones, trains, coffee, code) were dropped on Saturday afternoon. |
 | `debate.md` | The Socratic debate event: Socrates' persona, 22 questions, the five-axis rubric, the freeze rescue, the move table, and shared lines. |
 | `moves.json` | 40 rhetorical-move cards for the debate hand. Same schema as `formulas.json`, with `kind: "move"`, `beats: 0`, and empty `themes`, plus a `role` field. See `moves.json` below. |
 
@@ -19,8 +19,8 @@ A JSON array. Each entry looks like this:
 
 - **id:** the text in lowercase with hyphens and without a leading "the". It's stable, so lessons and hoards can refer to it.
 - **kind:**
-  - `epithet`: a name or title ("swift-footed Achilles", "breaker of deadlines").
-  - `kenning`: a compound that names a thing by a metaphor ("the whale-road" for the sea, "the sleep-thief" for an alarm).
+  - `epithet`: a name or title ("swift-footed Achilles", "breaker of horses").
+  - `kenning`: a compound that names a thing by a metaphor ("the whale-road" for the sea, "the bone-house" for the body).
   - `half_line`: a phrase that fills half a line by itself ("when Dawn came early").
 - **beats:** how many of the line's four hits it fills, 1 or 2. A half-line is always 2. A compound word takes one hit, on its first part (WINE-dark, WHALE-road), the same way SPEC.md counts "WINE-dark SEA".
 - **themes:** one or more of `sea`, `war`, `home`, `love`, `loss`, `journey`, `night`, `dawn`, `storm`, `fire`, `gods`, `feast`, `city`, `wild`, `time`, `glory`. Map a round's theme to these tags to deal a hand.
