@@ -75,7 +75,7 @@ Voice is the whole game: you play by speaking, and Homer answers out loud.
 - **The battle is a phase machine in reducers**, server-side: lobby → theme → dealing → ready → speaking → judging → scored → round end → finale → finished. A scheduled reducer closes each turn on time. The rules are in [`spacetime/CONTRACT.md`](spacetime/CONTRACT.md).
 - **Your hand is in a private table** that only your phone can read.
 - **Every phone streams loudness and pitch at about 20 Hz** into one table the arena subscribes to, so the arena's scene moves with whoever is speaking.
-- **A phone that dies can rejoin** and take its seat back with its score. [Keep this only if it passed the Sat 2 PM test.]
+- **A phone that dies can rejoin** and take its seat back with its score. [Keep this only if it passed the Sat 1:30 PM test.]
 - **The iPhone client** is the community Swift SDK [avias8/spacetimedb-swift](https://github.com/avias8/spacetimedb-swift) 0.23.0, vendored with two patches (`ios/Vendor/SpacetimeDB/README.md`):
   - Upstream subscribes every client to whole tables, which would send every phone every room's 20 Hz stream. Ours subscribes per room.
   - When subscriptions overlap, rows are listed once.
@@ -101,7 +101,7 @@ The dealer uses [Moss](https://moss.dev) to rank all 213 formulas by meaning aga
 
 ## Figma
 
-Matus drew the first concept in Figma Design. The art session reads frames, exact values and assets straight from the file through the Figma MCP server. Both design directions live in one variable collection with two modes, and every variable carries its Swift name. The clickable prototypes and the stage log are linked above and in our Figma Slides deck: [link].
+Matus drew the first concept in Figma Design. The art session reads frames, exact values and assets straight from the file through the Figma MCP server. We compared two design directions in one variable collection with two modes, every variable carrying its Swift name, and picked Atelier, the look that ships. The clickable prototypes and the stage log are linked above and in our Figma Slides deck: [link].
 
 ## Impact and responsibility
 

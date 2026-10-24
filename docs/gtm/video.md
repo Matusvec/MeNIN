@@ -12,15 +12,15 @@ Two videos, both from real takes. Nothing is mocked, and nothing is shown as liv
 
 ## When
 
-**The 2 PM full-battle checkpoint doubles as the main footage** (leader, Sat 11:05 AM). If it's usable, the 5 PM shoot is only pickups, and 11 PM is a reshoot only if something's missing.
+**The 1:30 PM full-battle checkpoint (the gate run) doubles as the main footage** (leader, Sat 11:05 AM; the run moved up from 2 PM). If it's usable, the 5 PM shoot is only pickups, and 11 PM is a reshoot only if something's missing.
 
 | Time (Sat) | What | Who |
 | --- | --- | --- |
-| Any time before 2 PM | B-roll, 2 minutes at most per shot: the haptic beat in a palm (close-up), a hand of formula cards, a thumb on the discus button | Whoever has a free minute |
-| **1:45 PM** | Set up the capture for the 2 PM run ([below](#the-2-pm-capture-the-checkpoint-run-is-the-footage)) | Operator, camera teammate |
-| **2:00 PM** | **The checkpoint run, recorded:** arena, over-the-shoulder and wide shots | Everyone |
-| 2:30–3:00 PM | Copy the footage to the Mac. Matus checks it against the shot list, marks what's missing for 5 PM, and **exports the backup video from it** | Matus, operator |
-| 5:00–5:30 PM | **Pickups only:** whatever 2 PM missed, plus the first-open line on its own. Use the quietest corner you can find. | Everyone needed |
+| Any time before 1:15 PM | B-roll, 2 minutes at most per shot: the haptic beat in a palm (close-up), a hand of formula cards, a thumb on the discus button | Whoever has a free minute |
+| **1:15 PM** | Set up the capture for the 1:30 PM run ([below](#the-130-pm-capture-the-checkpoint-run-is-the-footage)). Anyone at the Anthropic workshop leaves by 1:10. | Operator, camera teammate |
+| **1:30 PM** | **The checkpoint run, recorded:** arena, over-the-shoulder and wide shots | Everyone |
+| 2:00–2:30 PM | Copy the footage to the Mac. Matus checks it against the shot list, marks what's missing for 5 PM, and **exports the backup video from it** | Matus, operator |
+| 5:00–5:30 PM | **Pickups only:** whatever the 1:30 run missed, plus the first-open line on its own. Use the quietest corner you can find. | Everyone needed |
 | 6–8 PM | **The first-timer shot**, during the study (`docs/study.md`). Film only someone who said yes to consent question 4, and film **the screen and their voice, never their face**. Matus edits in between. | Poet runs the study; a second person films |
 | 8:00 PM | The extras checkpoint decides whether debate and discus appear at 1:15–1:25 | Leader |
 | 8:05–8:20 PM | If they passed: 5 s of Socrates opening a debate and one discus throw. If Fetch shipped, also the ASI:One screen recording for the Fetch cut. | Operator, Matus |
@@ -30,13 +30,13 @@ Two videos, both from real takes. Nothing is mocked, and nothing is shown as liv
 | 11:00–11:15 PM | **Reshoot only if a shot is still missing.** Then upload to YouTube, put the link in Devpost, and copy the backup video to every device. | Matus, operator |
 | 11 PM | Feature freeze ([reality-check.md](reality-check.md) checkpoint). The video can still be added to Devpost after this; only the code freezes. | |
 
-**If the 2 PM checkpoint fails:** footage from a failing run is useless. The shoot moves to 5 PM if the fix lands by then, otherwise to 8:20 PM, and karaoke is dropped.
+**If the 1:30 PM checkpoint fails:** footage from a failing run is useless. The shoot moves to 5 PM if the fix lands by then, otherwise to 8:20 PM, and karaoke is dropped.
 
-## The 2 PM capture: the checkpoint run is the footage
+## The 1:30 PM capture: the checkpoint run is the footage
 
 **The checkpoint comes first. If any recording slows the arena or the phones, stop recording, not the run.**
 
-**Before 1:45 PM:** check `memory_pressure | grep 'free percentage'` on the Mac and get it to at least 30% free (quit Xcode and the simulators). Make sure every phone has at least 5 GB free and Do Not Disturb on. Start every recording, then **clap once in view of every camera**. Then the operator starts the count-in.
+**Before 1:15 PM:** check `memory_pressure | grep 'free percentage'` on the Mac and get it to at least 30% free (quit Xcode and the simulators). Make sure every phone has at least 5 GB free and Do Not Disturb on. Start every recording, then **clap once in view of every camera**. Then the operator starts the count-in.
 
 | # | Shot | Device and settings | Framing | Must catch |
 | --- | --- | --- | --- | --- |
@@ -47,7 +47,7 @@ Two videos, both from real takes. Nothing is mocked, and nothing is shown as liv
 
 **If there's no spare phone for C,** iPhone C does B for turn 2 only, then moves to the wide spot for the verdict, the song and the crown. Or C waits for the 5 PM pickups.
 
-**After the run:** name the files `2pm-A-arena.mkv`, `2pm-B-ots.mov`, `2pm-C-wide.mov` and `2pm-D-phone1.mov`, and copy them to the Mac over a USB-C cable or by AirDrop. Remux the MKV to MP4 in OBS. Matus checks each shot in the Devpost shot list below and writes "missing: …" for the 5 PM pickups.
+**After the run:** name the files `gate-A-arena.mkv`, `gate-B-ots.mov`, `gate-C-wide.mov` and `gate-D-phone1.mov`, and copy them to the Mac over a USB-C cable or by AirDrop. Remux the MKV to MP4 in OBS. Matus checks each shot in the Devpost shot list below and writes "missing: …" for the 5 PM pickups.
 
 
 **Before the shoot:** run `memory_pressure | grep 'free percentage'` on the Mac. Quit Xcode and every simulator for the shoot and the edit, and confirm at least 30% free. OBS and iMovie each need memory, and the Mac is shared with the Claude sessions.
@@ -144,7 +144,7 @@ Export it the same way as the Devpost video. Upload it unlisted as its own YouTu
 
 **What it's for:** if the network dies at the table, the operator plays this and we narrate it live. We say plainly, "This is last night's battle."
 
-**What it is:** the best of the three demo-mode takes from the main shoot, from OBS with the room mix underneath, trimmed only to cut dead air. There's no voiceover and no added music, just the app's own sound. A 2-second card opens it: "Recorded live, Sat Oct 24".
+**What it is:** the best demo-mode take (the 1:30 PM run, unless a later take is cleaner), from OBS with the room mix underneath, trimmed only to cut dead air. There's no voiceover and no added music, just the app's own sound. A 2-second card opens it: "Recorded live, Sat Oct 24".
 
 | Time | What |
 | --- | --- |
