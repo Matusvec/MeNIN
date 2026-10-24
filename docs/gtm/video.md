@@ -38,7 +38,7 @@ Two videos, both from real takes. Nothing is mocked, and nothing is shown as liv
 
 **Two takes, back to back.** Take 1 is the main footage; take 2 is the safety, and whichever is cleaner becomes the backup video. **Take 2 also tests the Spacetime rejoin:** mid-battle, poet 1 force-quits MeNIN, reopens it and rejoins, and should get their seat back with their score. The operator notes whether it worked; it goes in the pitch and the README only if it did. Read the turn-to-voice time off the latency HUD in both takes for Devpost's `[turn-to-voice p50]`. Homer writes a fresh theme and coins fresh epithets each take, so nothing repeats and nothing needs to match between takes. Cut within one take, never across two.
 
-**Before 4:45 PM:** check `memory_pressure | grep 'free percentage'` on the Mac and get it to at least 30% free (quit Xcode and the simulators). Make sure every phone has at least 5 GB free and Do Not Disturb on. Load the website full screen in the Mac's browser and click **"Open the hall" to open a fresh hall**, never "Resume" an older room: older rooms keep the old 12 s window (leader). The click also lets the browser play Homer's voice, so check that Homer speaks. Start every recording, then **clap once in view of every camera**. Then the operator starts the battle.
+**Before 4:45 PM:** **keep the arena Mac awake:** run `caffeinate -dims` in a Terminal for the whole shoot, keep the Mac plugged in, keep the arena tab in front in its own full-screen window, and keep the lid open (leader: at 4:24 PM the phones and the arena all dropped in the same second). Then check `memory_pressure | grep 'free percentage'` on the Mac and get it to at least 30% free (quit Xcode and the simulators). Make sure every phone has at least 5 GB free and Do Not Disturb on. Load the website full screen in the Mac's browser and click **"Open the hall" to open a fresh hall**, never "Resume" an older room: older rooms keep the old 12 s window (leader). The click also lets the browser play Homer's voice, so check that Homer speaks. Start every recording, then **clap once in view of every camera**. Then the operator starts the battle.
 
 | # | Shot | Device and settings | Framing | Must catch |
 | --- | --- | --- | --- | --- |
@@ -105,6 +105,8 @@ If OBS misbehaves, fall back to ⌘⇧5 for the picture and use iPhone C's audio
 **Syncing:** start every take with one clap in view of iPhone C. Line up the camera and OBS on the first "3" of the 3, 2, 1, and the phone recordings on the moment SPEAK fills the phone.
 
 ## The Devpost video: shot list (2:00)
+
+**The video may be the first round.** MLH and organizers (#0-ask-directors, Sat 2:56–3:40 PM): "3 minutes for the video demo", "you can make your video demo more demo-focused and your live demo more pitch-focused", and "depending on track popularity, some categories may need to do a virtual first pass." The 2:00 cut fits. If Matus extends it toward 3:00, the extra time should be demo (a second full turn, or debate and discus if they pass at 8 PM), not talk.
 
 **Built for judges who aren't in the room.** Devpost says the video is for "sponsors evaluating asynchronously", and Cartesia's staff have been hard to find. So the video has to carry each sponsor alone: name every sponsor on screen, show the keyterm numbers with how we measured them, and give responsibility its own card.
 

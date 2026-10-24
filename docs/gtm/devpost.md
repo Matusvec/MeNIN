@@ -225,7 +225,7 @@ Main prizes are automatic.
 - [ ] README has a **Cartesia section**: setup (XcodeGen, signing, `.env`), the Cartesia features used, known limitations
 - [ ] README explains where SpacetimeDB is used (tables, reducers, the 20 Hz stream, the private cards, the SDK patches)
 - [ ] Video, 2:00, opening with the moment ([video.md](video.md))
-- [ ] Figma Slides link, files shared with "Anyone", whole team Edu verified
+- [ ] **Figma entry, exactly as Figma staff said** (#spons-figma, Sat 3:07 PM): the Figma Slides link goes in Project Details → **"Try it Out links"**; select **"[Figma] Best Figma Workflow Hack"** under Sponsors & Special Prizes; set the Slides sharing to **"View all"**. The design files are shared with "Anyone" too, and the whole team is Edu verified.
 - [ ] **Matus submits build 18 (0.1.0, `202610241606`) for external review (Beta App Review) as soon as it finishes processing**, so the public TestFlight link works. `docs/study.md` calls it the build the judges will see: free verse, content-only scoring, and the fix for silent turns. If a later build passes the 8 PM runs instead, submit that one too. Leader confirms the judging build at 11 PM.
 - [ ] TestFlight public link installs on an iPhone that isn't on our internal tester list
 - [ ] **The website opens at [URL]** in a private window on a laptop, and on a phone on cellular with Wi-Fi off, so we know it works off our network. Then an iPhone joins its room

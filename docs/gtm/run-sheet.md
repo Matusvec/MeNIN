@@ -59,7 +59,7 @@ If iPhone C is already covering for a dead poet phone, the judge's phone after 2
   - 20 W only slows the drain.
   - Under 20 W, or USB-A only, can't charge it.
   - Write down which bank, if any, can feed the Mac: ______
-  - If none can, it doesn't matter much. An Air at 100% runs the 2-hour judging window plus setup on battery, with room to spare. Plug into the table's outlet if it has one; a hacker reported a dead outlet at their table on Friday, so don't count on it. MLH on judging: outlets "probably limited, make sure all your devices are fully charged before demos!" (#0-ask-directors, Sat 12:43 PM).
+  - **The Mac has to stay plugged in during judging** (leader, Sat 4:24 PM), because `caffeinate -dims` only prevents system sleep on AC power, and a sleeping Mac stops the arena. So find a live outlet in the 9:20 hall check, or use the power strip and extension cord, or a 30 W+ bank as the last resort. An Air at 100% would last the 2-hour window on battery, but it may sleep. Plug into the table's outlet if it has one; a hacker reported a dead outlet at their table on Friday, so don't count on it. MLH on judging: outlets "probably limited, make sure all your devices are fully charged before demos!" (#0-ask-directors, Sat 12:43 PM).
 - **Phones:** on power banks between runs, off them for runs.
 - **The 40% rule:** any phone under 40% swaps roles with iPhone C between judges and goes on a bank. Write the swap on the sheet, so nobody grabs the wrong phone.
 - **Budget:** mic streaming, a bright screen and constant network drain a phone fast. Expect roughly 15 to 20% an hour during judging. Bank top-ups between judges cover the 2-hour window.
@@ -89,6 +89,11 @@ Rough table layout, with the judges in front. There's no external screen, so the
 
 Before every run:
 
+- [ ] **Keep the arena Mac awake** (leader, Sat 4:24 PM: both phones and the arena dropped in the same second, which looks like the Mac sleeping or the network dropping; when the Mac sleeps, the arena stops driving the battle):
+  - [ ] In a Terminal, run `caffeinate -dims` and leave it running for the whole session. Or set System Settings → Battery → Options → prevent automatic sleeping on power adapter, plus Lock Screen → turn display off → Never.
+  - [ ] **The Mac is plugged in.** `caffeinate -s` only holds off system sleep on AC power.
+  - [ ] **The arena tab stays in front** in its own full-screen window. Browsers slow down background tabs.
+  - [ ] The lid stays open. Closing it sleeps the Mac whatever caffeinate says.
 - [ ] The main room is open on the website, both poets have joined, and demo config is on. Nothing is preloaded: Homer writes a fresh theme and coins fresh epithets every battle (SPEC 7866476).
 - [ ] A **fresh hall** is open ("Open the hall", Sunday morning on the judging build; never Resume a Saturday room, since older rooms keep their old settings), and Homer speaks.
 - [ ] The hands-free mic opens on each phone's turn, and the 3-2-1 ticks and the thump can be felt.
