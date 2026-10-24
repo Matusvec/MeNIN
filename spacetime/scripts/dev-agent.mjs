@@ -46,11 +46,15 @@ const CARDS = [
 ];
 const EMOTIONS = 8;
 const SCENE_EVERY_MS = 1500;
+const BUSY_MS = 400; // poll fast while a turn is live or right after acting
+const IDLE_MS = 1500; // otherwise, to spare Maincloud credits
+const LIVE_PHASES = ['dealing', 'speaking', 'judging'];
 const CANDIDATES = 7; // more than a hand, so duplicates can be skipped
 
 const agent = await serviceIdentity();
 const lastScene = new Map(); // turn id -> ms of the last set_scene
 const reported = new Set(); // error lines already printed
+let acted = false; // something was written this tick
 
 function log(line) {
   console.log(`${new Date().toISOString().slice(11, 19)} ${line}`);
@@ -59,6 +63,7 @@ function log(line) {
 async function act(what, reducer, ...args) {
   try {
     await call(agent, reducer, ...args);
+    acted = true;
     log(what);
   } catch (e) {
     const line = `${what} failed: ${e.message}`;
@@ -160,9 +165,9 @@ async function tick() {
   const rooms = (await sql(null, 'SELECT * FROM room')).filter(
     r => r.phase !== 'finished' && (!ONLY_ROOM || r.code === ONLY_ROOM) && !SKIP_HOSTS.has(r.host[0])
   );
-  const live = new Set(rooms.map(r => r.id));
+  const roomIds = new Set(rooms.map(r => r.id));
   for (const p of await sql(null, 'SELECT * FROM player WHERE named = false')) {
-    if (!live.has(p.room_id)) continue;
+    if (!roomIds.has(p.room_id)) continue;
     await act(`named ${p.name}`, 'name_poet', p.id, p.name, p.epithet || 'of the Dev Build');
   }
   for (const r of rooms) {
@@ -172,16 +177,19 @@ async function tick() {
     else if (r.phase === 'round_end') await roundEnd(r);
     else if (r.phase === 'finale') await finale(r);
   }
+  return rooms.some(r => LIVE_PHASES.includes(r.phase));
 }
 
 log(`DEV AGENT running as ${agent.hex.slice(0, 12)}…${ONLY_ROOM ? ` (room ${ONLY_ROOM} only)` : ''}`);
 for (;;) {
+  acted = false;
+  let live = false;
   try {
-    await tick();
+    live = await tick();
   } catch (e) {
     const line = `tick failed: ${e.message}`;
     if (!reported.has(line)) log(line);
     reported.add(line);
   }
-  await new Promise(r => setTimeout(r, 400));
+  await new Promise(r => setTimeout(r, live || acted ? BUSY_MS : IDLE_MS));
 }

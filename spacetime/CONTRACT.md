@@ -18,6 +18,10 @@ Server: SpacetimeDB 2.13. Database name: `homer`.
 
 The rule: **phones and the arena change state through reducers. Anything Claude, the scanner or the formula bank produces is written by the agent.** The arena is the only client that asks the agent to do battle work: it sees a phase change, calls the agent's HTTP endpoint, and the result arrives back through its subscription, never through the HTTP response.
 
+## Changing this contract
+
+Any change to a table schema or a reducer signature waits for the iOS lead's OK before it's published to **any database a build can reach**. That includes Maincloud `homer-calhacks`, which devices use by default, and the local `homer` while devices test against it. Prefer additive changes, such as a new last column with a default, so live data migrates without a reset.
+
 ## Conventions
 
 - Tables, columns and reducers are **snake_case** on the wire: `room.current_turn_id`, `post_score`. (The TypeScript source uses camelCase; the module converts.)
@@ -292,7 +296,7 @@ npm run logs
 
 If the CLI's login isn't the database owner (for example, after logging in to Maincloud), point `smoke` and `dev-agent` at the owner's config: `STDB_CLI_CONFIG=/path/to/owner/cli.toml`.
 
-**Dev stand-in agent (never in the demo path).** `HOMER_DEV_AGENT=1 npm run dev-agent` watches the database and does the agent's job with placeholders: it names poets, deals stock cards, posts patterned scores, drifts the scene, and writes the verdict and song. Every theme and verdict it writes starts with `[dev]`. It refuses to run without the flag. Add `HOMER_DEV_ROOM=ABCD` to limit it to one room, or `HOMER_DEV_SKIP_HOSTS=<hex>,…` to leave alone the rooms hosted by those arena identities (for example the real agent's test rooms). Stop it before the real agent service runs, and don't run `smoke` alongside it (they would both act as the agent).
+**Dev stand-in agent (never in the demo path).** `HOMER_DEV_AGENT=1 npm run dev-agent` watches the database and does the agent's job with placeholders: it names poets, deals stock cards, posts patterned scores, drifts the scene, and writes the verdict and song. Every theme and verdict it writes starts with `[dev]`. It refuses to run without the flag. Add `HOMER_DEV_ROOM=ABCD` to limit it to one room, or `HOMER_DEV_SKIP_HOSTS=<hex>,…` to leave alone the rooms hosted by those arena identities (for example the real agent's test rooms). It polls every 400 ms while a turn is dealing, speaking or judging, and every 1.5 s otherwise. Stop it before the real agent service runs, and don't run `smoke` alongside it (they would both act as the agent).
 
 Clients: in dev, `ws://<mac LAN IP>:3000` with database `homer`. **Maincloud** (live, 2.13.0): `https://maincloud.spacetimedb.com` with database `homer-calhacks`. Run smoke there with `STDB_URL=https://maincloud.spacetimedb.com STDB_DB=homer-calhacks STDB_SERVER=maincloud npm run smoke`. The demo runs on Maincloud; see HOSTING.md.
 
