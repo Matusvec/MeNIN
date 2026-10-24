@@ -13,8 +13,8 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 | **11:45 AM** | **Figma, Booth #35**: the coffee cart activation, 10 AM–2 PM | Figma's team | **Matus goes**, since the designer shows the workflow best, and it's before the 12 PM lunch rush. Bring every teammate's Edu verification proof. Their stage log is worth $2,000 on its own. |
 | **12:45–1:10 PM** | Anthropic workshop, Theater: "Building Multi-Agent Teams & Systems" (runs to 2). **Limited giveaways for the first 20 people in the room, so arrive by 12:45.** **Leave by 1:10** for the gate run. | Anthropic's track team | Our build is literally a multi-agent team of Claude Code sessions. Catch the track lead at the 3:45 PM booth stop instead of after the talk. |
 | **1:15–2 PM** | *The gate run, everyone at the table: setup 1:15, run 1:30 (reality-check.md, recorded as the video per video.md).* The tour below only shows the battle if it passed. If it failed, show Practice Spar on one phone, or skip the tour. | | |
-| **2:30 PM** | **Cartesia**, main floor (sponsor-11), "near the big stairs", beside Meta | Cartesia's team | After the checkpoint, so they hear Homer judge a real turn. Hours are unconfirmed; check #spons-cartesia first. |
-| 2:45 PM *(optional)* | Meta, main floor (sponsor-06), right next to Cartesia | No staff named. Their workshop is 2–3 PM at Gate 4. | Two booths in one stop |
+| **2:00 PM** | **Cartesia**, main floor (sponsor-11), "near the big stairs", beside Meta | Cartesia's team | Right after the gate run, so they hear Homer judge a real turn. **Their staff posted "Back at the booth for a couple hours" at 11:52 AM** (#spons-cartesia), so they may leave around 2. Check #spons-cartesia first. |
+| 2:15 PM *(optional)* | Meta, main floor (sponsor-06), right next to Cartesia | No staff named. Their workshop is 2–3 PM at Gate 4. | Two booths in one stop |
 | **3:30 PM** | **Spacetime**, main floor (sponsor-14), next to Anthropic, or Spacetime's CEO in the Theater ("all weekend") | Spacetime's CEO and team | Before their 4–5 PM workshop in the Theater, while the CEO is free |
 | 3:45 PM *(optional)* | Anthropic, main floor (sponsor-13), next to Spacetime | Anthropic's track team | One step over from Spacetime |
 | 5:00 PM | Back at the table for video pickups, if the 1:30 run missed a shot ([video.md](video.md)) | | |
@@ -55,7 +55,7 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
   - "In the Slides deck, do you want the full log or 200 words per stage?"
 - Log the visit in [figma-stage-log.md](figma-stage-log.md).
 
-### Cartesia (sponsor-11, 2:30 PM)
+### Cartesia (sponsor-11, 2:00 PM)
 - **Show the keyterms live.** With the drum on, the poet speaks a formula from the hand ("the wine-dark sea"), and the live transcript catches it. Then Homer delivers the verdict in Carl's voice.
 - **The line:** "We feed your hand to the recognizer, so it hears the wine-dark sea through the drum. In our tests, with the drum at full volume, that's 3% word error with ink-2 keyterms and 20% without. The final transcript lands about 75 ms after you stop, and Homer's first audio comes in about 100 ms." If debate passed by then, play 10 s of Socrates, the second voice.
 - **Ask:**

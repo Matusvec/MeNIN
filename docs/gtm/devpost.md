@@ -177,12 +177,12 @@ swift · swiftui · metal · avfoundation · core-haptics · core-motion · spac
 
 Every integration below runs behind a switch, off the demo path (SPEC `5a6a8fe`). Fill each bracket with what's true, or delete the blurb.
 
-**Apify: Epithet Miner.** Homer improvised with stock phrases, and so do you: every turn deals you five. Our Apify Actor, **Epithet Miner**, mined part of that bank:
+**Apify: Epithet Miner.** **Epithet Miner is an Apify Actor, built with AI chat:** Claude Opus 5.5 in Claude Code wrote it from our prompts, on the Apify SDK and Crawlee. Homer improvised with stock phrases, and so do you: every turn deals you five. The Actor mined part of that bank:
 - **Sources:** four public-domain Homer translations on Project Gutenberg, 3.2 million characters in all: Lang, Leaf and Myers's Iliad, Butcher and Lang's Odyssey, and Samuel Butler's Iliad and Odyssey.
 - **How it works:** it finds noun-epithet formulas with readable rules and no language model. It folds Roman names to Greek (Jove becomes Zeus) and merges synonyms. It counts each phrase's beats with the same CMU-dictionary rule as our stress scanner, and ranks phrases by how often and how widely they recur ("aegis-bearing Zeus" appears 60 times across two translations).
 - **What it produced:** 150 candidates. A person reviewed them and kept 55, so the bank grew from 158 to 213 formulas: about a quarter of what Homer can deal you now came from the Actor.
 
-The Actor was written by an AI coding agent (Claude Opus 5.5 in Claude Code) on the Apify SDK and Crawlee, and it's published on the Apify Store: https://apify.com/matusnator/epithet-miner It runs at build time; the game never calls Apify live. The full, honest build log is in `apify/BUILD_LOG.md`, including what went wrong: the first list was full of "dear son" and "great wealth".
+It's published on the Apify Store: https://apify.com/matusnator/epithet-miner It runs at build time; the game never calls Apify live. The full, honest build log is in `apify/BUILD_LOG.md`, including what went wrong: the first list was full of "dear son" and "great wealth".
 
 **Fetch.ai: Homer on Agentverse.** The whole battle turn works inside an ASI:One conversation. Ask Homer for a theme, and he deals you five stock phrases that fit it. Write your verse with them, and he judges it with the same scanner and Claude judge that run our live battles: five scores, your best line quoted and a one-line verdict.  It's an agent registered on Agentverse that speaks the Agent Chat Protocol, running inside our agent service behind a switch, so the battle never depends on it. Agentverse's Inspector button can't reach an agent inside Docker, so we register its mailbox with an Agentverse API key from inside the container (`homer/scripts/agentverse_connect.py`). Agent: `homer-bard` (`agent1qf8cydj43pd7tue06mk9avnp45avcc4ss9gjm98r4lkjczsw0gskzw97edc`). Try it: [ASI:One link].
 
@@ -194,12 +194,12 @@ Voice games have to answer while the room is still listening, and Moss keeps the
 
 ## Tracks to tag on Devpost
 
-**As of Sat 8:27 AM, Devpost's prize list has no Spacetime, no Anthropic, and no MLH Gen AI, .Tech or DigitalOcean.** It also lists Figma's old five prizes. The Hacker Guide wins, and a question to the directors is drafted ([slack-intel.md](slack-intel.md)). Tag every track below that Devpost offers by Sunday, and follow the directors' answer for the rest.
+**As of Sat 12:20 PM, Devpost lists "[Spacetime] Best Use of Spacetime" and "[Anthropic] Claude for Public Benefit". Tag both** (leader). It still has no MLH Gen AI, .Tech or DigitalOcean (Hive has all three; Devpost lists Vultr instead), and it still shows Figma's old five prizes. MLH: "you can opt in to multiple prize categories at time of submission!" An organizer: "Devpost will also be updated soon!" (#0-ask-directors, Sat 10:40–10:50 AM). Tag every track below that Devpost offers on Sunday morning.
 
-- [ ] Spacetime
+- [ ] **Spacetime: Best Use of Spacetime** (on Devpost since Sat ~12 PM)
 - [ ] Meta: Bringing People Closer Together with AI
 - [ ] Cartesia: Best Use of Cartesia
-- [ ] Anthropic: Claude for Public Benefit
+- [ ] **Anthropic: Claude for Public Benefit** (on Devpost since Sat ~12 PM)
 - [ ] Figma (add the Figma Slides link and the stage log)
 - [ ] MLH: Best Use of Gen AI
 - [ ] MLH: Best .Tech Domain Name (if registered)
@@ -209,7 +209,7 @@ Voice games have to answer while the room is still listening, and Moss keeps the
 - [ ] **Fetch.ai: Best Use of Fetch.ai** (only if Homer's judge is live on Agentverse and usable from ASI:One)
 - [ ] **Moss: Best Use of Moss.** Shipped: `HOMER_DEALER=moss` is live on the droplet, p50 13.7 ms, with a tested fallback. Tag it.
 - [ ] MLH: Best Use of DigitalOcean (the agent service runs there)
-- [ ] **Apify: Best use** and **Best Actor.** Ready to tag: the formulas are in the bank (55 of 213), and the Actor is live on the Store (https://apify.com/matusnator/epithet-miner).
+- [ ] **Apify: "[Apify] Best Use of Apify".** Devpost now has one Apify entry with 6 winners, covering Best Use and "Best Actor Built with AI Chat (make sure to tag in your submission that is an actor)". So tag it, and the Apify blurb says outright that **Epithet Miner is an Apify Actor, built with AI chat** (leader, Sat 12:30 PM). Ready: 55 of the bank's 213 formulas came from it, and it's live on the Store (https://apify.com/matusnator/epithet-miner).
 
 Main prizes are automatic.
 

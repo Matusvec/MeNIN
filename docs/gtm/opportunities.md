@@ -17,9 +17,9 @@ Every prize, side tournament and challenge at Cal Hacks 13.0, ranked by **what i
 | # | Opportunity | Pays | What it takes | Who | Status |
 | --- | --- | --- | --- | --- | --- |
 | 1 | **Spacetime Scrabblebot tournament** | $1,024 / $512 / $256 | A bot on scrabblebot.spacetimedb.com. **Finals Sat 11:59 PM in the Theater, in person.** The leaderboard rating plays no part in the tournament (the scrabble session checked the module source). Round 1 is paired at random, later rounds by Swiss points, and the cut is by Swiss points, then total score. So late rewrites are safe. Our bot is "Menice": about 45 live matches by Sat 10 AM, rating 1441 (which doesn't matter for the tournament), and it's running A/B experiments. It auto-registers for any tournament in Registration status. The module has no Devpost dependency, so we assume no Devpost submission is needed; awaiting the staff answer. | scrabble session, plus one human in the Theater at midnight | **In progress** (the scrabble session builds it; gtm feeds it intel). **Who goes to the Theater at midnight?** |
-| 2 | **Fetch.ai ASI:One fun challenges** | 5 each of **Meta AI glasses, Beats, Kindles, Instax**, plus a grand-prize trip | About 10 minutes per person on a phone: asi1.ai → the Cal Hacks event page (asi1.ai/festivals/calhacks2026/dashboard). Round 1 had a "Hacker Personality Challenge" and an "AI Investor Challenge". **Four more winner rounds remain.** Collect at the Fetch booth. | **Every teammate**, each on their own account | **Green-lit by Matus.** Leader is telling the team; every teammate enters. gtm tracks the winner rounds in #spons-fetch-ai. |
+| 2 | **Fetch.ai ASI:One fun challenges** | 5 each of **Meta AI glasses, Beats, Kindles, Instax**, plus a grand-prize trip | About 10 minutes per person on a phone: asi1.ai → the Cal Hacks event page (asi1.ai/festivals/calhacks2026/dashboard). Round 1 had a "Hacker Personality Challenge" and an "AI Investor Challenge". **Four more winner rounds remain.** Collect at the Fetch booth. | **Every teammate**, each on their own account | **Green-lit by Matus.** Every teammate enters. **The next winner round is announced at 1 PM today** (#spons-fetch-ai, Sat 12:00 PM, Fetch.ai staff), so anyone who hasn't entered does it before 1 PM, ahead of the 1:15 gate-run setup. gtm tracks the rounds. |
 | 3 | **Microsoft: Built for the Real World** (and the Customer Impact Award) | **A Surface laptop per team member**, a tech talk and mentorship | Tag MeNIN on Devpost. Their brief: "a production-minded AI agent that solves a meaningful problem in… another high-impact domain", judged on customer understanding, measurable usefulness, a path from prototype to production, responsible design and end-to-end functionality. We already document all five, so add one Devpost paragraph that maps to them. Azure isn't required. | gtm (the paragraph); Matus is at their workshop 10:00–10:45 in the Theater, so talk to their engineers after | **gtm owns it.** The Devpost section is done, and Matus's 20 s line is below. Tag it at submission. |
-| 4 | **Apify: Best use** (5 places) **plus Best Actor** | $2,000 / $1,000 / $800 / $400 / $400, plus $400 for the best Actor "built with AI Chat" | An **Apify Actor that builds our formula bank**: it mines public-domain Homer translations (Project Gutenberg) for epithets and formulas into `content/formulas.json`, which the game deals from. Build it with Apify's AI Chat or MCP (mcp.apify.com works in Claude). Publish the Actor. In the pitch: "the hand you're dealt was mined by our Apify Actor". Coupon `APIFY_CAL_HACKS` ($200). Workshop at 11 AM in Breakout Room 3; the booth is on the ground floor, left. | **A new agent session** (leader assigns; `content/` belongs to whoever owns the bank) | **Done (Sat ~10:30 AM):** live on the Apify Store at https://apify.com/matusnator/epithet-miner. 55 of the bank's 213 formulas are mined (committed), and the Devpost blurb is filled in. **Open:** ask Apify's staff whether an Actor built by an AI coding agent counts for Best Actor. Best Use (5 places) is covered either way. |
+| 4 | **Apify: Best use** (5 places) **plus Best Actor** | $2,000 / $1,000 / $800 / $400 / $400, plus $400 for the best Actor "built with AI Chat" | An **Apify Actor that builds our formula bank**: it mines public-domain Homer translations (Project Gutenberg) for epithets and formulas into `content/formulas.json`, which the game deals from. Build it with Apify's AI Chat or MCP (mcp.apify.com works in Claude). Publish the Actor. In the pitch: "the hand you're dealt was mined by our Apify Actor". Coupon `APIFY_CAL_HACKS` ($200). Workshop at 11 AM in Breakout Room 3; the booth is on the ground floor, left. | **A new agent session** (leader assigns; `content/` belongs to whoever owns the bank) | **Done (Sat ~10:30 AM):** live on the Apify Store at https://apify.com/matusnator/epithet-miner. 55 of the bank's 213 formulas are mined (committed), and the Devpost blurb is filled in. **Devpost now has one Apify entry**, "[Apify] Best Use of Apify" (6 winners), and it covers Best Actor: "make sure to tag in your submission that is an actor". So the submission says "Epithet Miner is an Apify Actor, built with AI chat" (leader, Sat 12:30 PM). **Open:** ask Apify's staff whether an Actor built by an AI coding agent counts for Best Actor. Best Use is covered either way. |
 
 ### How-to: the Fetch.ai ASI:One fun challenges (every teammate, about 10 minutes)
 
@@ -49,7 +49,7 @@ Write down their answer, and tell gtm.
 
 | # | Opportunity | Pays | The honest test |
 | --- | --- | --- | --- |
-| 8 | **Mana** | $5,000 cash | Needs "meaningful use of Mana while building": public links to the Mana chats or pages we used, plus a demo moment where Mana changed what we built. Only if someone really builds a piece in Mana. |
+| 8 | **Mana** | $5,000 cash | Needs "meaningful use of Mana while building": public links to the Mana chats or pages we used, plus a demo moment where Mana changed what we built. Only if someone really builds a piece in Mana. **Free on the side:** a Mana t-shirt brought to your table for a one-or-two-sentence idea at mana.space/a/mana-shirt, with your seat pinned (#spons-mana, Sat 12:17 PM, Mana staff). Two minutes, no tag needed. |
 | 9 | **Notability** | A year of Notability Pro, plus merch | The poet runs tonight's study notes in Notability (handwriting plus the audio of each session), which really documents the process. The prize is small. |
 
 ## Requirements for the builds (gtm read the sponsors' own docs, Sat 9:40 AM)
@@ -61,7 +61,7 @@ Write down their answer, and tell gtm.
 - [x] How it was built is logged honestly in `apify/BUILD_LOG.md`: Claude Opus 5.5 in Claude Code on the Apify SDK and Crawlee, not through mcp.apify.com
 - [x] `.actor/actor.json` has `"meta": {"templateId": "ai-generated-actor", "generatedBy": "Claude Opus 5.5 (Claude Code)"}`
 - [x] **Published on the Apify Store:** https://apify.com/matusnator/epithet-miner (build 0.1.2, run on the platform, with an output schema; it loads logged out)
-- [ ] Tag both Apify prizes on Devpost (ready; done at submission)
+- [ ] Tag "[Apify] Best Use of Apify" on Devpost (one entry now covers both prizes), and write "Epithet Miner is an Apify Actor, built with AI chat" in the submission (done in devpost.md)
 - [ ] **Still open:** the booth question, "Does an Actor built by an AI coding agent count for Best Actor?"
 
 ### Fetch.ai: Homer on Agentverse (builder builds it; requirements sent to builder)
@@ -85,7 +85,7 @@ Write down their answer, and tell gtm.
 
 ## Already entered (for completeness)
 
-Spacetime (Best Use) · Cartesia · Meta · Anthropic · Figma (4 prizes) · MLH Gen AI · MLH .Tech domain · MLH DigitalOcean · MLH Commit Fellowship · every Cal Hacks main prize (automatic): First, Second and Third Overall, Most Creative, Most Technically Complex, Best People-First, Hacker's Choice.
+Spacetime (Best Use, on Devpost since Sat ~12 PM) · Cartesia · Meta · Anthropic (Claude for Public Benefit, on Devpost since Sat ~12 PM) · Figma (4 prizes) · MLH Gen AI · MLH .Tech domain · MLH DigitalOcean (these three are on Hive, not yet on Devpost) · MLH Commit Fellowship · every Cal Hacks main prize (automatic): First, Second and Third Overall, Most Creative, Most Technically Complex, Best People-First, Hacker's Choice.
 
 ## Skipped, with the reason
 
@@ -99,10 +99,12 @@ Spacetime (Best Use) · Cartesia · Meta · Anthropic · Figma (4 prizes) · MLH
 | Bitdeer | Only if a model really ran there, and none does |
 | Finance and shopping tracks (Hyphenate, Visa, Coinbase, CRS, Capital One) | No fit |
 | Supercell Clash Royale | The tournament ended Fri 10:35 PM, and only the top 8 play tonight's finale |
-| Capital One Smash | 32 entrants picked at random, and the prize is swag |
+| Capital One Smash | 32 entrants picked at random, and the prize is swag. It started at 12 PM at Gate 4, and others can wait for no-show spots (#spons-capital-one, Sat 12:01 PM), but that overlaps the gate run. |
 
 ## Watch list
 
 - **Anthropic, Annapurna Labs and AfterQuery** show "Coming soon!" on Hive. New tracks may appear; gtm checks each sweep.
 - **Spacetime's startup program** offers up to $50k in credits for eligible startups (#cohost-spacetime, Oct 21). It's for after the hackathon, if MeNIN continues.
 - **The Moss social-post prize and the Hacker's Choice clips** can be the same posts. Posting is Matus's call.
+- **Merch:** stickers and postcards at the info desk now, and the 4 PM distribution is the last merch pickup (#0-announcements, Sat 11:57 AM, organizer). Anyone passing grabs them.
+- **Credits we haven't used:** Moss `CALHACKS` ($100, Moss Portal billing page; #spons-moss, Sat 11:03 AM) keeps the live dealer funded through judging if our plan has limits (builder). Apify's coupon is $200, not $5 (#spons-apify, Sat 10:22 AM).
