@@ -1,6 +1,6 @@
 # Demo hands: what Moss deals for the demo themes
 
-Sampled from the production dealer (`HOMER_DEALER=moss` on the droplet, the 216-formula bank) on Oct 24 at 10:41 AM PT, for the theme cards in [demo-script.md](demo-script.md) and the backup card. Rehearse on these, and flag any hand that reads badly to the leader. Rates come from 200 sampled rounds per theme.
+Sampled from the production dealer (`HOMER_DEALER=moss` on the droplet, the 216-formula bank) on Oct 24 at 10:41 AM PT, for the three judging theme cards (ship, deadline, war: what `/themes?demo=true` serves) and the city theme, which is off the judging cards. Rehearse on these, and flag any hand that reads badly to the leader. Rates come from 200 sampled rounds per theme.
 
 How a battle round is dealt, so you know what changes from one run to the next:
 
@@ -39,22 +39,7 @@ Moss's 15 closest formulas (the pool most hands draw from): with the deadline co
 
 **Watch for:** Fine. "The holy night" or "and the night took his eyes" (an Iliad death line) is in 21% of Poet 1's hands and 18% of Poet 2's; both work as the dark side of the night. The new city epithets ("watcher of the skyline", "breaker of curfews") reach Poet 2 often and fit the all-nighter. If a hand has no deadline card, say the deadline in your own words and let the formulas carry the night.
 
-## A city that never sleeps
-
-Moss's 15 closest formulas (the pool most hands draw from): with the city asleep (½), child of the city, the night-scroll, on a nameless street (½), in the light of the screen (½), with a phone in my hand (½), sweet sleep, the sleep-thief, watcher of the skyline, the light-box, the sleepless one, with the rent unpaid (½), the pocket-oracle, in the shadow of the walls (½), deep sleep.
-
-| Round | Poet 1 | Poet 2 |
-| --- | --- | --- |
-| 1 | in the shadow of the walls (½) · king of the rooftops · the night-scroll · the sleep-thief · in a room of strangers (½) | in the cold of the morning (½) · rider of the last train · the coffee-blood · with the city asleep (½) · child of the city |
-| 2 | on a nameless street (½) · child of the city · the coffee-blood · the sword-sleep · watcher of the skyline | through the shadowy halls (½) · breaker of curfews · the rent-dragon · with a phone in my hand (½) · in the shadow of the walls (½) |
-| 3 | with the city asleep (½) · watcher of the skyline · the coffee-blood · the pocket-oracle · the road-beast | when the walls came down (½) · the shadowy mountains · the inbox-sea · the street-moon · like a fist through glass (½) |
-| 4 | with a phone in my hand (½) · the sleepless one · the pocket-oracle · watcher of the skyline · the light-box | when the walls came down (½) · sweet sleep · the inbox-sea · the sword-sleep · the thumb-road |
-| 5 | in a room of strangers (½) · child of the city · the rent-dragon · in the shadow of the walls (½) · the night-scroll | through the shadowy halls (½) · deep sleep · the street-moon · with the city asleep (½) · on a nameless street (½) |
-| tag dealer | in the light of the screen (½) · heir to nothing · the light-box · the street-moon · with a phone in my hand (½) | till the light went out (½) · watcher of the skyline · the pocket-oracle · breaker of curfews · with the city asleep (½) |
-
-**Watch for:** Fixed (Oct 24): the Iliad Troy cards no longer carry the `city` tag, and three modern city epithets were added. Troy cards: 0% of hands, down from 65%. The new epithets ("breaker of curfews", "watcher of the skyline", "rider of the last train") are in 26% of Poet 1's hands and 52% of Poet 2's. Still slightly off-tone: "the sword-sleep" (a kenning for death) in 16% of Poet 1's hands and 16% of Poet 2's, and "when the walls came down" in 0% of Poet 1's hands and 16% of Poet 2's. Both can work as the city's dark side.
-
-## The war between two brothers (backup theme card)
+## The war between two brothers
 
 Moss's 15 closest formulas (the pool most hands draw from): two-edged sword, the war-wolf, the battle-sweat, the battle-light, with blood in my eye (½), the unbroken, as the spears flew (½), the black ships, the spear-din, and the heart of a deer (½), the shield-wall, three-barbed arrow, the wrath of Achilles, and his knees gave way (½), the storm of swords.
 
@@ -68,3 +53,18 @@ Moss's 15 closest formulas (the pool most hands draw from): two-edged sword, the
 | tag dealer | with a heart like iron (½) · grey-eyed Athena · the bone-house · the swift horses · the sword-sleep | and his knees gave way (½) · the plain of Troy · the storm of swords · man-killing Hector · the raven-harvest |
 
 **Watch for:** Strong. Battle formulas throughout; Iliad Troy cards ("windy Troy", "the plain of Troy") are in 20% of Poet 1's hands and 30% of Poet 2's, and they belong here. No card says "brothers": that's yours to bring.
+
+## A city that never sleeps (not on the judging cards)
+
+Moss's 15 closest formulas (the pool most hands draw from): with the city asleep (½), child of the city, the night-scroll, on a nameless street (½), in the light of the screen (½), with a phone in my hand (½), sweet sleep, the sleep-thief, watcher of the skyline, the light-box, the sleepless one, with the rent unpaid (½), the pocket-oracle, in the shadow of the walls (½), deep sleep.
+
+| Round | Poet 1 | Poet 2 |
+| --- | --- | --- |
+| 1 | in the shadow of the walls (½) · king of the rooftops · the night-scroll · the sleep-thief · in a room of strangers (½) | in the cold of the morning (½) · rider of the last train · the coffee-blood · with the city asleep (½) · child of the city |
+| 2 | on a nameless street (½) · child of the city · the coffee-blood · the sword-sleep · watcher of the skyline | through the shadowy halls (½) · breaker of curfews · the rent-dragon · with a phone in my hand (½) · in the shadow of the walls (½) |
+| 3 | with the city asleep (½) · watcher of the skyline · the coffee-blood · the pocket-oracle · the road-beast | when the walls came down (½) · the shadowy mountains · the inbox-sea · the street-moon · like a fist through glass (½) |
+| 4 | with a phone in my hand (½) · the sleepless one · the pocket-oracle · watcher of the skyline · the light-box | when the walls came down (½) · sweet sleep · the inbox-sea · the sword-sleep · the thumb-road |
+| 5 | in a room of strangers (½) · child of the city · the rent-dragon · in the shadow of the walls (½) · the night-scroll | through the shadowy halls (½) · deep sleep · the street-moon · with the city asleep (½) · on a nameless street (½) |
+| tag dealer | in the light of the screen (½) · heir to nothing · the light-box · the street-moon · with a phone in my hand (½) | till the light went out (½) · watcher of the skyline · the pocket-oracle · breaker of curfews · with the city asleep (½) |
+
+**Watch for:** Fixed (Oct 24): the Iliad Troy cards no longer carry the `city` tag, and three modern city epithets were added. Troy cards: 0% of hands, down from 65%. The new epithets ("breaker of curfews", "watcher of the skyline", "rider of the last train") are in 26% of Poet 1's hands and 52% of Poet 2's. Still slightly off-tone: "the sword-sleep" (a kenning for death) in 16% of Poet 1's hands and 16% of Poet 2's, and "when the walls came down" in 0% of Poet 1's hands and 16% of Poet 2's. Both can work as the city's dark side.

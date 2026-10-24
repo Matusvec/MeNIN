@@ -22,10 +22,11 @@ HAND_SIZE = 5
 CANDIDATES = 8  # deal_round tops each hand up to 5 from this list, skipping cards already held
 
 # Used until content/ has a themes.json (a JSON array of strings). The first
-# three are the demo's theme cards (docs/gtm/demo-script.md).
+# three are the judging theme cards (/themes?demo=true; hands in docs/gtm/demo-hands.md).
 DEFAULT_THEMES = (
     "A ship that never came home",
     "The night before the deadline",
+    "The war between two brothers",
     "A city that never sleeps",
     "The last train out",
     "A feast for a returning hero",
@@ -33,7 +34,6 @@ DEFAULT_THEMES = (
     "A storm on the open sea",
     "The road that brought you here",
     "A letter never sent",
-    "The war between two brothers",
     "Dawn after the long battle",
     "The wolf at the edge of the wood",
     "A crown nobody wanted",
