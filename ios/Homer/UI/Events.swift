@@ -81,10 +81,10 @@ struct Ruling: Equatable {
         outOf = 100
     }
 
-    /// Poetry's total when the server's isn't passed: Image ×4, Answer ×3, Craft ×3,
-    /// out of 100. Pass the server's ScoreRow.total as `weightedTotal` to be exact.
+    /// Poetry's total (SPEC): Image ×4, Answer ×4, Craft ×2, out of 100, the same
+    /// as the server's ScoreRow.total, used when that isn't passed.
     static func poetryTotal(_ axes: [AxisScore]) -> Int {
-        let weights = ["Image": 4, "Answer": 3, "Craft": 3]
+        let weights = ["Image": 4, "Answer": 4, "Craft": 2]
         return axes.reduce(0) { $0 + (weights[$1.name] ?? 0) * $1.value }
     }
 
