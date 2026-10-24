@@ -52,11 +52,11 @@ Setup: iPhones plus a Mac arena, at a shared table with 3 judges in a noisy hall
 **Music (SPEC "Music"):** the original score plays on the menu, as each event's intro, under the discus throw and as the champion sting. It never plays under a speaking poet: during turns only the procedural beat plays, and the music ducks under Homer's voice. Set the score's level in the Saturday-night hall test along with the beat.
 
 **After 2:00, if the judge stays (this is where Hacker's Choice gets won):**
-- **First, the invitation:** "Want to throw the discus?" (if it passed at 8 PM), or "Want to battle us?"
+- **If debate passed the Sat 8 PM check, Socrates goes first** (decided with leader). He's the thesis made literal: the art of moving people, hosted by the man who questioned Athens. Play 10–15 s of Socrates opening a debate, then offer the judge a side: "Want to argue with Socrates?" It's especially strong for Cartesia, since it's the second voice, and for Anthropic.
+- **Then the invitation:** "Want to throw the discus?" (if it passed at 8 PM), or "Want to battle us?"
 - **Discus (if it passed the Sat 8 PM check):** hand the judge Matus's iPhone. "Swing it like a discus, and lift your thumb to release. Keep hold of the phone." The arena shows the throw over its cue from the score, the fanfare hits, and Homer calls the distance. It takes about 10 seconds, needs zero skill, and gets a laugh.
   - **Safety:** the release is a thumb lift, never opening your hand. Use a phone with a grippy case, and only swing where there's arm room, away from the shared table's laptops.
 - **Or a rematch:** hand them the phone and headset, deal a fresh hand, and run a battle against the poet.
-- **Socrates (if shipped, and especially for a Cartesia judge):** play 10 seconds of Socrates opening a debate, so they hear the second voice.
 
 ## If we run long (cut in this order)
 
