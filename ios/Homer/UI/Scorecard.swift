@@ -10,15 +10,19 @@ struct ScorecardView: View {
     let ruling: Ruling
     var reveal: Double = 1
     var poet: String? = nil
+    /// Fired as each axis finishes counting (0-based), then once more with
+    /// `axes.count` when the total lands: the knocks under the host's voice.
+    var onKnock: ((Int) -> Void)? = nil
 
-    init(card: Scorecard, reveal: Double = 1, poet: String? = nil) {
-        self.init(ruling: Ruling(card), reveal: reveal, poet: poet)
+    init(card: Scorecard, reveal: Double = 1, poet: String? = nil, onKnock: ((Int) -> Void)? = nil) {
+        self.init(ruling: Ruling(card), reveal: reveal, poet: poet, onKnock: onKnock)
     }
 
-    init(ruling: Ruling, reveal: Double = 1, poet: String? = nil) {
+    init(ruling: Ruling, reveal: Double = 1, poet: String? = nil, onKnock: ((Int) -> Void)? = nil) {
         self.ruling = ruling
         self.reveal = reveal
         self.poet = poet
+        self.onKnock = onKnock
     }
 
     @Environment(\.stage) private var stage
@@ -27,6 +31,7 @@ struct ScorecardView: View {
         let k = stage.scale
         let count = Double(ruling.axes.count)
         let step = min(1, max(0, reveal)) * (count + 1)
+        let landed = landedSteps
         VStack(alignment: .leading, spacing: Metrics.s4 * k) {
             HStack(alignment: .lastTextBaseline) {
                 VStack(alignment: .leading, spacing: 2 * k) {
@@ -41,9 +46,17 @@ struct ScorecardView: View {
                 let totalShown = Int((Double(ruling.total) * min(1, max(0, step - count))).rounded())
                 HStack(alignment: .lastTextBaseline, spacing: 2 * k) {
                     Text("\(totalShown)")
-                        .font(Typeface.display(56 * k, weight: 500))
+                        .font(Typeface.display(64 * k, weight: 600))
                         .foregroundStyle(Palette.ink)
                         .contentTransition(.numericText(value: Double(totalShown)))
+                        // The total lands heavy.
+                        .keyframeAnimator(initialValue: 1.0, trigger: landed > ruling.axes.count) { total, s in
+                            total.scaleEffect(s, anchor: .bottomTrailing)
+                        } keyframes: { _ in
+                            MoveKeyframe(1.0)
+                            SpringKeyframe(1.45, duration: 0.07, spring: .snappy)
+                            SpringKeyframe(1.0, duration: 0.4, spring: .bouncy)
+                        }
                     Text("/\(ruling.axes.count * 10)").font(Typeface.numeral(13 * k, weight: 600)).foregroundStyle(Palette.ink3)
                 }
                 .opacity(step > count ? 1 : 0.15)
@@ -53,7 +66,7 @@ struct ScorecardView: View {
             VStack(spacing: Metrics.s2 * k) {
                 ForEach(Array(ruling.axes.enumerated()), id: \.element.id) { i, axis in
                     let shown = Int((Double(axis.value) * min(1, max(0, step - Double(i)))).rounded())
-                    AxisRow(name: axis.name, value: shown, k: k)
+                    AxisRow(name: axis.name, value: shown, landed: landed > i, k: k)
                 }
             }
 
@@ -72,8 +85,19 @@ struct ScorecardView: View {
         .frame(maxWidth: 520 * k)
         .paper(radius: Metrics.radiusL * k)
         .animation(Motion.stamp, value: step)
+        .onChange(of: landed) { old, new in
+            guard new > old else { return }
+            for i in old..<new { onKnock?(i) }
+        }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilitySummary)
+    }
+
+    /// Axes finished counting, plus one once the total has landed.
+    private var landedSteps: Int {
+        let count = ruling.axes.count
+        let step = min(1, max(0, reveal)) * Double(count + 1)
+        return min(count + 1, Int((step + 1e-6).rounded(.down)))
     }
 
     private var accessibilitySummary: String {
@@ -85,6 +109,8 @@ struct ScorecardView: View {
 private struct AxisRow: View {
     let name: String
     let value: Int
+    /// Flips true when the axis finishes counting: the row takes the knock.
+    var landed = false
     let k: CGFloat
 
     var body: some View {
@@ -100,10 +126,25 @@ private struct AxisRow: View {
                 }
             }
             Text("\(value)")
-                .font(Typeface.display(18 * k, weight: 500))
+                .font(Typeface.display(20 * k, weight: 600))
                 .foregroundStyle(Palette.ink)
-                .frame(width: 22 * k, alignment: .trailing)
+                .frame(width: 24 * k, alignment: .trailing)
                 .contentTransition(.numericText(value: Double(value)))
+                .keyframeAnimator(initialValue: 1.0, trigger: landed) { number, s in
+                    number.scaleEffect(s, anchor: .trailing)
+                } keyframes: { _ in
+                    MoveKeyframe(1.0)
+                    SpringKeyframe(1.7, duration: 0.06, spring: .snappy)
+                    SpringKeyframe(1.0, duration: 0.32, spring: .bouncy)
+                }
+        }
+        // The knock: the row jolts down and back, once.
+        .keyframeAnimator(initialValue: 0.0, trigger: landed) { row, y in
+            row.offset(y: y)
+        } keyframes: { _ in
+            MoveKeyframe(0.0)
+            SpringKeyframe(3 * k, duration: 0.05, spring: .snappy)
+            SpringKeyframe(0, duration: 0.25, spring: .bouncy)
         }
     }
 }

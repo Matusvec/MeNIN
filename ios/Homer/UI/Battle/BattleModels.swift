@@ -81,10 +81,12 @@ struct ArenaActions {
     var pickEvent: ((EventKind) -> Void)?
     /// Champion and round end: go back to the hall instead of a rematch.
     var backToHall: (() -> Void)?
+    /// The arena's sound cues, fired once on the frame each thing lands. The conductor plays them.
+    var cue: ((ArenaCue) -> Void)?
 
     init(begin: (() -> Void)? = nil, pickTheme: ((Int) -> Void)? = nil, advance: (() -> Void)? = nil,
          rematch: (() -> Void)? = nil, newPoets: (() -> Void)? = nil,
-         pickEvent: ((EventKind) -> Void)? = nil, backToHall: (() -> Void)? = nil) {
+         pickEvent: ((EventKind) -> Void)? = nil, backToHall: (() -> Void)? = nil, cue: ((ArenaCue) -> Void)? = nil) {
         self.begin = begin
         self.pickTheme = pickTheme
         self.advance = advance
@@ -92,7 +94,25 @@ struct ArenaActions {
         self.newPoets = newPoets
         self.pickEvent = pickEvent
         self.backToHall = backToHall
+        self.cue = cue
     }
+}
+
+/// Moments the arena wants heard. Each fires once, on the frame it lands on screen,
+/// so a sound played on the cue hits with the picture.
+enum ArenaCue: Equatable {
+    /// An entrance slab hits (a lobby entrance or "Up next"): the slam.
+    case slam
+    /// A played formula card lands face up.
+    case flip
+    /// One scorecard axis finished counting up (0-based, in order): a knock.
+    case knock(axis: Int)
+    /// The total lands after the last axis: the heavy knock.
+    case total
+    /// The chisel starts cutting the best line.
+    case carve
+    /// The champion's crown lands.
+    case crown
 }
 
 // MARK: - Phone
@@ -106,6 +126,8 @@ struct PlayerModel: Equatable {
     var theme: String?
     var homer: HomerLine?
     var moment: PlayerMoment = .joining(error: nil)
+    /// True once the arena has announced this poet's entrance: the phone thumps with the slam.
+    var announced: Bool = false
 }
 
 enum PlayerMoment: Equatable {

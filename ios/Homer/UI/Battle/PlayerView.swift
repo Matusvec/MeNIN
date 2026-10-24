@@ -19,6 +19,8 @@ struct PlayerView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
+        // Your entrance slams on the arena: the phone in your hand takes the hit too.
+        .sensoryFeedback(.impact(weight: .heavy, intensity: 1), trigger: model.announced) { old, new in !old && new }
         .padding(.horizontal, Metrics.s4)
         .padding(.bottom, Metrics.s3)
         .animation(Motion.slide, value: momentKey)

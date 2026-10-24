@@ -17,6 +17,9 @@ private struct ArenaCanvas: View {
     let model: ArenaModel
     let actions: ArenaActions
     @Environment(\.stage) private var stage
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Counts entrance hits: each one shakes the whole canvas once.
+    @State private var slams = 0
 
     var body: some View {
         let k = stage.scale
@@ -26,6 +29,13 @@ private struct ArenaCanvas: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .transition(.opacity.combined(with: .scale(scale: 0.98)))
                 .id(momentKey)
+                .overlay {
+                    if case .champion = model.moment {
+                        ConfettiFall(inks: model.poets.map(\.ink) + [Palette.gold, Palette.cream])
+                            .padding(.horizontal, -Metrics.s6 * k)
+                            .padding(.top, -200 * k)
+                    }
+                }
             if let homer = model.homer {
                 CaptionView(text: homer.text, spoken: homer.spoken, speaker: model.event.host.name, whisper: homer.whisper)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -35,6 +45,36 @@ private struct ArenaCanvas: View {
         .padding(.vertical, Metrics.s5 * k)
         .animation(Motion.slide, value: momentKey)
         .animation(Motion.slide, value: model.homer?.text)
+        .keyframeAnimator(initialValue: CGSize.zero, trigger: slams) { canvas, shake in
+            canvas.offset(shake)
+        } keyframes: { _ in
+            KeyframeTrack(\.width) {
+                MoveKeyframe(0)
+                LinearKeyframe(16 * k, duration: 0.04)
+                LinearKeyframe(-12 * k, duration: 0.06)
+                LinearKeyframe(7 * k, duration: 0.06)
+                LinearKeyframe(-3 * k, duration: 0.06)
+                SpringKeyframe(0, duration: 0.18)
+            }
+            KeyframeTrack(\.height) {
+                MoveKeyframe(0)
+                LinearKeyframe(-7 * k, duration: 0.04)
+                LinearKeyframe(6 * k, duration: 0.06)
+                LinearKeyframe(-3 * k, duration: 0.06)
+                SpringKeyframe(0, duration: 0.24)
+            }
+        }
+    }
+
+    /// The scorecard's knocks as arena cues: one per axis, then the total.
+    private func knock(of axes: Int) -> (Int) -> Void {
+        { i in actions.cue?(i < axes ? .knock(axis: i) : .total) }
+    }
+
+    /// The entrance hit: the slam cue for the conductor, and the canvas shake.
+    private func slam() {
+        if !reduceMotion { slams += 1 }
+        actions.cue?(.slam)
     }
 
     /// Changes only when the kind of moment changes, so inner updates don't re-run transitions.
@@ -102,7 +142,7 @@ private struct ArenaCanvas: View {
             }
             .overlay(alignment: .bottom) {
                 if let entering {
-                    EntranceView(poet: entering).id(entering.id)
+                    EntranceView(poet: entering, onImpact: slam).id(entering.id)
                         .padding(.horizontal, -Metrics.s6 * k)
                 }
             }
@@ -114,7 +154,7 @@ private struct ArenaCanvas: View {
             }
             .overlay(alignment: .bottom) {
                 if let entering {
-                    EntranceView(poet: entering).id(entering.id)
+                    EntranceView(poet: entering, onImpact: slam).id(entering.id)
                         .padding(.horizontal, -Metrics.s6 * k)
                 }
             }
@@ -130,7 +170,7 @@ private struct ArenaCanvas: View {
 
         case .stepUp(let poet, let answer):
             VStack(spacing: Metrics.s5 * k) {
-                EntranceView(poet: poet, label: "Up next").id(poet.id)
+                EntranceView(poet: poet, label: "Up next", onImpact: slam).id(poet.id)
                     .padding(.horizontal, -Metrics.s6 * k)
                 if let answer { AnswerLineView(line: answer.line, poet: answer.poet).frame(maxWidth: 560 * k) }
             }
@@ -147,7 +187,7 @@ private struct ArenaCanvas: View {
                 VStack(alignment: .trailing, spacing: Metrics.s4 * k) {
                     BeatLaneView(lane: lane, barsPerLine: 2)
                     if let card = played.last {
-                        RevealedCardView(card: card, poet: poet.name).id(card.id)
+                        RevealedCardView(card: card, poet: poet.name, onLand: { actions.cue?(.flip) }).id(card.id)
                     }
                 }
                 .frame(width: 330 * k)
@@ -162,7 +202,7 @@ private struct ArenaCanvas: View {
 
         case .verdict(let poet, let card, let reveal, let coined):
             HStack(alignment: .center, spacing: Metrics.s6 * k) {
-                ScorecardView(card: card, reveal: reveal, poet: poet.fullName)
+                ScorecardView(card: card, reveal: reveal, poet: poet.fullName, onKnock: knock(of: Axis.allCases.count))
                 VStack(spacing: Metrics.s4 * k) {
                     ScoreboardView(poets: model.poets, round: model.round, rounds: model.rounds)
                     if let coined, reveal >= 1 {
@@ -173,9 +213,12 @@ private struct ArenaCanvas: View {
             }
 
         case .roundEnd(let line, let by, let carve):
-            HStack(alignment: .center, spacing: Metrics.s6 * k) {
-                CarvedLineView(line: line, poet: by, progress: carve)
+            // The line is the moment: the tablet takes the room, the standings step aside.
+            HStack(alignment: .center, spacing: Metrics.s5 * k) {
+                CarvedLineView(line: line, poet: by, progress: carve, onCarve: { actions.cue?(.carve) })
+                    .layoutPriority(1)
                 ScoreboardView(poets: model.poets, round: model.round, rounds: model.rounds)
+                    .frame(width: 236 * k)
             }
 
         case .finale(let lines, let current):
@@ -184,7 +227,8 @@ private struct ArenaCanvas: View {
         case .champion(let poet):
             HStack(alignment: .center, spacing: Metrics.s6 * k) {
                 VStack(spacing: Metrics.s4 * k) {
-                    ChampionView(poet: poet, onRematch: actions.rematch, onNewPoets: actions.newPoets)
+                    ChampionView(poet: poet, onRematch: actions.rematch, onNewPoets: actions.newPoets,
+                                 onCrown: { actions.cue?(.crown) })
                     if let backToHall = actions.backToHall {
                         Button("Back to the hall", action: backToHall).buttonStyle(.homer(.secondary))
                     }
@@ -208,7 +252,7 @@ private struct ArenaCanvas: View {
                     VStack(alignment: .trailing, spacing: Metrics.s4 * k) {
                         TurnClockView(endsAt: endsAt, seconds: seconds, size: 120)
                         if let move = played.last {
-                            RevealedCardView(card: move, poet: poet.name).id(move.id)
+                            RevealedCardView(card: move, poet: poet.name, onLand: { actions.cue?(.flip) }).id(move.id)
                         }
                     }
                     .frame(width: 300 * k, alignment: .trailing)
@@ -217,7 +261,7 @@ private struct ArenaCanvas: View {
 
         case .ruling(let poet, let ruling, let reveal):
             HStack(alignment: .center, spacing: Metrics.s6 * k) {
-                ScorecardView(ruling: ruling, reveal: reveal, poet: poet.fullName)
+                ScorecardView(ruling: ruling, reveal: reveal, poet: poet.fullName, onKnock: knock(of: ruling.axes.count))
                 ScoreboardView(poets: model.poets, round: model.round, rounds: model.rounds)
             }
 

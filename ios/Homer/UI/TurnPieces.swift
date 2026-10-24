@@ -42,16 +42,22 @@ struct AnswerLineView: View {
 struct RevealedCardView: View {
     let card: FormulaCard
     var poet: String? = nil
+    /// Fired once, on the frame the card lands face up: the flip cue.
+    var onLand: (() -> Void)? = nil
 
+    @State private var thrown = false
     @State private var faceUp = false
+    @State private var lit = 0
     @Environment(\.stage) private var stage
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         let k = stage.scale
         VStack(spacing: Metrics.s2 * k) {
             if let poet {
-                Text("\(poet) plays").chip(10 * k)
+                Text("\(poet) plays").chip(10 * k, fill: Palette.gold, color: Palette.ink)
                     .opacity(faceUp ? 1 : 0)
+                    .scaleEffect(faceUp ? 1 : 0.6)
             }
             ZStack {
                 CardBack()
@@ -62,12 +68,59 @@ struct RevealedCardView: View {
             }
             .frame(width: 280 * k)
             .rotation3DEffect(.degrees(faceUp ? 180 : 0), axis: (0, 1, 0), perspective: 0.4)
-            .scaleEffect(faceUp ? 1 : 0.9)
+            // It lights up as it lands: a gold rim stamps out from the card and a flat gold flash fades off its face.
+            .overlay {
+                ZStack {
+                    RoundedRectangle(cornerRadius: Metrics.radiusS * k, style: .continuous).fill(Palette.gold)
+                        .keyframeAnimator(initialValue: 0.0, trigger: lit) { flash, o in flash.opacity(o) } keyframes: { _ in
+                            MoveKeyframe(0.55)
+                            CubicKeyframe(0, duration: 0.6)
+                        }
+                    RoundedRectangle(cornerRadius: Metrics.radiusS * k, style: .continuous)
+                        .strokeBorder(Palette.gold, lineWidth: 4 * k)
+                        .keyframeAnimator(initialValue: Rim(), trigger: lit) { rim, v in
+                            rim.scaleEffect(v.scale).opacity(v.opacity)
+                        } keyframes: { _ in
+                            KeyframeTrack(\.scale) {
+                                MoveKeyframe(1)
+                                CubicKeyframe(1.14, duration: 0.55)
+                            }
+                            KeyframeTrack(\.opacity) {
+                                MoveKeyframe(1)
+                                LinearKeyframe(1, duration: 0.15)
+                                LinearKeyframe(0, duration: 0.4)
+                            }
+                        }
+                }
+                .allowsHitTesting(false)
+            }
+            .scaleEffect(faceUp ? 1 : 0.88)
+            .rotationEffect(.degrees(thrown ? 0 : 14))
+            .offset(x: thrown ? 0 : 160 * k, y: thrown ? 0 : 90 * k)
+            .opacity(thrown ? 1 : 0)
         }
-        .animation(.spring(response: 0.55, dampingFraction: 0.72), value: faceUp)
-        .onAppear { faceUp = true }
+        .task {
+            guard !faceUp else { return }
+            if reduceMotion {
+                thrown = true; faceUp = true
+                onLand?()
+                return
+            }
+            // Thrown onto the table, then turned over.
+            withAnimation(.spring(response: 0.32, dampingFraction: 0.7)) { thrown = true }
+            try? await Task.sleep(for: .seconds(0.22))
+            withAnimation(.spring(response: 0.42, dampingFraction: 0.68)) { faceUp = true }
+            try? await Task.sleep(for: .seconds(0.24))
+            lit += 1
+            onLand?()
+        }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(poet.map { "\($0) plays " } ?? "")\(card.text)")
+    }
+
+    private struct Rim {
+        var scale = 1.0
+        var opacity = 0.0
     }
 }
 

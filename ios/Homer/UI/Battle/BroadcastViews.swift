@@ -20,47 +20,149 @@ extension PoetPlate {
 
 // MARK: - Entrance
 
-/// "Enter Matus, Breaker of Deadlines!" A slab of the poet's seat color slams
-/// in from the left with their name on it.
+/// "Enter Matus, Breaker of Deadlines!" A title-card slam: the slab of the
+/// poet's seat color accelerates in and hits, the name stamps down, the epithet
+/// slaps on like tape, and cut-paper shards fly off the impact.
 struct EntranceView: View {
     let poet: PoetPlate
     /// "Enter" for the lobby entrance; "Up next" when a poet steps up.
     var label: String = "Enter"
-    @State private var landed = false
+    /// Fired once, on the frame the slab hits: the slam sound, the screen shake.
+    var onImpact: (() -> Void)? = nil
+
+    /// Seconds from appearing to the hit.
+    static let impact = 0.2
+
+    @State private var slabIn = false
+    @State private var hit = false
+    @State private var taped = false
     @Environment(\.stage) private var stage
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         let k = stage.scale
-        VStack(alignment: .leading, spacing: Metrics.s2 * k) {
+        VStack(alignment: .leading, spacing: Metrics.s3 * k) {
             Text(label).tracked(13 * k, color: Palette.cream.opacity(0.85))
+                .opacity(hit ? 1 : 0)
             Text(poet.name)
-                .font(Typeface.display(76 * k, weight: 900))
+                // A lower optical size keeps Bodoni's hairlines (the arm of a "y") visible from across the room.
+                .font(Typeface.display(84 * k, weight: 800, opticalSize: 36))
                 .foregroundStyle(Palette.cream)
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
+                .scaleEffect(hit ? 1 : 1.5, anchor: .leading)
+                .opacity(hit ? 1 : 0)
             if !poet.epithet.isEmpty {
                 Text(poet.epithet)
-                    .font(Typeface.display(28 * k, weight: 600, italic: true))
+                    .font(Typeface.display(32 * k, weight: 600, italic: true))
                     .foregroundStyle(Palette.ink)
                     .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, Metrics.s3 * k)
-                    .padding(.vertical, Metrics.s1 * k)
-                    .background(Palette.cream, in: RoundedRectangle(cornerRadius: 4 * k))
-                    .offset(x: landed ? 0 : 60 * k)
-                    .opacity(landed ? 1 : 0)
-                    .animation(Motion.stamp.delay(0.18), value: landed)
+                    .padding(.horizontal, Metrics.s4 * k)
+                    .padding(.vertical, Metrics.s2 * k)
+                    .background(Palette.cream, in: Rectangle())
+                    .rotationEffect(.degrees(taped ? -1.5 : -7), anchor: .leading)
+                    .scaleEffect(taped ? 1 : 1.6, anchor: .leading)
+                    .opacity(taped ? 1 : 0)
             }
         }
         .padding(.vertical, Metrics.s6 * k)
         .padding(.leading, Metrics.s7 * k)
         .padding(.trailing, Metrics.s8 * k)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .background(alignment: .trailing) {
+            ShardBurst(inks: [poet.ink, Palette.cream, Palette.gold, Palette.ink], trigger: hit, k: k)
+        }
         .paper(poet.ink, radius: 0)
-        .offset(x: landed ? 0 : -1400)
-        .animation(.spring(response: 0.42, dampingFraction: 0.78), value: landed)
-        .onAppear { landed = true }
+        // A second slab in ink, a step behind: layered cut paper.
+        .background(Palette.ink.offset(x: 0, y: 9 * k).opacity(slabIn ? 1 : 0))
+        .rotationEffect(.degrees(slabIn ? 0 : -2.5), anchor: .trailing)
+        .offset(x: slabIn ? 0 : -1700)
+        .task {
+            guard !hit else { return }
+            if reduceMotion {
+                slabIn = true; hit = true; taped = true
+                onImpact?()
+                return
+            }
+            // Accelerate into the hit, like a thrown slab, not a slide.
+            withAnimation(.timingCurve(0.6, 0, 1, 0.6, duration: Self.impact)) { slabIn = true }
+            try? await Task.sleep(for: .seconds(Self.impact))
+            onImpact?()
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) { hit = true }
+            try? await Task.sleep(for: .seconds(0.16))
+            withAnimation(.spring(response: 0.24, dampingFraction: 0.48)) { taped = true }
+        }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(label) \(poet.fullName)")
+    }
+}
+
+/// Cut-paper shards thrown off an impact point (the view's trailing edge),
+/// then falling and fading. Flat triangles, no glow.
+struct ShardBurst: View {
+    let inks: [Color]
+    let trigger: Bool
+    let k: CGFloat
+
+    var body: some View {
+        ZStack {
+            ForEach(0..<14, id: \.self) { i in
+                // Deterministic per shard, so a re-render never reshuffles them.
+                let a = Double(i) * 2.39996 + 0.4
+                let reach = (90 + Double((i * 37) % 120)) * k
+                let dx = cos(a) * reach * 1.3 + 40 * k
+                let dy = sin(a) * reach * 0.8
+                let size = (10 + Double((i * 13) % 14)) * k
+                Shard()
+                    .fill(inks[i % inks.count])
+                    .frame(width: size, height: size * 0.8)
+                    .keyframeAnimator(initialValue: ShardState(), trigger: trigger) { shard, v in
+                        shard
+                            .rotationEffect(.degrees(v.spin))
+                            .offset(x: v.x, y: v.y)
+                            .opacity(v.opacity)
+                    } keyframes: { _ in
+                        KeyframeTrack(\.x) {
+                            MoveKeyframe(0)
+                            CubicKeyframe(dx, duration: 0.55)
+                        }
+                        KeyframeTrack(\.y) {
+                            MoveKeyframe(0)
+                            CubicKeyframe(dy, duration: 0.3)
+                            CubicKeyframe(dy + 140 * k, duration: 0.5)
+                        }
+                        KeyframeTrack(\.spin) {
+                            MoveKeyframe(0)
+                            LinearKeyframe(Double(i % 2 == 0 ? 280 : -320), duration: 0.8)
+                        }
+                        KeyframeTrack(\.opacity) {
+                            MoveKeyframe(trigger ? 1 : 0)
+                            LinearKeyframe(1, duration: 0.45)
+                            LinearKeyframe(0, duration: 0.35)
+                        }
+                    }
+            }
+        }
+        .frame(width: 1, height: 1)
+        .allowsHitTesting(false)
+    }
+
+    struct ShardState {
+        var x = 0.0
+        var y = 0.0
+        var spin = 0.0
+        var opacity = 0.0
+    }
+
+    private struct Shard: Shape {
+        func path(in r: CGRect) -> Path {
+            Path { p in
+                p.move(to: CGPoint(x: r.minX, y: r.maxY))
+                p.addLine(to: CGPoint(x: r.midX * 1.2, y: r.minY))
+                p.addLine(to: CGPoint(x: r.maxX, y: r.maxY * 0.85))
+                p.closeSubpath()
+            }
+        }
     }
 }
 
@@ -256,23 +358,40 @@ struct ChampionView: View {
     let poet: PoetPlate
     var onRematch: (() -> Void)? = nil
     var onNewPoets: (() -> Void)? = nil
+    /// Fired once, on the frame the crown lands: the crown cue.
+    var onCrown: (() -> Void)? = nil
+
+    @State private var crowned = false
+    @State private var named = false
     @Environment(\.stage) private var stage
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         let k = stage.scale
         VStack(spacing: Metrics.s5 * k) {
-            // The crown plate: the champion's seat color, gold lettering above the name.
+            // The crown plate: the champion's seat color, a gold laurel landing on the name.
             VStack(spacing: Metrics.s2 * k) {
+                LaurelCrown()
+                    .fill(crownInk)
+                    .frame(width: 250 * k, height: 104 * k)
+                    .scaleEffect(crowned ? 1 : 1.9)
+                    .offset(y: crowned ? 0 : -260 * k)
+                    .rotationEffect(.degrees(crowned ? 0 : -8))
+                    .opacity(crowned ? 1 : 0)
+                    .background { ShardBurst(inks: [Palette.gold, Palette.cream, poet.ink], trigger: crowned, k: k) }
                 Text("Champion of the Agon").chip(12 * k, fill: Palette.cream, color: Palette.ink)
                 Text(poet.name)
-                    .font(Typeface.display(88 * k, weight: 900))
+                    .font(Typeface.display(96 * k, weight: 800, opticalSize: 36))
                     .foregroundStyle(Palette.cream)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
+                    .scaleEffect(named ? 1 : 1.35)
+                    .opacity(named ? 1 : 0)
                 if !poet.epithet.isEmpty {
                     Text(poet.epithet)
-                        .font(Typeface.display(28 * k, weight: 600, italic: true))
+                        .font(Typeface.display(30 * k, weight: 600, italic: true))
                         .foregroundStyle(Palette.cream)
+                        .opacity(named ? 1 : 0)
                 }
                 Text("\(poet.total) points")
                     .font(Typeface.numeral(17 * k, weight: 650))
@@ -290,6 +409,100 @@ struct ChampionView: View {
             }
         }
         .padding(.horizontal, Metrics.s4 * k)
+        .task {
+            guard !crowned else { return }
+            if reduceMotion {
+                named = true; crowned = true
+                onCrown?()
+                return
+            }
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) { named = true }
+            try? await Task.sleep(for: .seconds(0.45))
+            // The crown drops and hits.
+            withAnimation(.timingCurve(0.55, 0, 1, 0.5, duration: 0.24)) { crowned = true }
+            try? await Task.sleep(for: .seconds(0.24))
+            onCrown?()
+        }
+    }
+
+    /// Gold, unless the plate is already gold-ish (a mustard seat): then cream, so the crown never vanishes.
+    private var crownInk: Color {
+        func luma(_ c: Color) -> CGFloat {
+            var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0
+            UIColor(c).getRed(&r, green: &g, blue: &b, alpha: nil)
+            return 0.2126 * r + 0.7152 * g + 0.0722 * b
+        }
+        return abs(luma(Palette.gold) - luma(poet.ink)) < 0.18 ? Palette.cream : Palette.gold
+    }
+}
+
+/// A laurel crown in cut paper: two branches of leaves curving up from a tie
+/// at the bottom, open at the top.
+struct LaurelCrown: Shape {
+    func path(in r: CGRect) -> Path {
+        var p = Path()
+        let base = CGPoint(x: r.midX, y: r.maxY - r.height * 0.06)
+        for side in [-1.0, 1.0] {
+            // Leaves along a quarter-ellipse from the tie up to the tip.
+            for i in 0..<7 {
+                let t = Double(i) / 6
+                let a = .pi / 2 + side * t * .pi * 0.5
+                let cx = r.midX + side * (r.width * 0.46) * sin(t * .pi / 2)
+                let cy = base.y - (r.height * 0.86) * (1 - cos(t * .pi / 2)) - r.height * 0.04
+                let len = r.height * (0.34 - 0.08 * t)
+                let wid = len * 0.42
+                let tilt = a + side * 0.9
+                var leaf = Path(ellipseIn: CGRect(x: -len / 2, y: -wid / 2, width: len, height: wid))
+                leaf = leaf.applying(CGAffineTransform(translationX: len * 0.45, y: 0))
+                    .applying(CGAffineTransform(rotationAngle: tilt - .pi))
+                    .applying(CGAffineTransform(translationX: cx, y: cy))
+                p.addPath(leaf)
+            }
+        }
+        // The tie.
+        p.addEllipse(in: CGRect(x: base.x - r.height * 0.07, y: base.y - r.height * 0.07, width: r.height * 0.14, height: r.height * 0.14))
+        return p
+    }
+}
+
+/// Cut-paper confetti falling across the whole arena for a few seconds: flat
+/// rectangles in the given inks, fluttering as they turn. Matte, never glitter.
+struct ConfettiFall: View {
+    let inks: [Color]
+    var seconds: Double = 6
+    @State private var start = Date()
+    @Environment(\.stage) private var stage
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        if !reduceMotion {
+            TimelineView(.animation(paused: Date().timeIntervalSince(start) > seconds + 3)) { context in
+                Canvas { ctx, size in
+                    let t = context.date.timeIntervalSince(start)
+                    let k = stage.scale
+                    for i in 0..<70 {
+                        let seed = Double(i)
+                        let delay = (seed * 0.6180339).truncatingRemainder(dividingBy: 1) * seconds * 0.6
+                        let age = t - delay
+                        guard age > 0 else { continue }
+                        let fall = size.height * (0.18 + 0.1 * (seed * 0.37).truncatingRemainder(dividingBy: 1))
+                        let y = -30 + age * fall
+                        guard y < size.height + 30 else { continue }
+                        let x = size.width * (seed * 0.7548776).truncatingRemainder(dividingBy: 1) + sin(age * 2.2 + seed) * 26 * k
+                        let w = (10.0 + Double(i % 4) * 3) * k
+                        let flip = cos(age * (3 + Double(i % 5)) + seed)
+                        var piece = ctx
+                        piece.translateBy(x: x, y: y)
+                        piece.rotate(by: .radians(age * (i % 2 == 0 ? 2.4 : -2.0) + seed))
+                        piece.scaleBy(x: max(0.08, abs(flip)), y: 1)
+                        piece.opacity = min(1, max(0, (seconds + 2 - age) / 2))
+                        piece.fill(Path(CGRect(x: -w / 2, y: -w * 0.32, width: w, height: w * 0.64)),
+                                   with: .color(inks[i % inks.count]))
+                    }
+                }
+            }
+            .allowsHitTesting(false)
+        }
     }
 }
 
