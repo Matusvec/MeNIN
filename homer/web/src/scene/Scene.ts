@@ -3,15 +3,19 @@
 // a finish pass grades it at screen resolution (devicePixelRatio capped at 1.25).
 // 60 fps while a voice is live, 30 otherwise, and nothing at all in a hidden tab.
 
-import { MOOD_COUNT, STYLES, ink, type EmotionWeights } from './moods'
+import { MOOD_COUNT, STYLES, ink, type EmotionWeights, type SceneTheme } from './moods'
 import { FLECK_COUNT, FLECK_STRIDE, RIPPLE_COUNT, SceneMotion } from './motion'
 import { FIELD_FRAG, FINISH_FRAG, FLECK_FRAG, FLECK_VERT, FULLSCREEN_VERT } from './shaders'
 
 const MAX_DPR = 1.25
 /** The field renders at this fraction of the canvas: it's soft paint, the finish adds the grain. */
 const FIELD_SCALE = 0.5
-/** The page's white point (cool, for HohHamNap's sky) and a whisper of vignette. */
-const WHITE: [number, number, number] = [0.99, 0.995, 1.0]
+/** The page's white point (cool, for HohHamNap's sky; cooler still behind a debate) and a whisper of vignette. */
+const WHITE: Record<SceneTheme, [number, number, number]> = {
+  poetry: [0.99, 0.995, 1.0],
+  debate: [0.965, 0.985, 1.0],
+  coach: [0.995, 0.995, 0.99],
+}
 const VIGNETTE = 0.05
 
 type Program = { program: WebGLProgram; u: Record<string, WebGLUniformLocation | null> }
@@ -50,7 +54,7 @@ export class MeninScene {
     this.fleck = this.link(FLECK_VERT, FLECK_FRAG, ['uView'])
     this.finish = this.link(FULLSCREEN_VERT, FINISH_FRAG, ['uScene', 'uA', 'uB'])
 
-    STYLES.forEach((style, m) => style.inks.forEach((hex, i) => this.inks.set(ink(hex), (m * 4 + i) * 3)))
+    this.loadInks()
 
     this.emptyVao = gl.createVertexArray()!
     this.fleckVao = gl.createVertexArray()!
@@ -70,6 +74,25 @@ export class MeninScene {
     this.motion.reducedMotion = this.reducedQuery.matches
     document.addEventListener('visibilitychange', this.onVisibility)
     canvas.addEventListener('webglcontextlost', this.onLost)
+  }
+
+  /** Which room the sea is behind: poetry, debate (cooler, sharper) or coach (calmer). */
+  setTheme(theme: SceneTheme) {
+    if (this.motion.theme === theme) return
+    this.motion.theme = theme
+    this.loadInks()
+  }
+
+  /** A new word landed on screen at (fx, fy), as fractions of the viewport. */
+  word(fx: number, fy: number) {
+    this.motion.word(fx, fy)
+  }
+
+  private loadInks() {
+    STYLES.forEach((style, m) => {
+      const inks = m === 0 ? this.motion.restInks() : style.inks
+      inks.forEach((hex, i) => this.inks.set(ink(hex), (m * 4 + i) * 3))
+    })
   }
 
   setEmotion(weights: EmotionWeights | null) {
@@ -177,7 +200,8 @@ export class MeninScene {
     gl.bindTexture(gl.TEXTURE_2D, this.fieldTex)
     gl.uniform1i(this.finish.u.uScene, 0)
     gl.uniform4f(this.finish.u.uA, w, h, this.motion.time, VIGNETTE)
-    gl.uniform4f(this.finish.u.uB, WHITE[0], WHITE[1], WHITE[2], 0)
+    const white = WHITE[this.motion.theme]
+    gl.uniform4f(this.finish.u.uB, white[0], white[1], white[2], 0)
     gl.bindVertexArray(this.emptyVao)
     gl.drawArrays(gl.TRIANGLES, 0, 3)
     gl.bindVertexArray(null)

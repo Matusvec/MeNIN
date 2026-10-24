@@ -123,6 +123,20 @@ export const STYLES: MoodStyle[] = [
   },
 ]
 
+/** Which room the sea is behind. Each has its own rest and character. */
+export type SceneTheme = 'poetry' | 'debate' | 'coach'
+
+/** Debate rests on a cool sage-slate sea (Socrates' olive, cooled). */
+export const DEBATE_REST: [number, number, number, number] = [0x8fa59f, 0xadc0b9, 0xc8d6d0, 0xe1eae6]
+
+/** How each room bends every mood's motion: debate is sharper and quicker,
+ *  Talk to Homer calmer. Poetry is the reference. */
+export const THEME_MOTION: Record<SceneTheme, { speed: number; amp: number; turb: number; jag: number; soft: number; strike: number }> = {
+  poetry: { speed: 1, amp: 1, turb: 1, jag: 0, soft: 1, strike: 1 },
+  debate: { speed: 1.15, amp: 1, turb: 1.1, jag: 0.3, soft: 0.5, strike: 1 },
+  coach: { speed: 0.55, amp: 0.75, turb: 0.8, jag: 0, soft: 1.3, strike: 0.6 },
+}
+
 /** One ink as linear-ish 0...1 RGB (the inks are authored in sRGB and passed through untouched, as on iOS). */
 export function ink(hex: number): [number, number, number] {
   return [((hex >> 16) & 255) / 255, ((hex >> 8) & 255) / 255, (hex & 255) / 255]

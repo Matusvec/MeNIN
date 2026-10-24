@@ -5,7 +5,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import type { EmotionWeights } from './moods'
+import type { EmotionWeights, SceneTheme } from './moods'
 import { MeninScene } from './Scene'
 
 export type SceneBackdropProps = {
@@ -19,9 +19,15 @@ export type SceneBackdropProps = {
   hits: number
   /** Changes per turn, so a new speaker's hit count starts fresh. */
   turnKey: string
+  /** Which room: poetry (default), debate (cooler, sharper) or coach (calmer). */
+  theme?: SceneTheme
+  /** The newest word on screen: `n` counts words this turn; (x, y) is where it
+   *  landed, as fractions of the viewport. Each new word sends a small ripple
+   *  from there, and loud syllables strike from there too. */
+  word?: { n: number; x: number; y: number } | null
 }
 
-export default function SceneBackdrop({ emotion, energy, pitch, hits, turnKey }: SceneBackdropProps) {
+export default function SceneBackdrop({ emotion, energy, pitch, hits, turnKey, theme = 'poetry', word = null }: SceneBackdropProps) {
   const canvas = useRef<HTMLCanvasElement>(null)
   const scene = useRef<MeninScene | null>(null)
   const [on, setOn] = useState(false)
@@ -52,8 +58,21 @@ export default function SceneBackdrop({ emotion, energy, pitch, hits, turnKey }:
   }, [emotionKey, on])
 
   useEffect(() => {
+    scene.current?.setTheme(theme)
+  }, [theme, on])
+
+  useEffect(() => {
     scene.current?.setProsody(energy, pitch)
   }, [energy, pitch, on])
+
+  // Each new word ripples from where it landed; a new turn starts the count over.
+  const words = useRef({ turnKey, n: 0 })
+  useEffect(() => {
+    if (!word) return
+    if (words.current.turnKey !== turnKey) words.current = { turnKey, n: 0 }
+    if (word.n > words.current.n) scene.current?.word(word.x, word.y)
+    words.current.n = word.n
+  }, [word?.n, word?.x, word?.y, turnKey])
 
   useEffect(() => {
     if (seen.current.turnKey !== turnKey) {

@@ -4,7 +4,7 @@
 // each frame. Everything is integrated over time, so a change in speed never
 // makes the shapes jump.
 
-import { EMOTIONS, MOOD_COUNT, STYLES, ink, type EmotionWeights, type FieldMotion } from './moods'
+import { DEBATE_REST, EMOTIONS, MOOD_COUNT, STYLES, THEME_MOTION, ink, type EmotionWeights, type FieldMotion, type SceneTheme } from './moods'
 
 export const RIPPLE_COUNT = 6
 export const FLECK_COUNT = 360
@@ -36,6 +36,10 @@ export type Uniforms = {
 export class SceneMotion {
   aspect = 1
   reducedMotion = false
+  theme: SceneTheme = 'poetry'
+  /** Where the words appear on screen (scene units): onsets and word ripples come from here,
+   *  so a flash comes out of the poet's mouth. Defaults to the lower middle. */
+  private mouth: [number, number] = [0, -0.15]
   readonly flecks = new Float32Array(FLECK_COUNT * FLECK_STRIDE)
   readonly uniforms: Uniforms = {
     a: [0, 0, 0, 0],
@@ -95,7 +99,25 @@ export class SceneMotion {
 
   /** True while a voice is live: the renderer runs at 60 fps then. */
   get voiced() {
-    return this.rawEnergy > 0.03 || this.punch > 0.05
+    return this.rawEnergy > 0.03 || this.punch > 0.05 || this.ripples.length > 0
+  }
+
+  /** The rest inks for the current room (debate rests on its own sea). */
+  restInks(): [number, number, number, number] {
+    return this.theme === 'debate' ? DEBATE_REST : STYLES[0].inks
+  }
+
+  /** A new word landed on screen at (fx, fy), as fractions of the viewport: a small
+   *  ripple from the text, and the place later onsets come from. */
+  word(fx: number, fy: number) {
+    this.mouth = [(fx - 0.5) * this.aspect, 0.5 - fy]
+    const m = THEME_MOTION[this.theme]
+    this.ring(this.mouth, 0.55 * m.strike)
+  }
+
+  private ring(at: [number, number], strength: number) {
+    this.ripples.push([at[0] + rand(-0.02, 0.02), at[1] + rand(-0.02, 0.02), 0, strength * (this.reducedMotion ? 0.4 : 1)])
+    if (this.ripples.length > RIPPLE_COUNT) this.ripples.shift()
   }
 
   setEmotion(weights: EmotionWeights | null) {
@@ -127,8 +149,8 @@ export class SceneMotion {
    *  hit: a big ring from the strike point, the layers jump and settle, and a
    *  burst of flecks scatters from it. Matte: motion and paper, never light. */
   strike(strength = 1) {
-    const s = Math.min(1.5, Math.max(0.2, strength))
-    const origin = [rand(-0.18, 0.18) * this.aspect, rand(-0.22, -0.04)]
+    const s = Math.min(1.5, Math.max(0.2, strength)) * THEME_MOTION[this.theme].strike
+    const origin = [this.mouth[0] + rand(-0.05, 0.05), this.mouth[1] + rand(-0.04, 0.04)]
     this.ripples.push([origin[0], origin[1], 0, (this.reducedMotion ? 0.8 : 2.2) * s])
     if (this.ripples.length > RIPPLE_COUNT) this.ripples.shift()
     this.lastOnset = this.clock
@@ -141,9 +163,10 @@ export class SceneMotion {
     const dt = Math.min(rawDt, 0.1)
     this.clock += dt
 
-    // Voice: fast attack, slower release, plus a slow envelope for overall activity.
+    // Voice, in real time: 20 Hz prosody eased to the frame rate with no more than
+    // ~80 ms of lag either way, plus a slow envelope for overall activity.
     const e = this.rawEnergy
-    this.energy = ease(this.energy, e, e > this.energy ? 0.04 : 0.22, dt)
+    this.energy = ease(this.energy, e, e > this.energy ? 0.035 : 0.08, dt)
     this.energySlow = ease(this.energySlow, e, 1.4, dt)
     this.energyBase = ease(this.energyBase, this.energy, 0.35, dt)
     const hz = this.rawPitch
@@ -155,12 +178,16 @@ export class SceneMotion {
       this.pitchDev = ease(this.pitchDev, 0, 0.6, dt)
     }
 
-    // A sharp rise in loudness is a stressed syllable: send a ripple.
+    // A sharp rise in loudness is a stressed syllable: a strike ring out of the
+    // poet's mouth, its size from how loud, with a few flecks thrown off it.
     const rise = this.energy - this.energyBase
-    if (rise > 0.11 && this.energy > 0.18 && this.clock - this.lastOnset > 0.2) {
+    if (rise > 0.11 && this.energy > 0.18 && this.clock - this.lastOnset > 0.16) {
       this.lastOnset = this.clock
-      this.ripples.push([rand(-0.3, 0.3) * this.aspect, rand(-0.3, 0.05), 0, Math.min(1, rise * 4)])
-      if (this.ripples.length > RIPPLE_COUNT) this.ripples.shift()
+      const m = THEME_MOTION[this.theme]
+      const s = Math.min(1.3, Math.max(0.3, this.energy * 1.4)) * m.strike
+      this.ring(this.mouth, 1.5 * s)
+      this.punch = Math.min(1.6, this.punch + 0.35 * s)
+      if (!this.reducedMotion) this.burst(this.mouth, Math.floor(12 * s))
     }
     this.punch = ease(this.punch, 0, 0.32, dt)
     for (const r of this.ripples) r[2] += dt
@@ -193,6 +220,13 @@ export class SceneMotion {
       F.tilt += k * m.tilt
       F.amp += k * m.amp
     }
+    // The room's character: debate sharper and quicker, Talk to Homer calmer.
+    const T = THEME_MOTION[this.theme]
+    F.speed *= T.speed
+    F.amp *= T.amp
+    F.turb *= T.turb
+    F.jag = Math.min(1, F.jag + T.jag)
+    F.soft *= T.soft
     const en = this.energy
     // Loudness drives the motion: a full voice runs the sea at more than twice its resting pace.
     this.flow += F.speed * (1 + 1.6 * en + 2.5 * this.punch) * calm * dt
@@ -243,7 +277,7 @@ export class SceneMotion {
 
   private spawn(i: number) {
     const m = this.pickMood()
-    const style = STYLES[m]
+    const style = m === 0 ? { ...STYLES[0], inks: this.restInks() } : STYLES[m]
     const f = style.flecks
     const halfW = this.aspect / 2
     let x = 0
@@ -320,7 +354,7 @@ export class SceneMotion {
 
   /** Wakes `count` flecks at a point and throws them outward in the leading mood's ink. */
   private burst(origin: number[], count: number) {
-    const style = STYLES[this.dominant]
+    const style = this.dominant === 0 ? { ...STYLES[0], inks: this.restInks() } : STYLES[this.dominant]
     const f = style.flecks
     for (let n = 0; n < count; n++) {
       const i = this.burstCursor
