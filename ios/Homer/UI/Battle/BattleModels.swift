@@ -143,15 +143,18 @@ struct PlayerActions {
     var done: (() -> Void)?
     /// Debate: a move card tapped as the speaker makes it (the card's id).
     var playMove: ((String) -> Void)?
+    /// Back out (to home). Shown as a back arrow in the header when set.
+    var leave: (() -> Void)?
 
     init(join: ((String, String) -> Void)? = nil, imHere: (() -> Void)? = nil, ready: (() -> Void)? = nil,
          setTalking: ((Bool) -> Void)? = nil, done: (() -> Void)? = nil,
-         playMove: ((String) -> Void)? = nil) {
+         playMove: ((String) -> Void)? = nil, leave: (() -> Void)? = nil) {
         self.join = join
         self.imHere = imHere
         self.ready = ready
         self.setTalking = setTalking
         self.done = done
         self.playMove = playMove
+        self.leave = leave
     }
 }

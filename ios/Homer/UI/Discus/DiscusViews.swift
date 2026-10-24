@@ -84,7 +84,7 @@ struct DiscusArenaScreen: View {
     var code: String? = nil
 
     var body: some View {
-        DiscusArenaCanvas(model: model, code: code).arenaStage()
+        DiscusArenaCanvas(model: model, code: code).arenaStage().sceneBehind()
     }
 }
 

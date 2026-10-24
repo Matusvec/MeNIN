@@ -9,7 +9,7 @@ struct ArenaView: View {
     var actions = ArenaActions()
 
     var body: some View {
-        ArenaCanvas(model: model, actions: actions).arenaStage()
+        ArenaCanvas(model: model, actions: actions).arenaStage().sceneBehind()
     }
 }
 
@@ -389,6 +389,7 @@ struct ArenaStartView: View {
     var body: some View {
         ArenaStartCanvas(status: status, resumeCode: resumeCode, onStart: onStart, onDemo: onDemo, onResume: onResume)
             .arenaStage()
+            .sceneBehind()
     }
 }
 

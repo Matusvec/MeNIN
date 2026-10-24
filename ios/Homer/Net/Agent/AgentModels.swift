@@ -118,6 +118,59 @@ enum JudgeEvent: Equatable, Sendable {
     case scorecard(JudgeResult)
 }
 
+/// One Bard lesson from GET /lessons (parsed live from content/lessons.md).
+struct Lesson: Decodable, Equatable, Sendable, Identifiable {
+    var id: String
+    var n: Int
+    var title: String
+    var move: String
+    var exercise: [String]?
+    var exerciseSpoken: String?
+    var demo: [String]
+    var demoSpoken: String
+    var demoLane: BeatLane?
+    var success: String
+    var feedback: Bool?
+
+    /// Lines the poet speaks per try (docs/ux-flow.md section 2, "You try").
+    var tryLines: Int {
+        switch id {
+        case "beat", "answer": 2
+        case "turn": 4
+        default: 1
+        }
+    }
+}
+
+struct LessonFeedbackRequest: Encodable, Sendable {
+    var lesson: String
+    var transcript: String
+    var bpm: Double
+    /// 1-based try number within the lesson: P10 help comes back on 3, a walkthrough from 5.
+    var tryNo: Int
+    /// Stressed peaks in ms from beat 1 (on-device onsets), so "rushing the drum" works without word timings.
+    var onsetsMs: [Double]?
+    var hand: [String]?
+    var rescue: String?
+    var name: String?
+}
+
+struct LessonFeedback: Decodable, Equatable, Sendable {
+    struct Help: Decodable, Equatable, Sendable {
+        var kind: String  // "half" after the 3rd miss, "walkthrough" from the 5th (and the lesson lands)
+        var say: String
+        var half: String?
+        var line: String?
+    }
+
+    var landed: Bool
+    var line: String
+    var miss: String?
+    var title: String?
+    var scan: VerseScan?
+    var help: Help?
+}
+
 struct EmotionRequest: Encodable, Sendable {
     var text: String
     var loudness: Double?

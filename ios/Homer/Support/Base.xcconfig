@@ -1,0 +1,5 @@
+// Build settings shared by every configuration. Committed.
+// Secrets live in Secrets.xcconfig next to this file (gitignored); without it the app key is
+// empty, and the agent service accepts that only until HOMER_APP_KEY_REQUIRED is turned on.
+HOMER_APP_KEY =
+#include? "Secrets.xcconfig"

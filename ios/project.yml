@@ -30,8 +30,13 @@ targets:
       - path: Homer
         excludes:
           - "UI/Fonts/*.txt"
+          - "Support/*.xcconfig"
     dependencies:
       - package: SpacetimeDB
+    configFiles:
+      # HOMER_APP_KEY comes from the gitignored Support/Secrets.xcconfig via Base.xcconfig.
+      Debug: Homer/Support/Base.xcconfig
+      Release: Homer/Support/Base.xcconfig
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.matusvec.homer
@@ -53,6 +58,8 @@ targets:
         UIApplicationSupportsIndirectInputEvents: true
         NSMicrophoneUsageDescription: Homer listens to your verses so he can keep the beat and judge them.
         ITSAppUsesNonExemptEncryption: false
+        # Sent as X-Homer-Key on agent requests; the value is a build setting, never in the repo.
+        HomerAppKey: $(HOMER_APP_KEY)
         NSLocalNetworkUsageDescription: Homer connects to the battle server on this network.
         # QR codes on the arena encode homer://join/<ROOM>; the Camera app opens the app directly.
         CFBundleURLTypes:

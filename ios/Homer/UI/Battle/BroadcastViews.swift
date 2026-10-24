@@ -76,10 +76,10 @@ struct RoundTitleView: View {
         let k = stage.scale
         VStack(spacing: Metrics.s4 * k) {
             Text("Round \(roman(round)) of \(roman(rounds))").chip(13 * k)
-            Text(theme)
-                .font(Typeface.display(54 * k, weight: 900))
+            Text(theme.isEmpty ? "Homer is choosing the theme…" : theme)
+                .font(Typeface.display(54 * k, weight: theme.isEmpty ? 400 : 900, italic: theme.isEmpty))
                 .displayLeading(54 * k, 1.05)
-                .foregroundStyle(Palette.ink)
+                .foregroundStyle(theme.isEmpty ? Palette.ink3 : Palette.ink)
                 .multilineTextAlignment(.center)
                 .lineLimit(3)
                 .minimumScaleFactor(0.6)

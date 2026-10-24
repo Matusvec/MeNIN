@@ -5,6 +5,8 @@ import SwiftUI
 /// typed field stands in during your turn, as a dev fallback.
 struct PlayerScreen: View {
     var initialCode = ""
+    /// The way out from the art lead's header (a back arrow before the wordmark).
+    var onLeave: (() -> Void)? = nil
 
     @State private var battle = BattleClient(role: .player)
     @State private var autopilot: DevAutopilot?
@@ -21,7 +23,7 @@ struct PlayerScreen: View {
                     .safeAreaInset(edge: .bottom) { typedFallback }
             }
         }
-            .toolbar(battle.me == nil ? .automatic : .hidden, for: .navigationBar)
+            .toolbar(.hidden, for: .navigationBar)
             .task {
                 MusicDirector.shared.stopAll()
                 battle.connect(to: ServerConfig.spacetime, database: ServerConfig.database)
@@ -64,6 +66,10 @@ struct PlayerScreen: View {
                     battle.endTurn(turn.id, draft)
                     draft = ""
                 }
+            },
+            leave: {
+                if battle.me != nil { battle.leave() }
+                onLeave?()
             }
         )
     }

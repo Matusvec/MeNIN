@@ -23,6 +23,7 @@ struct PlayerView: View {
         .padding(.bottom, Metrics.s3)
         .animation(Motion.slide, value: momentKey)
         .animation(Motion.slide, value: model.homer?.text)
+        .sceneBehind()
     }
 
     private var momentKey: String {
@@ -42,6 +43,16 @@ struct PlayerView: View {
 
     private var header: some View {
         HStack(spacing: Metrics.s2) {
+            if let leave = actions.leave {
+                Button(action: leave) {
+                    Image("icon-arrow-right").renderingMode(.template).resizable()
+                        .frame(width: 16, height: 16)
+                        .rotationEffect(.degrees(180))
+                        .foregroundStyle(Palette.accent)
+                        .frame(width: 32, height: 32)
+                }
+                .accessibilityLabel("Leave")
+            }
             WordmarkView(size: 22)
             Spacer()
             if model.round > 0 {

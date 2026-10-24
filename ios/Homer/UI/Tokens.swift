@@ -330,6 +330,13 @@ extension View {
         }
     }
 
+    /// For a screen's root: lets the scene show through a NavigationStack (or
+    /// any navigation container), whose default background is opaque system
+    /// color. That paints charcoal over the scene in dark mode (the Mac arena).
+    func sceneBehind() -> some View {
+        containerBackground(.clear, for: .navigation)
+    }
+
     /// Type set straight on the scene, lifted by a soft shadow. Use only for
     /// short labels; anything that must be read sits on paper.
     func onScene(_ color: Color = Palette.paper) -> some View {

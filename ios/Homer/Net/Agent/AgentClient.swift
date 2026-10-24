@@ -61,7 +61,9 @@ struct AgentClient: Sendable {
         struct Themes: Decodable { var themes: [String] }
         var components = URLComponents(url: base.appending(path: "themes"), resolvingAgainstBaseURL: false)!
         components.queryItems = [URLQueryItem(name: "n", value: "\(n)"), URLQueryItem(name: "demo", value: demo ? "true" : "false")]
-        let (data, response) = try await session.data(from: components.url!)
+        var req = URLRequest(url: components.url!)
+        if !Self.appKey.isEmpty { req.setValue(Self.appKey, forHTTPHeaderField: "X-Homer-Key") }
+        let (data, response) = try await session.data(for: req)
         try check(response, body: data)
         return try JSONDecoder().decode(Themes.self, from: data).themes
     }
@@ -72,6 +74,21 @@ struct AgentClient: Sendable {
         struct Response: Decodable { var weights: EmotionWeights }
         let response: Response = try await post("emotion", request)
         return response.weights
+    }
+
+    func lessons(bpm: Int = 80) async throws -> [Lesson] {
+        struct Lessons: Decodable { var lessons: [Lesson] }
+        var components = URLComponents(url: base.appending(path: "lessons"), resolvingAgainstBaseURL: false)!
+        components.queryItems = [URLQueryItem(name: "bpm", value: "\(bpm)")]
+        var req = URLRequest(url: components.url!)
+        if !Self.appKey.isEmpty { req.setValue(Self.appKey, forHTTPHeaderField: "X-Homer-Key") }
+        let (data, response) = try await session.data(for: req)
+        try check(response, body: data)
+        return try JSONDecoder().decode(Lessons.self, from: data).lessons
+    }
+
+    func lessonFeedback(_ request: LessonFeedbackRequest) async throws -> LessonFeedback {
+        try await post("lesson/feedback", request)
     }
 
     func deal(_ request: DealRequest) async throws -> DealResponse {
@@ -111,8 +128,12 @@ struct AgentClient: Sendable {
 
     // MARK: plumbing
 
+    /// Keeps strangers from spending our credits through the public URL (homer/API.md).
+    static let appKey = (Bundle.main.object(forInfoDictionaryKey: "HomerAppKey") as? String) ?? ""
+
     private func makeRequest<B: Encodable>(_ path: String, _ body: B) throws -> URLRequest {
         var req = URLRequest(url: base.appending(path: path))
+        if !Self.appKey.isEmpty { req.setValue(Self.appKey, forHTTPHeaderField: "X-Homer-Key") }
         req.httpMethod = "POST"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.httpBody = try JSONEncoder().encode(body)

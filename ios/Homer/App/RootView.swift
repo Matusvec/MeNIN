@@ -20,6 +20,8 @@ struct RootView: View {
                 .ignoresSafeArea()
             content
         }
+        // The palette ignores the system scheme; pin system chrome to match it (dark-mode Mac arena).
+        .preferredColorScheme(Direction.current == .atelier ? .light : .dark)
         .onOpenURL { app.open($0) }
         .onChange(of: app.route, initial: true) { app.routeChanged() }
     }
@@ -66,10 +68,10 @@ struct RootView: View {
         case .arena(let event):
             Routed(app: app, title: "Arena") { ArenaScreen(event: event) }
         case .player(let code):
-            Routed(app: app, title: "Poet") { PlayerScreen(initialCode: code) }
+            Routed(app: app, title: "Poet") { PlayerScreen(initialCode: code, onLeave: { app.route = .home }) }
         case .bard:
-            // TODO: Bard lessons 1–3 (/lessons, /lesson/feedback).
-            Routed(app: app, title: "Bard") { Text("Lessons are coming.") }
+            // TODO(spec): the lesson path (2 and 3 next); lesson 1 ships for the 6 PM study.
+            Routed(app: app, title: "Bard") { BardScreen(app: app) }
         case .practice:
             Routed(app: app, title: "Practice") { PracticeScreen(app: app) }
         case .dev:
@@ -87,6 +89,8 @@ private struct Routed<Content: View>: View {
     var body: some View {
         NavigationStack {
             content
+                .containerBackground(.clear, for: .navigation)  // the scene shows behind every routed screen
+                .toolbarBackground(.hidden, for: .navigationBar)
                 .navigationTitle(title)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
