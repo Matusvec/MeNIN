@@ -38,6 +38,14 @@ def test_name_poet_keeps_a_fine_name_and_coins_an_epithet():
     assert sent["system"][0]["cache_control"]["ttl"] == "1h"
 
 
+def test_a_coined_epithet_that_misses_the_half_line_gives_way_to_one_that_fills_it():
+    h = host({"name": "Ana", "epithet": "Lord of the Endless Respawn", "coined": True,
+              "alternatives": ["Breaker of Controllers", "Respawn-Queen"]})
+    assert run(h.name_poet("Ana", "")) == ("Ana", "Breaker of Controllers", True)
+    kept = host({"name": "Priya", "epithet": "Salt-Tongued", "coined": False, "alternatives": ["Breaker of Waves"]})
+    assert run(kept.name_poet("Priya", "Salt-Tongued")) == ("Priya", "Salt-Tongued", False)  # theirs stays, hits or not
+
+
 def test_name_poet_without_claude_keeps_what_was_typed():
     h = host("not json")
     assert run(h.name_poet("Ada", "Iron-Hearted")) == ("Ada", "Iron-Hearted", False)
@@ -89,6 +97,13 @@ def test_song_drops_unknown_turns_and_caps_demo_at_four():
     lines = run(host(SONG).song([ADA, BO], demo=True))
     assert len(lines) == 4 and all(t in (1, 2) for t, _ in lines)
     assert len(run(host(SONG).song([ADA, BO]))) == 5
+
+
+def test_the_song_request_shows_each_lines_hits():
+    h = host(SONG)
+    run(h.song([ADA, BO], demo=True))
+    sent = h.client.calls[0]["messages"][0]["content"]
+    assert '<verse turn="1" poet="Ada, Iron-Hearted" hits="4 4">' in sent and 'hits="' in sent.split("<verse turn=\"2\"")[1]
 
 
 def test_song_without_claude_uses_the_poets_best_lines():

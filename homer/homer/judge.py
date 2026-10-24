@@ -45,6 +45,7 @@ SCORES = list(range(1, 11))
 COIN_MIN_CRAFT = 7  # SPEC "Hoard": a coined formula joins only if the judge rated the verse well
 
 VERDICT_RE = re.compile(r'"verdict"\s*:\s*"((?:[^"\\]|\\.)*)"')
+QUOTE_RE = re.compile(r'"quote"\s*:\s*"((?:[^"\\]|\\.)*)"')
 UNFIT_RE = re.compile(r'"fit"\s*:\s*false')
 MARKUP_RE = re.compile(r"[*_#`~<>\[\]{}|]")
 
@@ -101,6 +102,7 @@ class EmptyVerse(ValueError):
 def output_schema(event: Event) -> dict[str, Any]:
     props: dict[str, Any] = {
         "fit": {"type": "boolean"},
+        "quote": {"type": "string"},  # their words, said first; code joins it to the call (see spoken)
         "verdict": {"type": "string"},
         "best_line": {"type": "string"},
     }
@@ -123,6 +125,19 @@ def sentences(text: str, chunk: int = 24) -> list[str]:
         words = part.split()
         out.extend(" ".join(words[i : i + chunk]) for i in range(0, len(words), chunk))
     return [s for s in out if s]
+
+
+def spoken(quote: str, call: str) -> str:
+    """Their words, then Homer's call: "A plate by the door. That empty chair sank the fleet."
+
+    Claude writes the two apart (a copy, then a one-sentence call), which keeps
+    its thinking as short as the call alone; joining them here is free.
+    """
+    q = " ".join(MARKUP_RE.sub("", quote).split()).strip(" \"'“”.,;:!?—-")
+    c = clean_verdict(call)
+    if not q or q.lower() in c.lower():
+        return c
+    return clean_verdict(f"{q[:1].upper()}{q[1:]}. {c}" if c else f"{q[:1].upper()}{q[1:]}.")
 
 
 def clean_verdict(text: str) -> str:
@@ -300,7 +315,7 @@ class Judge:
 
         for axis in event.claude_axes:
             j.scores[axis.key] = max(1, min(10, int(data.get(axis.key, 1))))
-        j.verdict = clean_verdict(str(data.get("verdict", "")))
+        j.verdict = spoken(str(data.get("quote", "")), str(data.get("verdict", "")))
         j.best_line = self._best_line(str(data.get("best_line", "")), lines, fallback)
         if event.hoard:
             j.coined = self._coined(str(data.get("coined", "")), turn, lines, j.scores.get("craft", 0))
@@ -324,7 +339,8 @@ class Judge:
                 return
             sent = True
             j.timing["verdict"] = _ms(t0)
-            verdict = clean_verdict(json.loads(f'"{m.group(1)}"'))
+            q = QUOTE_RE.search(text)
+            verdict = spoken(json.loads(f'"{q.group(1)}"') if q else "", json.loads(f'"{m.group(1)}"'))
             if on_verdict and verdict and not UNFIT_RE.search(text):
                 result = on_verdict(verdict)
                 if asyncio.iscoroutine(result):

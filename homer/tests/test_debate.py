@@ -123,7 +123,7 @@ def turn(**kw):
 
 def test_schema_has_the_debate_axes_and_moves_and_no_hoard():
     props = list(output_schema(events.DEBATE)["properties"])
-    assert props == ["fit", "verdict", "best_line", "claim", "reason", "answer", "craft", "made"]
+    assert props == ["fit", "quote", "verdict", "best_line", "claim", "reason", "answer", "craft", "made"]
 
 
 def test_debate_judgment():

@@ -12,3 +12,4 @@ Fields:
   - Capitalize it like a title. Start with "the" only for a kenning ("the Sleep-Thief").
   - At most thirty-two characters.
 - `coined`: true if you coined the epithet, false if you kept theirs.
+- `alternatives`: when you coined, two more epithets you'd be just as proud of, by the same rules; the app keeps the first that fills half a line. Empty when you kept theirs.

@@ -21,7 +21,7 @@ from .deal import deal
 from .events import Event
 from .judge import clean_verdict, sentences
 from .prompts import attr, block, host_system, quote_untrusted
-from .scanner import VerseScan, scan_verse
+from .scanner import VerseScan, scan_verse, strong_hits
 
 NAME_MAX, EPITHET_MAX = 24, 32
 SONG_MAX, DEMO_SONG_MAX = 16, 4
@@ -88,12 +88,18 @@ class Host:
 
     async def name_poet(self, name: str, epithet: str = "", event: Event | None = None) -> tuple[str, str, bool]:
         """A PG name and an epithet (coined if they brought none). Returns (name, epithet, coined)."""
-        schema = claude.obj({"name": STR, "epithet": STR, "coined": {"type": "boolean"}})
+        ev = event or self.event
+        schema = claude.obj({"name": STR, "epithet": STR, "coined": {"type": "boolean"},
+                             "alternatives": {"type": "array", "items": STR}})
         data = await self._ask("poet", schema, block("name", name) + "\n\n" + block("epithet", epithet), event)
         if data is None:  # keep what they typed; the arena announces the bare name
             return name.strip()[:NAME_MAX] or "Nameless", epithet.strip()[:EPITHET_MAX], False
         new_name = clean_verdict(str(data.get("name", ""))).strip(".!?")[:NAME_MAX] or name.strip()[:NAME_MAX]
-        new_epithet = clean_verdict(str(data.get("epithet", ""))).strip(".!?")[:EPITHET_MAX]
+        options = [clean_verdict(str(e)).strip(".!?")[:EPITHET_MAX] for e in [data.get("epithet", ""), *data.get("alternatives", [])]]
+        options = [e for e in options if e]
+        new_epithet = options[0] if options else ""
+        if data.get("coined") and ev.beat:  # a coined epithet must fill half a line: the first the scanner hears as two hits
+            new_epithet = next((e for e in options if strong_hits(e) == 2), new_epithet)
         return new_name or "Nameless", new_epithet, bool(data.get("coined")) and new_epithet != epithet.strip()
 
     # ----- The round verdict and the carved line ---------------------------
@@ -142,7 +148,8 @@ class Host:
             return []
         schema = claude.obj({"lines": {"type": "array", "items": claude.obj({"turn": INT, "text": STR})}})
         body = "\n\n".join(
-            f'<verse turn="{v.turn_id}" poet="{attr(v.poet)}">\n{quote_untrusted(v.transcript.strip())}\n</verse>'
+            f'<verse turn="{v.turn_id}" poet="{attr(v.poet)}" hits="{" ".join(str(line.hits) for line in scan_verse(v.transcript).lines)}">\n'
+            f"{quote_untrusted(v.transcript.strip())}\n</verse>"
             for v in spoken
         )
         data = await self._ask("song", schema, f"max_lines: {cap}\n\n{body}")

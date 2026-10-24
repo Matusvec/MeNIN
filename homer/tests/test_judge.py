@@ -40,7 +40,7 @@ def test_request_is_one_cached_structured_call_with_no_tools():
     assert kw["system"][0]["cache_control"] == {"type": "ephemeral", "ttl": "1h"}
     assert kw["output_config"]["effort"] == "low"
     schema = kw["output_config"]["format"]["schema"]
-    assert list(schema["properties"]) == ["fit", "verdict", "best_line", "craft", "image", "answer", "coined"]
+    assert list(schema["properties"]) == ["fit", "quote", "verdict", "best_line", "craft", "image", "answer", "coined"]
     assert schema["additionalProperties"] is False
     assert "thinking" not in kw  # Opus 5.5 can't turn it off; low effort keeps it short
     assert kw["fallbacks"] == "default" and kw["betas"] == ["server-side-fallback-2026-07-01"]
@@ -174,6 +174,22 @@ def test_coined_formula_rules(coined, craft, turn_kw, kept):
     verse = COINED_VERSE + ("\nthe wine-dark sea" if "wine" in coined else "")
     judge, _ = make(reply(coined=coined, craft=craft, best_line="the storm-throated sky came down on me"))
     assert run(judge.judge(Turn(verse, **turn_kw))).coined == kept
+
+
+def test_the_spoken_verdict_is_their_words_then_the_call():
+    from homer.judge import spoken
+    assert spoken("a plate by the door,", "That empty chair sank the fleet.") == "A plate by the door. That empty chair sank the fleet."
+    assert spoken("", "Iron in the last line.") == "Iron in the last line."
+    assert spoken("the plate", "The plate by the door sank the fleet.") == "The plate by the door sank the fleet."  # no echo
+    assert spoken("a plate by the door", "One. Two. Three.") == "A plate by the door. One."  # still two sentences
+
+
+def test_the_streamed_verdict_carries_the_quote():
+    reply = {"fit": True, "quote": "salt in my teeth", "verdict": "Heavy.", "best_line": "x", "craft": 7, "image": 7, "answer": 7}
+    judge, _ = make(reply)
+    heard = []
+    j = run(judge.judge(Turn(VERSE), on_verdict=heard.append))
+    assert heard == [j.verdict] == ["Salt in my teeth. Heavy."]
 
 
 def test_clean_verdict_is_speakable():
