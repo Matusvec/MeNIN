@@ -623,6 +623,7 @@ async def get_lessons(bpm: float = 80) -> dict[str, Any]:
                 "demoSpoken": spoken_demo(l),
                 "demoLane": demo_lane(l, bpm),
                 "success": l.success,
+                "exerciseSpoken": l.exercise,  # what Homer says to set up the try
                 "exercise": l.exercise_lines,  # lines Homer speaks in the exercise (lessons 5 and 6), as notation
                 "feedback": True,
             }
@@ -658,6 +659,8 @@ class LessonFeedbackRequest(Model):
     name: str = ""  # the poet's name (lesson 3 finds the title after it)
     lines_expected: int | None = None
     prompt: str = ""  # lesson 5: the line Homer threw (one of the exercise's lines)
+    try_no: int = 0  # this try's number in the lesson, 1-based: P10's help comes after the 3rd and 5th
+    onsets_ms: list[float] | None = None  # lesson 1, with no word timings: the phone's stressed peaks, ms from beat 1
 
 
 @app.post("/lesson/feedback")
@@ -666,7 +669,8 @@ async def lesson_feedback_endpoint(req: LessonFeedbackRequest) -> dict[str, Any]
     if req.lesson not in lessons():
         raise HTTPException(404, f"no lesson {req.lesson}")
     attempt = Attempt(
-        req.lesson, req.transcript, _words(req), req.bpm, req.hand, req.rescue, req.name, req.lines_expected, req.prompt
+        req.lesson, req.transcript, _words(req), req.bpm, req.hand, req.rescue, req.name, req.lines_expected, req.prompt,
+        try_no=req.try_no, onsets_ms=req.onsets_ms,
     )
     try:
         f = await lesson_feedback(attempt, checks=LessonChecks())
@@ -677,6 +681,7 @@ async def lesson_feedback_endpoint(req: LessonFeedbackRequest) -> dict[str, Any]
         "line": f.line,
         "miss": f.miss,
         "title": f.title,
+        "help": f.help,
         "scan": scan_json(f.scan, req.bpm) if f.scan else None,
     }
 

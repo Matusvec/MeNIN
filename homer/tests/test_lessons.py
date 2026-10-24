@@ -219,3 +219,41 @@ def test_lesson_six_the_boast(boast, verse, miss, fill):
         assert f.line == f"You ended on {fill}. End on the word that hits hardest."
     if miss == "Image below 7":
         assert f.line == "Clean, but I can't see it. Put one thing in that line I could paint."
+
+
+# ----- P10: help after misses, and onsets ----------------------------------------
+
+
+def test_help_after_the_third_and_fifth_misses():
+    miss = "the cat sat on the mat\nthe road was long, the night was cold"
+    assert say("beat", miss, try_no=2).help is None
+    third = say("beat", miss, try_no=3)
+    assert not third.landed and third.help["kind"] == "half"
+    assert third.help["half"] == "the WIND was COLD /"
+    assert third.help["say"] == common()["Help after three misses"].replace("{half}", "the wind was cold")
+    assert say("beat", miss, try_no=4).help is None
+    fifth = say("beat", miss, try_no=5)
+    assert fifth.landed and fifth.help["kind"] == "walkthrough" and fifth.help["line"] == "the WIND was COLD / the WAVES were GREY"
+    assert fifth.help["say"] == common()["Walkthrough after five misses"].replace("{line}", "the wind was cold the waves were grey")
+    assert fifth.line == third.line  # Homer still names the miss; the walkthrough follows it
+
+
+def test_help_line_shows_each_lessons_move():
+    from homer.lessons import help_for
+
+    assert help_for(lessons()["turn"], 5)["line"].startswith("then I SAW my BROTHer")
+    assert help_for(lessons()["boast"], 5)["line"] == "the KINGS are DUST / and I'm STILL HERE"
+    assert help_for(lessons()["answer"], 3)["half"] == "but a CANdle in the RAIN /"
+
+
+def test_a_landed_try_needs_no_help():
+    f = say("beat", "the road was long, the night was cold\nI walked alone, I walked in the rain", try_no=5)
+    assert f.landed and f.help is None
+
+
+def test_onsets_hear_rushing_without_word_timings():
+    lines = "the road was long, the night was cold\nI walked alone, I walked in the rain"
+    early = [k * 750 - 150 for k in range(8)]
+    on = [k * 750 + 10 for k in range(8)]
+    assert say("beat", lines, bpm=80, onsets_ms=early).miss == "Ahead of the drum"
+    assert say("beat", lines, bpm=80, onsets_ms=on).landed

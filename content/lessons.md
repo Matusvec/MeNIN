@@ -24,7 +24,7 @@ The six lesson scripts for Bard mode. The flow they run in is in `docs/ux-flow.m
 | Returning to an unfinished lesson | "Back again. We were on {title}." |
 | Fewer lines than the exercise asks for | "You stopped short. I asked for {lines} lines. Finish it." |
 | Help after three misses | "I'll start it. You finish it. {half}" |
-| Walkthrough after five misses | "Say it with me, and hit what I hit. {line}" |
+| Walkthrough after five misses | "Hear where the hits fall. {line}" |
 
 ---
 

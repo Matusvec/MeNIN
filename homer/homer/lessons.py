@@ -157,6 +157,8 @@ class Attempt:
     name: str = ""  # lesson 3: the poet's name, to find the title after it
     lines_expected: int | None = None  # the exercise's count when None
     prompt: str = ""  # lesson 5: the line Homer threw (notation or plain)
+    try_no: int = 0  # this try's number within the lesson, 1-based (P10: help after 3 and 5 misses)
+    onsets_ms: list[float] | None = None  # lesson 1: the phone's stressed peaks, ms from beat 1 (no word timings)
     facts: dict = field(default_factory=dict)  # filled before the detectors run (lessons 4 to 6)
 
 
@@ -167,6 +169,7 @@ class Feedback:
     miss: str | None  # which row of the table applied
     scan: VerseScan | None = None
     title: str = ""  # lesson 3: the epithet, for the hoard and the battle name
+    help: dict | None = None  # P10: Homer's help after the third and fifth misses
 
 
 # A detector returns the placeholder values when its miss applies, else None.
@@ -187,13 +190,32 @@ def _first(scan: VerseScan, test: Callable[[LineScan], bool]) -> LineScan | None
     return next((line for line in scan.lines if test(line)), None)
 
 
+def _rushing(s: VerseScan, a: Attempt) -> bool:
+    """Ahead of the drum: from word timings when there are any, else from the phone's stressed peaks."""
+    if _first(s, lambda l: l.offset_ms is not None and l.offset_ms < -RUSH_MS):
+        return True
+    off = a.facts.get("onset_offset_ms")
+    return off is not None and off < -RUSH_MS
+
+
 BEAT: list[Detector] = [
     lambda s, a: {"hits": spell(x.hits)} if (x := _first(s, lambda l: l.hits <= 3)) else None,
     lambda s, a: {"hits": spell(x.hits)} if (x := _first(s, lambda l: l.hits >= 5)) else None,
     lambda s, a: {} if _first(s, lambda l: l.break_source is None) else None,
     lambda s, a: {"word": x.weak_beats[0]} if (x := _first(s, lambda l: bool(l.weak_beats))) else None,
-    lambda s, a: {} if _first(s, lambda l: l.offset_ms is not None and l.offset_ms < -RUSH_MS) else None,
+    lambda s, a: {} if _rushing(s, a) else None,
 ]
+
+
+def onset_offset(onsets_ms: list[float], bpm: float) -> float | None:
+    """The mean signed distance (ms) of stressed peaks from their nearest pulse; negative is early.
+
+    Peaks more than a third of a beat from any pulse are offbeat syllables, not hits, and are left out.
+    """
+    beat = 60000.0 / bpm
+    offs = [o - round(o / beat) * beat for o in onsets_ms if o >= -beat / 2]
+    near = [x for x in offs if abs(x) <= beat / 3]
+    return round(sum(near) / len(near), 1) if near else None
 
 
 def _tokens(line: LineScan) -> list[str]:
@@ -349,6 +371,8 @@ def turn_at(weights: list[dict[str, float] | None]) -> int | None:
 async def _facts(a: Attempt, scan: VerseScan, checks: Checks | None) -> bool:
     """Work out what lessons 4 to 6 need before the detectors run. False if a Claude check went silent."""
     lines = [line.text for line in scan.lines]
+    if a.lesson == "beat" and a.onsets_ms and a.bpm and not a.words:
+        a.facts["onset_offset_ms"] = onset_offset(a.onsets_ms, a.bpm)
     if a.lesson == "turn":
         weights = await checks.emotions(lines[:4]) if checks else [None] * len(lines[:4])
         weights = [w or emotion.lexicon_weights(text) for w, text in zip(weights, lines[:4])]
@@ -373,7 +397,14 @@ async def _facts(a: Attempt, scan: VerseScan, checks: Checks | None) -> bool:
 
 
 async def feedback(a: Attempt, craft: CraftCheck | None = None, checks: Checks | None = None) -> Feedback:
-    """Homer's one line for this try: the first miss that applies, or the lesson's success line."""
+    """Homer's one line for this try: the first miss that applies, or the lesson's success line.
+
+    With `try_no`, a miss also carries P10's help (after the third and fifth misses).
+    """
+    return _helped(await _feedback(a, craft, checks), a, lessons()[a.lesson])
+
+
+async def _feedback(a: Attempt, craft: CraftCheck | None, checks: Checks | None) -> Feedback:
     if craft is None and checks is not None:
         craft = checks.craft
     lesson = lessons()[a.lesson]
@@ -404,6 +435,42 @@ async def feedback(a: Attempt, craft: CraftCheck | None = None, checks: Checks |
         return Feedback(False, _fill(common()[short], {"lines": spell(expected).lower()}), short, scan)
     title = title_of(a, scan) if a.lesson == "epithet" else ""
     return Feedback(True, _fill(lesson.success, {"title": title}), None, scan, title=title)
+
+
+# P10: the demo verse line that shows each lesson's move, 0-based.
+HELP_LINE = {"beat": 0, "formula": 0, "epithet": 0, "turn": 2, "answer": 1, "boast": 3}
+
+
+def _plain(notation: str) -> str:
+    return " ".join(notation.replace(" / ", " ").replace("/", " ").split()).lower()
+
+
+def help_for(lesson: Lesson, try_no: int) -> dict | None:
+    """P10, help after misses: after the third, the first half of a model line to finish; after the fifth, a walkthrough.
+
+    The model line is the lesson's demo verse line that shows the move. The
+    framing is pm's ("Help after three misses", "Walkthrough after five
+    misses" in lessons.md); until it exists, Homer says the words alone.
+    """
+    if try_no < 3 or try_no == 4 or not lesson.demo:
+        return None
+    line = lesson.demo[min(HELP_LINE.get(lesson.id, 0), len(lesson.demo) - 1)]
+    if try_no == 3:
+        half = line.split(" / ")[0].strip() + " /"
+        say = common().get("Help after three misses", "{half}")
+        return {"kind": "half", "say": _fill(say, {"half": _plain(half)}), "half": half, "line": line}
+    say = common().get("Walkthrough after five misses", "{line}")
+    return {"kind": "walkthrough", "say": _fill(say, {"line": _plain(line)}), "line": line}
+
+
+def _helped(f: Feedback, a: Attempt, lesson: Lesson) -> Feedback:
+    """Add P10's help to a miss. After the fifth, the walkthrough lands the lesson."""
+    if f.landed or f.miss == SILENT:
+        return f
+    f.help = help_for(lesson, a.try_no)
+    if f.help and f.help["kind"] == "walkthrough":
+        f.landed = True
+    return f
 
 
 def _fill(line: str, values: dict) -> str:

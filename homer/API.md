@@ -286,7 +286,8 @@ Homer's one line after a try: the first miss in the lesson's table that applies,
 
 - `hand` and `rescue` (the card Homer whispered on this try, if he did) are for lesson 2. `name` is for lesson 3, which reads the title after it on the first line.
 - `prompt` is for lesson 5: the line Homer threw, one of that lesson's `exercise` lines from `GET /lessons` (notation is fine).
-- `words` and `bpm` let lesson 1 hear "rushing the drum".
+- `words` and `bpm` let lesson 1 hear "rushing the drum". Without word timings, send `onsetsMs` (the phone's stressed peaks, ms from beat 1) with `bpm`: the try is rushing when the peaks run more than 60 ms early on average. Peaks more than a third of a beat from any pulse are left out.
+- `tryNo` (1-based, this try's number in the lesson) turns on P10, help after misses. On a miss at try 3 the result carries `help: {"kind": "half", "say", "half", "line"}`: Homer speaks `say` (pm's framing plus the first half of a model line), and the poet finishes it on the next try. On a miss at try 5 or later it's `landed: true` with `help: {"kind": "walkthrough", "say", "line"}`. Speak the miss `line` first, then `help.say`. The model line is the demo verse line that shows the move: line 1 for lessons 1–3, line 3 for the turn, line 2 for the answer, line 4 for the boast. A landed try never carries help.
 
 Returns `{"landed": false, "line": "Three hits. I need four. Add a word with weight.", "miss": "Three hits or fewer", "title": "", "scan": VerseScan}`.
 
@@ -303,7 +304,7 @@ Lessons 4 to 6:
 
 - If a Claude reading doesn't come back, the result is `{"landed": false, "line": "", "miss": "Homer is silent"}`: show "Homer is silent on this one", never a canned line.
 - `miss` can also be `"Answer below 7"` or `"Image below 7"`: a clean try that the reading scores under the bar, with its own line from lessons.md.
-- `GET /lessons` also returns each lesson's `exercise` lines (notation) and `feedback: true` for all six.
+- `GET /lessons` also returns each lesson's `exerciseSpoken` (what Homer says to set up the try), its `exercise` lines (notation, lessons 5 and 6) and `feedback: true` for all six.
 
 ### `POST /battle/poet`
 
