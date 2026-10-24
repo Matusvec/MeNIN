@@ -41,7 +41,7 @@ The criteria are from #0-ask-directors. Every claim below has to be true by Sund
 | **Intentionality**: "Every design choice should feel purposeful" | One engine, and every event is a config: host, hand, rubric, beat. One idea carried everywhere in the poetry battle: the formula, in your hand, in the rescue, in the judging, in the stitched song. |
 | **Functionality**: "live demo that runs smoothly... clear, meaningful video demo on devpost" | A live poetry battle on iPhones and the arena, a verdict in about 3 s, a rehearsed fallback to Practice, a 2-minute video. **Only events that pass the checkpoint are unlocked; the rest are locked tiles, never half-working.** |
 | **Creativity**: "unexpected combinations of ideas or technologies" | Greek *agon* as party games: a rap battle judged by Homer, a debate hosted by Socrates, and a discus you throw with your phone, all on a matte paper-cut scene that paints your voice |
-| **Technical Complexity**: "engineering depth that goes beyond basic implementation" | Streaming STT from the phone, voice levels at 20 Hz through SpacetimeDB to Metal shaders on the arena, battle logic in server-side reducers, a deterministic stress scanner feeding a Claude judge under 3 s, multiple events from one engine config, Core Motion discus physics, the haptic beat |
+| **Technical Complexity**: "engineering depth that goes beyond basic implementation" | Streaming STT biased with the poet's hand as keyterms (3% word error under a full-volume drum, 20% without), on-device onset detection for the beat lane, voice levels at 20 Hz through SpacetimeDB to Metal shaders on the arena, battle logic in server-side reducers, a deterministic stress scanner feeding a Claude judge under 3 s, multiple events from one engine config, Core Motion discus physics, the haptic beat |
 
 ## Spread-thin guard (GTM watchdog rule)
 
@@ -60,7 +60,7 @@ Goal: every sponsor judge has played Homer before Sunday. Open the app first and
 Ask them: "What would make this a top-three Spacetime project for you?" Write down the answer and build toward it.
 
 **Cartesia** (Grant Timmerman, Vikram, Kelly Arifin)
-> "Voice is the whole game. Your words hit a beat lane as you say them, through Cartesia streaming STT. Homer answers in about three seconds as a title-fight MC, through Cartesia TTS, and whispers you a line when you freeze. [If debate shipped:] Socrates hosts the debate in a completely different voice: dry, patient, always asking."
+> "Voice is the whole game. We feed your hand to the recognizer, so it hears the wine-dark sea through the drum: 3% word error at full drum volume with ink-2 keyterms, 20% without. The final transcript lands about 75 ms after you stop. Homer is Carl on Sonic 3.6, with first audio in about 100 ms. He judges you like a title-fight MC and whispers you a line when you freeze. [If debate shipped:] Socrates hosts the debate in a completely different voice: quick, wry, always asking."
 Ask them: "How many winners are there, and what does great 'impact and responsibility' look like to you?"
 
 **Anthropic** (Arinze Obiezue)
@@ -87,12 +87,14 @@ Answer in one breath, then stop.
 | Why several events? | "One engine. Each event is a config: who hosts, what's in your hand, how it's judged, beat on or off. Poetry came first; the debate took [hours] on the same engine." *(Only if debate shipped.)* |
 | Isn't this just a game? | "The games are why you come back. Bard mode is where you get good. Five first-timers went from [X] to [Y] in one lesson." |
 | Does it work in this noise? | "Headset mic, push-to-talk, captions, and the transcript is always on screen so you can see what Homer heard." *(Only say it if Saturday's hall test passed.)* |
+| How does it hear you over the drum? | "We feed your hand to the recognizer, so it hears the wine-dark sea through the drum. Cartesia ink-2 with keyterms: 3% word error with the drum at full volume. Without them, 20%." |
+| Doesn't the beat lane lag behind speech? | "No. The lane runs on syllable onsets detected on the phone itself. It never waits for the transcript." |
 | Isn't this just for poets? | "It's for anyone who has to speak in front of people. Poets are where we start, because they already practice this and have nowhere to do it." |
 | Why Homer and not Shakespeare? | "Shakespeare wrote. Homer improvised. Improvising is the skill." |
 | What's AI and what isn't? | "Deterministic: the beat count, the scoring math and the discus physics. Claude: the judgment, the coaching, Homer's and Socrates' lines and the stitched song. Cartesia: ears and voice. Nothing is mocked." |
 | Why iPhone only? | "Your phone is the mic, the controller and the discus, and the beat lives in your hand through haptics. That needs native. The same app runs the arena on an iPad or a Mac." |
 | What happens Monday? | "Tap the TestFlight link on your iPhone. No account, open a room, play." *(Only if the public link is approved. Otherwise: "TestFlight now, App Store next.")* |
-| How fast is the verdict? | "About three seconds from your last word to Homer's voice." *(Quote the measured p50, not a guess.)* |
+| How fast is the verdict? | "About three seconds from your last word to Homer's voice. The transcript is final 75 ms after you stop, and Homer's voice starts about 100 ms after the verdict is written. The rest is Claude judging." *(Quote the measured p50, not a guess.)* |
 | What did you cut? | "Ranks, spectators, and every event that wasn't solid. Those are the locked tiles." |
 | What's hardest? | "Voices bleeding into each other's mics in one room. We moved the beat into your palm." |
 | What about bad content? | "Homer won't speak it: the turn scores zero and nothing gets quoted. Names are filtered before he says them." |
@@ -109,7 +111,7 @@ Open with the moment, not a title card. Captions burned in. Real footage, nothin
 | 0:50–1:00 | The round verdict: the best line carved in gold. |
 | 1:00–1:15 | Bard lesson 1: a first-timer misses, gets one note from Homer, lands it. Show the before and after Beat number. |
 | 1:15–1:25 | *Only if shipped:* 5 s of Socrates hosting the debate (a different voice), then 5 s of a discus throw: a phone swing, the arena throw, Homer calls the distance. |
-| 1:25–1:40 | How it's built, in one frame: iPhone → Cartesia STT → SpacetimeDB → arena Metal scene, and the Claude judge with the scanner. One engine, events as configs. Say "nothing mocked". |
+| 1:25–1:40 | How it's built, in one frame: iPhone mic → on-device onsets (beat lane) and Cartesia STT with your hand as keyterms → SpacetimeDB → arena Metal scene, and the Claude judge with the scanner. One caption: "3% word error through the drum (20% without keyterms)". One engine, events as configs. Say "nothing mocked". |
 | 1:40–1:55 | The stitched song over the battle's colors, each line with its poet's name. |
 | 1:55–2:00 | The champion and the TestFlight link or domain. |
 

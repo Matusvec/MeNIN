@@ -19,7 +19,7 @@ Events: the poetry battle (core); Socratic debate and discus (only if the poetry
 | **Hacker's Choice** | Down (iOS reach) | **Up** | Discus is a zero-skill hook: anyone can swing a phone, then stay for the battle. Party games are what hackers actually play at 1 AM. | Discus ships. Still capped by iOS: hackers play on our devices or through TestFlight. |
 | **Most Creative** | High | **Higher** | A rap battle judged by Homer, a debate hosted by Socrates and a discus thrown with your phone, all in one product. Nobody else has this. | The poetry battle stays the spine. The frame alone isn't the creativity. |
 | **Meta** | Medium-high | **High** | One screen, one room, everyone's phone a controller: party games are the clearest possible "bringing people closer". | The battle works live |
-| **Cartesia** | Medium-high | **High, if debate ships** | Their own idea, "Multi-speaker agent: tutor, debate partner... with distinct voices", is now literal: Homer (deep, MC) and Socrates (dry, questioning) are two distinct Cartesia voices, one of them a debate host. | Socrates ships with his own voice. Otherwise unchanged: Homer as MC, coach and announcer. |
+| **Cartesia** | Medium-high | **High, if debate ships** | Their own idea, "Multi-speaker agent: tutor, debate partner... with distinct voices", is now literal: Homer (Carl, "Steady Storyteller": calm depth) and Socrates (quick, wry, questioning) are two distinct Cartesia voices, one of them a debate host. | Socrates ships with his own voice. Otherwise unchanged: Homer as MC, coach and announcer. |
 | **Most Technically Complex** | Medium | **Up slightly** | Several events from one engine config, plus Core Motion physics alongside the real-time voice stack | Don't claim events that didn't ship |
 | **Spacetime** | High | **Up slightly** | More shared state ("games" is their first example). Discus throws become reducer events that every screen sees at once. | Same Swift-client smoke test |
 | **First Overall** | Medium | **Up** | "Like Wii Sports" makes the product clear to any judge in 3 seconds, and that legibility matters at a 2-minute table. | Functionality holds; nothing half-working is shown |
@@ -92,7 +92,7 @@ Criteria: Workflow Design, Adoptability ("a measurable before and after"), Outpu
 | Second Overall | Nintendo Switch 2 | |
 | Third Overall | Google Intelligent Eyewear | |
 | **Most Creative Hack** | Instax camera plus film | Our strongest main-track bet. Nothing like it is in the field. |
-| **Most Technically Complex** | NuPhy Air60 HE | Real-time multiplayer on SpacetimeDB, streaming STT and TTS, Metal shaders driven by live audio, a deterministic stress scanner, a Claude judge under 3 s |
+| **Most Technically Complex** | NuPhy Air60 HE | Real-time multiplayer on SpacetimeDB, streaming STT biased by the poet's hand (3% word error under a full-volume drum, 20% without), on-device onset detection for the beat lane, TTS, Metal shaders driven by live audio, a deterministic stress scanner, a Claude judge under 3 s |
 | **Best People-First Hack** | Apple Watch SE 3 | Practicing to speak in front of people, with friends |
 | **Hacker's Choice** | Logitech MX Master 4 | Discus as the hook (if shipped), then the battle. Hackers play on our phones Saturday night, at the table and at karaoke. |
 
@@ -112,11 +112,19 @@ Criteria: Workflow Design, Adoptability ("a measurable before and after"), Outpu
 - Execution: "Likely edge cases handled?"
 - **Impact and responsibility**: "Accessibility, privacy, and responsible use considered?"
 
-Their own idea list includes "**Multi-speaker agent**: tutor, debate partner... with distinct voices" and "**Live coach**: low-latency back-and-forth where voice quality matters." That's us, and literally so if the Socratic debate ships. Then Homer and Socrates are two distinct Cartesia voices, and Socrates is a debate host. Pick Socrates' voice to contrast with Homer's (dry, patient, older, conversational) and name both voice choices in the README.
+Their own idea list includes "**Multi-speaker agent**: tutor, debate partner... with distinct voices" and "**Live coach**: low-latency back-and-forth where voice quality matters." That's us, and literally so if the Socratic debate ships. Then Homer and Socrates are two distinct Cartesia voices, and Socrates is a debate host. Homer is Carl, "Steady Storyteller" (older, calm, measured), so pick Socrates' voice to contrast: quicker, wry and conversational. Name both voice choices in the README.
+
+**Our measured numbers (from swift; quote them as they are):**
+- **STT:** ink-2, with the poet's hand of formulas sent as keyterms, gets a **3% word error rate even with the drum at full volume (0 dB)**. Without keyterms it's **20%**. The line: "We feed your hand to the recognizer, so it hears the wine-dark sea through the drum."
+- **The final transcript** arrives about **75 ms** after the poet stops.
+- **Homer's voice** (Carl, sonic-3.6): first audio in about **100 ms**.
+- **The beat lane is not Cartesia.** Its timing comes from onsets detected on the phone, not STT timestamps. Never credit STT for the lane.
+
+These hit "Voice clear, responsive, and natural?" directly. The keyterm trick is also our answer to "Likely edge cases handled?": the rare compounds the game runs on ("whale-road", "rose-fingered Dawn") are exactly what a recognizer mangles.
 
 **What to submit:**
 - [ ] A 2-minute, **demo-first** presentation: "one complete user flow, then a brief problem + how you built it". This is our video and our table script.
-- [ ] A README section covering **setup** (XcodeGen, signing, `.env`), **the Cartesia features used** (streaming STT over WebSocket, TTS for Homer's voice, the whisper, the stitched song), and **known limitations** (noise, accents, names)
+- [ ] A README section covering **setup** (XcodeGen, signing, `.env`), **the Cartesia features used** (ink-2 streaming STT over WebSocket with the hand as keyterms, plus the 3%-vs-20% number; sonic-3.6 TTS as Carl for Homer's voice, the whisper and the stitched song), and **known limitations** (noise, accents, names)
 - [ ] Source access, with no keys in the repo
 
 **Impact and responsibility is our weak quarter. Fix it with true statements:**
@@ -169,7 +177,7 @@ Hacker Guide and Hive add: "One thing done well and usable on Monday beats a bro
    - Functioning: Claude is the judge (with scanner output, the hand and the previous verse), the coach (lesson feedback, the freeze whisper), the MC, and the stitcher.
    - Development: the app is built by a team of Claude Code sessions: leader, pm, artist, multiplayer, iOS and gtm.
 5. **Failure modes** (state them in the Devpost):
-   - STT misses in noise, so the transcript is always shown
+   - STT misses in noise. Keyterms from the hand cut word errors from 20% to 3% under the drum, and the transcript is always shown
    - Taste is contestable, so we show five axes and the quoted line
    - Emotion reading is approximate, so the scene is art, not a diagnosis, and never names your emotion
    - English stress has edge cases with names and slang, so the scanner flags uncertain syllables instead of marking them wrong

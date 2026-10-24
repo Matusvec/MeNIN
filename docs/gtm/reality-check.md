@@ -84,6 +84,8 @@ It was Matus's call, and it buys real things: the haptic beat, native audio, and
 ### 6. Noise in the judging hall
 Tables are shared by 2-3 teams. Wired headset mics, push-to-talk, the haptic beat, drum ducking and captions are all in SPEC now. **Test them in the hall at peak noise on Saturday night.** Until that test passes, the Q&A line "works in this noise" is unproven.
 
+swift's measurement helps: ink-2 with the hand as keyterms gets 3% word error with the drum at full volume (0 dB), versus 20% without. That proves the drum and the keyterms, not the hall. If it came from the voice probe's fixtures (a synthetic voice mixed digitally, see docs/voice.md), treat it as a lower bound. Quote it as "with the drum at full volume", never as "in a loud hall".
+
 ### 7. The party-games frame (SPEC "The games", `41bece4`)
 **Good call for winning, with one condition.** "Like Wii Sports" makes the product clear to a judge in 3 seconds, and it lifts Most Creative, Hacker's Choice, Meta and Cartesia (two distinct host voices). The danger is the organizers' warning: "a project spread thin with too many features is harder to implement." The guard:
 - Debate and discus unlock **only** after the Sat 2 PM checkpoint, and SPEC already puts them first in the cut order.
