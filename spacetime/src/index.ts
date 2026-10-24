@@ -22,6 +22,7 @@ const room = table(
   { public: true },
   {
     id: t.u64().primaryKey().autoInc(),
+    event: t.string(),
     code: t.string().unique(),
     host: t.identity(),
     phase: t.string(),
@@ -80,7 +81,8 @@ const hand = table(
   {
     playerId: t.u64().primaryKey(),
     roomId: t.u64().index('btree'),
-    formulas: t.array(t.string()),
+    kind: t.string(),
+    cards: t.array(t.string()),
   }
 );
 
@@ -111,11 +113,7 @@ const score = table(
     roomId: t.u64().index('btree'),
     roundId: t.u64(),
     playerId: t.u64(),
-    beat: t.u8(),
-    craft: t.u8(),
-    image: t.u8(),
-    answer: t.u8(),
-    range: t.u8(),
+    axes: t.array(t.u8()), // in the order of the event's rubric
     total: t.u32(),
     verdict: t.string(),
     bestLine: t.string(),
@@ -262,6 +260,13 @@ const CODE_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // no I or O
 const FORMS = ['four_beat', 'hexameter'];
 const EPOCH = Timestamp.UNIX_EPOCH;
 
+// Each event is a config on the same engine (SPEC "The games"). Axis labels
+// live in the app's event config; here we only need how many there are and
+// what kind of card the hand holds. Debate will add { axes: 5, card: 'move' }.
+const EVENTS: Record<string, { axes: number; card: string }> = {
+  poetry: { axes: 5, card: 'formula' }, // beat, craft, image, answer, range
+};
+
 // ---------------------------------------------------------------- helpers
 
 function text(value: string, field: string, min: number, max: number): string {
@@ -373,7 +378,7 @@ function clearBattle(ctx: Ctx, roomId: bigint): void {
   for (const p of playersOf(ctx, roomId)) {
     ctx.db.player.id.update({ ...p, total: 0 });
     const h = ctx.db.hand.playerId.find(p.id);
-    if (h) ctx.db.hand.playerId.update({ ...h, formulas: [] });
+    if (h) ctx.db.hand.playerId.update({ ...h, cards: [] });
   }
   idleScene(ctx, roomId);
 }
@@ -462,6 +467,7 @@ export const claimService = spacetimedb.reducer({ key: t.string() }, (ctx, { key
 
 export const createRoom = spacetimedb.reducer(
   {
+    event: t.string(),
     rounds: t.u32(),
     turnSeconds: t.u32(),
     linesPerTurn: t.u32(),
@@ -472,6 +478,7 @@ export const createRoom = spacetimedb.reducer(
     demo: t.bool(),
   },
   (ctx, args) => {
+    if (!EVENTS[args.event]) throw new SenderError('unknown event');
     if (!FORMS.includes(args.form)) throw new SenderError('unknown form');
     if (args.bpm < 40 || args.bpm > 160) throw new SenderError('bpm must be 40 to 160');
     if (args.turnSeconds < 10 || args.turnSeconds > 120) {
@@ -491,6 +498,7 @@ export const createRoom = spacetimedb.reducer(
 
     const r = ctx.db.room.insert({
       id: 0n,
+      event: args.event,
       code: newCode(ctx),
       host: ctx.sender,
       phase: 'lobby',
@@ -606,7 +614,7 @@ export const joinRoom = spacetimedb.reducer(
     if (!r || r.phase === 'finished') throw new SenderError('no such room');
     const name = text(args.name, 'name', 1, 24);
     const epithet = text(args.epithet, 'epithet', 0, 48);
-    const hoard = args.hoard.slice(0, 20).map(f => text(f, 'formula', 1, 60));
+    const hoard = args.hoard.slice(0, 20).map(c => text(c, 'hoard card', 1, 60));
     const players = playersOf(ctx, r.id);
     const lobby = r.phase === 'lobby';
 
@@ -649,7 +657,7 @@ export const joinRoom = spacetimedb.reducer(
       connected: true,
       joinedAt: ctx.timestamp,
     });
-    ctx.db.hand.insert({ playerId: p.id, roomId: r.id, formulas: [] });
+    ctx.db.hand.insert({ playerId: p.id, roomId: r.id, kind: EVENTS[r.event].card, cards: [] });
   }
 );
 
@@ -715,25 +723,25 @@ export const updateTranscript = spacetimedb.reducer(
 
 // The speaker used a card from their hand. It leaves the hand for good.
 export const playCard = spacetimedb.reducer(
-  { turnId: t.u64(), formula: t.string() },
-  (ctx, { turnId, formula }) => {
+  { turnId: t.u64(), card: t.string() },
+  (ctx, { turnId, card }) => {
     const { tr } = requireSpeaker(ctx, turnId);
     const h = ctx.db.hand.playerId.find(tr.playerId);
-    const i = h ? h.formulas.indexOf(formula) : -1;
+    const i = h ? h.cards.indexOf(card) : -1;
     if (!h || i < 0) throw new SenderError('that card is not in your hand');
-    ctx.db.hand.playerId.update({ ...h, formulas: h.formulas.filter((_, j) => j !== i) });
-    ctx.db.turn.id.update({ ...tr, played: [...tr.played, formula] });
+    ctx.db.hand.playerId.update({ ...h, cards: h.cards.filter((_, j) => j !== i) });
+    ctx.db.turn.id.update({ ...tr, played: [...tr.played, card] });
   }
 );
 
-// Freeze rescue: the speaker went silent, and Homer whispers this card.
+// Freeze rescue: the speaker went silent, and the host whispers this card.
 export const rescue = spacetimedb.reducer(
-  { turnId: t.u64(), formula: t.string() },
-  (ctx, { turnId, formula }) => {
+  { turnId: t.u64(), card: t.string() },
+  (ctx, { turnId, card }) => {
     const { tr } = requireSpeaker(ctx, turnId);
     const h = ctx.db.hand.playerId.find(tr.playerId);
-    if (!h || !h.formulas.includes(formula)) throw new SenderError('that card is not in your hand');
-    ctx.db.turn.id.update({ ...tr, rescue: formula, rescues: tr.rescues + 1 });
+    if (!h || !h.cards.includes(card)) throw new SenderError('that card is not in your hand');
+    ctx.db.turn.id.update({ ...tr, rescue: card, rescues: tr.rescues + 1 });
   }
 );
 
@@ -818,7 +826,7 @@ export const namePoet = spacetimedb.reducer(
 
 const HandDeal = t.object('HandDeal', {
   playerId: t.u64(),
-  formulas: t.array(t.string()),
+  cards: t.array(t.string()),
 });
 
 // Sets the round's theme, tops every hand back up to five, and lays out the
@@ -836,7 +844,7 @@ export const dealRound = spacetimedb.reducer(
     if (findRound(ctx, roomId, roundNo)) throw new SenderError(`round ${roundNo} is already dealt`);
 
     const players = playersOf(ctx, roomId);
-    const byPlayer = new Map(hands.map(h => [h.playerId, h.formulas]));
+    const byPlayer = new Map(hands.map(h => [h.playerId, h.cards]));
     if (byPlayer.size !== hands.length || players.some(p => !byPlayer.has(p.id))) {
       throw new SenderError('deal exactly one hand to every poet');
     }
@@ -854,13 +862,13 @@ export const dealRound = spacetimedb.reducer(
 
     for (const p of players) {
       const h = ctx.db.hand.playerId.find(p.id)!;
-      const formulas = [...h.formulas];
-      for (const f of byPlayer.get(p.id)!) {
-        const card = f.trim();
-        if (formulas.length >= HAND_SIZE) break;
-        if (card && !formulas.includes(card)) formulas.push(card.slice(0, 60));
+      const cards = [...h.cards];
+      for (const c of byPlayer.get(p.id)!) {
+        const card = c.trim().slice(0, 60);
+        if (cards.length >= HAND_SIZE) break;
+        if (card && !cards.includes(card)) cards.push(card);
       }
-      ctx.db.hand.playerId.update({ ...h, formulas });
+      ctx.db.hand.playerId.update({ ...h, cards });
     }
 
     const offset = (roundNo - 1) % players.length;
@@ -888,16 +896,12 @@ export const dealRound = spacetimedb.reducer(
   }
 );
 
-// The judge's scores. Beat and Range are 1-10; Craft, Image and Answer are
-// 0 when Claude could not score them in time.
+// The judge's scores, one 0-10 value per axis of the event's rubric. An axis
+// Claude could not score in time is 0 (for poetry: craft, image, answer).
 export const postScore = spacetimedb.reducer(
   {
     turnId: t.u64(),
-    beat: t.u8(),
-    craft: t.u8(),
-    image: t.u8(),
-    answer: t.u8(),
-    range: t.u8(),
+    axes: t.array(t.u8()),
     verdict: t.string(),
     bestLine: t.string(),
     coined: t.string(),
@@ -906,7 +910,10 @@ export const postScore = spacetimedb.reducer(
     requireService(ctx);
     const tr = getTurn(ctx, args.turnId);
     if (tr.status !== 'judging') throw new SenderError(`turn is ${tr.status}, not judging`);
-    const axes = [args.beat, args.craft, args.image, args.answer, args.range];
+    const r = getRoom(ctx, tr.roomId);
+    const { axes } = args;
+    const want = EVENTS[r.event].axes;
+    if (axes.length !== want) throw new SenderError(`${r.event} scores have ${want} axes`);
     if (axes.some(a => a > 10)) throw new SenderError('scores are 0 to 10');
     const total = axes.reduce((a, b) => a + b, 0);
 
@@ -915,11 +922,7 @@ export const postScore = spacetimedb.reducer(
       roomId: tr.roomId,
       roundId: tr.roundId,
       playerId: tr.playerId,
-      beat: args.beat,
-      craft: args.craft,
-      image: args.image,
-      answer: args.answer,
-      range: args.range,
+      axes,
       total,
       verdict: args.verdict.trim().slice(0, 300),
       bestLine: args.bestLine.trim().slice(0, 200),
@@ -928,8 +931,7 @@ export const postScore = spacetimedb.reducer(
     ctx.db.turn.id.update({ ...tr, status: 'scored' });
     const p = ctx.db.player.id.find(tr.playerId);
     if (p) ctx.db.player.id.update({ ...p, total: p.total + total });
-    const r = getRoom(ctx, tr.roomId);
-    if (r.currentTurnId === tr.id && r.phase === 'judging') setPhase(ctx, r, 'scored');
+    if (r.currentTurnId === tr.id && r.phase === 'judging') setPhase(ctx, getRoom(ctx, r.id), 'scored');
   }
 );
 

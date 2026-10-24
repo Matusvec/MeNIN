@@ -2,6 +2,8 @@
 
 This is the shared state for **Battle mode** only. Bard and Practice are single-device and talk to the agent service directly, so they are not modeled here. The module lives in `src/index.ts`; if this file and the code disagree, fix one of them.
 
+**Events.** Each game is a config on one engine (SPEC "The games"). `room.event` picks it: `poetry` today, with `debate` and `discus` to come. The module knows only two things about an event, how many score axes it has and what kind of card the hand holds (`EVENTS` in `src/index.ts`). The axis labels, the host, the beat on or off, and the copy all live in the app's event config. Adding debate means one `EVENTS` entry (`{ axes: 5, card: 'move' }`) and no schema change. Discus will add a `throw` table and a `throw` reducer later.
+
 Server: SpacetimeDB 2.13. Database name: `homer`.
 
 ## Who's who
@@ -62,6 +64,7 @@ All public tables carry `room_id`, so a client subscribes to exactly one room. *
 | Column | Type | Notes |
 | --- | --- | --- |
 | id | u64 | primary key |
+| event | String | `poetry` (later `debate` or `discus`) |
 | code | String | 4 letters, no I or O, unique. Phones join with it (QR or typed); the match is case-insensitive. |
 | host | Identity | the arena that created it |
 | phase | String | see the phase machine |
@@ -114,7 +117,8 @@ All public tables carry `room_id`, so a client subscribes to exactly one room. *
 | --- | --- | --- |
 | player_id | u64 | primary key; one hand per poet for the whole battle |
 | room_id | u64 | |
-| formulas | [String] | up to 5 cards |
+| kind | String | `formula` for poetry (debate: `move`) |
+| cards | [String] | up to 5 |
 
 Row-level security: a client only receives the hand rows of its own players. `SELECT * FROM hand WHERE room_id = N` is safe to subscribe to on every device. Unplayed cards carry over between rounds, and each deal tops the hand back up to 5, so you can save a card for the last round.
 
@@ -141,8 +145,8 @@ Row-level security: a client only receives the hand rows of its own players. `SE
 | --- | --- | --- |
 | turn_id | u64 | primary key, one per scored turn. Skipped and declined turns have none. |
 | room_id, round_id, player_id | u64 | |
-| beat, craft, image, answer, range | u8 | 0–10. Beat and Range are always 1–10. Craft, Image and Answer are 0 when Claude couldn't score them in time ("Homer is silent on this one"). |
-| total | u32 | sum of the five |
+| axes | [u8] | one 0–10 value per axis, in the order of the event's rubric. Poetry: `[beat, craft, image, answer, range]`. Beat and Range are always 1–10. Craft, Image and Answer are 0 when Claude couldn't score them in time ("Homer is silent on this one"). |
+| total | u32 | sum of the axes |
 | verdict | String | one line, spoken |
 | best_line | String | the quoted line |
 | coined | String | a new formula for the poet's hoard, or `''` |
@@ -177,7 +181,7 @@ Every `set_scene` also appends `id, room_id, turn_id, ms` (milliseconds since `s
 
 | Reducer | Args | When | Effect |
 | --- | --- | --- | --- |
-| `create_room` | rounds u32, turn_seconds u32, lines_per_turn u32, bpm u32 (40–160), form String, auto_ready bool, theme_choice bool, demo bool | Tap "Start a battle" | A new room in `lobby`. demo forces 1 round, 2 lines, 2 poets and auto-ready. Any older lobby of this host is closed, so a double tap leaves one room. Find yours with `SELECT * FROM room WHERE host = <your identity>` and take the highest id. |
+| `create_room` | event String, rounds u32, turn_seconds u32, lines_per_turn u32, bpm u32 (40–160), form String, auto_ready bool, theme_choice bool, demo bool | Tap "Start a battle". The demo is `("poetry", 1, 30, 2, 80, "four_beat", true, false, true)`. | A new room in `lobby`. demo forces 1 round, 2 lines, 2 poets and auto-ready. Any older lobby of this host is closed, so a double tap leaves one room. Find yours with `SELECT * FROM room WHERE host = <your identity>` and take the highest id. |
 | `start_battle` | room_id | Begin (2+ poets) | `lobby` → `dealing` (or `theme`), with round_no = 1 |
 | `choose_theme` | room_id, theme | A judge taps a card in `theme` | Sets `next_theme` and moves to `dealing`. The 3 cards come from the content bank on the arena. |
 | `start_turn` | turn_id | auto_ready, or after the 5 s step-up wait | Same as the phone's Ready tap |
@@ -194,8 +198,8 @@ Every `set_scene` also appends `id, room_id, turn_id, ms` (milliseconds since `s
 | `enter` | room_id | The mic check heard you | `entered` = true; the arena announces the entrance |
 | `start_turn` | turn_id | Ready tap in `ready` | `speaking`. Sets started_at, beat_at and ends_at, and schedules the timer. |
 | `update_transcript` | turn_id, transcript | Every STT partial while speaking | Replaces the transcript (max 4000 characters). Speaker only. |
-| `play_card` | turn_id, formula | The phone matched a card in the transcript | Moves the card from the hand to `turn.played`. It's gone for good. |
-| `rescue` | turn_id, formula | About 1 s of silence mid-line. The phone picks the card, optionally via the agent's `/rescue`. | Sets `turn.rescue`, `rescues` += 1. The card must be in the hand. |
+| `play_card` | turn_id, card | The phone matched a card in the transcript | Moves the card from the hand to `turn.played`. It's gone for good. |
+| `rescue` | turn_id, card | About 1 s of silence mid-line. The phone picks the card, optionally via the agent's `/rescue`. | Sets `turn.rescue`, `rescues` += 1. The card must be in the hand. |
 | `end_turn` | turn_id, final transcript | All lines spoken, Done tapped, or the mic closed at ends_at | An empty transcript on attempt 1 goes back to `ready` with attempt 2. Empty on attempt 2 is `skipped`. Otherwise `judging`. |
 | `set_prosody` | room_id, loudness f32, pitch f32, hits u32 | About 20 Hz while you're the speaker. In the lobby any poet may send it (the entrance flare). | Overwrites the room's prosody row. Frames from anyone else, or in other phases, are dropped silently. |
 | `react` | room_id, kind | A spectator or poet taps a reaction | Inserts a reaction |
@@ -207,8 +211,8 @@ All of these require the caller to be a registered service identity (or the owne
 | Reducer | Args | Arena trigger | Effect |
 | --- | --- | --- | --- |
 | `name_poet` | player_id, name, epithet | A player row with `named` = false | Sets a PG name and an epithet (coins one if `''`), and `named` = true |
-| `deal_round` | room_id, round_no, theme, hands [[player_id, [formula]]] | The phase is `dealing`; or `round_end` for round_no + 1, to deal ahead (not with theme_choice) | Creates the round and its turns in rotated seat order, and tops each hand up to 5 from that poet's list (send at least 5 candidates each, skipping duplicates). In `dealing` it moves to `ready`. It must cover every poet, and each round is dealt once. |
-| `post_score` | turn_id, beat, craft, image, answer, range (u8), verdict, best_line, coined | The turn's status is `judging` | Inserts the score, adds to the poet's total, and moves to `scored` |
+| `deal_round` | room_id, round_no, theme, hands [[player_id, [card]]] | The phase is `dealing`; or `round_end` for round_no + 1, to deal ahead (not with theme_choice) | Creates the round and its turns in rotated seat order, and tops each hand up to 5 from that poet's list (send at least 5 candidates each, skipping duplicates). In `dealing` it moves to `ready`. It must cover every poet, and each round is dealt once. |
+| `post_score` | turn_id, axes [u8], verdict, best_line, coined | The turn's status is `judging` | Inserts the score, adds to the poet's total, and moves to `scored`. It refuses the wrong number of axes for the room's event. |
 | `decline_turn` | turn_id | The verse isn't fit for the hall | The turn is `declined`, scores nothing, and the phase becomes `scored` |
 | `post_verdict` | round_id, verdict, best_turn_id, best_line | The phase is `round_end` | Sets the round verdict and the carved line (once per round) |
 | `post_song` | room_id, turn_ids [u64], lines [String] | Any time after round 1 (pre-stitch); performed at `finale` | Replaces the song (max 16 lines; the demo cap of 4 is the agent's job) |
@@ -231,13 +235,16 @@ POST {STDB_URL}/v1/identity                          -> {"identity": "...", "tok
 POST {STDB_URL}/v1/database/homer/call/<reducer>     Authorization: Bearer <token>
      Content-Type: application/json
      body: JSON array of positional args, e.g. post_score:
-     [42, 8, 7, 6, 5, 4, "Strong bones.", "took my brother's ship", "storm-throated"]
+     [42, [8, 7, 6, 5, 4], "Strong bones.", "took my brother's ship", "storm-throated"]
      -> 200 on success; 530 with the error text if the reducer refused
 POST {STDB_URL}/v1/database/homer/sql                body: one SQL statement (public tables only)
      -> [{"schema": {...}, "rows": [[...], ...]}]
 ```
 
-JSON encoding: u64 and other integers are JSON numbers, and bools and strings are plain. An array of structs is an array of arrays, so `deal_round`'s hands are `[[1, ["the whale-road", ...]], [2, [...]]]`.
+JSON encoding: u64 and other integers are JSON numbers, and bools and strings are plain. An array of structs is an array of arrays, so `deal_round`'s hands are `[[1, ["the whale-road", ...]], [2, [...]]]`. In SQL results there are three quirks:
+- A `[u8]` column such as `score.axes` comes back as a hex string (`"0807060504"`), even though calls take a plain array.
+- An Identity comes back as `["0x…"]`.
+- A Timestamp comes back as `[micros]`.
 
 One-time setup:
 
@@ -260,7 +267,7 @@ The arena calls these and ignores the response body; results arrive through Spac
 | `POST /battle/judge` {turn_id, form, theme, transcript, played, rescues, previous_best_line} | The turn reaches `judging` | `post_score` or `decline_turn` |
 | `POST /battle/verdict` {round_id, theme, verses: [{turn_id, name, transcript, score}]} | `round_end` | `post_verdict` |
 | `POST /battle/song` {room_id, verses} | Rounds 1–2 done, then the last round | `post_song` |
-| `POST /rescue` {transcript, hand, form} → {formula} | Called by the **phone** and answered inline (latency matters) | — (the phone calls `rescue`) |
+| `POST /rescue` {transcript, hand, form} → {card} | Called by the **phone** and answered inline (latency matters) | — (the phone calls `rescue`) |
 
 The hand is private, so the judge sees `played` (the cards actually spoken), not the whole hand. If Craft needs the full hand, the agent can remember what it dealt.
 
@@ -278,15 +285,17 @@ spacetime start                          # local server on :3000 (all interfaces
 cd spacetime && npm install
 npm run typecheck
 npm run publish:local                    # keeps data; publish:local:reset wipes it
-npm run smoke                            # full two-round battle over HTTP, 49 checks
+npm run smoke                            # full two-round battle over HTTP, 52 checks
 npm run logs
 ```
+
+**Dev stand-in agent (never in the demo path).** `HOMER_DEV_AGENT=1 npm run dev-agent` watches the database and does the agent's job with placeholders: it names poets, deals stock cards, posts patterned scores, drifts the scene, and writes the verdict and song. Every theme and verdict it writes starts with `[dev]`. It refuses to run without the flag. Add `HOMER_DEV_ROOM=ABCD` to limit it to one room. Stop it before the real agent service runs, and don't run `smoke` alongside it (they would both act as the agent).
 
 Clients: `ws://<mac LAN IP>:3000`, database `homer`. **Before the demo** the database has to move off the laptop (venue WiFi is fragile): maincloud (`spacetime login`, then `spacetime publish -s maincloud <name>`; clients use `wss://maincloud.spacetimedb.com`) or a small hosted instance.
 
 ## Open items
 
-- **Swift client.** Is the community SDK go or no-go? The tables are kept flat so that a hand-written client is the cheap fallback.
+- **Swift client: GO.** It uses avias8/spacetimedb-swift (the 2.x protocol, iOS 18), vendored in `ios/`, with hand-written row types. Key every cache by primary key; the SDK's update pairing isn't reliable.
 - `TODO(spec):` `player.hoard` is public, so opponents can see a poet's hoard (not their hand). Making it private means the agent reads it some other way.
 - `TODO(spec):` rejoining by name lets anyone take a *disconnected* poet's seat by typing their name. That's fine for one room at a table, but not for the open internet.
 - Ties: the clients compute the winner from `player.total`. Ties are UX open question 6.

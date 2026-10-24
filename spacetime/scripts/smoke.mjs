@@ -8,33 +8,12 @@
 // Needs the `spacetime` CLI logged in as the database owner (to set the
 // service key). Creates a new room each run; it does not clear data.
 
-import { execFileSync } from 'node:child_process';
-import { randomBytes } from 'node:crypto';
-
-const URL_ = process.env.STDB_URL ?? 'http://127.0.0.1:3000';
-const DB = process.env.STDB_DB ?? 'homer';
-const SERVER = process.env.STDB_SERVER ?? 'local';
+import { call, identity, serviceIdentity, sql } from './stdb.mjs';
 
 let failures = 0;
 function check(cond, what) {
   console.log(`${cond ? 'ok  ' : 'FAIL'} ${what}`);
   if (!cond) failures++;
-}
-
-async function identity() {
-  const res = await fetch(`${URL_}/v1/identity`, { method: 'POST' });
-  const { identity, token } = await res.json();
-  return { hex: identity, token };
-}
-
-async function call(who, reducer, ...args) {
-  const res = await fetch(`${URL_}/v1/database/${DB}/call/${reducer}`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${who.token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(args),
-  });
-  const body = await res.text();
-  if (!res.ok) throw new Error(`${reducer}: ${res.status} ${body}`);
 }
 
 async function fails(who, reducer, ...args) {
@@ -46,19 +25,6 @@ async function fails(who, reducer, ...args) {
   }
 }
 
-// Returns rows as objects keyed by column name.
-async function sql(who, query) {
-  const res = await fetch(`${URL_}/v1/database/${DB}/sql`, {
-    method: 'POST',
-    headers: who ? { Authorization: `Bearer ${who.token}` } : {},
-    body: query,
-  });
-  if (!res.ok) throw new Error(`sql: ${res.status} ${await res.text()}`);
-  const [{ schema, rows }] = await res.json();
-  const names = schema.elements.map(e => e.name.some);
-  return rows.map(r => Object.fromEntries(names.map((n, i) => [n, r[i]])));
-}
-
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const room = async id => (await sql(null, `SELECT * FROM room WHERE id = ${id}`))[0];
 const turn = async id => (await sql(null, `SELECT * FROM turn WHERE id = ${id}`))[0];
@@ -67,23 +33,23 @@ const cards = n => Array.from({ length: n }, (_, i) => `formula ${i + 1}`);
 
 // ---------------------------------------------------------------- setup
 
-const key = randomBytes(16).toString('hex');
-execFileSync('spacetime', ['call', '-s', SERVER, DB, 'set_service_key', key], { stdio: 'ignore' });
-
 const [arena, ada, bo, agent, stranger] = await Promise.all([
   identity(),
   identity(),
   identity(),
-  identity(),
+  serviceIdentity(),
   identity(),
 ]);
-await call(agent, 'claim_service', key);
 check(await fails(stranger, 'claim_service', 'not-the-key-not-the-key'), 'wrong service key is refused');
 
-await call(arena, 'create_room', 2, 10, 2, 120, 'four_beat', false, false, false);
+await call(arena, 'create_room', 'poetry', 2, 10, 2, 120, 'four_beat', false, false, false);
 const rooms = (await sql(null, 'SELECT * FROM room')).filter(r => r.host[0] === `0x${arena.hex}`);
 const R = rooms.sort((a, b) => b.id - a.id)[0];
-check(R.phase === 'lobby' && R.code.length === 4, `room ${R.code} is in the lobby`);
+check(R.phase === 'lobby' && R.code.length === 4 && R.event === 'poetry', `room ${R.code} is in the lobby`);
+check(
+  await fails(arena, 'create_room', 'chariots', 1, 30, 2, 80, 'four_beat', true, false, true),
+  'unknown events are refused'
+);
 
 await call(ada, 'join_room', R.code.toLowerCase(), 'Ada', '', []);
 await call(bo, 'join_room', R.code, 'Bo', 'Breaker of Deadlines', ['storm-throated']);
@@ -121,7 +87,7 @@ let r = await room(R.id);
 check(r.phase === 'ready' && r.round_no === 1, 'dealt: ready for round 1');
 const adaHand = await sql(ada, 'SELECT * FROM hand');
 check(adaHand.length === 1 && adaHand[0].player_id === A.id, 'Ada sees only her own hand');
-check(adaHand[0].formulas.length === 5, 'hand holds five cards');
+check(adaHand[0].cards.length === 5 && adaHand[0].kind === 'formula', 'hand holds five formula cards');
 check((await sql(null, 'SELECT * FROM hand')).length === 0, 'an anonymous client sees no hands');
 
 let T = await turn(r.current_turn_id);
@@ -149,8 +115,9 @@ check(sc.turn_id === T.id && Math.abs(sc.grief - 0.6) < 1e-6, 'scene shows the s
 await call(ada, 'end_turn', T.id, 'wine-dark sea / took my brother\'s ship');
 T = await turn(T.id);
 check(T.status === 'judging' && T.played.length === 1 && T.rescues === 1, 'Ada\'s verse goes to the judge');
-check(await fails(agent, 'post_score', T.id, 11, 5, 5, 5, 5, 'x', 'y', ''), 'scores above 10 are refused');
-await call(agent, 'post_score', T.id, 8, 7, 6, 5, 4, 'Strong bones.', 'took my brother\'s ship', 'storm-throated');
+check(await fails(agent, 'post_score', T.id, [11, 5, 5, 5, 5], 'x', 'y', ''), 'scores above 10 are refused');
+check(await fails(agent, 'post_score', T.id, [5, 5, 5, 5], 'x', 'y', ''), 'poetry scores need five axes');
+await call(agent, 'post_score', T.id, [8, 7, 6, 5, 4], 'Strong bones.', 'took my brother\'s ship', 'storm-throated');
 check((await room(R.id)).phase === 'scored', 'scored');
 const adaTurnId = T.id;
 check((await sql(null, `SELECT * FROM player WHERE id = ${A.id}`))[0].total === 30, 'Ada has 30');
@@ -169,7 +136,7 @@ console.log(`     waiting ${Math.round(ms / 1000)} s for the turn timer...`);
 await sleep(ms);
 T = await turn(T.id);
 check(T.status === 'judging' && T.transcript === 'grey-eyed Athena', 'the timer ended Bo\'s turn');
-await call(agent, 'post_score', T.id, 6, 6, 6, 6, 6, 'Fair.', 'grey-eyed Athena', '');
+await call(agent, 'post_score', T.id, [6, 6, 6, 6, 6], 'Fair.', 'grey-eyed Athena', '');
 
 await call(arena, 'advance', R.id);
 check((await room(R.id)).phase === 'round_end', 'round 1 is over');
@@ -190,7 +157,7 @@ r = await room(R.id);
 T = await turn(r.current_turn_id);
 check(r.phase === 'ready' && r.round_no === 2 && T.player_id === B.id, 'round 2: order rotated, Bo first');
 const bHand = (await sql(bo, 'SELECT * FROM hand'))[0];
-check(bHand.formulas.length === 5, 'Bo\'s hand topped back up to five');
+check(bHand.cards.length === 5, 'Bo\'s hand topped back up to five');
 
 // A silent first attempt gets one retry; a silent second attempt is skipped.
 await call(bo, 'start_turn', T.id);
