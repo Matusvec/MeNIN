@@ -317,6 +317,18 @@ extension View {
             }
     }
 
+    /// Sets display type at a line height of `factor` × `size` (Figma's
+    /// 1.1–1.12 for Bodoni), on iOS 26 and later. Earlier systems keep the
+    /// font's own, looser leading.
+    @ViewBuilder
+    func displayLeading(_ size: CGFloat, _ factor: CGFloat = 1.12) -> some View {
+        if #available(iOS 26.0, *) {
+            lineHeight(.exact(points: size * factor))
+        } else {
+            self
+        }
+    }
+
     /// Type set straight on the scene, lifted by a soft shadow. Use only for
     /// short labels; anything that must be read sits on paper.
     func onScene(_ color: Color = Palette.paper) -> some View {

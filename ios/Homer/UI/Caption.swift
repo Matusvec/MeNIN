@@ -20,6 +20,7 @@ struct CaptionView: View {
                 .fixedSize()
             Text(attributed)
                 .font(Typeface.display((whisper ? 20 : 23) * k, italic: true))
+                .displayLeading((whisper ? 20 : 23) * k, 1.18)
                 .lineSpacing(2 * k)
                 .fixedSize(horizontal: false, vertical: true)
                 .animation(.linear(duration: 0.12), value: spoken)

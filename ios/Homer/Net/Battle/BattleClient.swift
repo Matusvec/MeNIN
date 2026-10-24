@@ -43,10 +43,12 @@ final class BattleClient: SpacetimeClientDelegate {
         client = c
         connection = .connecting
         c.connect(token: tokens.load(forModule: database))
+        if role == .arena { startArenaTicker() }
     }
 
     func disconnect() {
         transcriptFlush?.cancel()
+        arenaTicker?.cancel()
         client?.disconnect()
         client = nil
         connection = .idle
@@ -70,10 +72,68 @@ final class BattleClient: SpacetimeClientDelegate {
             awaitingCreatedRoom = false
             watchRoom(newest.id)
         }
-        if role == .arena { autoStartIfNeeded() }
     }
 
+    // MARK: arena duties
+
+    @ObservationIgnored private var arenaTicker: Task<Void, Never>?
     @ObservationIgnored private var autoStarted: String?
+    @ObservationIgnored private var agentAsked = Set<String>()
+    /// Set when the agent service is configured; nil leaves dealing and judging to whatever
+    /// else serves the database (multiplayer's dev-agent, behind its own dev flag).
+    @ObservationIgnored var agent: AgentClient?
+    private(set) var agentError: String?
+
+    /// Polls rather than reacting to transaction callbacks, which can fire before `rows` sync.
+    private func startArenaTicker() {
+        arenaTicker?.cancel()
+        arenaTicker = Task { [weak self] in
+            while !Task.isCancelled {
+                self?.autoStartIfNeeded()
+                self?.askAgentIfNeeded()
+                try? await Task.sleep(for: .milliseconds(300))
+            }
+        }
+    }
+
+    /// The arena asks the agent for battle work when the phase calls for it, once per step.
+    /// Results come back through the subscription; every call is safe to retry.
+    private func askAgentIfNeeded() {
+        guard let agent, let room else { return }
+        func once(_ key: String, _ work: @escaping @Sendable () async throws -> Void) {
+            guard !agentAsked.contains(key) else { return }
+            agentAsked.insert(key)
+            Task {
+                do {
+                    try await work()
+                } catch {
+                    agentError = error.localizedDescription
+                    try? await Task.sleep(for: .seconds(2))
+                    agentAsked.remove(key)  // then retry
+                }
+            }
+        }
+        switch room.phaseValue {
+        case .dealing:
+            let req = BattleDealRequest(roomId: room.id, roundNo: room.roundNo, theme: room.nextTheme)
+            once("deal \(room.id) \(room.roundNo)") { try await agent.battleDeal(req) }
+        case .roundEnd where room.roundNo < room.rounds && !room.themeChoice:
+            // Deal the next round ahead so the next turn is ready the moment the verdict ends.
+            let req = BattleDealRequest(roomId: room.id, roundNo: room.roundNo + 1, theme: "")
+            once("deal \(room.id) \(room.roundNo + 1)") { try await agent.battleDeal(req) }
+        case .judging:
+            guard let turn = currentTurn, turn.statusValue == .judging, let poet = player(turn.playerId) else { return }
+            let previous = turns.filter { $0.roundId == turn.roundId && $0.turnNo + 1 == turn.turnNo }.first?.transcript ?? ""
+            let req = BattleJudgeRequest(
+                turnId: turn.id, playerId: poet.id, transcript: turn.transcript, event: room.event, form: room.form,
+                theme: currentRound?.theme ?? "", played: turn.played, rescues: turn.rescues, previous: previous,
+                linesExpected: room.linesPerTurn, hoard: poet.hoard, demo: room.demo
+            )
+            once("judge \(turn.id) \(turn.attempt)") { try await agent.battleJudge(req) }
+        default:
+            break
+        }
+    }
 
     /// auto_ready rooms (always on in demo): the arena starts each turn after a short step-up beat.
     private func autoStartIfNeeded() {

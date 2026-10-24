@@ -60,6 +60,7 @@ struct FormulaCardView: View {
                 Text(card.text)
                     // Verse formulas are set in the bard's serif; debate moves are argument, set plain.
                     .font(card.kind == .move ? Typeface.text(16 * k, weight: 600) : Typeface.display(22 * k))
+                    .displayLeading(22 * k, 1.12)
                     .foregroundStyle(card.used ? Palette.ink3 : Palette.ink)
                     .strikethrough(card.used, color: Palette.ink3)
                     .lineLimit(2)

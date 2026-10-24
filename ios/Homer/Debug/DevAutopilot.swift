@@ -10,6 +10,8 @@ final class DevAutopilot {
     static var mode: String? { UserDefaults.standard.string(forKey: "autopilot") }
 
     private let battle: BattleClient
+    /// Set by the phone screen; when voice is live the autopilot holds push-to-talk instead of typing.
+    var recorder: TurnRecorder?
     private let log = Logger(subsystem: "com.matusvec.homer", category: "autopilot")
     private var task: Task<Void, Never>?
     private var done = Set<String>()
@@ -87,6 +89,23 @@ final class DevAutopilot {
         switch turn.statusValue {
         case .waiting where !room.autoReady:
             once("ready \(turn.id)-\(turn.attempt)") { battle.startTurn(turn.id) }
+        case .speaking where recorder?.phase == .live:
+            once("talk \(turn.id)") {
+                guard let recorder else { return }
+                let lines = Int(room.linesPerTurn)
+                Task {
+                    for _ in 0..<lines {
+                        recorder.setTalking(true)
+                        try? await Task.sleep(for: .seconds(1.5))
+                        recorder.setTalking(false)
+                        try? await Task.sleep(for: .seconds(0.8))
+                    }
+                    print("AUTOPILOT transcript \(recorder.transcript.replacingOccurrences(of: "\n", with: " | "))")
+                    await recorder.finish()
+                }
+            }
+        case .speaking where recorder?.phase == .preparing || recorder?.phase == .ready:
+            break  // voice is still coming up
         case .speaking:
             once("verse \(turn.id)") {
                 let verse = ["The wine-dark sea took my brother's ship", "and grey-eyed Athena would not hear his cry"]

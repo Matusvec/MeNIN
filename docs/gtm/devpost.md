@@ -10,7 +10,7 @@ Paste this into Devpost. Anything in `[brackets]` needs a real number or link be
 
 *Trademarks: no "Wii", "Wii Sports", "Guitar Hero" or "Olympic" anywhere in this page.*
 
-**Try it:** [TestFlight public link] · [menin.tech, or the chosen domain] · Video: [link]
+**Try it:** [TestFlight public link] · [playmenin.tech] *(pending Matus registering it)* · Video: [link]
 
 ---
 
@@ -72,7 +72,7 @@ Other events show as locked tiles, because we only unlock what's solid.
   - The judge gets your hand, the verse you're answering and the scanner's stress count, and returns scores, the best line and a one-line verdict as strict JSON in about [1.5] s.
   - Claude also writes Homer's lessons, his sparring verses and the stitched song.
 - **The stress scanner** (Python, CMU Pronouncing Dictionary) counts the beat deterministically. The **Beat** score never comes from the model's opinion.
-- **Python + FastAPI** service for the Claude calls, the scanner and the formula bank.
+- **Python + FastAPI** service for the Claude calls, the scanner and the formula bank, served at `api.playmenin.tech`.
 - **Figma** [only once true: designs, palettes, and the Figma-to-SwiftUI handoff; stage log linked below].
 - Built by one designer and a team of Claude Code sessions (leader, product, art, multiplayer, iOS, go-to-market) working from one spec.
 

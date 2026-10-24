@@ -65,6 +65,7 @@ struct DevSettingsView: View {
                 .onChange(of: preset) { _, new in ServerConfig.preset = new }
                 LabeledContent("URL", value: ServerConfig.spacetime.absoluteString)
                 LabeledContent("Database", value: ServerConfig.database)
+                LabeledContent("Agent", value: ServerConfig.agent?.absoluteString ?? "not deployed")
             } footer: {
                 Text("Reopen the battle screen after switching. Each server has its own identity.")
             }

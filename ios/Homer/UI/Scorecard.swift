@@ -21,6 +21,7 @@ struct ScorecardView: View {
                     Text(poet ?? "The judge").tracked(10 * k, color: Palette.ink3)
                     Text(card.verdict)
                         .font(Typeface.display(20 * k, italic: true))
+                        .displayLeading(20 * k, 1.18)
                         .foregroundStyle(Palette.ink)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -48,6 +49,7 @@ struct ScorecardView: View {
                 Rectangle().fill(Palette.gold).frame(width: 3 * k)
                 Text("“\(card.bestLine)”")
                     .font(Typeface.display(22 * k))
+                    .displayLeading(22 * k, 1.15)
                     .foregroundStyle(Palette.ink)
                     .fixedSize(horizontal: false, vertical: true)
             }

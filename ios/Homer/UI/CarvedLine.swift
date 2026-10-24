@@ -17,6 +17,7 @@ struct CarvedLineView: View {
                 .tracked(11 * k, color: Palette.gold)
             Text(line)
                 .font(Typeface.display(44 * k, weight: 700, italic: true))
+                .displayLeading(44 * k, 1.08)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(Palette.gold.shadow(.inner(color: .black.opacity(0.8), radius: 1.2 * k, x: 1.2 * k, y: 2 * k)))
                 .mask(alignment: .leading) { chisel }

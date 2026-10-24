@@ -121,7 +121,8 @@ struct BeatLaneView: View {
 
     private func pulse(_ c: LaneClock) -> some View {
         let k = stage.scale
-        let line = max(0, min(lane.lines - 1, c.line))
+        // In a rest bar the pads already show the next line, so the poet sees what's coming.
+        let line = max(0, min(lane.lines - 1, c.inSpeakingBar || c.elapsed < 0 ? c.line : c.line + 1))
         return VStack(spacing: Metrics.s4 * k) {
             HStack(alignment: .firstTextBaseline) {
                 Text(c.elapsed < 0 ? "Count in" : (c.inSpeakingBar ? "Line \(line + 1) of \(lane.lines)" : "Breathe"))
@@ -138,7 +139,7 @@ struct BeatLaneView: View {
                     }
                 }
             }
-            .opacity(c.inSpeakingBar || c.elapsed < 0 ? 1 : 0.45)
+            .opacity(c.inSpeakingBar || c.elapsed < 0 ? 1 : 0.6)
         }
         .padding(Metrics.s5 * k)
         .paper(Palette.paper, radius: Metrics.radiusL * k)

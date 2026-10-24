@@ -22,6 +22,7 @@ struct AnswerLineView: View {
                 Text(poet.map { "Answer \($0)" } ?? "The theme").tracked(10 * k, color: Palette.accent)
                 Text(poet == nil ? line : "“\(line)”")
                     .font(Typeface.display(21 * k, italic: poet != nil))
+                    .displayLeading(21 * k, 1.15)
                     .foregroundStyle(Palette.ink)
                     .fixedSize(horizontal: false, vertical: true)
             }

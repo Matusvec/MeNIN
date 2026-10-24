@@ -12,6 +12,7 @@ struct ArenaScreen: View {
                 LabeledContent("Server", value: "\(ServerConfig.spacetime.host() ?? "?") / \(ServerConfig.database)")
                 LabeledContent("Connection", value: "\(battle.connection)")
                 if let error = battle.lastError { Text(error).foregroundStyle(.red) }
+                if let error = battle.agentError { Text(error).foregroundStyle(.orange) }
             }
             if let room = battle.room {
                 roomSection(room)
@@ -28,7 +29,9 @@ struct ArenaScreen: View {
         }
         .navigationTitle("Arena")
         .arenaOperatorShortcuts(battle)
+        .orientationLock(.landscape)
         .task {
+            battle.agent = AgentClient.configured
             battle.connect(to: ServerConfig.spacetime, database: ServerConfig.database)
             autopilot = DevAutopilot(battle: battle)
             autopilot?.start()

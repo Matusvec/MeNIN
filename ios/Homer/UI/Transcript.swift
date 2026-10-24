@@ -26,6 +26,7 @@ struct TranscriptView: View {
                 let current = i == shown.count - 1
                 Text(marked(line))
                     .font(Typeface.display((current ? 25 : 19) * k))
+                    .displayLeading((current ? 25 : 19) * k, 1.15)
                     .foregroundStyle(current ? Palette.onHero : Palette.onHero2)
                     .fixedSize(horizontal: false, vertical: true)
                     .transition(.move(edge: .bottom).combined(with: .opacity))

@@ -6,6 +6,7 @@ struct PlayerScreen: View {
 
     @State private var battle = BattleClient(role: .player)
     @State private var autopilot: DevAutopilot?
+    @State private var recorder: TurnRecorder?
     @State private var code = ""
     @State private var name = ""
     @State private var draft = ""
@@ -38,10 +39,15 @@ struct PlayerScreen: View {
             if code.isEmpty { code = initialCode }
             if name.isEmpty { name = savedName }
             battle.connect(to: ServerConfig.spacetime, database: ServerConfig.database)
+            let recorder = TurnRecorder(battle: battle, agent: AgentClient.configured)
+            recorder.attach()
+            self.recorder = recorder
             autopilot = DevAutopilot(battle: battle)
+            autopilot?.recorder = recorder
             autopilot?.start()
         }
         .onDisappear {
+            recorder?.detach()
             autopilot?.stop()
             battle.disconnect()
         }
@@ -90,8 +96,13 @@ struct PlayerScreen: View {
                 } else {
                     Button("Ready") { battle.startTurn(turn.id) }
                 }
+            case .speaking where recorder?.phase == .live || recorder?.phase == .finishing:
+                if let recorder { talk(recorder) }
             case .speaking:
-                // Typed stand-in for the mic: one line per row, \(room.linesPerTurn) lines.
+                // Typed fallback when voice is unavailable: one line per row, \(room.linesPerTurn) lines.
+                if case .unavailable(let why) = recorder?.phase {
+                    Text(why).font(.footnote).foregroundStyle(.secondary)
+                }
                 TextEditor(text: $draft)
                     .frame(minHeight: 120)
                     .onChange(of: draft) { _, text in battle.updateTranscript(turn.id, text) }
@@ -103,5 +114,20 @@ struct PlayerScreen: View {
                 Text(turn.status)
             }
         }
+    }
+
+    /// Placeholder push-to-talk: hold to speak a line, release to end it.
+    @ViewBuilder
+    private func talk(_ recorder: TurnRecorder) -> some View {
+        Text(recorder.transcript.isEmpty ? "Hold to speak a line." : recorder.transcript)
+        LabeledContent("On the beat", value: "\(recorder.hits)")
+        if let card = recorder.rescueCard { LabeledContent("Homer whispers", value: card) }
+        Text(recorder.talking ? "Speaking…" : "Hold to talk")
+            .frame(maxWidth: .infinity, minHeight: 88)
+            .background(recorder.talking ? Color.accentColor.opacity(0.35) : Color.secondary.opacity(0.15))
+            .gesture(DragGesture(minimumDistance: 0)
+                .onChanged { _ in recorder.setTalking(true) }
+                .onEnded { _ in recorder.setTalking(false) })
+        Button("Done") { Task { await recorder.finish() } }
     }
 }
