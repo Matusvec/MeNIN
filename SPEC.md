@@ -12,6 +12,12 @@ Homer never memorized the Iliad. He improvised it, using formulas: ready-made ph
 
 The feel is badass, not academic. Homer is a legendary bard, not a professor. You are learning to spit.
 
+## Platform
+
+Homer is an iOS app (SwiftUI, iOS 17+), shared with the team through TestFlight. There is no web app. The same app runs every mode; in a battle each device runs it as either the arena or a player.
+
+The look: colorful but matte, open and simple. Flat layered color fields like cut paper, lots of negative space, no glow or neon.
+
 ## The three modes
 
 Learn, train, fight. No mode is locked behind another; anyone can open a link and battle.
@@ -52,8 +58,8 @@ Solo reps with no lesson structure. Same turn as battle mode (below), with Homer
 
 Two to five human poets in one room, Jackbox-style:
 
-- **The arena** is one big shared screen (laptop or TV): the scene, the beat lane, the scoreboard, and a QR code to join.
-- **Your phone** is your mic and your hand. Join by scanning the QR code or opening the link; no account needed. Your hand is private, so you can save your best formula for the last round.
+- **The arena** is one big shared screen: the app in arena mode on a Mac (Apple Silicon runs iPhone apps), an iPad, or a phone mirrored to a TV. It shows the scene, the beat lane, the scoreboard, and a QR code to join.
+- **Your phone** is your mic and your hand. Join by scanning the QR code or typing the room code; no account needed. Your hand is private, so you can save your best formula for the last round.
 
 How a battle runs:
 
@@ -108,9 +114,9 @@ Hard mode, **Homer mode**: dactylic hexameter, for the brave.
 
 Full-screen, always on, behind every mode. It paints the speaker's emotion live.
 
-- Procedural only: WebGL shaders and particles. Never a generated image per line.
+- Procedural only: Metal shaders and SwiftUI. Never a generated image per line.
 - Two layers:
-  - **Instant**: loudness and pitch computed in the browser drive motion, turbulence, bloom, and particle speed at 60 fps.
+  - **Instant**: loudness and pitch computed on the speaker's phone drive motion and texture at 60 fps. In a battle they stream to the arena at about 20 Hz.
   - **Color**: every ~1.5 seconds the emotion classifier returns weights over eight emotions; the scene blends their palettes, smoothed so it flows instead of flickering.
 - Palette per emotion: see "Live emotion engine" in the plan.
 
@@ -119,7 +125,7 @@ Full-screen, always on, behind every mode. It paints the speaker's emotion live.
 - Voice chat between players. Battles are in one room; remote players see the live transcript.
 - Generated images per line.
 - Required accounts. An account only keeps your rank and hoard.
-- A fourth deployable. Web app, SpacetimeDB, one Python service.
+- A web app. Three deployables: the iOS app, SpacetimeDB, one Python service.
 
 ## Cut order
 
@@ -129,6 +135,5 @@ Never cut: Bard lessons 1 to 3, the turn (beat, beat lane, freeze rescue, scene,
 
 ## Open questions
 
-- Platform: Matus wants iOS. Web only, an iOS app wrapping the web client, or fully native iOS is undecided.
 - Push-to-talk with a headset mic, for a noisy judging hall.
 - Turn length (30 s) and lines per turn (4).
