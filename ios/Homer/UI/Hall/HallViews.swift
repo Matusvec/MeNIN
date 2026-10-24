@@ -293,7 +293,8 @@ struct EventTileView: View {
                         .padding(Metrics.s3 * k)
                 }
             }
-            .aspectRatio(1.25, contentMode: .fit)
+            // Arena tiles: full-width art at a set height; phone tiles nearly square.
+            .modifier(TileArtSize(arenaHeight: stage.isArena ? 118 * k : nil))
             .clipped()
             VStack(alignment: .leading, spacing: 2 * k) {
                 Text(event.title)
@@ -308,6 +309,7 @@ struct EventTileView: View {
             .padding(.horizontal, Metrics.s4 * k)
             .padding(.vertical, Metrics.s3 * k)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .paper(event.locked ? Palette.paper2 : Palette.paper, radius: Metrics.radiusL * k)
         .clipShape(RoundedRectangle(cornerRadius: Metrics.radiusL * k, style: .continuous))
         .accessibilityElement(children: .combine)
@@ -326,6 +328,18 @@ struct EventTileView: View {
 
     private var artInk: Color { event.locked ? Palette.ink2 : Palette.cream }
     private var accent: Color { event.locked ? Palette.ink3 : Palette.gold }
+}
+
+private struct TileArtSize: ViewModifier {
+    let arenaHeight: CGFloat?
+
+    func body(content: Content) -> some View {
+        if let arenaHeight {
+            content.frame(maxWidth: .infinity).frame(height: arenaHeight)
+        } else {
+            content.aspectRatio(1.25, contentMode: .fit)
+        }
+    }
 }
 
 /// Cut-paper emblems for the event tiles.

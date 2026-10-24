@@ -11,7 +11,11 @@ struct ArenaScreen: View {
 
     var body: some View {
         Group {
-            if let model = BattlePresenter.arena(battle, conductor: conductor) {
+            if battle.room?.event == "discus" {
+                // Discus runs its own canvas and reveal (Events/Discus); Homer's lines go through the conductor's voice.
+                DiscusArenaRoot(battle: battle, homer: conductor?.homer)
+                    .toolbar(.hidden, for: .navigationBar)
+            } else if let model = BattlePresenter.arena(battle, conductor: conductor) {
                 ArenaView(model: model, actions: BattlePresenter.arenaActions(battle, conductor: conductor))
                     .overlay(alignment: .topTrailing) { problems }
                     .toolbar(.hidden, for: .navigationBar)

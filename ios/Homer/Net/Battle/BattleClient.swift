@@ -30,6 +30,7 @@ final class BattleClient: SpacetimeClientDelegate {
         self.role = role
         tokens = KeychainTokenStore(service: "com.matusvec.homer.spacetimedb.\(role.rawValue)")
         BattleTables.registerAll()
+        DiscusTables.registerAll()  // Events/Discus (multiplayer)
     }
 
     // MARK: connection
@@ -191,7 +192,7 @@ final class BattleClient: SpacetimeClientDelegate {
         guard id != roomId || roomSubscription == nil else { return }
         roomSubscription?.unsubscribe(sendDroppedRows: true)
         roomId = id
-        var queries = ["room WHERE id = \(id)"] + ["player", "round", "hand", "turn", "score", "scene", "song_line"].map { "\($0) WHERE room_id = \(id)" }
+        var queries = ["room WHERE id = \(id)"] + ["player", "round", "hand", "turn", "score", "scene", "song_line", "discus_throw"].map { "\($0) WHERE room_id = \(id)" }
         if role == .arena {
             queries += ["prosody", "reaction", "color_sample"].map { "\($0) WHERE room_id = \(id)" }
         }

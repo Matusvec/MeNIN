@@ -77,7 +77,7 @@ final class TurnRecorder {
     }
 
     private func sync() async {
-        guard let turn = battle.currentTurn, battle.isMyTurn, let room = battle.room else {
+        guard let turn = battle.currentTurn, battle.isMyTurn, let room = battle.room, room.event != "discus" else {
             if phase == .ready || phase == .preparing { cancel() }
             return
         }

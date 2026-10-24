@@ -247,22 +247,28 @@ private struct ThreeFingerTap: UIViewRepresentable {
     }
 }
 
-/// Dev only (DiscusTelemetry): the last hold's raw numbers.
+/// Dev only (DiscusTelemetry): the last six holds' raw numbers, newest first, so one
+/// screenshot carries a whole tuning set. Each hold is also logged (subsystem
+/// com.matusvec.homer, category discus).
 struct DiscusTelemetryStrip: View {
     let thrower: DiscusThrower
 
     var body: some View {
-        let r = thrower.lastReading
-        let t = thrower.thrown
-        Text(r.map {
-            String(format: "speed %.1f rad/s · tilt %.0f° → angle %.0f° · timing %.2f · held %.2f s · turned %.1f rad%@",
-                   $0.speed, $0.tilt, $0.angle, $0.timing, $0.held, $0.turned,
-                   t.map { String(format: " · %.1f m%@", $0.distance, $0.foul ? " foul" : "") } ?? ($0.isDrop ? " · drop" : ""))
-        } ?? "telemetry: no hold yet\(thrower.hasMotion ? "" : " · no motion sensors")")
+        VStack(alignment: .leading, spacing: 2) {
+            Text("speed rad/s · tilt° → angle° · timing · held s · turned rad → result")
+            if thrower.history.isEmpty {
+                Text("no hold yet\(thrower.hasMotion ? "" : " · no motion sensors")")
+            }
+            ForEach(Array(thrower.history.enumerated()), id: \.offset) { _, h in
+                let r = h.reading
+                Text(String(format: "%5.1f · %3.0f → %3.0f · %.2f · %.2f · %4.1f → %@", r.speed, r.tilt, r.angle, r.timing, r.held, r.turned,
+                            h.flew.map { String(format: "%.1f m%@", $0.distance, $0.foul ? " foul" : "") } ?? "drop"))
+            }
+        }
         .font(.system(size: 11, design: .monospaced))
         .foregroundStyle(Palette.ink)
         .padding(Metrics.s2)
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(Palette.paper.opacity(0.92))
     }
 }

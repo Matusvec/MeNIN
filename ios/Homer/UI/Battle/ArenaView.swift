@@ -93,16 +93,12 @@ private struct ArenaCanvas: View {
         let k = stage.scale
         switch model.moment {
         case .hall(let entering, let events):
-            HStack(alignment: .top, spacing: Metrics.s6 * k) {
+            VStack(alignment: .leading, spacing: Metrics.s4 * k) {
                 EventMenuView(events: events, onPick: actions.pickEvent.map { pick in { tile in
                     if let kind = tile.kind { pick(kind) }
                 } }, showsHeader: false)
-                .frame(maxWidth: .infinity)
-                VStack(spacing: Metrics.s4 * k) {
-                    JoinCardView(code: model.code, url: model.joinURL, compact: true)
-                    hall
-                }
-                .frame(width: 300 * k)
+                hallStrip
+                Spacer(minLength: 0)
             }
             .overlay(alignment: .bottom) {
                 if let entering {
@@ -257,6 +253,45 @@ private struct ArenaCanvas: View {
         .padding(Metrics.s5 * k)
         .frame(minWidth: 260 * k, alignment: .leading)
         .paper(Palette.hero, radius: Metrics.radiusL * k)
+        .animation(Motion.slide, value: model.poets.map(\.id))
+    }
+
+    /// The hall's bottom strip: a small QR and the code, then everyone in the hall as seat-colored chips.
+    private var hallStrip: some View {
+        let k = stage.scale
+        return HStack(spacing: Metrics.s4 * k) {
+            HStack(spacing: Metrics.s3 * k) {
+                QRImage(text: model.joinURL)
+                    .frame(width: 64 * k, height: 64 * k)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Join").tracked(10 * k, color: Palette.ink2)
+                    Text(model.code).font(Typeface.display(34 * k, weight: 500)).tracking(4 * k).foregroundStyle(Palette.accent)
+                }
+            }
+            .padding(Metrics.s3 * k)
+            .paper(Palette.paper, radius: Metrics.radiusM * k)
+            ScrollView(.horizontal) {
+                HStack(spacing: Metrics.s2 * k) {
+                    ForEach(model.poets) { poet in
+                        HStack(spacing: Metrics.s2 * k) {
+                            Text(poet.name).font(Typeface.display(19 * k, weight: 600))
+                            if !poet.epithet.isEmpty {
+                                Text(poet.epithet).font(Typeface.display(14 * k, italic: true)).opacity(0.85)
+                            }
+                        }
+                        .foregroundStyle(Palette.cream)
+                        .padding(.horizontal, Metrics.s4 * k)
+                        .padding(.vertical, Metrics.s2 * k)
+                        .paper(poet.ink, radius: 100, lifted: false)
+                        .transition(.scale.combined(with: .opacity))
+                    }
+                    if model.poets.isEmpty {
+                        Text("Waiting for poets").chip(11 * k)
+                    }
+                }
+            }
+            .scrollIndicators(.hidden)
+        }
         .animation(Motion.slide, value: model.poets.map(\.id))
     }
 

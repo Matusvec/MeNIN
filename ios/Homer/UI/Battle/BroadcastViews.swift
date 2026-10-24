@@ -223,7 +223,8 @@ extension JoinCardView {
     }
 }
 
-private struct QRImage: View {
+/// A QR code in ink on paper, not black on white.
+struct QRImage: View {
     let text: String
 
     var body: some View {

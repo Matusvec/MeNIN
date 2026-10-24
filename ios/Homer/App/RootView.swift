@@ -138,8 +138,8 @@ private struct EventChoicesView: View {
                 Button("Train with Socrates") {}.disabled(true)
                 Button("Fight") { app.route = .battle(event: "debate") }
             case "discus":
-                // TODO: Throw = multiplayer's DiscusSoloScreen (ios/Homer/Events/Discus/) once it lands.
-                Button("Throw") {}.disabled(true)
+                // Solo throw: no server, no second phone (Events/Discus).
+                NavigationLink("Throw") { DiscusSoloRoot() }
                 Button("Fight") { app.route = .battle(event: "discus") }
             default:
                 Button("Fight") { app.route = .battle(event: event) }

@@ -13,8 +13,14 @@ struct PlayerScreen: View {
     @AppStorage("poetName") private var savedName = ""
 
     var body: some View {
-        PlayerView(model: model, actions: actions)
-            .safeAreaInset(edge: .bottom) { typedFallback }
+        Group {
+            if battle.me != nil, battle.room?.event == "discus" {
+                DiscusPhoneRoot(battle: battle)  // no mic: TurnRecorder stays off in discus rooms
+            } else {
+                PlayerView(model: model, actions: actions)
+                    .safeAreaInset(edge: .bottom) { typedFallback }
+            }
+        }
             .toolbar(battle.me == nil ? .automatic : .hidden, for: .navigationBar)
             .task {
                 MusicDirector.shared.stopAll()

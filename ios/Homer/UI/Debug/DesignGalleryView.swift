@@ -40,7 +40,7 @@ struct DesignGalleryView: View {
                 SceneView(emotion: EmotionWeights([.joy: 0.5, .awe: 0.5]))
                 DiscusArenaScreen(model: GallerySample.discusLanded, code: "WKRD")
             }
-            .tag(22)
+            .tag(23)
         }
         .tabViewStyle(.page(indexDisplayMode: .always))
         .ignoresSafeArea()

@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import UIKit
+import os
 
 /// The thrower's side of one throw, on the phone: thumb down, wind up, thumb up (UX D1–D3).
 /// Shared by the hall (Fight) and solo (Throw). It sends nothing itself: `onThrow` and
@@ -27,7 +28,11 @@ final class DiscusThrower {
     private(set) var notice: String?
     /// The last hold's raw numbers, for the telemetry strip.
     private(set) var lastReading: SwingReading?
+    /// The last few holds and what they flew (nil for a drop), newest first, for tuning.
+    private(set) var history: [(reading: SwingReading, flew: DiscusThrow?)] = []
     var tuning = DiscusPhysics.Tuning.standard
+
+    private static let log = Logger(subsystem: "com.matusvec.homer", category: "discus")
 
     /// The throw, once, at the thumb lift.
     @ObservationIgnored var onThrow: ((DiscusThrow) -> Void)?
@@ -89,11 +94,13 @@ final class DiscusThrower {
             lastReading = reading
             if reading.isDrop && dropsLeft > 0 {
                 dropsLeft -= 1
+                record(reading, nil)
                 stage = .ready
                 notice = Self.dropNotice
                 return
             }
             let t = DiscusSwing.measure(reading, tuning: tuning)
+            record(reading, t)
             stage = .thrown(t, at: Date())
             onThrow?(t)
         case .cancel:
@@ -111,6 +118,18 @@ final class DiscusThrower {
         motion.stop()
         if power > 0 || stage == .winding { onWindUp?(0, false) }
         power = 0
+    }
+
+    private func record(_ r: SwingReading, _ flew: DiscusThrow?) {
+        history.insert((r, flew), at: 0)
+        if history.count > 6 { history.removeLast() }
+        let result = flew.map { String(format: "%.1f m%@", $0.distance, $0.foul ? " foul" : "") } ?? "drop"
+        Self.log.info("""
+            hold speed=\(r.speed, format: .fixed(precision: 2)) tilt=\(r.tilt, format: .fixed(precision: 1)) \
+            angle=\(r.angle, format: .fixed(precision: 1)) timing=\(r.timing, format: .fixed(precision: 3)) \
+            held=\(r.held, format: .fixed(precision: 2)) turned=\(r.turned, format: .fixed(precision: 2)) \
+            samples=\(self.motion.samples.count) -> \(result, privacy: .public)
+            """)
     }
 
     private func sampled(_ s: SwingSample) {
