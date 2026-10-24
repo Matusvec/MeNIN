@@ -17,7 +17,7 @@ Five people who have never freestyled take MeNIN's first lesson, and we write do
   - After each try, the screen shows a **Beat** number from 1 to 10.
   - Your try gets feedback from Homer.
 
-  If any of these fails, message the leader before you start. Don't run the study in a different mode on your own.
+  If any of these fails, message the leader before you start. Don't run the study in a different mode on your own. If lesson 1 isn't ready, the leader decides at 4 PM whether we use Practice mode instead, and you'll hear which one before 6 PM.
 
 ## Who counts
 
@@ -88,7 +88,6 @@ About 5 minutes each.
 | **Every try** | All their Beat numbers in order, like `3, 5, 6, 9`. It shows the curve |
 | **Landed** | Yes, with the try number, or No |
 | **Time to land** | The stopwatch time when Homer said "Four and four", or "–" if they didn't land |
-| **Range** | Only if the screen shows it. Lesson 1 trains Beat, so Range may not appear. Never guess it |
 | **Quote** | Their exact words from step 7, if they agreed to question 2 |
 
 ## Score sheet
@@ -105,13 +104,13 @@ About 5 minutes each.
 
 **Results**
 
-| Person | Beat, first try | Beat, last try | Every try | Landed (try #) | Time to land | Range | Quote | Notes |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| P1 | | | | | | | | |
-| P2 | | | | | | | | |
-| P3 | | | | | | | | |
-| P4 | | | | | | | | |
-| P5 | | | | | | | | |
+| Person | Beat, first try | Beat, last try | Every try | Landed (try #) | Time to land | Quote | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| P1 | | | | | | | |
+| P2 | | | | | | | |
+| P3 | | | | | | | |
+| P4 | | | | | | | |
+| P5 | | | | | | | |
 
 **Summary**
 

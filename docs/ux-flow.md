@@ -66,7 +66,7 @@ Leader approved these as delegator, and Matus can veto any of them. Approved ite
 | P17 | **Tap to play a move.** In debate, you tap a move card on your phone as you make the move. It lands on the arena, and the judge checks that you really made it (section 8). | Approved, and in SPEC.md |
 | P18 | **Sides are dealt.** In debate, sides alternate by turn order, so you often argue a side you don't hold (section 8). | Approved, and in SPEC.md |
 | P19 | **Demo mode music.** At the judging table, the hall theme stays at its ducked level the whole time, because we talk over the menu. An operator key mutes all music (sections 6 and 10). | Approved, and in SPEC.md "Music" |
-| P20 | **Beat number in lessons.** After each try in a lesson, your Beat score (1 to 10) shows small beside Homer's note, so you can watch it climb. The first-timer study (`docs/study.md`) and the video's before-and-after shot both read it off the screen (L4). | Proposed |
+| P20 | **Beat number in lessons.** After each try in a lesson, your Beat score (1 to 10) shows small beside Homer's note, so you can watch it climb. The first-timer study (`docs/study.md`) and the video's before-and-after shot both read it off the screen (L4). | Approved |
 
 P1 to P6 were approved by Matus and are listed above.
 
