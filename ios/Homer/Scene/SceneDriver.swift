@@ -5,15 +5,25 @@ import Foundation
 /// it in `draw(in:)`.
 final class SceneDriver: @unchecked Sendable {
     var emotion: EmotionWeights {
-        didSet { record(emotion) }
+        didSet {
+            record(emotion)
+            wake?()
+        }
     }
-    var prosody: Prosody
+    var prosody: Prosody {
+        didSet { if prosody.energy > 0.03 { wake?() } }
+    }
+
+    /// Set by the renderer: resumes drawing after an idle pause. A voice, a new
+    /// feeling or a strike wakes the scene.
+    var wake: (() -> Void)?
 
     /// A drum strike: a stressed syllable landed on the beat. Call it with the
     /// strike sound; the scene answers with a ring, a jump and a burst of flecks.
     func strike(_ strength: Double = 1) {
         strikes += 1
         strikeStrength = strength
+        wake?()
     }
 
     /// Read by the renderer: it fires one strike per increment.

@@ -30,6 +30,7 @@ struct ArenaScreen: View {
         .arenaOperatorShortcuts(battle, themeCards: conductor?.themeCards ?? [], onMuteMusic: { conductor?.toggleMusicMute() })
         .orientationLock(.landscape)
         .task {
+            UIApplication.shared.isIdleTimerDisabled = true  // the arena runs a whole judging block
             battle.agent = AgentClient.configured
             battle.connect(to: ServerConfig.spacetime, database: ServerConfig.database)
             let conductor = ArenaConductor(battle: battle, agent: AgentClient.configured, scene: scene)
@@ -45,6 +46,7 @@ struct ArenaScreen: View {
             if hall { conductor?.restScene() }
         }
         .onDisappear {
+            UIApplication.shared.isIdleTimerDisabled = false
             conductor?.stop()
             autopilot?.stop()
             battle.disconnect()

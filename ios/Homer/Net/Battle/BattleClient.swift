@@ -69,7 +69,10 @@ final class BattleClient: SpacetimeClientDelegate {
     }
 
     func onTransactionUpdate(message: Data?) {
-        if awaitingCreatedRoom, let newest = latestHostedRoom, newest.id > roomId {
+        // Only a room made since the create call: the host lookup can deliver an older open room first,
+        // and an arena that grabbed it would sit in someone's stale battle.
+        if awaitingCreatedRoom, let newest = latestHostedRoom, newest.id > roomId,
+           newest.createdAt.epochMs >= createRequestedMs - 10_000 {
             awaitingCreatedRoom = false
             watchRoom(newest.id)
         }
@@ -80,6 +83,7 @@ final class BattleClient: SpacetimeClientDelegate {
     @ObservationIgnored private var arenaTicker: Task<Void, Never>?
     @ObservationIgnored private var autoStarted: String?
     @ObservationIgnored private var agentAsked = Set<String>()
+    @ObservationIgnored private var createRequestedMs = 0.0
     /// Bumped each time this room starts over (Rematch, a new event, or a finished battle
     /// restarting from elsewhere), so per-round work like dealing and the song is asked again.
     @ObservationIgnored private(set) var generation = 0
@@ -154,6 +158,16 @@ final class BattleClient: SpacetimeClientDelegate {
                 let dealt = try await agent.battleDeal(req)
                 await self?.remember(call: dealt)
             }
+        case .scored:
+            // The round's last turn is scored: ask for the round verdict now, so it's ready when the
+            // reveal reaches round end. Quietly; the round-end ask below is the guaranteed one.
+            if let round = currentRound {
+                let inRound = turns.filter { $0.roundId == round.id }
+                let open = inRound.contains { $0.statusValue == .waiting || $0.statusValue == .speaking || $0.statusValue == .judging }
+                if !inRound.isEmpty, !open {
+                    quietly("verdict-early \(round.id)") { try await agent.battleVerdict(.init(roundId: round.id)) }
+                }
+            }
         case .roundEnd:
             if let round = currentRound {
                 once("verdict \(round.id)") { try await agent.battleVerdict(.init(roundId: round.id)) }
@@ -211,8 +225,9 @@ final class BattleClient: SpacetimeClientDelegate {
             for _ in 0..<40 where player(turn.playerId)?.connected == false {
                 try? await Task.sleep(for: .milliseconds(500))
             }
-            // Homer calls the poet up first; the count-in waits for his line (capped).
-            for _ in 0..<24 where holdStart {
+            // Homer calls the poet up first (rules, topic, name); the count-in never starts over him.
+            // Capped at 30 s in case his voice hangs.
+            for _ in 0..<60 where holdStart {
                 try? await Task.sleep(for: .milliseconds(500))
             }
             if currentTurn?.id == turn.id, currentTurn?.statusValue == .waiting { startTurn(turn.id) }
@@ -294,6 +309,7 @@ final class BattleClient: SpacetimeClientDelegate {
 
     func createRoom(_ config: Reducer.CreateRoom) {
         awaitingCreatedRoom = true
+        createRequestedMs = Date().timeIntervalSince1970 * 1000
         call(Reducer.CreateRoom.name, config)
     }
 

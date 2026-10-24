@@ -50,6 +50,15 @@ final class TurnRecorder {
     @ObservationIgnored private var tasks: [Task<Void, Never>] = []
     @ObservationIgnored private var flushWaiters: [CheckedContinuation<Void, Never>] = []
     @ObservationIgnored private var pendingLineBreaks = 0
+    /// `finalize`s sent and not yet answered with flush_done; the turn ends only after all are in.
+    @ObservationIgnored private var pendingFlushes = 0
+    /// The transcript last written to the room (written at most 5 times a second).
+    @ObservationIgnored private var sentTranscript = ""
+
+    /// Hands-free (Matus, Sat 2 PM: push-to-talk was laggy and confusing): the mic opens when the
+    /// turn goes live and stays open for the whole verse. Lines break on the beat grid's rest bars
+    /// (debate: a flush every few seconds), and Done still ends early.
+    static let handsFree = true
     @ObservationIgnored private var lastVoiceMs = 0.0
     /// When STT last heard new words. In a loud hall noise keeps the mic's onsets coming, so a
     /// freeze is silence by either signal: no onset, or no new words.
@@ -171,6 +180,12 @@ final class TurnRecorder {
         phase = .live
         lastVoiceMs = nowMs
         lastWordsMs = nowMs
+        if Self.handsFree {
+            talking = true
+            mic.engine.muted = false
+            haptics.hit()  // the mic is open: a thump in the hand
+            tasks.append(Task { [weak self] in await self?.flushLines(clock: clock, endMs: endMs) })
+        }
 
         // Prosody to the arena: about 20 Hz, fire and forget.
         tasks.append(Task { [weak self] in
@@ -181,12 +196,14 @@ final class TurnRecorder {
                 try? await Task.sleep(for: .milliseconds(50))
             }
         })
-        // Freeze rescue and the end of the turn.
+        // Freeze rescue and the end of the turn. A verse is over a beat into its last rest bar, so
+        // the phone ends it there with its final words (the server's own timer waits for ends_at + 2 s).
+        let doneMs = clock.map { $0.barsPerLine > 1 ? $0.endMs - $0.lineMs + $0.barMs + $0.beatMs : $0.endMs } ?? endMs
         tasks.append(Task { [weak self] in
             while !Task.isCancelled {
                 guard let self, self.phase == .live else { return }
                 let now = Date().timeIntervalSince1970 * 1000
-                if now >= endMs + 250 {
+                if now >= min(doneMs, endMs) {
                     await self.finish()
                     return
                 }
@@ -195,12 +212,49 @@ final class TurnRecorder {
                 } else {
                     self.checkDebateFreeze(now: now, endMs: endMs)
                 }
+                // Live words on the arena while the poet speaks (partials too), 5 times a second at most.
+                let text = self.transcript
+                if text != self.sentTranscript {
+                    self.sentTranscript = text
+                    self.battle.updateTranscript(self.turnId, text)
+                }
                 try? await Task.sleep(for: .milliseconds(200))
             }
         })
     }
 
+    /// Hands-free: lines break on the grid. Each speaking bar's words are flushed mid-rest-bar
+    /// (as one line); in a debate, every few seconds so the arena's words keep up.
+    private func flushLines(clock: BeatClock?, endMs: Double) async {
+        if let clock {
+            for n in 0..<max(0, clock.lines - 1) {
+                let restMid = clock.beatAtMs + clock.lineMs * Double(n) + clock.barMs * (clock.barsPerLine > 1 ? 1.5 : 1) - (clock.barsPerLine > 1 ? 0 : 150)
+                await sleep(until: restMid)
+                guard !Task.isCancelled, phase == .live else { return }
+                pendingLineBreaks += 1
+                flush()
+            }
+        } else {
+            while !Task.isCancelled, phase == .live, Date().timeIntervalSince1970 * 1000 < endMs - 3000 {
+                try? await Task.sleep(for: .seconds(3))
+                guard phase == .live else { return }
+                flush()
+            }
+        }
+    }
+
+    private func flush() {
+        pendingFlushes += 1
+        stt?.finalize()
+    }
+
+    private func sleep(until epochMs: Double) async {
+        let wait = epochMs - Date().timeIntervalSince1970 * 1000
+        if wait > 0 { try? await Task.sleep(for: .milliseconds(Int(wait))) }
+    }
+
     func setTalking(_ on: Bool) {
+        guard !Self.handsFree else { return }  // the hold pad no longer gates the mic
         guard phase == .live || phase == .ready, on != talking else { return }
         talking = on
         mic.engine.muted = !on
@@ -210,7 +264,7 @@ final class TurnRecorder {
         } else {
             // One press is one line: flush it, then break the line once its text is final.
             pendingLineBreaks += 1
-            stt?.finalize()
+            flush()
         }
     }
 
@@ -218,9 +272,11 @@ final class TurnRecorder {
     func finish() async {
         guard phase == .live else { return }
         phase = .finishing
-        if talking { setTalking(false) }
+        if talking, !Self.handsFree { setTalking(false) }
+        talking = false
+        mic.engine.muted = true
         haptics.stop()
-        stt?.finalize()
+        flush()
         await waitForFlush(timeoutMs: 1500)
         let text = finals.trimmingCharacters(in: .whitespacesAndNewlines)
         battle.endTurn(turnId, text)
@@ -252,14 +308,18 @@ final class TurnRecorder {
                 pendingLineBreaks -= 1
                 if !finals.isEmpty, !finals.hasSuffix("\n") { finals = finals.trimmingCharacters(in: .whitespaces) + "\n" }
             }
-            flushWaiters.forEach { $0.resume() }
-            flushWaiters.removeAll()
+            pendingFlushes = max(0, pendingFlushes - 1)
+            // The turn's last words are in only when every finalize has been answered.
+            if pendingFlushes == 0 {
+                flushWaiters.forEach { $0.resume() }
+                flushWaiters.removeAll()
+            }
         case .error(let message):
             if phase == .preparing || phase == .ready { phase = .unavailable(message) }
         case .closed:
             break
         }
-        if phase == .live { battle.updateTranscript(turnId, transcript) }
+        // Written by the live loop (5 Hz) while live, so partials reach the arena without flooding it.
     }
 
     private func handle(_ onset: MicEngine.Onset) {
@@ -379,6 +439,8 @@ final class TurnRecorder {
         lastRescueMs = 0
         rescuedLines.removeAll()
         pendingLineBreaks = 0
+        pendingFlushes = 0
+        sentTranscript = ""
         clock = nil
     }
 }

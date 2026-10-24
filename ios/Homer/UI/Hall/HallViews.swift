@@ -224,14 +224,18 @@ struct EventMenuView: View {
             menu
         } else {
             // A phone: margins, the safe areas, and a scroll only if a small screen needs it.
-            ScrollView {
-                menu
-                    .padding(.horizontal, Metrics.s4)
-                    .padding(.top, Metrics.s3)
-                    .padding(.bottom, Metrics.s6)
+            // The slabs grow to fill a tall screen, so it reads as a menu, not a list.
+            GeometryReader { geo in
+                ScrollView {
+                    menu
+                        .padding(.horizontal, Metrics.s4)
+                        .padding(.top, Metrics.s3)
+                        .padding(.bottom, Metrics.s6)
+                        .environment(\.slabHeight, slabHeight(for: geo.size.height))
+                }
+                .scrollBounceBehavior(.basedOnSize)
+                .scrollIndicators(.hidden)
             }
-            .scrollBounceBehavior(.basedOnSize)
-            .scrollIndicators(.hidden)
             .sceneBehind()
         }
     }
@@ -252,6 +256,14 @@ struct EventMenuView: View {
             Text("Choose your event").chip((stage.isArena ? 13 : 11) * k)
             if stage.isArena { arenaLayout } else { phoneLayout }
         }
+    }
+
+    /// Each live slab's share of a phone screen: what's left after the wordmark,
+    /// the chip, the "Soon" row and the gaps, between 124 and 220 points.
+    private func slabHeight(for screen: CGFloat) -> CGFloat {
+        let live = max(1, events.filter { !$0.locked }.count)
+        let chrome: CGFloat = (showsHeader ? 64 : 0) + 34 + 52 + Metrics.s5 * 2 + Metrics.s3 * CGFloat(live) + Metrics.s3 + Metrics.s6
+        return min(220, max(124, (screen - chrome) / CGFloat(live)))
     }
 
     /// Phone: the live events as color slabs, one column, the future as one locked row.
@@ -355,6 +367,7 @@ struct EventTileView: View {
     /// The slab look (the menus); false is the art-over-caption card.
     var slab: Bool = false
     @Environment(\.stage) private var stage
+    @Environment(\.slabHeight) private var phoneSlabHeight
 
     var body: some View {
         if slab && !event.locked { slabView } else { card }
@@ -364,7 +377,8 @@ struct EventTileView: View {
     /// On the arena it's built to read from the judges' table.
     private var slabView: some View {
         let k = stage.scale
-        let height = (stage.isArena ? 168 : 124) * k
+        let height = stage.isArena ? 168 * k : phoneSlabHeight
+        let tall = !stage.isArena && height >= 170
         return ZStack(alignment: .bottomLeading) {
             Rectangle().fill(field)
             EventArtView(art: event.art, ink: artInk, accent: accent)
@@ -373,8 +387,8 @@ struct EventTileView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
             VStack(alignment: .leading, spacing: Metrics.s1 * k) {
                 Text(event.title)
-                    .font(Typeface.display(stage.isArena ? 30 : 26, on: stage, weight: stage.isArena ? 800 : 700))
-                    .displayLeading((stage.isArena ? 30 : 26) * k, 1.0)
+                    .font(Typeface.display(stage.isArena ? 30 : (tall ? 32 : 26), on: stage, weight: stage.isArena ? 800 : 700))
+                    .displayLeading((stage.isArena ? 30 : (tall ? 32 : 26)) * k, 1.0)
                     .foregroundStyle(Palette.cream)
                     .sturdy(30)
                     .lineLimit(2)
@@ -546,6 +560,18 @@ struct DiscusShape: View {
             }
             .padding()
         }
+    }
+}
+
+private struct SlabHeightKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 124
+}
+
+extension EnvironmentValues {
+    /// How tall a phone menu's event slabs are; the menu sets it from the screen.
+    var slabHeight: CGFloat {
+        get { self[SlabHeightKey.self] }
+        set { self[SlabHeightKey.self] = newValue }
     }
 }
 

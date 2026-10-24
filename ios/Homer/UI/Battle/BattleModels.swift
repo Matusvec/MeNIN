@@ -130,6 +130,9 @@ struct PlayerModel: Equatable {
     var announced: Bool = false
     /// When voice is unavailable: the typed fallback's text, shown in the action band in place of push-to-talk.
     var typed: String? = nil
+    /// The mic opens by itself when your turn goes live and stays open for the
+    /// verse: the phone shows what to do now instead of a hold pad.
+    var handsFree: Bool = false
 }
 
 enum PlayerMoment: Equatable {

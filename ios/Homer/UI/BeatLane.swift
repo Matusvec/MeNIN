@@ -25,7 +25,8 @@ struct BeatLaneView: View {
     @Environment(\.stage) private var stage
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: nil, paused: !running)) { context in
+        // 30 Hz is plenty for the pulse on a phone; at a ProMotion phone's 120 it costs every frame.
+        TimelineView(.animation(minimumInterval: stage.isArena ? nil : 1.0 / 30, paused: !running)) { context in
             let clock = LaneClock(lane: lane, barsPerLine: barsPerLine,
                                   now: running ? context.date.timeIntervalSince1970 * 1000 : .infinity)
             switch style {

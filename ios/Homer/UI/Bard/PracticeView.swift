@@ -188,7 +188,7 @@ struct PracticeView: View {
 
     private func verdict(_ card: Scorecard, reveal: Double, coined: String?) -> some View {
         VStack(spacing: Metrics.s4) {
-            ScorecardView(card: card, reveal: reveal)
+            ScorecardView(card: card, reveal: reveal, hints: true)
             if let coined, reveal >= 1 {
                 Text("Into your hoard · \(coined)").chip(11, fill: Palette.gold, color: Palette.ink)
             }

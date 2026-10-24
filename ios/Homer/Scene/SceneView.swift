@@ -44,7 +44,7 @@ private struct SceneMetalView: UIViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator() }
 
     func makeUIView(context: Context) -> MTKView {
-        let view = MTKView(frame: .zero, device: MTLCreateSystemDefaultDevice())
+        let view = SceneMTKView(frame: .zero, device: MTLCreateSystemDefaultDevice())
         // The page color, shown for the instant before the first frame.
         view.backgroundColor = UIColor(Palette.page)
         view.isOpaque = true
@@ -57,6 +57,20 @@ private struct SceneMetalView: UIViewRepresentable {
 
     func updateUIView(_ view: MTKView, context: Context) {
         context.coordinator.renderer?.driver = driver
+    }
+}
+
+/// The scene's view. On a phone it draws the soft paint at 1.5x, not the
+/// screen's 3x: nobody can see the difference, but the GPU (and SwiftUI,
+/// sharing it on every frame) can. The arena (a Mac, an iPad) stays native.
+private final class SceneMTKView: MTKView {
+    static let phoneScale: CGFloat = 1.5
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        guard let screen = window?.windowScene?.screen else { return }
+        let phone = traitCollection.userInterfaceIdiom == .phone && !UserDefaults.standard.bool(forKey: "sceneFullRes")
+        contentScaleFactor = phone ? min(screen.scale, Self.phoneScale) : screen.scale
     }
 }
 

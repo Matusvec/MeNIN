@@ -174,7 +174,7 @@ final class ArenaConductor {
         let from = battle.revealKey
         let advance: (() -> Void)? = room.autoReady ? { [weak self] in
             Task { @MainActor in
-                try? await Task.sleep(for: .seconds(1.5))
+                try? await Task.sleep(for: .milliseconds(500))
                 self?.battle.advanceOnce(from: from)
             }
         } : nil
@@ -280,6 +280,15 @@ final class ArenaConductor {
         let key = "callup \(turn.id)-\(turn.attempt)"
         guard !said.contains(key) else { return }
         said.insert(key)
+        if turn.attempt > 1 {
+            // A silent first attempt: no second call-up, just send them again.
+            battle.holdStart = true
+            Task {
+                await speak(key, "Again.")
+                battle.holdStart = false
+            }
+            return
+        }
         let themeKey = "theme \(round.id)"
         let sayTheme = !said.contains(themeKey)
         said.insert(themeKey)
@@ -299,8 +308,16 @@ final class ArenaConductor {
             let call = battle.calls[round.theme] ?? ""
             line = first ? "\(named). \(call.isEmpty ? "The floor is yours." : call)" : "\(poet.name). Answer that."
         }
+        // The rules once per hall, before the first call-up (first-timers didn't know what to do or
+        // how they're scored); a rematch goes straight to the call-up.
+        let rulesKey = "rules \(room.id)"
+        let rules: String? = said.contains(rulesKey) ? nil : room.event == "debate"
+            ? (DebateContent.shared.battleLines["Opening"] ?? "Every debater speaks. Make a claim, give a reason, answer your rival. I judge.")
+            : "Two lines each, on my drum. Land four strong beats a line, paint me a picture, answer your rival, and work your cards in."
+        said.insert(rulesKey)
         battle.holdStart = true
         Task {
+            if let rules { await speak(rulesKey, rules) }
             if sayTheme { await speak(themeKey, round.theme) }
             await speak(key, line)
             battle.holdStart = false

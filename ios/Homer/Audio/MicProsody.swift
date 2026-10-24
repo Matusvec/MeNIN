@@ -46,11 +46,17 @@ final class MicProsody {
         }
         isRunning = true
         poll = Task { [weak self] in
+            var published = Date.distantPast
             while !Task.isCancelled {
                 guard let self else { return }
                 if let p = self.engine.latestProsody() {
-                    self.prosody = p
-                    self.onProsody?(p)
+                    self.onProsody?(p)  // the scene: every frame
+                    // Views read `prosody` (the level meter): 10 Hz is plenty, and 60 Hz re-rendered whole
+                    // phone screens for as long as the mic was open.
+                    if Date().timeIntervalSince(published) >= 0.1 {
+                        published = Date()
+                        self.prosody = p
+                    }
                 }
                 try? await Task.sleep(for: .milliseconds(16))
             }

@@ -13,17 +13,40 @@ struct ScorecardView: View {
     /// Fired as each axis finishes counting (0-based), then once more with
     /// `axes.count` when the total lands: the knocks under the host's voice.
     var onKnock: ((Int) -> Void)? = nil
+    /// One plain line under each axis saying what it scores (the phone, where you read your own card).
+    var hints: Bool = false
 
-    init(card: Scorecard, reveal: Double = 1, poet: String? = nil, onKnock: ((Int) -> Void)? = nil) {
-        self.init(ruling: Ruling(card), reveal: reveal, poet: poet, onKnock: onKnock)
+    init(card: Scorecard, reveal: Double = 1, poet: String? = nil, hints: Bool = false, onKnock: ((Int) -> Void)? = nil) {
+        self.init(ruling: Ruling(card), reveal: reveal, poet: poet, hints: hints, onKnock: onKnock)
     }
 
-    init(ruling: Ruling, reveal: Double = 1, poet: String? = nil, onKnock: ((Int) -> Void)? = nil) {
+    init(ruling: Ruling, reveal: Double = 1, poet: String? = nil, hints: Bool = false, onKnock: ((Int) -> Void)? = nil) {
         self.ruling = ruling
         self.reveal = reveal
         self.poet = poet
+        self.hints = hints
         self.onKnock = onKnock
     }
+
+    /// What each axis scores, in plain words: poetry from SPEC's rubric table,
+    /// debate from content/debate.md's.
+    static func hint(for axis: String, debate: Bool) -> String? {
+        switch (axis.lowercased(), debate) {
+        case ("beat", _): "Your stresses landed on the drum, four a line"
+        case ("craft", false): "You worked your cards in, varied them, coined new ones"
+        case ("image", _): "How strong the picture is"
+        case ("answer", false): "You answered the last verse, or the topic if you went first"
+        case ("range", _): "How much feeling the verse covered"
+        case ("claim", _): "You took your side, said it plainly, and held it to the end"
+        case ("reason", _): "Your reasons and examples actually support your claim"
+        case ("answer", true): "You took on the last speaker's strongest point, or the question if you went first"
+        case ("craft", true): "You made the moves in your hand, at the right moment, and varied them"
+        case ("poise", _): "You kept the floor: steady pace, few fillers, no dead air"
+        default: nil
+        }
+    }
+
+    private var isDebate: Bool { ruling.axes.contains { ["claim", "poise"].contains($0.name.lowercased()) } }
 
     @Environment(\.stage) private var stage
 
@@ -66,7 +89,8 @@ struct ScorecardView: View {
             VStack(spacing: Metrics.s2 * k) {
                 ForEach(Array(ruling.axes.enumerated()), id: \.element.id) { i, axis in
                     let shown = Int((Double(axis.value) * min(1, max(0, step - Double(i)))).rounded())
-                    AxisRow(name: axis.name, value: shown, landed: landed > i, k: k)
+                    AxisRow(name: axis.name, value: shown, landed: landed > i, k: k,
+                            hint: hints ? Self.hint(for: axis.name, debate: isDebate) : nil)
                 }
             }
 
@@ -112,9 +136,22 @@ private struct AxisRow: View {
     /// Flips true when the axis finishes counting: the row takes the knock.
     var landed = false
     let k: CGFloat
+    var hint: String? = nil
     @Environment(\.stage) private var stage
 
     var body: some View {
+        VStack(alignment: .leading, spacing: 3 * k) {
+            bars
+            if let hint {
+                Text(hint)
+                    .font(Typeface.text(12 * k))
+                    .foregroundStyle(Palette.ink2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private var bars: some View {
         HStack(spacing: Metrics.s3 * k) {
             Text(name).tracked(10 * k, color: Palette.ink2)
                 .frame(width: 64 * k, alignment: .leading)

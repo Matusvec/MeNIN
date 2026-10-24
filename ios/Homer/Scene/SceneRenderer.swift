@@ -8,7 +8,13 @@ import UIKit
 
 @MainActor
 final class SceneRenderer: NSObject, MTKViewDelegate {
-    var driver: SceneDriver
+    var driver: SceneDriver {
+        didSet {
+            guard driver !== oldValue else { return }
+            oldValue.wake = nil
+            hookWake()
+        }
+    }
     private let motion = SceneMotion()
     private var lastEmotion: EmotionWeights?
     private var seenStrikes = 0
@@ -32,12 +38,25 @@ final class SceneRenderer: NSObject, MTKViewDelegate {
     nonisolated(unsafe) private var observers: [NSObjectProtocol] = []
 
     /// Field pixels per point. 1.5 is crisp enough for paper-cut edges at a third of the cost of 3x.
-    private let fieldScale: CGFloat = 1.5
+    private let fieldScale: CGFloat
+    /// Phones pace the scene to what's happening (see `pace`); the arena runs a steady 60.
+    private let paced: Bool
+    private var lastLively: CFTimeInterval = 0
+    #if DEBUG
+    /// For the scene lab: GPU milliseconds per frame (smoothed) and frames drawn per second.
+    static var debugStats = (gpuMs: 0.0, fps: 0.0, lastFrame: 0.0)
+    private var statFrames = 0
+    private var statStart: CFTimeInterval = 0
+    #endif
     private let maxFieldPixels: CGFloat = 2_400_000
 
     init?(view: MTKView, driver: SceneDriver) {
         self.driver = driver
         seenStrikes = driver.strikes
+        let phone = UIDevice.current.userInterfaceIdiom == .phone && !UserDefaults.standard.bool(forKey: "sceneFullRes")
+        paced = phone
+        // A phone's field is soft paint under cards: one pixel per point is plenty.
+        fieldScale = phone ? 1.0 : 1.5
         guard let device = view.device ?? MTLCreateSystemDefaultDevice(),
               let queue = device.makeCommandQueue(),
               let library = try? device.makeDefaultLibrary(bundle: .main)
@@ -84,8 +103,9 @@ final class SceneRenderer: NSObject, MTKViewDelegate {
         view.device = device
         view.colorPixelFormat = .bgra8Unorm // inks are authored in sRGB and passed through untouched
         view.framebufferOnly = true
-        view.preferredFramesPerSecond = 60
+        view.preferredFramesPerSecond = paced ? 30 : 60
         self.view = view
+        hookWake()
 
         // Never draw for a window nobody can see (a minimized Mac arena window, the app in the background):
         // asking for a drawable there blocks the main thread.
@@ -104,6 +124,29 @@ final class SceneRenderer: NSObject, MTKViewDelegate {
 
     deinit {
         observers.forEach(NotificationCenter.default.removeObserver)
+    }
+
+    private func hookWake() {
+        driver.wake = { [weak self] in
+            guard let self, let view = self.view, view.isPaused, !self.backgrounded, self.backoff == 0 else { return }
+            self.lastLively = CACurrentMediaTime()
+            view.isPaused = false
+        }
+    }
+
+    /// A phone's pace: 60 fps while someone speaks, 30 for a moment after any
+    /// change (a feeling, a strike), 12 when nothing moves it, and after 8 quiet
+    /// seconds a full pause (the last frame stays up) until the driver wakes it.
+    private func pace(_ view: MTKView, now: CFTimeInterval, changed: Bool) {
+        let voice = driver.prosody.energy > 0.03
+        if voice || changed || lastLively == 0 { lastLively = now }
+        let quiet = now - lastLively
+        if quiet > 8 {
+            view.isPaused = true
+            return
+        }
+        let fps = voice ? 60 : (quiet < 2.5 ? 30 : 12)
+        if view.preferredFramesPerSecond != fps { view.preferredFramesPerSecond = fps }
     }
 
     private func sceneChanged(_ scene: ObjectIdentifier?, background: Bool) {
@@ -154,16 +197,20 @@ final class SceneRenderer: NSObject, MTKViewDelegate {
         let dt = last == 0 ? 1.0 / 60 : now - last
         last = now
 
+        var changed = false
         let emotion = driver.emotionForFrame()
         if emotion != lastEmotion {
             lastEmotion = emotion
             motion.setEmotion(emotion)
+            changed = true
         }
         motion.setProsody(driver.prosody)
         if driver.strikes != seenStrikes {
             seenStrikes = driver.strikes
             motion.strike(Float(driver.strikeStrength))
+            changed = true
         }
+        if paced { pace(view, now: now, changed: changed) }
         motion.aspect = Float(size.width / size.height)
         motion.step(dt: Float(dt), resolution: [Float(fieldTexture.width), Float(fieldTexture.height)])
         var uniforms = motion.uniforms
@@ -214,7 +261,22 @@ final class SceneRenderer: NSObject, MTKViewDelegate {
         }
 
         let semaphore = inFlight
+        #if DEBUG
+        commands.addCompletedHandler { buffer in
+            let ms = (buffer.gpuEndTime - buffer.gpuStartTime) * 1000
+            semaphore.signal()
+            Task { @MainActor in SceneRenderer.debugStats.gpuMs = SceneRenderer.debugStats.gpuMs * 0.9 + ms * 0.1 }
+        }
+        statFrames += 1
+        Self.debugStats.lastFrame = now
+        if now - statStart >= 1 {
+            Self.debugStats.fps = Double(statFrames) / (now - statStart)
+            statFrames = 0
+            statStart = now
+        }
+        #else
         commands.addCompletedHandler { _ in semaphore.signal() }
+        #endif
         commands.present(drawable)
         commands.commit()
     }

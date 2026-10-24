@@ -52,6 +52,9 @@ struct PlayerView: View {
         return [lead ?? eventName, round].compactMap { $0 }.joined(separator: " · ")
     }
 
+    /// The round's topic as the headline, from the call-up through the verse.
+    private var topicTitle: String? { model.theme.map { "Topic: \($0)" } }
+
     /// Homer's line as a strip, except his whisper (it's on the raised card).
     private var homerStrip: HomerLine? {
         guard let h = model.homer, !h.whisper else { return nil }
@@ -116,7 +119,7 @@ struct PlayerView: View {
             }
 
         case .onDeck(let hand, let autoReady):
-            PhoneScaffold(eyebrow: eyebrow("You're next"), title: model.theme, onBack: actions.leave,
+            PhoneScaffold(eyebrow: eyebrow("You're up next"), title: topicTitle, onBack: actions.leave,
                           homer: homerStrip, host: model.event.host.name) {
                 codeChip
             } middle: {
@@ -143,7 +146,7 @@ struct PlayerView: View {
             let used = hand.filter(\.used).map(\.text)
             // The rescue card first, then what's still unplayed.
             let open = hand.filter { $0.id == rescueId } + hand.filter { !$0.used && $0.id != rescueId }
-            PhoneScaffold(eyebrow: eyebrow("Your verse"), title: model.theme, onBack: actions.leave,
+            PhoneScaffold(eyebrow: eyebrow("Your verse"), title: topicTitle, onBack: actions.leave,
                           homer: homerStrip, host: model.event.host.name) {
                 ViewThatFits(in: .vertical) {
                     VStack(spacing: Metrics.s4) {
@@ -170,7 +173,12 @@ struct PlayerView: View {
                 }
                 .frame(maxHeight: .infinity, alignment: .top)
             } action: {
-                talkBand(talking: talking, level: level, pushToTalk: pushToTalk)
+                // Hands-free (the battle default now): nothing to hold, just what to do right now.
+                if (model.handsFree || !pushToTalk) && model.typed == nil {
+                    HandsFreeBand(lane: lane, level: level, done: actions.done)
+                } else {
+                    talkBand(talking: talking, level: level, pushToTalk: pushToTalk)
+                }
             }
 
         case .weighing:
@@ -204,8 +212,8 @@ struct PlayerView: View {
             PhoneScaffold(eyebrow: eyebrow("Your scores"), onBack: actions.leave,
                           homer: homerStrip, host: model.event.host.name) {
                 ViewThatFits(in: .vertical) {
-                    scores(ScorecardView(card: card, reveal: reveal, poet: model.me?.fullName), coined: reveal >= 1 ? coined : nil)
-                    ScrollView { scores(ScorecardView(card: card, reveal: reveal, poet: model.me?.fullName), coined: reveal >= 1 ? coined : nil) }
+                    scores(ScorecardView(card: card, reveal: reveal, poet: model.me?.fullName, hints: true), coined: reveal >= 1 ? coined : nil)
+                    ScrollView { scores(ScorecardView(card: card, reveal: reveal, poet: model.me?.fullName, hints: true), coined: reveal >= 1 ? coined : nil) }
                         .scrollIndicators(.hidden)
                 }
                 .frame(maxHeight: .infinity, alignment: .top)
@@ -241,7 +249,7 @@ struct PlayerView: View {
 
         case .debating(let side, let question, let transcript, let moves, let whisperedId, let talking, let level, let endsAt, let seconds):
             let lines = transcript.split(separator: "\n").map(String.init)
-            PhoneScaffold(eyebrow: eyebrow("You argue \(side.title.lowercased())"), title: question, titleLines: 3, onBack: actions.leave,
+            PhoneScaffold(eyebrow: eyebrow(side.title), title: question, titleLines: 3, onBack: actions.leave,
                           homer: homerStrip, host: model.event.host.name) {
                 TurnClockView(endsAt: endsAt, seconds: seconds, size: 56)
             } middle: {
@@ -262,15 +270,20 @@ struct PlayerView: View {
                 }
                 .frame(maxHeight: .infinity, alignment: .top)
             } action: {
-                talkBand(talking: talking, level: level, pushToTalk: true)
+                // The debate mic is open for the whole turn: no hold pad.
+                if model.typed == nil {
+                    HandsFreeBand(lane: nil, level: level, done: actions.done)
+                } else {
+                    talkBand(talking: talking, level: level, pushToTalk: false)
+                }
             }
 
         case .ruling(let ruling, let reveal):
             PhoneScaffold(eyebrow: eyebrow("Socrates rules"), onBack: actions.leave,
                           homer: homerStrip, host: model.event.host.name) {
                 ViewThatFits(in: .vertical) {
-                    ScorecardView(ruling: ruling, reveal: reveal, poet: model.me?.fullName)
-                    ScrollView { ScorecardView(ruling: ruling, reveal: reveal, poet: model.me?.fullName) }.scrollIndicators(.hidden)
+                    ScorecardView(ruling: ruling, reveal: reveal, poet: model.me?.fullName, hints: true)
+                    ScrollView { ScorecardView(ruling: ruling, reveal: reveal, poet: model.me?.fullName, hints: true) }.scrollIndicators(.hidden)
                 }
                 .frame(maxHeight: .infinity, alignment: .top)
             } action: {
@@ -347,6 +360,73 @@ private struct MyPlate: View {
         .padding(.vertical, Metrics.s5)
         .frame(maxWidth: .infinity)
         .paper(poet.ink, radius: Metrics.radiusL)
+    }
+}
+
+/// The thumb zone when the mic is hands-free: nothing to hold, just what to do
+/// right now (read off the beat grid) over the live meter, and a big Done.
+private struct HandsFreeBand: View {
+    /// The verse's grid; nil for a debate (no beat: the mic is simply open).
+    let lane: BeatLane?
+    let level: Double
+    var barsPerLine: Int = 2
+    var done: (() -> Void)?
+
+    private enum Now {
+        case countIn, live, breathe, finishing
+
+        var title: String {
+            switch self {
+            case .countIn: "Speak on the drum"
+            case .live: "Speak now"
+            case .breathe: "Breathe"
+            case .finishing: "Last word"
+            }
+        }
+
+        var subtitle: String {
+            switch self {
+            case .countIn: "The beat is counting you in"
+            case .live: "The mic is open"
+            case .breathe: "Next line on the drum"
+            case .finishing: "Homer is listening"
+            }
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: Metrics.s2) {
+            TimelineView(.periodic(from: .now, by: 0.2)) { context in
+                let now = state(at: context.date.timeIntervalSince1970 * 1000)
+                VStack(spacing: Metrics.s2) {
+                    MicLevelView(level: now == .countIn ? 0 : level, tint: Palette.onHero)
+                    Text(now.title)
+                        .font(Typeface.display(30))
+                        .foregroundStyle(Palette.onHero)
+                    Text(now.subtitle)
+                        .font(Typeface.text(14, weight: 500))
+                        .foregroundStyle(Palette.onHero2)
+                }
+                .padding(.vertical, Metrics.s4)
+                .frame(maxWidth: .infinity)
+                .paper(now == .live ? Palette.hero : Palette.ink, radius: Metrics.radiusL)
+                .animation(Motion.stamp, value: now)
+                .accessibilityElement(children: .combine)
+            }
+            if let done {
+                Button(action: done) { ArrowLabel(title: "I'm done") }.buttonStyle(.homer(.secondary, wide: true))
+            }
+        }
+    }
+
+    private func state(at nowMs: Double) -> Now {
+        guard let lane else { return .live }
+        let beatMs = 60_000 / max(lane.bpm, 1)
+        let barMs = beatMs * Double(lane.beatsPerLine)
+        let elapsed = nowMs - lane.startedAt
+        if elapsed < 0 { return .countIn }
+        if elapsed >= barMs * Double(barsPerLine * lane.lines) { return .finishing }
+        return Int(elapsed / barMs) % barsPerLine == 0 ? .live : .breathe
     }
 }
 

@@ -18,7 +18,7 @@ struct PlayerScreen: View {
     var body: some View {
         Group {
             if battle.me != nil, battle.room?.event == "discus" {
-                DiscusPhoneRoot(battle: battle)  // no mic: TurnRecorder stays off in discus rooms
+                DiscusPhoneRoot(battle: battle, onBack: { if midBattle { confirmLeave = true } else { leave() } })  // no mic in discus
             } else {
                 PlayerView(model: model, actions: actions)
                     .confirmationDialog("Leave the battle?", isPresented: $confirmLeave, titleVisibility: .visible) {
@@ -36,6 +36,7 @@ struct PlayerScreen: View {
                 if let me = battle.me, let code = battle.room?.code { LastBattle.save(code: code, name: me.name) }
             }
             .task {
+                UIApplication.shared.isIdleTimerDisabled = true  // a locked screen drops the poet mid-verse
                 MusicDirector.shared.stopAll()
                 battle.connect(to: ServerConfig.spacetime, database: ServerConfig.database)
                 rejoinIfReturning()
@@ -47,6 +48,7 @@ struct PlayerScreen: View {
                 autopilot?.start()
             }
             .onDisappear {
+                UIApplication.shared.isIdleTimerDisabled = false
                 recorder?.detach()
                 autopilot?.stop()
                 battle.disconnect()

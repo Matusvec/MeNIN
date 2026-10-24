@@ -189,6 +189,7 @@ enum BattlePresenter {
                                 theme: battle.currentRound?.theme, homer: homerLine(homer))
         model.event = event(room)
         model.announced = me.entered && me.named
+        model.handsFree = TurnRecorder.handsFree
         if !me.entered {
             model.moment = .micCheck
             return model
@@ -234,7 +235,7 @@ enum BattlePresenter {
                 rescueId: recorder?.rescueCard,
                 talking: recorder?.talking ?? false,
                 level: recorder?.mic.prosody.energy ?? 0,
-                pushToTalk: true
+                pushToTalk: !TurnRecorder.handsFree
             )
         case .judging:
             model.moment = .weighing
