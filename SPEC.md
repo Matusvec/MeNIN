@@ -71,7 +71,7 @@ Curriculum (first three are the minimum we ship):
 | --- | --- | --- |
 | 1 | The beat | Four stresses a line, a pause in the middle |
 | 2 | The formula | Fill half a line with a stock phrase from your hand. Homer sets a hard line so you freeze, and the freeze rescue saves you |
-| 3 | The epithet | Coin your own ("___, Breaker of Deadlines"). It goes into your hoard and becomes your battle name |
+| 3 | The epithet | Coin your own ("___, Breaker of Deadlines"). It goes into your hoard; in battle Homer coins you a fresh one each time, and yours is the fallback |
 | 4 | The turn | Shift the feeling mid-verse; the scene shows it |
 | 5 | The answer | Respond to a line Homer throws at you |
 | 6 | The boast | Land a closing line that hits |
@@ -90,7 +90,7 @@ Solo reps with no lesson structure. Same turn as battle mode (below), with Homer
 Two to five human poets in one room, Jackbox-style:
 
 - **The arena** is one big shared screen: the app in arena mode on a Mac (Apple Silicon runs iPhone apps), an iPad, or a phone mirrored to a TV. It shows the scene, the beat lane, the scoreboard, and a QR code to join.
-- **Your phone** is your mic and your hand. Join by scanning the QR code or typing the room code; no account needed. Your hand is private, so you can save your best formula for the last round.
+- **Your phone** is your mic and Homer's phrases. Join by scanning the QR code or typing the room code; no account needed. Your phrases are private and dealt fresh each round.
 
 How a battle runs:
 
