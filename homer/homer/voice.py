@@ -16,6 +16,8 @@ import httpx2
 from .guard import BudgetExceeded, RateLimit  # noqa: F401  (RateLimit kept importable from here)
 
 TOKEN_URL = "https://api.cartesia.ai/access-token"
+TTS_URL = "https://api.cartesia.ai/tts/bytes"
+STATUS_TTL = 60.0  # seconds a voice status is reused
 
 # What each device needs: a battle phone listens, the arena speaks, a solo phone does both.
 GRANTS = {"phone": {"stt": True}, "arena": {"tts": True}, "solo": {"stt": True, "tts": True}}
@@ -87,4 +89,44 @@ async def mint(cfg: VoiceConfig, role: str, http: httpx2.AsyncClient) -> dict:
             "voiceId": cfg.voice_id,  # Homer
             "voices": {"homer": cfg.voice_id, "socrates": cfg.socrates_voice_id},  # one per host
         }
+    return out
+
+
+_status: tuple[float, dict] | None = None
+
+
+async def status(cfg: VoiceConfig, http: httpx2.AsyncClient) -> dict:
+    """Whether Cartesia will speak: {"voice": "ok" | "out" | "down", "message": ...}, checked once a minute at most.
+
+    A spent account fails a WebSocket with a bare socket error, so clients that
+    lose the voice ask here why. "out" is HTTP 402 quota_exceeded (credits); the
+    probe is one tiny line and costs nothing then.
+    """
+    global _status
+    if _status and time.monotonic() - _status[0] < STATUS_TTL:
+        return _status[1]
+    if not cfg.api_key:
+        out = {"voice": "down", "message": "CARTESIA_API_KEY is not set"}
+    else:
+        try:
+            res = await http.post(
+                TTS_URL,
+                headers={"X-API-Key": cfg.api_key, "Cartesia-Version": cfg.version},
+                json={
+                    "model_id": cfg.tts_model,
+                    "transcript": "Hi.",
+                    "voice": {"mode": "id", "id": cfg.voice_id},
+                    "output_format": {"container": "wav", "encoding": "pcm_s16le", "sample_rate": 8000},
+                    "language": "en",
+                },
+            )
+            if res.status_code < 300:
+                out = {"voice": "ok", "message": ""}
+            elif res.status_code == 402 or "quota" in res.text:
+                out = {"voice": "out", "message": "Voice credits out"}
+            else:
+                out = {"voice": "down", "message": f"Cartesia: HTTP {res.status_code}"}
+        except httpx2.HTTPError as exc:
+            out = {"voice": "down", "message": f"Cartesia unreachable: {type(exc).__name__}"}
+    _status = (time.monotonic(), out)
     return out

@@ -36,6 +36,7 @@ LIMITS: dict[str, tuple[int, float]] = {
     "/battle/verdict": (40, 60),
     "/battle/song": (40, 60),
     "/voice/token": (120, 60),
+    "/voice/status": (30, 60),  # a Cartesia probe at most once a minute (cached), only after a voice failure
     "/battle/deal": (80, 60),  # no model call, but it writes to SpacetimeDB
 }
 CHEAP_LIMIT = (1200, 60)  # every other path, each on its own: no model call, but keep the CPU sane

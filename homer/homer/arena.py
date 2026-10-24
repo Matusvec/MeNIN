@@ -27,6 +27,7 @@ from . import debate, events, moss_dealer
 from .emotion import EMOTIONS, Classifier
 from .deal import CANDIDATES, call_for, deal, pick_theme
 from .host import Host, Verse
+from .lines import break_lines
 from .judge import Judge, Judgment, Turn
 from .stdb import Refused, Stdb, StdbError
 
@@ -104,8 +105,9 @@ class Arena:
             if live.get("status") != "judging":
                 raise Refused(f"turn {bt.turn_id} is {live.get('status')}, not judging")
             event = events.get(bt.event)
+            said = live.get("transcript") or ""
             turn = Turn(
-                transcript=live.get("transcript") or "",
+                transcript=break_lines(said) if event.hand == "formulas" else said,  # free verse: a line per breath
                 mode="battle",
                 event=bt.event,
                 theme=bt.theme,
@@ -305,8 +307,8 @@ class Arena:
         """The line that hands the floor over after the theme: a coined theme's own, else the written one."""
         return self._calls.get(" ".join(theme.split()).lower()) or call_for(theme)
 
-    async def _verses(self, room_id: int, where: str) -> list[Verse]:
-        """Scored verses matching a SQL condition on `turn`, in battle order."""
+    async def _verses(self, room_id: int, where: str, event: events.Event | None = None) -> list[Verse]:
+        """Scored verses matching a SQL condition on `turn`, in battle order (poetry: a line per breath)."""
         turns = await self.db.sql(f"SELECT * FROM turn WHERE {where}")
         scores = {s["turn_id"]: s for s in await self.db.sql(f"SELECT * FROM score WHERE room_id = {int(room_id)}")}
         players = {p["id"]: p for p in await self.db.sql(f"SELECT * FROM player WHERE room_id = {int(room_id)}")}
@@ -317,7 +319,8 @@ class Arena:
                 continue
             p = players.get(t["player_id"], {})
             poet = ", ".join(x for x in (p.get("name", ""), p.get("epithet", "")) if x)
-            out.append(Verse(t["id"], poet, t["transcript"], int(s.get("total", 0)), s.get("best_line", "")))
+            said = break_lines(t["transcript"]) if event is not None and event.hand == "formulas" else t["transcript"]
+            out.append(Verse(t["id"], poet, said, int(s.get("total", 0)), s.get("best_line", "")))
         return out
 
     async def round_verdict(self, round_id: int) -> tuple[str, int, str]:
@@ -341,7 +344,7 @@ class Arena:
 
         async def work() -> tuple[str, int, str]:
             event = events.get(room.get("event") or "poetry")
-            verses = await self._verses(rnd["room_id"], f"round_id = {int(round_id)}")
+            verses = await self._verses(rnd["room_id"], f"round_id = {int(round_id)}", event)
             call = await self.host.round_verdict(rnd.get("theme", ""), verses, event)
             self._verdicts[round_id] = call
             return call
@@ -369,7 +372,7 @@ class Arena:
             if room.get("phase") not in ("round_end", "finale"):
                 raise Refused(f"room {room_id} is in {room.get('phase')}: the song is stitched at a round's end")
             event = events.get(room.get("event") or "poetry")
-            verses = await self._verses(room_id, f"room_id = {int(room_id)}")
+            verses = await self._verses(room_id, f"room_id = {int(room_id)}", event)
             if event.hand == "moves":
                 rounds = await self.db.sql(f"SELECT * FROM round WHERE room_id = {int(room_id)}")
                 asked = [r.get("theme", "") for r in sorted(rounds, key=lambda r: r.get("round_no", 0))]

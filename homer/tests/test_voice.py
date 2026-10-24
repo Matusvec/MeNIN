@@ -42,3 +42,27 @@ def test_rate_limit_per_ip():
     assert rl.allow("a", 0) and rl.allow("a", 1) and not rl.allow("a", 2)
     assert rl.allow("b", 2)
     assert rl.allow("a", 62)
+
+
+def test_voice_status_says_credits_out_on_402_and_caches_it():
+    import asyncio
+
+    import httpx2
+
+    from homer import voice
+    from homer.voice import VoiceConfig
+
+    hits = []
+
+    def spent(request):
+        hits.append(request.url.path)
+        return httpx2.Response(402, json={"error_code": "quota_exceeded", "title": "Model credits limit reached"})
+
+    voice._status = None
+    cfg = VoiceConfig(api_key="k", version="2026-08-14", stt_model="ink-2", stt_encoding="pcm_s16le",
+                      stt_sample_rate=16000, tts_model="sonic-3.6", voice_id="v", ttl=60)
+    http = httpx2.AsyncClient(transport=httpx2.MockTransport(spent))
+    assert asyncio.run(voice.status(cfg, http)) == {"voice": "out", "message": "Voice credits out"}
+    asyncio.run(voice.status(cfg, http))
+    assert hits == ["/tts/bytes"]  # once a minute at most
+    voice._status = None

@@ -25,7 +25,7 @@ from fastapi.responses import JSONResponse, Response, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
-from . import debate, events, formulas, moss_dealer
+from . import debate, events, formulas, moss_dealer, voice
 from .arena import Arena, BattleTurn, NotFound, Poet
 from .config import settings
 from .deal import Card, call_for, deal, pick_theme, rescue, themes
@@ -572,6 +572,15 @@ async def voice_token(req: VoiceTokenRequest, request: Request) -> dict[str, Any
         return await mint(VoiceConfig.from_env(), req.role, _voice_http)
     except VoiceError as exc:
         raise HTTPException(503, str(exc)) from None
+
+
+@app.get("/voice/status")
+async def voice_status() -> dict[str, Any]:
+    """Why the voice failed, for a client that lost it: credits out, Cartesia down, or fine."""
+    global _voice_http
+    if _voice_http is None:
+        _voice_http = httpx2.AsyncClient(timeout=5.0)
+    return await voice.status(VoiceConfig.from_env(), _voice_http)
 
 
 class BattlePoetRequest(Model):

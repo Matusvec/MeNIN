@@ -229,3 +229,14 @@ def test_an_empty_live_verse_is_422(monkeypatch):
             assert c.post("/battle/judge", json={"turnId": 9, "transcript": VERSE}).status_code == 422
     finally:
         server._judge = server._arena = None
+
+
+def test_free_verse_is_judged_a_line_per_breath_and_long_lines_split():
+    from homer.lines import break_lines
+
+    said = "the sea came grey\nlike a wave on the rocks it carried what the wind had drawn and the gulls went quiet over the water"
+    lines = break_lines(said).splitlines()
+    assert lines[0] == "the sea came grey"  # the phone's pause break stays
+    assert all(len(line.split()) <= 13 for line in lines) and len(lines) >= 3
+    assert " ".join(lines).split() == said.split()  # nothing lost, nothing added
+    assert not any(line.split()[-1] in ("the", "a", "of") for line in lines)
