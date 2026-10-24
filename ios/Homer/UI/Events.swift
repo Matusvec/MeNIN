@@ -46,7 +46,7 @@ struct Ruling: Equatable {
 
     /// From the server's ordered axes for an event.
     init(event: EventKind, values: [Int], verdict: String, bestLine: String) {
-        axes = zip(event.axes, values).map { AxisScore(name: $0, value: $1) }
+        axes = Self.shown(zip(event.axes, values).map { AxisScore(name: $0, value: $1) })
         self.verdict = verdict
         self.bestLine = bestLine
     }
@@ -59,8 +59,18 @@ struct Ruling: Equatable {
 
     /// Poetry's contract scorecard.
     init(_ card: Scorecard) {
-        axes = Axis.allCases.map { AxisScore(name: $0.rawValue.capitalized, value: card.scores[$0]) }
+        axes = Self.shown(Axis.allCases.map { AxisScore(name: $0.rawValue.capitalized, value: card.scores[$0]) })
         verdict = card.verdict
         bestLine = card.bestLine
+    }
+
+    /// Poetry as the players read it (the playtest): Beat is called Flow, and the
+    /// card leads with the picture: Image, Answer, Craft, Flow, Range. Debate is unchanged.
+    private static func shown(_ axes: [AxisScore]) -> [AxisScore] {
+        let order = ["Image", "Answer", "Craft", "Flow", "Range"]
+        guard axes.contains(where: { $0.name == "Beat" }) else { return axes }
+        return axes
+            .map { $0.name == "Beat" ? AxisScore(name: "Flow", value: $0.value) : $0 }
+            .sorted { (order.firstIndex(of: $0.name) ?? 9) < (order.firstIndex(of: $1.name) ?? 9) }
     }
 }

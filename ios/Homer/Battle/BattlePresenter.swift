@@ -206,7 +206,9 @@ enum BattlePresenter {
             model.moment = .waiting(watching: nil, transcript: [])
             return model
         }
-        let hand = battle.myHand.map { card($0, played: turn.played.contains($0)) }
+        // Homer's phrases: optional bonus (Craft). The phone shows the dealer's top 3 of the 5 dealt;
+        // speaking any of the 5 still counts (Matus: "why do we even care about the hands").
+        let hand = battle.myHand.prefix(3).map { card($0, played: turn.played.contains($0)) }
         guard turn.playerId == me.id else {
             model.moment = .waiting(watching: battle.player(turn.playerId).map(plate), transcript: lines(turn.transcript))
             return model

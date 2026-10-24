@@ -182,8 +182,7 @@ final class TurnRecorder {
         lastWordsMs = nowMs
         if Self.handsFree {
             talking = true
-            mic.engine.muted = false
-            haptics.hit()  // the mic is open: a thump in the hand
+            mic.engine.muted = false  // the haptic count-in (3, 2, 1, then a strong beat 1) says when
             tasks.append(Task { [weak self] in await self?.flushLines(clock: clock, endMs: endMs) })
         }
 

@@ -129,11 +129,11 @@ struct PlayerView: View {
                     if hand.isEmpty {
                         WaitLine(state: .dealing, host: model.event.host.name)
                     } else {
-                        Text("Your hand").tracked(10, color: Palette.onPage2)
-                        // The slips if they fit, else the same hand as chips. Never a scroll.
+                        PhrasesHeader()
+                        // The slips if they fit, else the same phrases as chips. Never a scroll.
                         ViewThatFits(in: .vertical) {
-                            FormulaHandView(cards: hand, forward: true)
-                            FormulaHandView(cards: hand, forward: true, style: .compact)
+                            FormulaHandView(cards: Array(hand.prefix(3)), forward: true)
+                            FormulaHandView(cards: Array(hand.prefix(3)), forward: true, style: .compact)
                         }
                     }
                     Spacer(minLength: 0)
@@ -146,6 +146,13 @@ struct PlayerView: View {
                     Button(action: ready) { ArrowLabel(title: "Ready") }.buttonStyle(.homer(wide: true))
                 }
             }
+
+        case .speaking(let lane, let transcript, let hand, let rescueId, _, let level, let pushToTalk)
+            where (model.handsFree || !pushToTalk) && model.typed == nil:
+            // Hands-free: the whole screen is the cue (3-2-1, SPEAK, Breathe), the phrases below.
+            VerseStage(lane: lane, lines: transcript.split(separator: "\n").map(String.init), hand: hand, rescueId: rescueId,
+                       level: level, topic: model.theme, ink: model.me?.ink ?? Palette.hero,
+                       onDone: actions.done, onBack: actions.leave)
 
         case .speaking(let lane, let transcript, let hand, let rescueId, let talking, let level, let pushToTalk):
             let lines = transcript.split(separator: "\n").map(String.init)
@@ -366,6 +373,243 @@ private struct MyPlate: View {
         .padding(.vertical, Metrics.s5)
         .frame(maxWidth: .infinity)
         .paper(poet.ink, radius: Metrics.radiusL)
+    }
+}
+
+/// The hand, named for what it is to a first-time player.
+struct PhrasesHeader: View {
+    var onColor = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("Homer's phrases").tracked(10, color: onColor ? Palette.cream.opacity(0.8) : Palette.accent)
+            Text("Stuck? Use one of Homer's phrases. It scores Craft.")
+                .font(Typeface.text(13, weight: 500))
+                .foregroundStyle(onColor ? Palette.cream : Palette.ink2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, onColor ? 0 : Metrics.s3)
+        .padding(.vertical, onColor ? 0 : Metrics.s2)
+        .background { if !onColor { RoundedRectangle(cornerRadius: Metrics.radiusM, style: .continuous).fill(Palette.paper) } }
+    }
+}
+
+/// The hands-free verse: the whole screen is the cue, read off the beat grid.
+/// The count-in stamps 3-2-1 on the beats; the speaking bar flips the screen to
+/// your seat's color with SPEAK; the rest bar says Breathe, then counts you into
+/// the next line. Homer's phrases sit below, and "+Craft" pops when one lands.
+private struct VerseStage: View {
+    let lane: BeatLane
+    let lines: [String]
+    let hand: [FormulaCard]
+    let rescueId: String?
+    let level: Double
+    var topic: String?
+    var ink: Color
+    var barsPerLine = 2
+    var onDone: (() -> Void)?
+    var onBack: (() -> Void)?
+
+    @State private var crafted = 0
+
+    private enum Cue: Equatable {
+        case ready
+        case count(Int)
+        case speak(line: Int)
+        case breathe
+        case done
+    }
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1.0 / 30)) { context in
+            let cue = cue(at: context.date.timeIntervalSince1970 * 1000)
+            ZStack {
+                background(cue).ignoresSafeArea()
+                VStack(spacing: Metrics.s4) {
+                    header(cue)
+                    Spacer(minLength: 0)
+                    word(cue)
+                    Spacer(minLength: 0)
+                    phrases(cue)
+                    if let onDone {
+                        Button(action: onDone) { ArrowLabel(title: "I'm done") }
+                            .buttonStyle(.homer(.secondary, wide: true))
+                    }
+                }
+                .padding(.horizontal, Metrics.s4)
+                .padding(.vertical, Metrics.s2)
+            }
+            .animation(.easeOut(duration: 0.12), value: cue)
+        }
+        .onChange(of: hand.filter(\.used).count) { old, new in
+            if new > old { crafted += 1 }
+        }
+    }
+
+    // MARK: Pieces
+
+    @ViewBuilder
+    private func background(_ cue: Cue) -> some View {
+        switch cue {
+        case .speak: ink
+        case .count, .breathe: Palette.ink
+        case .done: Palette.hero
+        case .ready: Color.clear
+        }
+    }
+
+    private func onColor(_ cue: Cue) -> Bool { cue != .ready }
+
+    private func header(_ cue: Cue) -> some View {
+        HStack(spacing: Metrics.s3) {
+            if let onBack {
+                BackButton(action: onBack)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Your topic").tracked(10, color: onColor(cue) ? Palette.cream.opacity(0.75) : Palette.accent)
+                if let topic {
+                    Text(topic)
+                        .font(Typeface.display(20))
+                        .foregroundStyle(onColor(cue) ? Palette.cream : Palette.ink)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Text(progress(cue)).tracked(10, color: onColor(cue) ? Palette.cream.opacity(0.75) : Palette.ink2)
+        }
+        .padding(.leading, onBack == nil ? Metrics.s4 : Metrics.s2)
+        .padding(.trailing, Metrics.s3)
+        .padding(.vertical, Metrics.s3)
+        .background {
+            RoundedRectangle(cornerRadius: Metrics.radiusL, style: .continuous)
+                .fill(onColor(cue) ? Color.black.opacity(0.18) : Palette.paper)
+        }
+    }
+
+    private func progress(_ cue: Cue) -> String {
+        if case .speak(let line) = cue { return "Line \(line + 1) of \(lane.lines)" }
+        return ""
+    }
+
+    @ViewBuilder
+    private func word(_ cue: Cue) -> some View {
+        VStack(spacing: Metrics.s3) {
+            switch cue {
+            case .ready:
+                WaitLine(state: .custom("Get ready: the drum counts you in"))
+            case .count(let n):
+                Text("\(n)")
+                    .font(Typeface.display(200, weight: 800))
+                    .foregroundStyle(Palette.cream)
+                    .id(n)
+                    .transition(.scale(scale: 1.6).combined(with: .opacity))
+                Text(lines.isEmpty ? "Speak on the drum" : "Next line on the drum")
+                    .font(Typeface.text(16, weight: 600))
+                    .foregroundStyle(Palette.cream.opacity(0.8))
+            case .speak:
+                Text("SPEAK")
+                    .font(Typeface.display(96, weight: 900))
+                    .foregroundStyle(Palette.cream)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+                    .sturdy(96)
+                MicLevelView(level: level, tint: Palette.cream)
+                Text("The mic is open")
+                    .font(Typeface.text(15, weight: 600))
+                    .foregroundStyle(Palette.cream.opacity(0.85))
+                if let last = lines.last, !last.isEmpty {
+                    Text(last)
+                        .font(Typeface.display(22, italic: true))
+                        .foregroundStyle(Palette.cream)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .padding(.top, Metrics.s2)
+                }
+            case .breathe:
+                Text("Breathe")
+                    .font(Typeface.display(64, weight: 600))
+                    .foregroundStyle(Palette.cream)
+                Text("Next line on the drum")
+                    .font(Typeface.text(16, weight: 600))
+                    .foregroundStyle(Palette.cream.opacity(0.8))
+            case .done:
+                Text("Last word")
+                    .font(Typeface.display(48, weight: 600))
+                    .foregroundStyle(Palette.cream)
+                Text("Homer is listening")
+                    .font(Typeface.text(16, weight: 600))
+                    .foregroundStyle(Palette.cream.opacity(0.8))
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    /// Homer's phrases, three at most: the whispered one first, then the unplayed.
+    private func phrases(_ cue: Cue) -> some View {
+        let shown = Array((hand.filter { $0.id == rescueId } + hand.filter { $0.id != rescueId && !$0.used }
+                           + hand.filter { $0.id != rescueId && $0.used }).prefix(3))
+        return VStack(alignment: .leading, spacing: Metrics.s2) {
+            HStack(alignment: .top) {
+                PhrasesHeader(onColor: onColor(cue))
+                Spacer(minLength: 0)
+                Text("+Craft")
+                    .chip(11, fill: Palette.gold, color: Palette.ink)
+                    .keyframeAnimator(initialValue: Pop(), trigger: crafted) { chip, v in
+                        chip.scaleEffect(v.scale).offset(y: v.y).opacity(v.opacity)
+                    } keyframes: { _ in
+                        KeyframeTrack(\.scale) {
+                            MoveKeyframe(0.6)
+                            SpringKeyframe(1.25, duration: 0.18, spring: .snappy)
+                            SpringKeyframe(1.0, duration: 0.25)
+                        }
+                        KeyframeTrack(\.y) {
+                            MoveKeyframe(8)
+                            CubicKeyframe(-6, duration: 0.9)
+                        }
+                        KeyframeTrack(\.opacity) {
+                            MoveKeyframe(crafted > 0 ? 1 : 0)
+                            LinearKeyframe(1, duration: 0.7)
+                            LinearKeyframe(0, duration: 0.3)
+                        }
+                    }
+            }
+            if !shown.isEmpty {
+                FormulaHandView(cards: shown, raisedId: rescueId, forward: true, style: .compact)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .padding(Metrics.s3)
+        .background {
+            RoundedRectangle(cornerRadius: Metrics.radiusL, style: .continuous)
+                .fill(onColor(cue) ? Color.black.opacity(0.18) : Palette.paper2)
+        }
+    }
+
+    private struct Pop {
+        var scale = 1.0
+        var y = 0.0
+        var opacity = 0.0
+    }
+
+    // MARK: The grid
+
+    private func cue(at nowMs: Double) -> Cue {
+        let beatMs = 60_000 / max(lane.bpm, 1)
+        let barMs = beatMs * Double(lane.beatsPerLine)
+        let lineMs = barMs * Double(barsPerLine)
+        let elapsed = nowMs - lane.startedAt
+        if elapsed < 0 {
+            let left = Int((-elapsed / beatMs).rounded(.up))
+            return left <= 3 ? .count(left) : .ready
+        }
+        let line = Int(elapsed / lineMs)
+        if line >= lane.lines { return .done }
+        let within = elapsed - Double(line) * lineMs
+        if within < barMs { return .speak(line: line) }
+        if line + 1 >= lane.lines { return .done }
+        let left = Int(((lineMs - within) / beatMs).rounded(.up))
+        return left <= 3 ? .count(left) : .breathe
     }
 }
 

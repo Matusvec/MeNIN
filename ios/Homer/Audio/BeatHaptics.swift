@@ -23,13 +23,23 @@ final class BeatHaptics {
     /// Schedules every remaining beat: strong downbeats, medium speaking beats, faint rest beats.
     func play(_ clock: BeatClock, nowMs: Double = Date().timeIntervalSince1970 * 1000) {
         guard let engine else { return }
-        let events: [CHHapticEvent] = clock.beats.compactMap { beat in
+        // The count-in: 3, 2, 1 on the last three beats before line 1, so "now" is never a guess.
+        let countIn: [CHHapticEvent] = (1...3).compactMap { k in
+            let relative = (clock.beatAtMs - Double(4 - k) * clock.beatMs - nowMs) / 1000
+            guard relative >= 0 else { return nil }
+            return CHHapticEvent(eventType: .hapticTransient, parameters: [
+                CHHapticEventParameter(parameterID: .hapticIntensity, value: 0.55),
+                CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.7),
+            ], relativeTime: relative)
+        }
+        let events: [CHHapticEvent] = countIn + clock.beats.compactMap { beat in
             let relative = (beat.ms - nowMs) / 1000
             guard relative >= 0 else { return nil }
-            let intensity: Float = !beat.speaking ? 0.25 : (beat.index == 0 ? 0.9 : 0.6)
+            // Each line's first beat is the strongest: that's "speak".
+            let intensity: Float = !beat.speaking ? 0.25 : (beat.index == 0 ? 1.0 : 0.6)
             return CHHapticEvent(eventType: .hapticTransient, parameters: [
                 CHHapticEventParameter(parameterID: .hapticIntensity, value: intensity),
-                CHHapticEventParameter(parameterID: .hapticSharpness, value: beat.speaking ? 0.4 : 0.2),
+                CHHapticEventParameter(parameterID: .hapticSharpness, value: beat.speaking ? (beat.index == 0 ? 0.8 : 0.4) : 0.2),
             ], relativeTime: relative)
         }
         guard !events.isEmpty, let pattern = try? CHHapticPattern(events: events, parameters: []) else { return }

@@ -32,7 +32,7 @@ struct ScorecardView: View {
     /// debate from content/debate.md's.
     static func hint(for axis: String, debate: Bool) -> String? {
         switch (axis.lowercased(), debate) {
-        case ("beat", _): "Your stresses landed on the drum, four a line"
+        case ("beat", _), ("flow", _): "You kept a steady rhythm"
         case ("craft", false): "You worked your cards in, varied them, coined new ones"
         case ("image", _): "How strong the picture is"
         case ("answer", false): "You answered the last verse, or the topic if you went first"

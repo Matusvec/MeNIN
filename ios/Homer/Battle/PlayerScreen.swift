@@ -13,6 +13,9 @@ struct PlayerScreen: View {
     @State private var recorder: TurnRecorder?
     @State private var draft = ""
     @State private var confirmLeave = false
+    /// A wait the poet can see, set only once it has lasted 300 ms so fast paths never flash.
+    @State private var slowWait: WaitState?
+    @State private var joiningCode: String?
     @AppStorage("poetName") private var savedName = ""
 
     var body: some View {
@@ -29,6 +32,13 @@ struct PlayerScreen: View {
             }
         }
             .toolbar(.hidden, for: .navigationBar)
+            .task(id: waitCandidate) {
+                // Show a wait only if it's still pending after 300 ms.
+                slowWait = nil
+                guard let wait = waitCandidate else { return }
+                try? await Task.sleep(for: .milliseconds(300))
+                if !Task.isCancelled, waitCandidate == wait { slowWait = wait }
+            }
             .onChange(of: battle.room?.phase) { _, _ in
                 // The hall stays open after a battle (P16), and join_room takes a same-device reconnect
                 // even in `finished`: keep the way back fresh while the room lives. Leave, or "no such
@@ -61,10 +71,23 @@ struct PlayerScreen: View {
         Task {
             for _ in 0..<100 where battle.connection != .connected { try? await Task.sleep(for: .milliseconds(100)) }
             guard battle.connection == .connected, battle.me == nil else { return }
+            joiningCode = last.code
             battle.join(code: last.code, name: last.name)
             try? await Task.sleep(for: .seconds(2))
             if battle.lastError == "no such room" { LastBattle.clear() }  // it finished while we were away
         }
+    }
+
+    /// What the poet is waiting on right now, if anything (before the 300 ms rule).
+    private var waitCandidate: WaitState? {
+        if battle.connection == .disconnected || (battle.connection == .connecting && battle.identity != nil) {
+            return .reconnecting
+        }
+        if battle.me == nil, let code = joiningCode, battle.lastError == nil {
+            return .findingRoom(code)
+        }
+        if recorder?.phase == .preparing { return .warmingUp }
+        return nil
     }
 
     /// Mid-battle: the back chevron asks first.
@@ -81,6 +104,7 @@ struct PlayerScreen: View {
 
     private var model: PlayerModel {
         var m = BattlePresenter.player(battle, recorder: recorder)
+        m.wait = slowWait
         // Voice unavailable on my turn: the typed fallback takes push-to-talk's place in the action band.
         if let turn = battle.currentTurn, battle.isMyTurn, turn.statusValue == .speaking,
            case .unavailable = recorder?.phase {
@@ -97,6 +121,7 @@ struct PlayerScreen: View {
         PlayerActions(
             join: { code, name in
                 savedName = name
+                joiningCode = code.uppercased()
                 battle.join(code: code, name: name)
                 LastBattle.save(code: code, name: name)
             },

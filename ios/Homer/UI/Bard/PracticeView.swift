@@ -111,7 +111,7 @@ struct PracticeView: View {
         case .ready:
             VStack(alignment: .leading, spacing: Metrics.s3) {
                 if !model.hand.isEmpty {
-                    Text("Your hand").tracked(10, color: Palette.onPage2)
+                    PhrasesHeader()
                     ViewThatFits(in: .vertical) {
                         FormulaHandView(cards: model.hand, forward: true)
                         FormulaHandView(cards: model.hand, forward: true, style: .compact)
