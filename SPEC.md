@@ -31,7 +31,8 @@ Homer is ancient Greek Wii Sports: party games from the Greek *agon* (contest), 
 
 - Each event is a config on one engine: host, hand, rubric, turn length, beat on or off.
 - **Socratic debate** reuses the poetry battle's turns, scene, and verdict. Your hand holds rhetorical moves instead of formulas ("define your terms", "counterexample", "analogy"). The freeze rescue becomes Socrates whispering a question to ask. It has its own five-axis rubric and no beat.
-- **Discus** is a self-contained motion minigame: no voice, no Claude. Core Motion measures the swing and the release, and the arena shows the throw.
+- **Discus** is a self-contained motion minigame: no voice, no Claude. Core Motion measures the swing and the release, and the arena shows the throw. You hold a button with your thumb while you swing and release by lifting your thumb; you never let go of the phone.
+- The 2-minute demo stays at least 80% poetry battle. An extra event that can't run 5 times in a row without failing by Sat 8 PM stays a locked tile for the demo. All checkpoints are in `docs/gtm/reality-check.md`.
 - Bard mode and Practice mode are the training, like Wii Sports Training.
 
 ## The three modes

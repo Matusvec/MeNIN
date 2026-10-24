@@ -72,6 +72,9 @@ Owners are roles. Matus decides who.
 
 ## The one-liner
 
-> **Guitar Hero meets a rap battle, taught by Homer.**
+Frame from SPEC "The games": ancient Greek party games, with the poetry battle as the main event.
 
-Use it whenever someone has ten seconds. If they ask for more: *Homer never memorized the Iliad; he improvised it with formulas. We built the formulas, and made it a battle.*
+> Spoken: **"Ancient Greek party games, like Wii Sports, and the main event is a rap battle judged by Homer."**
+> Written (Devpost, video, app): **"Party games of ancient Greece. Battle in verse, judged by Homer. Your iPhone is the controller."**
+
+"Wii", "Wii Sports", "Guitar Hero" and "Olympic" are trademarks: say them out loud as comparisons, but never write them in the name, title, tagline or app. Name options for Matus are in [pitch.md](pitch.md).

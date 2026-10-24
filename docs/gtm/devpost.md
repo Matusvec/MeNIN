@@ -4,9 +4,11 @@ Paste this into Devpost. Anything in `[brackets]` needs a real number or link be
 
 ---
 
-**Project name:** Homer
+**Project name / title:** Homer: Party Games of Ancient Greece *(option 1. The alternatives, "Agon: Ancient Greek Party Games, Hosted by Homer" and "The Homeric Games", are in pitch.md.)*
 
-**Tagline** (200 chars): Guitar Hero meets a rap battle, taught by Homer. Improvise verse out loud, battle your friends on iPhone, and watch the room paint your voice.
+**Tagline** (200 chars): Party games of ancient Greece on one screen, with your iPhone as the controller. The main event: a poetry battle over the beat, judged live by Homer.
+
+*Trademarks: no "Wii", "Wii Sports", "Guitar Hero" or "Olympic" anywhere in this page.*
 
 **Try it:** [TestFlight public link] · [winedark.tech or the chosen domain] · Video: [link]
 
@@ -14,15 +16,25 @@ Paste this into Devpost. Anything in `[brackets]` needs a real number or link be
 
 ## Inspiration
 
-Homer never memorized the Iliad. He improvised it, using formulas: phrases built to fit the beat, like *the wine-dark sea* and *swift-footed Achilles*. In the 1930s, Milman Parry recorded bards in the Balkans improvising epics thousands of lines long the same way. Freestyle rappers do it every night.
+The Greeks didn't separate sport and poetry. At the Panathenaic Games, poets competed reciting Homer right next to the athletes. *Agon* means contest.
 
-That's a learnable skill, and almost nobody gets to practice it out loud. [Poet's name] performs spoken word. Open mics are once a week, and between them you practice alone in your room, with no one to tell you whether your beat landed. [Quote from a poet interviewed Saturday, with permission.]
+And Homer never memorized the Iliad. He improvised it, using formulas: phrases built to fit the beat, like *the wine-dark sea*. Freestyle rappers do the same thing every night. That's a learnable skill, and almost nobody gets to practice it out loud. [Poet's name] performs spoken word. Open mics are once a week, and between them you practice alone in your room, with no one to tell you whether your beat landed. [Quote from a poet interviewed Saturday, with permission.]
 
-So we built the formulas, and made it a battle.
+So we built the Greek party games, and made the poetry battle the main event.
 
 ## What it does
 
-**Battle (the Agon).** Two to five poets in one room, Jackbox-style. One screen is the arena: a Mac or an iPad running the app. Each poet's iPhone is their mic and their private hand.
+One screen is the arena: an iPad or a Mac running the app. Every player's iPhone is their controller. No account needed.
+
+| Event | Host | You |
+| --- | --- | --- |
+| **Poetry battle** (main event) | Homer | Improvise verse over the beat |
+| [Socratic debate, only if shipped] | Socrates | Argue a question in timed spoken turns |
+| [Discus, only if shipped] | Homer announces | Swing your phone; its motion sensors measure the throw |
+
+Other events show as locked tiles, because we only unlock what's solid.
+
+**The poetry battle.** Two to five poets in one room. Each poet's iPhone is their mic and their private hand.
 - Homer announces each poet by their epithet.
 - Every turn you're dealt five formulas that fit the beat.
 - Homer drops a slow drum, and you feel it in your palm through haptics.
@@ -38,9 +50,14 @@ So we built the formulas, and made it a battle.
 
 **Practice mode.** Spar with Homer, best of three.
 
+**[Socratic debate, only if shipped.]** It's the same engine as the battle: timed spoken turns, the scene and a spoken verdict. But Socrates hosts, in his own voice, and your hand holds rhetorical moves ("define your terms", "counterexample", "analogy"). Freeze, and he whispers you a question to ask.
+
+**[Discus, only if shipped.]** Swing your iPhone and lift your thumb to release. Core Motion measures the swing and the release, the arena shows the throw, and Homer calls the distance. No voice, no AI: just physics and bragging rights.
+
 ## How we built it
 
-- **iOS app (SwiftUI, iOS 17+).** One app, every mode. A device runs it as the arena or as a player.
+- **One engine, many events.** Each event is a config: host, hand, rubric, turn length, beat on or off. [If debate shipped: the debate took (hours) on top of the poetry engine.]
+- **Universal iOS app (SwiftUI, iOS 18+, iPhone and iPad).** One app, every mode. A device runs it as the arena or as a player.
   - AVAudioEngine captures the mic with voice processing.
   - Core Haptics plays the beat in your hand.
   - Metal shaders render the scene.
@@ -89,6 +106,7 @@ So we built the formulas, and made it a battle.
 ## What's next
 
 - Public TestFlight now, then the App Store
+- More events on the same engine: the locked tiles
 - Open-mic nights: a host runs the arena, the audience battles from their iPhones
 - Hard mode: Homer's own dactylic hexameter
 - Ranks with Homeric titles: Suitor, Herald, Bard, Rhapsode, Homer
@@ -105,7 +123,7 @@ So we built the formulas, and made it a battle.
 
 ## Built with
 
-swift · swiftui · metal · avfoundation · core-haptics · spacetimedb · typescript · python · fastapi · anthropic · claude · cartesia · cmu-pronouncing-dictionary · figma · xcodegen · [vultr] · [apify]
+swift · swiftui · metal · avfoundation · core-haptics · [core-motion] · spacetimedb · typescript · python · fastapi · anthropic · claude · cartesia · cmu-pronouncing-dictionary · figma · xcodegen · [vultr] · [apify]
 
 ---
 

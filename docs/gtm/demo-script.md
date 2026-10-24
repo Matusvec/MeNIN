@@ -32,10 +32,10 @@ Setup: iPhones plus a Mac arena, at a shared table with 3 judges in a noisy hall
 
 | Time | Who | What happens on the arena | What's said |
 | --- | --- | --- | --- |
-| **0:00–0:08** | Matus | The scene idles, matte color fields drifting. | "Homer never memorized the Iliad. He improvised it, with formulas: phrases that already fit the beat. Same trick as freestyle. So we built **Guitar Hero meets a rap battle, taught by Homer.**" |
-| **0:08–0:12** | Judge | Three theme cards. | Matus: "Pick our battleground." The judge points and the operator taps. *(This is the 10-second judge moment: low pressure, and it proves nothing is pre-scripted. Cut it first if we're over time.)* |
+| **0:00–0:08** | Matus | **The event menu** over the idling scene: the poetry battle lit, other shipped events lit, the rest locked tiles. | "The Greeks didn't separate sport and poetry: at the Panathenaic Games, poets competed right next to the athletes. So we built ancient Greek party games, like Wii Sports, with your iPhone as the controller. The main event is a poetry battle." *(Spoken comparison only; never on screen.)* |
+| **0:08–0:12** | Judge | Matus opens the poetry battle, and three theme cards appear. | Matus: "Pick our battleground." The judge points and the operator taps. *(This is the 10-second judge moment: low pressure, and it proves nothing is pre-scripted. Cut it first if we're over time. If discus shipped, the judge's real moment is the throw after 2:00.)* |
 | **0:12–0:16** | Homer | The theme lands and both phones get their private hands. | Homer, MC voice: "A ship that never came home. **Salt-Tongued** Priya, the sea is yours." *(The epithet is whatever the poet forged in lesson 3; the name here is a placeholder.)* |
-| **0:16–0:31** | Poet | **Turn 1: count-in, then 2 lines with a rest bar after each (15 s).** The beat lane fills as stresses hit pulses and land like drum strikes. The poet's phone pulses the beat in their hand. A formula card flips onto the arena when it's spoken. The scene floods with color as the feeling turns. | The poet spits. Prepared bones, live delivery. |
+| **0:16–0:31** | Poet | **Turn 1: count-in, then 2 lines with a rest bar after each (15 s).** The beat lane fills as stresses hit pulses and land like drum strikes. The poet's phone pulses the beat in their hand. A formula card flips onto the arena when it's spoken. The scene floods with color as the feeling turns. | The poet spits. Prepared bones, live delivery. *(The hand gets explained here, in the moment: "Five phrases that already fit the beat. That's how Homer improvised.")* |
 | **0:31–0:37** | Homer | "Hah." at 0.3 s. The verdict starts by about 3 s, with five axes counting up and the best line quoted. | Homer: one knockout line, e.g. "Strong bones. That second line drowned the whole fleet." |
 | **0:37–0:55** | Matus | **Turn 2 (about 18 s), with a planned freeze.** Matus starts line 1, then stops. After about 1 s his hand glows on the phone and on the arena, and Homer whispers a formula that fits. Matus grabs it, finishes the line, and lands line 2. The card flips. | Matus spits. The freeze is staged, but the rescue is the real feature running live. |
 | **0:55–1:01** | Homer | Verdict and scores. | Homer roasts gently: "Saved by the Muse. Your second line earned the rescue back." |
@@ -44,9 +44,15 @@ Setup: iPhones plus a Mac arena, at a shared table with 3 judges in a noisy hall
 | **1:26–1:38** | Poet | Same. | "I do slam. Open mics are once a week, and in between you practice alone in your room. Homer is a stage every night that hears your beat. Tonight we sat five people who'd never freestyled in front of lesson one. Their beat went from **[X] to [Y]** in four minutes." *(Use the real number from Saturday's first-timer study. If there's no number, drop the last two sentences.)* |
 | **1:38–1:41** | Homer | Totals roll. | "Before I crown anyone, listen." |
 | **1:41–1:55** | Homer | **The stitched song: 4 lines over the beat.** Each line appears with its poet's name, the gold line returns, and the scene replays each line's colors. *(Generation starts the moment Matus's transcript is final, about 0:52, so it has about 45 s of headroom.)* | Homer performs the battle back as one poem. A rhapsode was a song-stitcher. Let the line land; don't explain it. |
-| **1:55–2:00** | Homer, Matus | The champion and the room code. | Homer: "Salt-Tongued takes the hall." Matus: "That's Homer. Want to battle us?" |
+| **1:55–2:00** | Homer, Matus | The champion and the room code. | Homer: "Salt-Tongued takes the hall." Matus: "That's Homer. Want to throw the discus?" *(If discus didn't ship: "Want to battle us?")* |
 
-**Total: 2:00.** If a judge stays, the next move is "Want to take a turn?" Hand them Matus's phone and headset, deal a fresh hand, and run a rematch. That's where Hacker's Choice gets won.
+**Total: 2:00.** The 2 minutes stay about 90% poetry battle. Other events get one sentence and a tile.
+
+**After 2:00, if the judge stays (this is where Hacker's Choice gets won):**
+- **Discus (if shipped):** hand the judge Matus's iPhone. "Swing it like a discus, and lift your thumb to release. Keep hold of the phone." The arena shows the throw and Homer calls the distance. It takes about 10 seconds, needs zero skill, and gets a laugh.
+  - **Safety:** the release is a thumb lift, never opening your hand. Use a phone with a grippy case, and only swing where there's arm room, away from the shared table's laptops.
+- **Or a rematch:** hand them the phone and headset, deal a fresh hand, and run a battle against the poet.
+- **Socrates (if shipped, and especially for a Cartesia judge):** play 10 seconds of Socrates opening a debate, so they hear the second voice.
 
 ## If we run long (cut in this order)
 

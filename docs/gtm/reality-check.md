@@ -84,6 +84,13 @@ It was Matus's call, and it buys real things: the haptic beat, native audio, and
 ### 6. Noise in the judging hall
 Tables are shared by 2-3 teams. Wired headset mics, push-to-talk, the haptic beat, drum ducking and captions are all in SPEC now. **Test them in the hall at peak noise on Saturday night.** Until that test passes, the Q&A line "works in this noise" is unproven.
 
+### 7. The party-games frame (SPEC "The games", `41bece4`)
+**Good call for winning, with one condition.** "Like Wii Sports" makes the product clear to a judge in 3 seconds, and it lifts Most Creative, Hacker's Choice, Meta and Cartesia (two distinct host voices). The danger is the organizers' warning: "a project spread thin with too many features is harder to implement." The guard:
+- Debate and discus unlock **only** after the Sat 2 PM checkpoint, and SPEC already puts them first in the cut order.
+- At least 80% of the demo is the poetry battle.
+- Anything not solid stays a locked tile. Never demo a half-working event.
+- Discus has no voice and no Claude, so it's cheap. If it ships first, it's the best judge moment we have.
+
 ## The removal test, per track (would the demo break without it?)
 
 | Track | Remove it and... | Verdict |
@@ -102,7 +109,8 @@ Tables are shared by 2-3 teams. Wired headset mics, push-to-talk, the haptic bea
 | --- | --- | --- |
 | Before anyone sleeps (Fri night) | Two iPhones and the arena in one SpacetimeDB room; turns advance | Debug the Swift client first thing Saturday. Ask the Spacetime booth at 9 AM. |
 | Sat 10 AM | The fast judge path, turn end to verdict text: p50 ≤ 2.5 s, p95 ≤ 4 s | Drop to a smaller model and cut output tokens. Never fake a verdict. |
-| Sat 2 PM | A full demo-mode battle on the arena, end to end, with spoken verdicts | Freeze features; fix only this |
+| Sat 2 PM | A full demo-mode battle on the arena, end to end, with spoken verdicts. **This gates Socratic debate and discus.** | Freeze features; fix only this. Debate and discus stay locked tiles. |
+| Sat 8 PM | Each unlocked extra event (discus, debate) runs 5 times in a row without a failure | That event goes back to a locked tile for the demo |
 | Sat 6 PM | First-timer study done, number recorded | The pitch drops the number line (demo-script.md 1:26) |
 | Sat 9 PM | Hall noise test at demo volume | Switch to the stage-mic option (ux-flow option A) |
 | Sat 11 PM | Feature freeze; Devpost draft submitted; video recorded | Cut, don't fix |

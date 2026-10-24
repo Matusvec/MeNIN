@@ -10,6 +10,24 @@ Ground rules, confirmed in #0-ask-directors:
 
 Since going iOS-only (SPEC `dc4363b`), the judges and other hackers can't install the app at the table. They watch on the arena, or play on our phones. The public way in is a TestFlight link, which needs Apple's beta review to approve it first.
 
+## Re-score after the party-games frame (SPEC "The games", `41bece4`)
+
+Events: the poetry battle (core); Socratic debate and discus (only if the poetry demo passes the Sat 2 PM checkpoint); the rest as locked tiles.
+
+| Track | Before | Now | Why | Condition |
+| --- | --- | --- | --- | --- |
+| **Hacker's Choice** | Down (iOS reach) | **Up** | Discus is a zero-skill hook: anyone can swing a phone, then stay for the battle. Party games are what hackers actually play at 1 AM. | Discus ships. Still capped by iOS: hackers play on our devices or through TestFlight. |
+| **Most Creative** | High | **Higher** | A rap battle judged by Homer, a debate hosted by Socrates and a discus thrown with your phone, all in one product. Nobody else has this. | The poetry battle stays the spine. The frame alone isn't the creativity. |
+| **Meta** | Medium-high | **High** | One screen, one room, everyone's phone a controller: party games are the clearest possible "bringing people closer". | The battle works live |
+| **Cartesia** | Medium-high | **High, if debate ships** | Their own idea, "Multi-speaker agent: tutor, debate partner... with distinct voices", is now literal: Homer (deep, MC) and Socrates (dry, questioning) are two distinct Cartesia voices, one of them a debate host. | Socrates ships with his own voice. Otherwise unchanged: Homer as MC, coach and announcer. |
+| **Most Technically Complex** | Medium | **Up slightly** | Several events from one engine config, plus Core Motion physics alongside the real-time voice stack | Don't claim events that didn't ship |
+| **Spacetime** | High | **Up slightly** | More shared state ("games" is their first example). Discus throws become reducer events that every screen sees at once. | Same Swift-client smoke test |
+| **First Overall** | Medium | **Up** | "Like Wii Sports" makes the product clear to any judge in 3 seconds, and that legibility matters at a 2-minute table. | Functionality holds; nothing half-working is shown |
+| **Anthropic** | Medium-low | **Slight risk** | A party frame can read as entertainment, not public benefit. Keep the Anthropic story on slam poets and Bard-mode training; the games are why people come back. Don't split the named community (debaters are a "what's next", not a second community). | The first-timer number exists |
+| **Figma** | Unchanged | Unchanged | The event menu and locked tiles add a design surface worth logging | Figma is actually used |
+
+**The cost:** the "spread thin" critique the organizers warned about. The guard rules are in [pitch.md](pitch.md): at least 80% of the demo is the poetry battle, and an event that isn't solid stays a locked tile.
+
 ---
 
 ## Core tracks
@@ -70,13 +88,13 @@ Criteria: Workflow Design, Adoptability ("a measurable before and after"), Outpu
 ### Cal Hacks main prizes (automatic)
 | Prize | Item | Our angle |
 | --- | --- | --- |
-| **First Overall** | MacBook Air 13" M5 | The full experience. Judges perform, or watch two people battle, and remember it. |
+| **First Overall** | MacBook Air 13" M5 | Ancient Greek party games that anyone gets in 3 seconds, with a poetry battle that judges remember |
 | Second Overall | Nintendo Switch 2 | |
 | Third Overall | Google Intelligent Eyewear | |
 | **Most Creative Hack** | Instax camera plus film | Our strongest main-track bet. Nothing like it is in the field. |
 | **Most Technically Complex** | NuPhy Air60 HE | Real-time multiplayer on SpacetimeDB, streaming STT and TTS, Metal shaders driven by live audio, a deterministic stress scanner, a Claude judge under 3 s |
 | **Best People-First Hack** | Apple Watch SE 3 | Practicing to speak in front of people, with friends |
-| **Hacker's Choice** | Logitech MX Master 4 | Get hackers battling on our phones Saturday night, at the table and at karaoke |
+| **Hacker's Choice** | Logitech MX Master 4 | Discus as the hook (if shipped), then the battle. Hackers play on our phones Saturday night, at the table and at karaoke. |
 
 **Main criteria** (Wallace, #0-ask-directors): Application, Intentionality, Functionality, Creativity, Technical Complexity. How we hit each one is in [pitch.md](pitch.md).
 
@@ -94,7 +112,7 @@ Criteria: Workflow Design, Adoptability ("a measurable before and after"), Outpu
 - Execution: "Likely edge cases handled?"
 - **Impact and responsibility**: "Accessibility, privacy, and responsible use considered?"
 
-Their own idea list includes "**Multi-speaker agent**: tutor, debate partner... with distinct voices" and "**Live coach**: low-latency back-and-forth where voice quality matters." That's us.
+Their own idea list includes "**Multi-speaker agent**: tutor, debate partner... with distinct voices" and "**Live coach**: low-latency back-and-forth where voice quality matters." That's us, and literally so if the Socratic debate ships. Then Homer and Socrates are two distinct Cartesia voices, and Socrates is a debate host. Pick Socrates' voice to contrast with Homer's (dry, patient, older, conversational) and name both voice choices in the README.
 
 **What to submit:**
 - [ ] A 2-minute, **demo-first** presentation: "one complete user flow, then a brief problem + how you built it". This is our video and our table script.
@@ -119,6 +137,7 @@ Their own idea list includes "**Multi-speaker agent**: tutor, debate partner... 
 > "how meaningfully they strengthen human connection, how essential and well-integrated AI is, originality, and the strength of the working demo."
 
 **How Homer hits it:**
+- **Party games for one room:** one screen, everyone's phone a controller. That's the most literal "bringing people closer" format there is.
 - **Human connection:** people in one room answering each other out loud. The Answer axis literally scores responding to the person before you. The stitched song turns the room into co-authors.
 - **AI is essential:** Homer is the MC, the judge, the coach and the stitcher. Take him out and there's no game.
 - **Originality:** see the field. **Demo:** the table script.
