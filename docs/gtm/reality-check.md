@@ -57,7 +57,7 @@ Four sponsors and the organizers said it in writing; their quotes are in [README
 
 **Nice to have:** lessons 2 and 3, the hoard, the epithet entrance, Practice Spar (it's the fallback, so it ranks above the other nice-to-haves).
 
-**Not this weekend:** ranks, spectators, Homer mode, lessons 4 to 6, the benchmark (see 3), Apify, and any sponsor we don't truly use.
+**Not this weekend:** ranks, spectators, Homer mode, lessons 4 to 6, the benchmark (see 3), and any sponsor we don't truly use. *(Apify did happen after all, the honest way: a build-time Actor off the demo path, with a person reviewing its output. See [opportunities.md](opportunities.md).)*
 
 SPEC's "never cut" list includes Bard lessons 1 to 3. My proposal to Matus: protect lesson 1 at all costs and treat 2 and 3 as the first things to finish after the battle works.
 

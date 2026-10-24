@@ -126,7 +126,7 @@ Criteria: Workflow Design, Adoptability ("a measurable before and after"), Outpu
 | **Best People-First Hack** | Apple Watch SE 3 | Practicing to speak in front of people, with friends |
 | **Hacker's Choice** | Logitech MX Master 4 | Discus as the hook (if shipped), then the battle. Hackers play on our phones Saturday night, at the table and at karaoke. |
 
-**Main criteria** (Wallace, #0-ask-directors): Application, Intentionality, Functionality, Creativity, Technical Complexity. How we hit each one is in [pitch.md](pitch.md).
+**Main criteria** (#0-ask-directors, organizer): Application, Intentionality, Functionality, Creativity, Technical Complexity. How we hit each one is in [pitch.md](pitch.md).
 
 ---
 
@@ -239,13 +239,13 @@ Hacker Guide and Hive add: "One thing done well and usable on Monday beats a bro
 
 **Criteria:** "Project must be using Apify in a meaningful way." Best Actor is "for building an actor for this event".
 
-**The honest version:** a public Apify Actor ("Epithet Miner") crawls public-domain epic and ballad text on Gutenberg and Perseus. It extracts noun-epithet formulas with their stress shape (CMU dictionary) and writes the bank in `content/` that every hand is dealt from. Without it, there's no formula bank.
+**Status: real (Sat ~10 AM).** Epithet Miner mined 150 candidates from four public-domain Homer translations (Gutenberg #3059, #1728, #2199, #1727). pm kept 55, so the bank went from 158 to 213. It was built by Claude Opus 5.5 in Claude Code on the Apify SDK and Crawlee (`apify/BUILD_LOG.md`). It's build-time only, the game never calls Apify, and it's off the demo path (SPEC `5a6a8fe`). The Store link is pending Matus's account.
 
-**The weak spot:** it's build-time, not live. Say so, and point out that scraping is what Apify is for.
+**The line, exactly:** "About a quarter of the phrases Homer deals you were mined by an Apify Actor from four public-domain Homer translations." Never say "every hand": the dealer picks by theme, so some hands have none.
 
-Only do it if the bank isn't otherwise being built. A teammate hand-writing 200 formulas is also fine.
+**Best Actor caveat:** their prize says "built with AI Chat", and ours was built by an AI coding agent. Say so honestly, and ask Apify's staff whether it counts.
 
-**Workshop:** Sat 11-12, Breakout 3. Coupon `APIFY_CAL_HACKS` ($200). Person: Petros Hong.
+**Workshop:** Sat 11-12, Breakout 3. Coupon `APIFY_CAL_HACKS` ($200). Booth: ground floor, left.
 
 ---
 

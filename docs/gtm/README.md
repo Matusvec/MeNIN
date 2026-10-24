@@ -54,7 +54,7 @@ Ranked by value times odds. Every track we enter passes the removal test (if you
 | **Core** | Anthropic | $5k credits, Max 20x for a year, office hours, HQ visit | Medium-low on iOS | The most crowded track. We win it only with a sharply named community, a measured impact number, and a TestFlight public link live by Sunday ("usable Monday"). |
 | **Add-on** | MLH Gen AI, .Tech domain, Commit Fellowship | Swag, desktop mic and domain, founder-sprint interview | High per hour spent | A checkbox and a 10-minute domain. The domain redirects to the TestFlight link and the video. |
 | **Add-on** | MLH DigitalOcean | Retro wireless mouse per teammate | Medium | The agent service already runs on DigitalOcean, so it's a free tag |
-| **If time** | Apify, plus Best Actor | $2,000 / $1,000 / $800 / $400 / $400, plus $400 | Medium (5 places) | Only if an Apify Actor really builds the formula bank in `content/` that the game deals from |
+| **Entered** | Apify, plus Best Actor | $2,000 / $1,000 / $800 / $400 / $400, plus $400 | Medium (5 places) | **Real:** Epithet Miner mined about a quarter of the bank (55 of 213). Build-time only. See [opportunities.md](opportunities.md) for it and the other side prizes. |
 | **Skip** | Moss (now that we're on iOS), Convex, Mana, Elastic, Bitdeer, Bright Data, Microsoft, Hyphenate, Visa, Coinbase, CRS, Capital One, Factory, Fetch, CREAO, Atlassian, SpaceXAI, Notability, ElevenLabs, Presage | | | Reasons in tracks.md |
 
 ## The ten moves

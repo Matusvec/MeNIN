@@ -64,6 +64,15 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
   - "Our numbers come from test recordings. Is a real-mic test in a loud room what you'd want to see?"
 - Their brief asks for "a 2-minute, demo-first presentation: one complete user flow, then a brief problem + how you built it", so the table script already fits.
 
+### Apify (ground floor, left; a teammate goes, since the 11 AM workshop clashes with Matus's coffee chat)
+- **Show** the Actor's output, then a hand on the phone with a mined formula in it, like "aegis-bearing Zeus".
+- **The line:** "About a quarter of the phrases Homer deals you were mined by an Apify Actor from four public-domain Homer translations. No language model: readable rules, and our own stress scanner's beat count. A person reviewed every one."
+- **Ask:**
+  - **"Does an Actor built by an AI coding agent count for Best Actor?"** Ours was written by Claude Code on your SDK and Crawlee, not in Apify's AI Chat.
+  - "Does it have to be published on the Store, and public?"
+  - "Anything judges look for beyond meaningful use?"
+- Log the answers here and tell gtm.
+
 ### Meta (sponsor-06, optional)
 - **Show** two people answering each other in verse, then the stitched song.
 - **The line:** "Party games for one room. The judge literally scores how well you answer the person before you."
