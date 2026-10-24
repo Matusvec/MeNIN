@@ -56,7 +56,7 @@ Leader approved these as delegator, and Matus can veto any of them. Approved ite
 | P9 | **Voice menu.** Homer asks "Learn, train, or fight?" and you answer out loud. | **Cut:** the risk of misrecognition outweighs the gain. Menus are tap-only |
 | P10 | **Help after misses.** In a lesson, after three misses Homer gives you the first half of the line. After five, he walks you through it and the lesson lands. | Approved |
 | P11 | **Color replay.** When Homer re-reads your best line, the scene replays the colors it showed while you said it. | Approved |
-| P12 | **The first 10 seconds.** No menu: Homer performs straight away and hands you the mic (section 1). | **Matus decides.** It's in tension with the event menu as the first screen; see open question 1 |
+| P12 | **First open.** On first launch, Homer speaks before any menu and asks for one line (section 1). | **Approved by Matus,** first launch only, in SPEC.md as "First open" |
 | P13 | **Push-to-talk.** Hold to open the mic. | Approved, and in SPEC.md: push-to-talk in battles, open mic in solo modes |
 | P14 | **Demo mode extras.** Demo mode itself is in SPEC.md. The extras: push-to-talk on, our poet goes first, operator keys, and the best-line re-read saved for the judge (section 6). | Approved |
 | P15 | **One reroll.** If Homer coins your epithet on join, you can ask for another one, once. | Approved |
@@ -68,62 +68,52 @@ P1 to P6 were approved by Matus and are listed above.
 
 ---
 
-## 1. The first 10 seconds (Proposal P12)
+## 1. First open
 
-This is the first launch of the app. There is no menu, no sign-up and no tutorial text. Homer performs, then hands you the mic. A native app can play sound as soon as it opens, so no tap is needed first.
+Approved by Matus (SPEC.md, "First open"). This runs on the first launch only: Homer speaks before any menu, you give him one line, and the scene answers. There is no sign-up and no tutorial text. A native app can play sound as soon as it opens, so no tap comes first. Every later launch opens straight on the event menu.
 
 #### F0 · Launch · ~1 s
 
 - **Arena:** The scene comes up and idles. Nothing else.
 - **Phone:** Same.
 - **Homer:** Silent, for one breath.
-- **Next:** Automatic. Don't ask for the mic yet.
+- **Next:** Automatic.
 
-#### F1 · Homer spits · ~9 s
+#### F1 · Homer speaks · ~5 s
 
-- **Arena:** Homer performs over the beat while the scene moves with his voice. His lines appear as he speaks, with each stress marked on the beat lane as it lands.
+- **Arena:** The scene moves with Homer's voice. His words are captioned as he speaks.
 - **Phone:** Same.
-- **Homer:** The audio ships inside the app, so it starts immediately.
-  > **BLIND** as the **NIGHT** / I **SANG** the **SHIPS**.
-  > I **NEV**er **WROTE** / a **SIN**gle **WORD**.
-  > **NOW** it's your **TURN**. / **MAKE** it **YOURS**.
-- **Next:** The verse ends after three bars at about 80 BPM.
+- **Homer:** "The first word of Western literature is mēnin. Rage. Give me one line." The audio ships inside the app, so it starts at once. Check how TTS pronounces mēnin: it should sound like MAY-nin.
+- **Next:** He finishes. iOS shows its mic permission prompt right after "Give me one line", so the request comes with its reason.
 
-#### F2 · The mic · ~3 s
+#### F2 · Your line · up to 8 s
 
-- **Arena:** The lane resets to one empty line of four beats. iOS shows its mic permission prompt.
+- **Arena:** The mic is open, with the live transcript. The scene answers your voice: the instant layer follows your loudness and pitch, and the color layer shifts with what you say. There's no beat, no lane and no score yet. Anything counts.
 - **Phone:** Same.
-- **Homer:** "Four beats. Break in the middle. Give me one line."
-- **Next:** Mic allowed → F3. Mic denied → Fx.
+- **Homer:** Silent.
+- **Next:** About 1 s of silence after you've spoken, or 8 s pass. Mic denied → Fx.
 
-#### F3 · Your first line · ~6 s
+#### F3 · "Now let me show you" · ~3 s
 
-- **Arena:** A one-bar count-in, then one bar to speak. Your words land on the lane live, every stress on a beat sounds a drum strike, and the scene moves with your voice. If you freeze, the rescue whispers you a formula.
+- **Arena:** Your line stays on screen as the scene settles.
 - **Phone:** Same.
-- **Homer:** Silent, apart from a rescue whisper.
-- **Next:** The bar ends.
+- **Homer:** "Good. Now let me show you how I did it."
+- **Next:** Automatic.
 
-#### F4 · First verdict · ~4 s
+#### F4 · The event menu · until choice
 
-- **Arena:** Your line stays on the lane with its hits marked.
-- **Phone:** Same.
-- **Homer:** One line, based on the scan. Four hits: "Ha. The hall heard that." Fewer: "Two hits. Rough. But you spoke, and most never do."
-- **Next:** The line ends. The scanner runs on our own server with no Claude call, so this is fast.
-
-#### F5 · Choose · until choice
-
-- **Arena:** The event menu (section 7), with the poetry battle tile already open on its three choices: **Learn** (Bard), **Train** (Practice), **Fight** (Battle). Fight also offers "Join with a code".
+- **Arena:** The event menu (section 7), with the poetry tile open on **Learn** (Bard), **Train** (Practice) and **Fight** (Battle). See open question 1 on whether Learn is the suggested pick.
 - **Phone:** Same, stacked.
-- **Homer:** "Learn, train, or fight?"
+- **Homer:** Silent. He just spoke.
 - **Next:** A tap. Closing the poetry tile shows the whole event menu.
 
-The mic opens about 10 to 12 s after launch.
+The mic opens about 6 s after launch.
 
 **Other ways in**
 
-- **A hall's QR code:** Scanning it with the camera opens the app straight into the battle join screen (J1), skipping all of this. Homer greets you in the hall instead.
-- **Later launches:** one greeting line ("Back for more?"), then the event menu (section 7).
-- **Fx · Mic denied:** Homer: "No voice, no song." A button opens Homer's page in iOS Settings, where you can turn the mic on, and then you retry. See open question 10.
+- **A hall's QR code:** Scanning it with the camera opens the app straight into the battle join screen (J1), skipping first open. Homer greets you in the hall instead. First open runs the next time you launch the app yourself.
+- **Later launches:** straight to the event menu (section 7), with no greeting.
+- **Fx · Mic denied:** Homer: "No voice, no song." A button opens MeNIN's page in iOS Settings, where you can turn the mic on, and then F2 retries. Skipping it goes to the event menu. See open question 10.
 
 ---
 
@@ -480,77 +470,47 @@ When it runs late:
 
 ## 6. Demo mode: the judging table
 
-**The setting** (from gtm): a 2-minute pitch with a live demo, at a table shared by two or three teams, with three judges and a noisy hall. The pitch talk runs over the app, not around it, so every second of app time also has to carry the story.
+**The setting** (from gtm): a 2-minute pitch with a live demo, at a table shared by two or three teams, with three judges and a noisy hall.
 
-**The money moments, in the order they happen**
+**The second-by-second script is `docs/gtm/demo-script.md`** (SPEC.md points there). **The logistics are in `docs/gtm/run-sheet.md`:** devices, charging, setup, the rematch drill and fallbacks. This section only covers what the app does differently in demo mode.
 
-1. A judge picks up a team iPhone, types a name, and Homer announces them with an epithet he coined for them.
-2. A verse over the beat: stresses land as drum strikes and the scene paints the voice.
-3. The freeze rescue: Homer whispers a formula and the poet uses it. That is the formula method in one moment.
-4. A spoken verdict in about 3 s, the five axes, then Homer re-reading the judge's own best line.
-5. The carved line, and the song stitched from the verses the table just heard.
+**Who plays:** two team poets battle (the poet and Matus), each on their own iPhone with a wired headset. The judges pick the theme from three cards and watch. After 2:00, a judge can take a team iPhone for a discus throw or a rematch. Judges never install anything, since MeNIN is TestFlight-only.
 
-The benchmark chart (raw Claude against scaffolded Claude) is a pitch slide, outside the app.
+**The money moments, in the order they happen:**
 
-**Judges won't have the app.** MeNIN ships through TestFlight to the team only. A judge can't install it at the table in time, and some judges carry Android phones. So in demo mode, a judge plays on a phone we hand them or on the guest seat. Money moment 1 becomes "a judge picks up a phone and gets named" instead of "a judge scans with their own phone". The QR code stays on screen to show how joining works.
-
-### Before the judges sit (off the clock)
-
-- **The arena:** a Mac in arena mode, a small speaker aimed at the judges, and a headset mic for our poet, plugged into the Mac.
-- **Demo mode on:** the hall is already open with the QR code on screen, and our poet has already joined with their epithet.
-- **Judge phones:** one or two team iPhones with the app installed, already open on the join screen (J1) for this hall, so a judge only types a name.
-- **The guest seat:** a judge can also play from the arena, with their hand shown on the arena and the arena's mic (or a second headset) as their mic.
-- **Sound check:** the beat at table volume, and one push-to-talk test.
+1. Homer's first-open line, replayed by the operator: "The first word of Western literature is mēnin. Rage."
+2. A judge picks the battleground.
+3. A verse over the beat: stresses land as drum strikes, and the scene paints the voice.
+4. The freeze rescue, staged but running live: Homer whispers a formula and the poet uses it.
+5. A spoken verdict starting about 3 s after the turn, with the five axes counting up under it.
+6. The carved line, and the 4-line song stitched from the verses the table just heard.
 
 ### What demo mode changes
 
-Demo mode is in SPEC.md. Rows marked P14 are extras that are still proposals.
+Demo mode is in SPEC.md. Rows marked P14 are extras, approved by leader.
 
 | Setting | Normal | Demo mode | Source |
 | --- | --- | --- | --- |
 | Rounds | 3 | 1 | spec |
-| Poets | 2 to 5 | 2: our poet and one judge. Other judges are announced, then watch | spec; watching is P14 |
+| Poets | 2 to 5 | 2 team poets. Judges pick the theme and watch | spec, demo script |
 | Lines per turn | 4 | 2 | spec |
 | Ready and mic check | Ready tap, mic check on join | Auto-ready, no mic check | spec |
 | Verdict and scores | Verdict, then scores | Scores count up while Homer speaks the verdict | spec |
-| Hoard step and tally | Yes | Skipped | spec |
-| Carved line | Every round | Once, at round end | spec |
+| Best-line re-read and hoard step | Every turn | Off. The best line is carved once, at round end | spec |
+| Tally | Yes | Skipped | spec |
 | The song | Every verse | 4 lines | spec |
 | The crown | Proclamation and compliments | One line | spec |
-| Theme | Random or chosen | Judges pick from 3 theme cards on the arena. This is optional and the first thing to cut; without it, the theme is preset | spec |
-| Rematch | n/a | Resets in under 10 s | spec |
-| Push-to-talk (P13) | On in battles | On. Judges hold on their phone; our poet holds a key or a clicker | spec; the key or clicker is P14 |
-| Turn order | Rotates | Our poet first, so the judges see a turn before they take one | P14 |
-| Best-line re-read | Every turn | Saved for the judge's turn | P14 |
-| Operator keys | None | Advance, retry the turn, skip, restart | P14 |
-
-### Timeline
-
-| Clock | State | Arena | Judges | Homer |
-| --- | --- | --- | --- | --- |
-| 0:00–0:20 | Join and entrances | The QR code, then names and epithets arriving | Take a team phone, type a name, Enter | "Enter Priya, Keeper of the Rubric!" once for each judge |
-| 0:20–0:24 | Round title | The theme | Hands dealt to phones | "One round. A ship that never came home." |
-| 0:24–0:47 | Our poet's turn | The beat, the lane and the scene. A planned pause triggers the rescue | Watch | Whispers a formula, then gives the verdict |
-| 0:47–1:15 | The judge's turn | The judge holds to speak, with our poet's best line pinned (P7) | One judge speaks two lines | A rescue if they freeze, then the verdict, then re-reads their best line |
-| 1:15–1:22 | Round verdict | The best line carved | | Quotes it |
-| 1:22–1:42 | Song and crown | The song, then the champion | | Performs the four lines, then crowns the winner |
-| 1:42–2:00 | Close | The scene idles behind the carved line and the QR code | | Silent |
-
-That leaves about 18 s of talk with the app idle, plus talk over the entrances and the round title. gtm owns the talk track.
-
-### When something breaks at the table
-
-- **A judge's phone can't join within about 15 s:** the operator opens the guest seat on the arena.
-- **The venue Wi-Fi fails:** the arena and the team phones need SpacetimeDB and the agent service. Bring a hotspot.
-- **The transcript comes back wrong:** it's on screen, so the table can see what Homer heard. Say so out loud; it's one of the failure modes we state. One key retries the turn.
-- **The verdict is slow:** the stall line plays at 4 s. The operator can skip ahead.
-- **Multiplayer is down:** switch to Practice spar on the arena: a judge against Homer, with the same beat and the same verdict.
+| Theme | Random or chosen | Judges pick from 3 theme cards on the arena. Optional, and the first thing to cut; without it, the theme is preset | spec |
+| Rematch | n/a | Resets in under 10 s: same poets, new theme cards | spec |
+| Push-to-talk (P13) | On in battles | On, with wired headsets | spec |
+| Replay opening | n/a | An operator key replays Homer's first-open line on the arena | demo script |
+| Operator keys | None | Replay opening, advance, retry the turn, skip, rematch | P14 |
 
 ---
 
 ## 7. The event menu
 
-This is the home screen, Wii Sports style: one tile per event, and each tile opens onto its own few choices. On first launch, F5 lands here with the poetry tile already open.
+This is the home screen, Wii Sports style: one tile per event, and each tile opens onto its own few choices. On first launch, F4 lands here with the poetry tile already open.
 
 #### E0 · Event menu · until a pick
 
@@ -756,19 +716,18 @@ This is the list of layouts to design. The states above describe what changes in
 
 1. Launch and idle (F0)
 2. Homer performing (F1, L1, S2, B6)
-3. Event menu and event choices (E0, E1, F5)
+3. Event menu and event choices (E0, E1, F4)
 4. Lesson path
 5. Lesson (L0–L5)
 6. Practice setup (R0)
 7. Host a battle, with settings (H0), and the lobby with its QR code (H1)
 8. Round title (B2, S1)
 9. Turn: step up, speak, verdict, scores, best line, hoard (T1–T8)
-10. Turn with a guest seat, where the hand is shown on the arena (demo mode)
-11. Full breakdown (R1)
-12. Round verdict and scoreboard (B4, S5)
-13. Champion and match end (B7, S6)
-14. Debate turn: side, question, transcript, played moves (section 8)
-15. Discus field: pick up, wind-up, flight, distance, leaderboard (D1–D6)
+10. Full breakdown (R1)
+11. Round verdict and scoreboard (B4, S5)
+12. Champion and match end (B7, S6)
+13. Debate turn: side, question, transcript, played moves (section 8)
+14. Discus field: pick up, wind-up, flight, distance, leaderboard (D1–D6)
 
 **Phone**
 
@@ -786,10 +745,10 @@ This is the list of layouts to design. The states above describe what changes in
 
 ## Open questions for Matus
 
-1. P12, the first 10 seconds: what's the first screen? (a) Homer performs over the event menu on first launch and hands you the mic, then the menu settles in. That's the current section 1. (b) The event menu comes first, and Homer's performance becomes the first time you open the poetry tile. (c) Cut P12; the event menu is always first and Bard lesson 1 is the way in.
+1. First open: Homer's last line is "Now let me show you how I did it." Should the event menu then open with Learn (Bard lesson 1) as the suggested pick, so the line pays off? Or should it open plain?
 2. Where does the rescue whisper play? From the arena, it can bleed into the speaker's mic during a speaking bar. From the speaker's phone, voice processing removes it, but the room doesn't hear it.
 3. The live drum strikes come from loudness and the Beat score comes from the scanner, so they can disagree. Is that acceptable? And should the Beat score also check timing against the drum?
-4. In demo mode, judges can't use their own phones, since the app is TestFlight-only. Does a judge hold to speak on a team iPhone, or speak into a mic at the arena (the guest seat)? Is one round, two lines and one judge battling the right cut?
+4. Demo mode: when a judge stays after 2:00 for a rematch, do they take a poet's seat (the poet's iPhone and headset), or does a third team iPhone join as a third poet?
 5. Your hand across rounds: is a spoken card spent, with unspoken cards carrying over and the hand refilling to five? That's how I read "save your best formula for the last round."
 6. A battle tie: one-line sudden death between the tied poets, or a shared crown?
 7. The song stitches every verse: about 70 s for two poets and three minutes for five. Do we cap it at a few lines per poet?
