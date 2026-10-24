@@ -71,7 +71,7 @@ Curriculum (first three are the minimum we ship):
 | --- | --- | --- |
 | 1 | The beat | Four stresses a line, a pause in the middle |
 | 2 | The formula | Fill half a line with a stock phrase from your hand. Homer sets a hard line so you freeze, and the freeze rescue saves you |
-| 3 | The epithet | Coin your own ("___, Breaker of Deadlines"). It goes into your hoard; in battle Homer coins you a fresh one each time, and yours is the fallback |
+| 3 | The epithet | Coin your own ("___, Breaker of Horses"). It goes into your hoard; in battle Homer coins you a fresh one each time, and yours is the fallback |
 | 4 | The turn | Shift the feeling mid-verse; the scene shows it |
 | 5 | The answer | Respond to a line Homer throws at you |
 | 6 | The boast | Land a closing line that hits |
@@ -94,7 +94,7 @@ Two to five human poets in one room, Jackbox-style:
 
 How a battle runs:
 
-- **Entrance.** Homer announces every poet with a fresh Homeric epithet he coins for this battle ("of the bronze spear", never modern nouns) ("Enter Matus, Breaker of Deadlines!"), never one of that poet's last five; the hoard epithet is only a fallback (Matus, Sat 3:30 PM: the same one every time is boring).
+- **Entrance.** Homer announces every poet with a fresh Homeric epithet he coins for this battle ("of the bronze spear", never modern nouns) ("Enter Matus, Breaker of Horses!"), never one of that poet's last five; the hoard epithet is only a fallback (Matus, Sat 3:30 PM: the same one every time is boring).
 - **Rounds.** Three rounds. Each round has a theme; every poet takes one turn; turn order rotates. The scene on the arena reacts to whoever is speaking. The mic is hands-free everywhere (Matus's call, Sat 2 PM; push-to-talk confused first-timers): it opens with a haptic thump when your turn goes live and stays open for the whole verse, your words show live on the arena as you speak, and "I'm done" ends early.
 - **The hall stays open.** When an event ends, the arena returns to the event menu with everyone still joined.
 - **Verdict.** The judge scores every verse. At the end of each round Homer reads the verdict aloud, and the best line of the round is carved in gold across the arena.

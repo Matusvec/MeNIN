@@ -2,7 +2,7 @@
 
 This doc is for Matus to design against. It covers the flow, the states, the timing and what each screen shows. Visual design is Matus's, so this doc describes what is shown and what changes, never how it looks. Words like "large" or "pinned" describe hierarchy.
 
-`SPEC.md` (as of commit 69c5135) is the source of truth. Anything not in it is marked **Proposal Pn** and waits on Matus.
+`SPEC.md` (as of commit 961bc37) is the source of truth. Anything not in it is marked **Proposal Pn** and waits on Matus.
 
 MeNIN is ancient Greek Wii Sports, with Homer as the host: party events on one shared screen, with phones as controllers. The poetry battle is the core (sections 1 to 6). Socratic debate and discus are in build now (sections 8 and 9). The event menu ties them together (section 7), and section 10 says where the music plays.
 
@@ -44,10 +44,11 @@ MeNIN is one universal iOS app (iPhone and iPad), distributed through TestFlight
 
 - **The beat lives in the lessons and the song:** a slow drum-and-lyre loop, four beats a bar, one line per bar. A stressed syllable that hits a beat sounds a soft strike. Bard lessons teach with it, and Homer performs the stitched song over it.
 - **Free verse in battle** (Matus, Sat 3:30 PM: "I just want to spit poetry without the metronome"): no drum, no beat haptics and no Speak/Breathe while a poet speaks. One SPEAK, one window with a countdown ring (20 s in demo mode), and "I'm done" ends it early. A line is whatever you say between breaths.
-- **Freeze rescue:** about 1.5 s of silence mid-turn in battle and Practice brings Homer's phrases forward, and Homer whispers one that fits. It can fire right after SPEAK, at most once every 6 s and twice a turn, so an ordinary breath never sets it off. Lessons keep about 1 s inside a speaking bar, and lesson 2 teaches it.
+- **Freeze rescue:** about 2.5 s of silence mid-turn in battle and Practice brings Homer's phrases forward, and Homer whispers one that fits. It never fires in the first 3 s after SPEAK, and at most twice a turn, so an ordinary breath never sets it off. Lessons keep about 1 s inside a speaking bar, and lesson 2 teaches it.
 - **Arena and phones:** the website is the one shared screen, and each phone is that poet's mic and private phrases. You join by QR code or room code.
-- **A fresh epithet every battle:** Homer coins a new one for each poet in each battle, never one of their last five (Matus: the same one every time is boring). The one you forge in lesson 3 ("___, Breaker of Deadlines") joins your hoard and is only the fallback.
-- **A fresh theme every round:** Homer writes it: six words or fewer, vivid and specific, with a feeling in it, and never one of the last twenty ("The text you never sent"). The written themes are the fallback.
+- **A fresh epithet every battle:** Homer coins a new one for each poet in each battle, never one of their last five (Matus: the same one every time is boring). It comes from Homer's world ("of the bronze spear", never a modern noun). The one you forge in lesson 3 ("___, Breaker of Horses") joins your hoard and is only the fallback.
+- **A fresh theme every round:** Homer writes it: six words or fewer, vivid and specific, from Homer's own world (ships, war, gods, exile, homecoming), with a feeling anyone can riff on, and never one of the last twenty ("The ship that left without you"). The written themes are the fallback.
+- **Homer's world only** (Matus: "umbrellas did not exist"): nothing in a theme or an epithet was invented after the Bronze Age. No phones, trains, deadlines, clocks or coffee. The feeling can be modern; the objects can't.
 - **Homer's phrases:** optional help, not homework. Your phone shows three stock phrases that fit the theme and the beat, under one line: "Stuck? Use one of Homer's phrases. It scores Craft." Using one pops "+Craft". They replace the hand of five.
 - **3-2-1, then SPEAK:** a 3, 2, 1 with a haptic tick on each, then "SPEAK" fills the phone and the arena in the poet's color, once, for the whole verse. The start is unmistakable.
 - **Flow:** the Beat axis is shown as Flow (its key stays `beat`). It asks whether the verse moved: a natural rhythm of roughly four stresses a line, judged from the words alone with no drum timing, and forgiving. It counts for less in the total than Image, Answer and Craft.
@@ -76,8 +77,8 @@ Leader approved these as delegator, and Matus can veto any of them. Approved ite
 | P19 | **Demo mode music.** At the judging table, the hall theme stays at its ducked level the whole time, because we talk over the menu. An operator key mutes all music (sections 6 and 10). | Approved, and in SPEC.md "Music" |
 | P20 | **Score number in lessons.** After each try in a lesson, your scanner score (1 to 10) shows small beside Homer's note, so you can watch it climb. The first-timer study (`docs/study.md`) and the video's before-and-after shot both read it off the screen (L4). Builds 4 and 5 label it "Beat". If the lesson screen is renamed to Flow, the study names it the same way. | Approved |
 | P21 | **The call to step up.** As each turn starts, the host calls the speaker by name. The round's first poet gets the theme's call ("Priya, Salt-Tongued. The sea is yours."). Every later poet gets "Answer that.", since they answer the line before (P7). In debate, the host says your side (T1 in sections 5 and 8). | Approved, built in the app and the website |
-| P21b | **A call for a fresh theme.** Only the written themes have a call, so with fresh themes the first poet nearly always hears "The floor is yours." Homer writes a call of five words or fewer in the same step as the theme ("The text you never sent" → "Send it now."). | Approved, in builder's plan: the theme and its call come from one call |
-| P22 | **The freeze in free verse.** With no bars, a breath between lines is a pause too, and lines are split at pauses. At SPEC's 1 s, the rescue could fire between ordinary lines. In battle and Practice, the rescue fires after about 1.5 s of silence, including right after SPEAK, at most once every 6 s and twice a turn. Lessons keep 1 s inside a speaking bar. | **Approved,** and in SPEC.md (built in swift's build 13) |
+| P21b | **A call for a fresh theme.** Only the written themes have a call, so with fresh themes the first poet nearly always hears "The floor is yours." Homer writes a call of five words or fewer in the same step as the theme ("The ship that left without you" → "Call it back."). | Approved, in builder's plan: the theme and its call come from one call |
+| P22 | **The freeze in free verse.** With no bars, a breath between lines is a pause too, and lines are split at pauses. At SPEC's 1 s, the rescue could fire between ordinary lines. In battle and Practice, the rescue fires after about 2.5 s of silence, never in the first 3 s after SPEAK, and at most twice a turn. Lessons keep 1 s inside a speaking bar. | **Approved,** and in SPEC.md (8d6afad, which moved it from 1.5 s to 2.5 s) |
 
 P1 to P6 were approved by Matus and are listed above.
 
@@ -145,7 +146,7 @@ There are six lessons. Each one trains exactly one judge axis, so by the end of 
 | --- | --- | --- | --- | --- | --- |
 | 1 | The beat | Four stresses a line, a pause in the middle | 2 lines | Both lines have four stresses and a break (scanner) | Flow |
 | 2 | The formula | Fill half a line with one of Homer's phrases. Homer sets a hard line so you freeze, and the freeze rescue saves you | 1 line on Homer's hard prompt | One of Homer's phrases, whispered or picked yourself, fills one half and the line scans | Craft |
-| 3 | The epithet | Coin your own ("___, Breaker of Deadlines"). It joins your hoard, and Homer falls back on it in battle | Your epithet, then a line using it | It scans and the judge rates it well | Craft |
+| 3 | The epithet | Coin your own ("___, Breaker of Horses"). It joins your hoard, and Homer falls back on it in battle | Your epithet, then a line using it | It scans and the judge rates it well | Craft |
 | 4 | The turn | Shift the feeling mid-verse | 4 lines | The emotion engine sees the leading emotion change between lines 1–2 and lines 3–4. The scene shows the shift | Range |
 | 5 | The answer | Respond to a line Homer throws at you | 2 lines | Answer is 7 or more | Answer |
 | 6 | The boast | Land a closing line that hits | Homer speaks 3 lines, you give the 4th | Image is 7 or more and the line scans | Image |
@@ -208,7 +209,7 @@ Lesson 1 is used as the example. A lesson runs 2 to 5 minutes, which fits about 
 
 - **Arena:** The lesson is marked landed on the path, and your landing line is shown as your best line. In lesson 3, the epithet is set into your hoard and labeled as your battle name.
 - **Phone:** Same.
-- **Homer:** Short hype. "That's the beat. It's yours now." In lesson 3: "Breaker of Deadlines. Good. That's how my hall will know you."
+- **Homer:** Short hype. "That's the beat. It's yours now." In lesson 3: "Breaker of Horses. Good. That's how my hall will know you."
 - **Music:** The ambience comes back.
 - **Next:** **Again**, **Next lesson** or **Spar**. It waits; nothing auto-advances.
 
@@ -317,9 +318,9 @@ Two to five poets in one room, with the arena and their phones.
 
 #### J2 · Mic check and entrance · ~5 s
 
-- **Phone:** The iOS mic permission prompt (first time only), then "Say your name. Loud." with a level meter. Homer coins a fresh epithet for this battle during the check, never one of your last five, and the phone shows it: "Homer names you: Priya, Keeper of the Rubric." With P15 there is one **Ask again**; otherwise it is kept after 2 s. If the new one isn't back in time, Homer uses the epithet in your hoard (lesson 3), and if you have none, your name alone.
+- **Phone:** The iOS mic permission prompt (first time only), then "Say your name. Loud." with a level meter. Homer coins a fresh epithet for this battle during the check, never one of your last five, and the phone shows it: "Homer names you: Priya, of the bronze spear." With P15 there is one **Ask again**; otherwise it is kept after 2 s. If the new one isn't back in time, Homer uses the epithet in your hoard (lesson 3), and if you have none, your name alone.
 - **Arena:** Your name and epithet arrive, and when your voice comes through, the scene answers it.
-- **Homer (from the arena):** "Enter Priya, Keeper of the Rubric!"
+- **Homer (from the arena):** "Enter Priya, of the bronze spear!"
 - **Music:** The arena's hall theme goes silent while this phone's mic is open, so it stays out of the name clip that discus reuses. It ducks under the entrance.
 - **Next:** Your voice is heard → J3. The mic fails → retry, with tips.
 - **Notes:** Generating the epithet is a fast Claude call that runs during the mic check. Names and epithets are spoken aloud, so filter them for PG content first. On **Rematch** every poet gets a fresh epithet again, coined during the reset (B7). There's no second entrance, so the room hears the new one in the first poet's call (T1) and the crown.
@@ -345,7 +346,7 @@ Two to five poets in one room, with the arena and their phones.
 
 - **Arena:** The round number, the theme, and this round's turn order. The order rotates every round.
 - **Phone:** The theme and Homer's phrases: three stock phrases that fit this round's theme and the beat, under "Stuck? Use one of Homer's phrases. It scores Craft." They're dealt fresh each round, because each round's theme is fresh, so nothing carries over (this settles open question 5). You can look them over from now until your turn.
-- **Homer:** "Round one. The text you never sent." In demo mode there's only one round, so he drops "Round one" and says the theme with the first poet's call (T1).
+- **Homer:** "Round one. The ship that left without you." In demo mode there's only one round, so he drops "Round one" and says the theme with the first poet's call (T1).
 - **The theme is fresh:** Homer writes it ahead, while the previous round's verdict plays (for round one, at Begin), so the round never waits on it. If it isn't ready, a written theme is used, without saying so.
 - **Next:** Automatic → the first poet's turn.
 
@@ -410,25 +411,25 @@ Practice and Battle share this. The spec's order is theme, hand, speak, freeze r
 - **Arena:** The poet's name and epithet. With P7, the previous poet's best line is pinned and labeled as the line to answer; for the first poet of a round, the theme is pinned instead. The countdown ring is full.
 - **Phone:** A **Ready** button, Homer's phrases, and the theme.
 - **Homer (P21):** calls the poet up in MC voice, using the name and this battle's epithet.
-  - **The round's first poet:** "{name}, {title}." and then the theme's call, like "Matus, Breaker of Deadlines. Send it now." A fresh theme gets the call Homer wrote with it (P21b). A written fallback theme gets its call from the table below, and anything else gets "The floor is yours."
+  - **The round's first poet:** "{name}, {title}." and then the theme's call, like "Matus, Breaker of Horses. Call it back." A fresh theme gets the call Homer wrote with it (P21b). A written fallback theme gets its call from the table below, and anything else gets "The floor is yours."
   - **Every later poet:** "{name}. Answer that." Their job is to answer the line pinned on the arena (P7), and the call says so.
   - The count-in (T2) waits until Homer finishes, even in auto-ready, so his voice never runs into an open mic.
 
 | Written theme (fallback) | The call |
 | --- | --- |
 | A ship that never came home | "The sea is yours." |
-| The night before the deadline | "The clock is yours." |
+| The night before the battle | "The watch is yours." |
 | The war between two brothers | "Pick a brother." |
-| A city that never sleeps | "The streets are yours." |
-| The last train out | "The platform is yours." |
+| The city that fell in one night | "The walls are yours." |
+| The ship that left without you | "Call it back." |
 | A feast for a returning hero | "Raise the cup." |
 | The forge at midnight | "Strike while it's hot." |
 | A storm on the open sea | "The storm is yours." |
 | The road that brought you here | "The road is yours." |
-| A letter never sent | "Send it now." |
+| The words you never said | "Say them now." |
 | Dawn after the long battle | "The dawn is yours." |
 | The wolf at the edge of the wood | "Mind the wolf." |
-| A crown nobody wanted | "The crown is yours." |
+| A throne nobody wanted | "The throne is yours." |
 | The fire that took the hall | "The fire is yours." |
 | The gods are watching | "Give them a show." |
 | The house you grew up in | "Take us home." |
@@ -455,7 +456,7 @@ Free verse: no drum, no beat lane, no beat haptics, and no Speak/Breathe per lin
 - **Homer:** Silent, except for the freeze rescue.
 - **Next:** The ring empties or the poet taps I'm done.
 - **Lines:** a line is whatever you say between breaths. The pause length that splits lines is builder's to tune. It has to be shorter than the freeze (P22), or every line break would raise a rescue.
-- **Freeze rescue (P22):** after about 1.5 s of silence, including right after SPEAK, Homer's phrases come forward on your phone, the one that fits is raised and shown first, and Homer whispers it. At most once every 6 s and twice a turn.
+- **Freeze rescue (P22):** after about 2.5 s of silence, Homer's phrases come forward on your phone, the one that fits is raised and shown first, and Homer whispers it. Never in the first 3 s after SPEAK, and at most twice a turn.
 
 #### T4 · Settle · from the end of the turn to ~0.6 s
 
@@ -612,7 +613,7 @@ Debate runs on the poetry engine. Anything not listed here works as in sections 
 | Hand | Homer's phrases: three, optional | Five moves: at least one each of open, attack, defend and close |
 | Beat | None in battle: free verse. Lessons and the song have it | None |
 | Turn length | One window with a countdown ring: 10 s a line, 20 s in demo mode | 45 s (suggested), with a "Ten seconds" call |
-| Freeze rescue | About 1.5 s of silence (P22); Homer whispers a phrase | About 2 s of silence; Socrates whispers a question to ask |
+| Freeze rescue | About 2.5 s of silence, never in the first 3 s (P22); Homer whispers a phrase | About 2 s of silence; Socrates whispers a question to ask |
 | Using a card | A spoken phrase is matched in the transcript and pops "+Craft" | You tap the card as you make the move (P17). The judge checks you made it |
 | Rubric | Flow, Craft, Image, Answer, Range | Claim, Reason, Answer, Craft, Poise |
 | The axis Claude doesn't score | Flow, from the scanner | Poise, from fillers, pace and silence |
@@ -801,10 +802,10 @@ Player slips aren't failures when the app handles them as designed: a freeze get
 
 - **One run:** a full demo-mode battle. The poetry tile opens and Homer gives the theme. Both poets take one free-verse turn in the 20 s window (two or three lines is plenty), then come the verdicts, the round verdict with the carved line, the 4-line song and the crown, and then **Rematch** until the next battle is ready.
 - **Themes and epithets are fresh every run,** so there's no fixed theme, hand or epithet to rehearse. Play whatever Homer deals. That's what the runs test: the poets improvise on a theme they've never seen, the way they will at the table. If theme cards are on, the recorder picks one. Write the theme and both epithets in the table.
-- **Who plays:** the demo cast. The poet is Poet 1 and uses at least one of Homer's phrases on purpose, so every run checks "+Craft". Matus is Poet 2 and does the staged freeze. The operator runs the arena.
+- **Who plays:** the demo cast. The poet is Poet 1 and uses at least one of Homer's phrases on purpose, so every run checks "+Craft". Matus is Poet 2 and does the staged freeze: at least one full line first, since the rescue never fires in the first 3 s after SPEAK, then silence until the whisper comes. The operator runs the arena.
 - **Also a failure:**
   - A verdict starts more than 4 s after a turn ends.
-  - Matus's staged freeze gets no whisper within about 3 s of going silent.
+  - Matus's staged freeze gets no whisper within about 4 s of going silent.
   - The 3, 2, 1 or SPEAK is missing on the phone or the arena, SPEAK isn't in the poet's color or doesn't stay up for the whole verse, or the first word gets clipped.
   - Anything from the old beat shows up during a turn: a drum, beat haptics, a beat lane, strikes, or Speak/Breathe per line.
   - The countdown ring is missing, or the turn doesn't end when the ring empties or when I'm done is tapped.
@@ -815,6 +816,7 @@ Player slips aren't failures when the app handles them as designed: a freeze get
   - One of the three is clearly spoken and gets no "+Craft".
   - A score reads "Beat" anywhere, on the phone or the arena, instead of Flow.
   - Homer's theme is missing, isn't PG, or makes no sense out loud.
+  - A theme or an epithet has something from after the Bronze Age in it: a phone, a train, a deadline, a clock hour, an umbrella.
   - Rematch takes more than 10 s.
 - **Write down, but not a failure:** a theme over six words, or one repeated from an earlier run. An epithet repeated from an earlier run. A written fallback theme. If any of these happen twice in the series, tell the leader.
 

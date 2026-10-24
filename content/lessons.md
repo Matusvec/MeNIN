@@ -104,10 +104,10 @@ when DAWN came EARly / we SAW the SHORE
 ## 3. The epithet
 
 - **id:** `epithet`
-- **The move:** coin your own title, as in "___, Breaker of Deadlines". It goes into your hoard and becomes your battle name.
+- **The move:** coin your own title, as in "___, Breaker of Horses". It goes into your hoard. In battle Homer coins you a fresh one each time, and yours is the fallback.
 - **Trains:** Craft.
 - **Lands when:** the title has exactly two hits, so it fills half a line, and it is used in a line with four hits. The judge rates it well.
-- **Unlocks:** your battle name. Homer announces you with it when you enter a hall. It also joins your hoard, so it can be dealt into your hand. Homer offers a battle: "You have a name now. Go fight."
+- **Unlocks:** your fallback battle name. Homer uses it when he can't coin a fresh epithet in time. It also joins your hoard, so it can be dealt into your hand. Homer offers a battle: "You have a name now. Go fight."
 
 **Demo verse**
 
