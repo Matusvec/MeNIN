@@ -108,6 +108,18 @@ The video uses **only our original score** under the narration, and only the bea
 
 **Upload:** YouTube, titled **"MeNIN: Ancient Greek Party Games, Hosted by Homer (Cal Hacks 13.0)"**. The description gets the Devpost tagline, the repo link and "Original score by [composer's name]". The Devpost page says submissions "should also include a clear, meaningful video demo on devpost **for sponsors evaluating asynchronously**". So the video is effectively required, and **some sponsor judges may score us from the video alone**: it has to carry every sponsor's story without us in the room. No length limit is stated. Devpost's video field generally takes YouTube or Vimeo links, so upload as **unlisted** unless the form says otherwise. Cartesia's 2-minute brief and Figma's 3-minute cap are confirmed.
 
+## The Fetch.ai cut (3:00, only if Homer on Agentverse ships)
+
+Fetch.ai requires "a demo video (3–5 minutes)", longer than our 2:00 Devpost video. Make one extra cut. Its URL goes in Fetch's ASI:One submission form ([opportunities.md](opportunities.md)).
+
+| Time | Shot |
+| --- | --- |
+| 0:00–2:00 | The Devpost video as it is |
+| 2:00–2:50 | **A screen recording of ASI:One on the Mac:** find Homer, ask for a theme, get five formulas, type a verse with two of them, and get Homer's verdict: five scores, the best line, a one-line roast. Narration: "The same judge, as an agent on Agentverse, usable from ASI:One." |
+| 2:50–3:00 | End card: the agent's name and address, plus "Built with Fetch.ai Agentverse and the Agent Chat Protocol" |
+
+Export it the same way as the Devpost video. Upload it unlisted as its own YouTube video.
+
 ## The backup video (90 s)
 
 **What it's for:** if the network dies at the table, the operator plays this and we narrate it live. We say plainly, "This is last night's battle."

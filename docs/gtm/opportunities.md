@@ -52,6 +52,35 @@ Write down their answer, and tell gtm.
 | 8 | **Mana** | $5,000 cash | Needs "meaningful use of Mana while building": public links to the Mana chats or pages we used, plus a demo moment where Mana changed what we built. Only if someone really builds a piece in Mana. |
 | 9 | **Notability** | A year of Notability Pro, plus merch | The poet runs tonight's study notes in Notability (handwriting plus the audio of each session), which really documents the process. The prize is small. |
 
+## Requirements for the builds (gtm read the sponsors' own docs, Sat 9:40 AM)
+
+### Apify: Epithet Miner (leader's agent builds it; requirements sent to leader)
+- **The rule:** "Project must be using Apify in a meaningful way." Best Actor is "built with AI Chat".
+- **The ambiguity:** Apify's own Console AI chat can't build or publish Actors, so "AI Chat" most likely means Claude through mcp.apify.com. That's unconfirmed. **Ask at the workshop or booth:** "Does Claude through mcp.apify.com count as AI Chat, and must the Actor be on the Store?"
+- [ ] The output really lands in the bank: `apify/output/formulas.mined.json`, then pm's merge into `content/`
+- [ ] Built through mcp.apify.com, with how it was built logged for Devpost
+- [ ] `.actor/actor.json` has `"meta": {"templateId": "ai-generated-actor", "generatedBy": "<model>"}`
+- [ ] **Published on the Apify Store** (a person does it in Console → Publishing), with a README and input and output schemas, after one successful run. The link opens in a private window.
+- [ ] Tag both Apify prizes on Devpost
+
+### Fetch.ai: Homer on Agentverse (builder builds it; requirements sent to builder)
+- **Mandatory** (hackpack): registered on Agentverse; speaks the Agent Chat Protocol; discoverable and usable in ASI:One; "meaningful tool execution or multi-agent orchestration"; "the primary user workflow entirely within an ASI:One conversation"; a public repo with run instructions; "more than a chatbot or a thin wrapper around an API".
+- **Judging:** functionality 25%, use of Fetch tech 20%, innovation 20%, real-world impact 20%, UX 15%. Bonus for multi-agent work, the Payment Protocol, Interactive Cards, and an agent that keeps running after the event.
+- **gtm's recommendation to builder:** a two-step flow in ASI:One. First, "give me a theme" deals five formulas. Then the user writes a verse and Homer judges it (scanner plus Claude). Optionally a separate dealer agent for the multi-agent bonus.
+- [ ] The agent's README has its name and address, plus the Innovation Lab badges (`![tag:innovationlab](https://img.shields.io/badge/innovationlab-3D8BD3)` and `![tag:hackathon](https://img.shields.io/badge/hackathon-5F43F1)`)
+- [ ] The agent is **running during judging**, with at least 10 interactions before Sunday ("only active, running Agents are prioritized")
+- [ ] **A 3–5 minute demo video**, longer than our 2:00 Devpost video. The Fetch cut is in [video.md](video.md).
+- [ ] **A second submission:** the "Cal Hacks ASI:One Submission agent" inside ASI:One. Matus chooses "Create team (I'm the lead)" and fills in project name, name, email, team size, problem, the public GitHub URL, the Devpost URL and the demo video URL. Bonus fields: the Agentverse profile URL and ASI:One shared-chat URLs. **Every teammate joins with the Team ID**, and the status must read "Submitted".
+- [ ] The Devpost tag
+- Code `CALHACKS26AV` gives Agentverse Premium.
+
+### Moss: theme-fitting dealing (builder, after Fetch)
+- **No rubric or Moss-specific submission step is published.** Their first example is "Voice agents that listen, respond, and act in real time." Tag it on Devpost, which is unconfirmed but the likely route.
+- [ ] Moss retrieval really runs in the dealer (theme in, formulas out), behind its switch
+- [ ] Measure the latency and put the number in the Devpost blurb (their claim: sub-10 ms)
+- [ ] Matus creates the account at portal.usemoss.dev and enters code `CALHACKS` on the billing page
+- [ ] *(Optional; Matus's call)* A social post for their engagement prize. Its rules are unconfirmed, and a hacker's question about it is unanswered.
+
 ## Already entered (for completeness)
 
 Spacetime (Best Use) · Cartesia · Meta · Anthropic · Figma (4 prizes) · MLH Gen AI · MLH .Tech domain · MLH DigitalOcean · MLH Commit Fellowship · every Cal Hacks main prize (automatic): First, Second and Third Overall, Most Creative, Most Technically Complex, Best People-First, Hacker's Choice.
