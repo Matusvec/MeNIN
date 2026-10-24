@@ -78,7 +78,7 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 
 ### Anthropic (sponsor-13, optional)
 - **Show** a verdict, then point at the five scores: "Beat is a deterministic stress scanner, not Claude's opinion. Claude scores the rest with your hand and the verse you answered in front of it."
-- **The line:** "For slam poets, who practice alone between weekly open mics. Tonight we run a first-timer study for one real number. And the app itself is built by a team of Claude Code sessions."
+- **The line:** "For spoken-word and slam poets in [the poet's scene], who practice alone between weekly open mics. Tonight we run a first-timer study for one real number. And the app itself is built by a team of Claude Code sessions."
 - **Ask:** "Is our community narrow enough?" Their track is "Claude for Public Benefit", and it wants a named community, a real problem, a working product with impact measured, and meaningful use of Claude.
 
 ## Booth log (fill in as you go)

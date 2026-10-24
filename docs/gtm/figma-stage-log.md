@@ -31,9 +31,18 @@ From the track doc, in their words:
 
 "We're not judging on scope or technical difficulty. We care most about a clear problem, an honest account of how you built it and a demo that works."
 
-## Our story (draft; it's only true once it happens)
+## Our story
 
-Homer is built by one designer and a team of Claude Code sessions: leader, pm, artist, multiplayer, voice and gtm. Figma is the shared source of truth between the human and the agents. Design tokens such as the eight emotion palettes and type go from Figma to code through the Figma agent or MCP, so the artist session builds from the file rather than from screenshots. That handoff is what makes it reusable: another team could run the same setup on a different idea.
+**"Don't treat the Figma as the ground truth. Use the power of Figma to make it better. Don't assume one way is good or not."** That was Matus to the artist session at 23:50 on Friday. The agent had just read his concept frame through the Figma MCP and started copying it over the work it had already done. His correction set the whole workflow: Figma is a tool for comparing ideas, not a spec to transcribe. AI is a creative partner, and the designer keeps the point of view.
+
+What that looks like in practice. MeNIN is built by one designer (Matus) and a team of Claude Code sessions: leader, pm, artist, swift, multiplayer, gtm.
+
+1. **Two directions, one vocabulary.** The artist session put both looks into one Figma variable collection with two modes: **Atelier** (Matus's concept: cream, Bodoni Moda, wine) and **Cut paper** (the first art pass: a dark sea, Fraunces, ink slabs). Every variable carries its Swift name as code syntax, and the app reads the same tokens through one `Direction` switch. Flipping a frame's mode in Figma and flipping the launch flag in the app show the same thing.
+2. **Editable designs, not screenshots.** Matus's home frame was rebuilt as token-bound components. A clickable prototype covers both flows (first open to practice, and battle: join → arena → champion).
+3. **Figma Make as a sparring partner.** The live discus screens were seeded into a Make file on the same tokens. Make's AI explores variations; the agent reads the chosen one back through the MCP and ports it to SwiftUI.
+4. **Honest log.** Every stage below lists what broke and what was redone.
+
+That handoff is the reusable part. Another team could run the same setup on a different idea.
 
 Before and after numbers to capture for Adoptability: minutes from a Figma frame to a working component, the number of rework rounds, and the number of times the design and the code disagreed.
 
@@ -122,3 +131,10 @@ Figma's four stages are **Ideation, Prototyping, Handoff, Code generation**. Giv
 - Worked (1-5): 4
 - What made it into the project: page "Prototype · Atelier" in "MeNIN · Directions". New components: Chip, Button (Primary / Secondary / Cream), Caption, Transcript, Formula chip (Default / Played / Whispered) and Scene. Scene is a still of the Metal backdrop in five moods, built as matte layered paper. All of them are bound to the two-mode token collection. Nine frames: first open, event menu, home (the token-bound concept frame), practice turn, verdict, join, and on the arena (laptop size) the turn, carved line and champion. There are 13 interactions: taps on the real tiles, mode rows and buttons, plus timed advances where the app auto-advances. Two named flows: "1 · First open → Practice" and "2 · Battle: join → arena → champion".
 - Friction: the first build referenced component property IDs by guess, and the script rolled back atomically, so nothing half-built was left. `resize()` silently turned auto-height components fixed, which clipped the transcript and caption and truncated buttons. Fixing it on the component fixed every instance. Vectors from `createVector` come with a default 1 px black stroke, which drew outlines on the cream backdrop. Arena chips needed scaling to read at laptop size, the same rule as `Stage.arena` in code.
+
+### Prototyping · Seeding Figma Make with the live discus screens · Sat Oct 24, 09:00–09:15
+- Tool(s): Figma Make. The artist session created the Make file and imported a static HTML/CSS/JS seed through the Figma MCP (`create_new_file` with type figmake, then `send_code_to_figma`). Make's own AI was not run by the agent, because the MCP can import code but can't prompt Make. The prompting is Matus's step (see the 10-minute guide sent to the leader).
+- Minutes: 15
+- Worked (1-5): 3, pending Matus's Make session
+- What made it into the project: "MeNIN · Discus (Make)" (https://www.figma.com/make/MexcUVEohKsNVAw5pHh596) holds a playable sketch of the discus phone (hold, a power ring, release) and arena (an arc over an 80 m field, the Phayllos flag, the leaderboard, Homer's caption). Its CSS variables match the Figma tokens and `Palette` in Swift, so Make's variations come back in the app's vocabulary.
+- Friction: the MCP reaches Make for import and for reading results (`get_design_context` on a Make file), not for prompting. That means a human-in-the-loop step, which matches the thesis: the designer drives the AI. Design-file code layers aren't enabled on this plan, so it had to be a standalone Make file.

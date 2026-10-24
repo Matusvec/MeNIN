@@ -154,7 +154,7 @@ These hit "Voice clear, responsive, and natural?" directly. The keyterm trick is
 
 **What to submit:**
 - [ ] A 2-minute, **demo-first** presentation: "one complete user flow, then a brief problem + how you built it". This is our video and our table script.
-- [ ] A README section covering **setup** (XcodeGen, signing, `.env`), **the Cartesia features used** (ink-2 streaming STT over WebSocket with the hand as keyterms, plus the 3%-vs-20% number and how it was measured; sonic-3.6 TTS as Carl for Homer's voice, the whisper and the stitched song), and **known limitations** (noise, accents, names)
+- [ ] A README section (drafted in [readme-draft.md](readme-draft.md)) covering **setup** (XcodeGen, signing, `.env`), **the Cartesia features used** (ink-2 streaming STT over WebSocket with the hand as keyterms, plus the 3%-vs-20% number and how it was measured; sonic-3.6 TTS as Carl for Homer's voice, the whisper and the stitched song), and **known limitations** (noise, accents, names)
 - [ ] Source access, with no keys in the repo
 
 **Impact and responsibility is our weak quarter. Fix it with true statements:**
@@ -200,7 +200,8 @@ Also: "we'll prefer if you built things more creative".
 Hacker Guide and Hive add: "One thing done well and usable on Monday beats a broad demo" and "you know where it could go wrong for the people using it."
 
 **Our answers:**
-1. **Community:** spoken-word and slam poets between open mics. Name the poet's own scene specifically. "Poets" alone is too broad.
+1. **Community:** **spoken-word and slam poets in [the poet's scene], who practice alone between weekly open mics.** Their brief: "The narrower, the better" and "'Students' is too broad" (#cohost-anthropic, Fri 4:37 PM). Never say "poets", "creatives" or "anyone". Leader is getting the scene's name from Matus.
+   - They also said "we'll prefer if you built things more creative". Their example ideas are utilities, so a creative product is welcome, as long as the community is narrow.
 2. **Problem:** "Open mics are weekly. Between them you practice alone, and nobody can tell you if your beat landed." The poet has lived it. Add quotes from 3-5 poets texted Saturday morning, with their permission.
 3. **Works, and impact is measured:** the scanner's Beat score is an objective skill measure. Run the **first-timer study** Saturday evening: 5 people, Lesson 1, Beat score on their first and last try. Then commit to one Monday metric: Beat accuracy across a poet's first 5 sessions.
 4. **Claude in functioning and development:**

@@ -9,6 +9,8 @@ GTM brief. Friday Oct 23, 11 PM. Sources: Hacker Guide (organizers call it "the 
 | [run-sheet.md](run-sheet.md) | Judging-day logistics: timeline, devices, charging, table layout, rematch drill, fallbacks, packing list |
 | [pitch.md](pitch.md) | Sponsor variants, booth lines, Q&A bank |
 | [video.md](video.md) | **The Devpost video and the 90 s backup video**: shot list, roles, Saturday timing, capture settings |
+| [readme-draft.md](readme-draft.md) | **The public repo README**, ready for leader to paste into `/README.md`: each sponsor's part, the keyterm numbers and how we measured them, impact and responsibility, setup |
+| [slack-intel.md](slack-intel.md) | **The Slack watch:** what wins each track, open questions, and a running log, newest first |
 | [booths.md](booths.md) | **Saturday's sponsor booth route**: times, booth numbers, what to show and what to ask at each |
 | [devpost.md](devpost.md) | Devpost submission draft, ready to paste |
 | [reality-check.md](reality-check.md) | Are we building BS? What's strong, what isn't, and what each part of the build should change |

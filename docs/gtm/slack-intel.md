@@ -37,7 +37,7 @@ Read directly from the channels, Sat 9 AM. Each hint is quoted, and each one say
 
 **The Cal Hacks judges (main prizes).** Judges introducing themselves in #1-introductions (Oct 19–22) are mostly engineers working on "AI agents, LLMs, and full-stack engineering". One is "most excited to see teams make agents do real work".
 - **Do:** frame Homer as an agent doing real work, live: he listens, scores, coaches, MCs and composes a song from the room, all in about 3 seconds per verdict. Say "agent" once in the pitch.
-- **Opportunity:** that same judge (a business-school professor) offers feedback slots on a public calendar before Sunday (#1-introductions, Oct 19). Booking one gets a judge's eyes on MeNIN early. It's Matus's call.
+- **Opportunity:** that same judge (a business-school professor) offers feedback slots on a public calendar before Sunday (#1-introductions, Oct 19). Booking one gets a judge's eyes on MeNIN early. It's Matus's call (leader is offering it). Their posted link: https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ05qv3qeRHOHA2xXFPR2QZQYUtiE6TaXoOvbhNuQsyK_D0KI6G3JbmnKAGgM4HyYx8zeqCO8t5V *(remove this link before the repo goes public)*
 
 ## Open questions
 

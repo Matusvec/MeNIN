@@ -84,6 +84,8 @@ If OBS misbehaves, fall back to ⌘⇧5 for the picture and use iPhone C's audio
 
 ## The Devpost video: shot list (2:00)
 
+**Built for judges who aren't in the room.** Devpost says the video is for "sponsors evaluating asynchronously", and Cartesia's staff have been hard to find. So the video has to carry each sponsor alone: name every sponsor on screen, show the keyterm numbers with how we measured them, and give responsibility its own card.
+
 The video uses **only our original score** under the narration, and only the beat under a verse. Because we own the music, YouTube won't mute or claim it. **No "Wii" anywhere in the video, not even in the voiceover.** It's published and permanent, so the spoken comparison stays at the table.
 
 | Time | Shot | Source | Sound |
@@ -95,7 +97,8 @@ The video uses **only our original score** under the narration, and only the bea
 | 0:50–1:00 | The round verdict: the best line carved in gold | OBS | Homer, then the round-end cue |
 | 1:00–1:15 | **Bard lesson 1 with a first-timer** from the study: a miss, one note from Homer, then they land it. On screen: "Beat [first] → [last]". Screen and voice only, no face. | The first-timer's phone recording | The lesson's own sound |
 | 1:15–1:25 | *Only if it passed at 8 PM:* 5 s of Socrates opening a debate (a different voice), then 5 s of a discus throw: the swing (camera), the flight on the arena (OBS), the fanfare. If neither passed, give the stitched song 10 s more. | Camera, OBS | Their cues |
-| 1:25–1:40 | **How it's built, in one frame:** iPhone mic → on-device onsets (beat lane) and Cartesia STT with your hand as keyterms → SpacetimeDB → arena Metal scene, plus the Claude judge with the stress scanner. Caption: "3% word error with the drum at full volume, in our tests (20% without keyterms)". Use the real-mic number instead if swift's rerun replaced it. Voiceover: "Nothing here is mocked." | A diagram. **Make it in FigJam** and log it in the Figma stage log, since that's real Figma work. | Voiceover over the hall theme, ducked |
+| 1:25–1:36 | **How it's built, in one frame:** iPhone mic → on-device onsets (beat lane) and Cartesia STT with your hand as keyterms → SpacetimeDB → arena Metal scene, plus Homer the live agent on Claude with the stress scanner. **Name each sponsor on screen** (Spacetime, Cartesia, Claude, Figma), since a sponsor judge may only ever see this video. Caption: "3% word error with the drum at full volume, in our tests (20% without keyterms)". Under it, smaller: "Test recordings: recorded verse with our drum mixed in at 0 dB." Use the real-mic number if swift's rerun replaced it. Voiceover: "Nothing here is mocked." | A diagram. **Make it in FigJam** and log it in the Figma stage log, since that's real Figma work. | Voiceover over the hall theme, ducked |
+| 1:36–1:40 | **Built responsibly**, one card: "Captions on everything Homer says · Push-to-talk: the mic opens only while you hold it · No audio passes through our server · Homer never names your emotion · No account needed". It answers Cartesia's 25% on impact and responsibility, and Anthropic's "where it could go wrong". | Editor | Hall theme, ducked |
 | 1:40–1:55 | The stitched song over the battle's colors, each line with its poet's name | OBS | Homer and the beat |
 | 1:55–2:00 | The champion. End card: [TestFlight link] or playmenin.tech, "Original score by [composer's name]", and the team | OBS, editor | Champion cue |
 

@@ -24,6 +24,7 @@ The table demo is in [demo-script.md](demo-script.md). This file holds everythin
 | 5 s (written) | **MeNIN: ancient Greek party games, hosted by Homer. Battle in verse on one screen, with your iPhone as the controller.** |
 | The second history line (only for Q&A or Devpost, never in the opener) | "The Greeks didn't separate sport and poetry: at the Panathenaic Games, poets competed reciting Homer right next to the athletes." |
 | The hand, in one line (mechanics, not history) | "You're dealt phrases that already fit the beat. That's how Homer improvised, and how freestyle works." |
+| The agent line (once per pitch) | "Homer is a live agent doing real work: he listens, judges, coaches, hosts and writes the song from the room, about three seconds per verdict." Most Cal Hacks judges are agent engineers (#1-introductions). Say it once; more than once and it sounds like buzzwords. |
 | Finale | "A rhapsode was a song-stitcher. So Homer stitches your battle into one song." |
 | Close | "That's MeNIN. Want to throw the discus?" (or, if discus didn't ship, "Want to battle us?") |
 
@@ -37,7 +38,7 @@ The criteria are from #0-ask-directors. Every claim below has to be true by Sund
 
 | Criterion (their words) | Our proof at the table |
 | --- | --- |
-| **Application**: "who they help, what problem they solve, and why people would actually use them" | Slam and spoken-word poets practice alone between weekly open mics. MeNIN gives them a stage every night that hears your beat. Party games are why a room of friends opens it again. **Saturday's first-timer number** goes here. |
+| **Application**: "who they help, what problem they solve, and why people would actually use them" | Spoken-word and slam poets in [the poet's scene] practice alone between weekly open mics. MeNIN gives them a stage every night that hears your beat. Party games are why a room of friends opens it again. **Saturday's first-timer number** goes here. |
 | **Intentionality**: "Every design choice should feel purposeful" | One engine, and every event is a config: host, hand, rubric, beat. One idea carried everywhere in the poetry battle: the formula, in your hand, in the rescue, in the judging, in the stitched song. |
 | **Functionality**: "live demo that runs smoothly... clear, meaningful video demo on devpost" | A live poetry battle on iPhones and the arena, a verdict in about 3 s, a rehearsed fallback to Practice, a 2-minute video. **Only events that pass the checkpoint are unlocked; the rest are locked tiles, never half-working.** |
 | **Creativity**: "unexpected combinations of ideas or technologies" | Greek *agon* as party games: a rap battle judged by Homer, a debate hosted by Socrates, and a discus you throw with your phone, all on a matte paper-cut scene that paints your voice, with an original score by a teammate |
@@ -64,7 +65,7 @@ Ask them: "What would make this a top-three Spacetime project for you?" Write do
 Ask them: "How many winners are there, and what does great 'impact and responsibility' look like to you?"
 
 **Anthropic**
-> "For slam poets between open mics. Claude judges every verse with a stress count from our scanner, so it never guesses the beat, and every score shows its quote. The app is also being built by a team of Claude Code sessions."
+> "For spoken-word and slam poets in [the poet's scene], who practice alone between weekly open mics. We measure it: Beat score, first try vs last, and next, Beat across a poet's first five sessions. Claude judges every verse with a stress count from our scanner, so it never guesses the beat, and every score shows its quote. The app is also being built by a team of Claude Code sessions."
 Keep the Anthropic story on the poets and on training (Bard mode). The party frame is why people come back, not the public-benefit claim.
 Ask them: "Is our community narrow enough?"
 
@@ -92,6 +93,7 @@ Answer in one breath, then stop.
 | Doesn't the beat lane lag behind speech? | "No. The lane runs on syllable onsets detected on the phone itself. It never waits for the transcript." |
 | Isn't this just for poets? | "It's for anyone who has to speak in front of people. Poets are where we start, because they already practice this and have nowhere to do it." |
 | Why Homer and not Shakespeare? | "Shakespeare wrote. Homer improvised. Improvising is the skill." |
+| Is Homer an agent? | "Yes, a live one. In each turn he deals your hand, hears you through Cartesia, scores you with Claude plus our scanner, and speaks the verdict. Then he writes the round into a song. Every step writes to SpacetimeDB, so the whole room sees it." |
 | What's AI and what isn't? | "Deterministic: the beat count, the scoring math and the discus physics. Claude: the judgment, the coaching, Homer's and Socrates' lines and the stitched song. Cartesia: ears and voice. Nothing is mocked." |
 | Why iPhone only? | "Your phone is the mic, the controller and the discus, and the beat lives in your hand through haptics. That needs native. The same app runs the arena on an iPad or a Mac." |
 | What happens Monday? | "Tap the TestFlight link on your iPhone. No account, open a room, play." *(Only if the public link is approved. Otherwise: "TestFlight now, App Store next.")* |

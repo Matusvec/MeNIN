@@ -9,7 +9,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 | `[N]`, `[first]`, `[last]`, `[time]`, poet quotes | The first-timer study (`docs/study.md`, run by the poet) and the poet's texts. Use one of pm's line options in study.md. | Sat 8 PM |
 | `[real-mic WER]` | swift's rerun of the keyterm test on a real iPhone mic. If it differs from 3%/20%, it replaces those numbers everywhere. | Once the agent is public (it is now) |
 | `[composer's name]`, `[how the score was made]` | Matus | Today |
-| `[p50]` | The Sat 10 AM judge-latency checkpoint. The first production check read 1.6 s, but that's one sample, not a p50. | Sat 10 AM |
+| `[p50]` | Now filled from homer/README: p50 1.0 s, p95 1.5 s (10 calls, Fri). Update it if the Sat 10 AM production checkpoint differs. | Sat 10 AM |
 | `[If debate passed]`, `[If discus passed]` | The Sat 8 PM check: 5 runs in a row without a failure. Delete the section if the event failed. | Sat 8 PM |
 | `[TestFlight public link]` | Apple's Beta App Review | When approved |
 | `[Video]`, `[Figma Slides]` | [video.md](video.md); the Figma Slides deck | Sat 11 PM |
@@ -31,13 +31,15 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 
 The first word of Western literature is μῆνιν (*mēnin*, pronounced "MAY-nin"): **rage**. Homer opened the Iliad with a fight, and so do we.
 
-[Poet's name] performs spoken word. Open mics are once a week, and between them you practice alone in your room, with no one to tell you whether your beat landed. [Quote from a poet interviewed Saturday, with permission.] Improvising out loud is a learnable skill: Homer did it with stock phrases built to fit the beat, and freestyle rappers do it every night. Almost nobody gets to practice it with friends.
+MeNIN is for spoken-word and slam poets in [the poet's scene]. [Poet's name] is one of them. Open mics are once a week, and between them you practice alone in your room, with no one to tell you whether your beat landed. [Quote from a poet interviewed Saturday, with permission.] Improvising out loud is a learnable skill: Homer did it with stock phrases built to fit the beat, and freestyle rappers do it every night. Almost nobody gets to practice it with friends.
 
 So we built ancient Greek party games, and made the poetry battle the main event.
 
 ## What it does
 
 The first time you open MeNIN, Homer speaks before any menu: "The first word of Western literature is *mēnin*. Rage. Give me one line." You say anything, the scene answers your voice, and Homer says, "Good. Now let me show you how I did it."
+
+Homer is a live agent doing real work: he deals, listens, judges, coaches, hosts and writes the song from the room.
 
 One screen is the arena: a Mac or an iPad running the app. Every player's iPhone is their controller. Scan the QR code or type the room code to join. No account needed.
 
@@ -91,7 +93,7 @@ Other events show as locked tiles, because we only unlock what's solid.
   - Cartesia TTS is Homer (**sonic-3.6**, the voice Carl, "Steady Storyteller"), with first audio in about **100 ms**: lessons, entrances, verdicts, the freeze whisper and the stitched song.
 - **Claude (Anthropic)** is the judge, the coach and the MC.
   - The judge gets your hand, the verse you're answering and the scanner's stress count. It returns five scores, the best line and a one-line verdict.
-  - Each judgment is one streamed request to **Claude Opus 5.5**: fast mode, low effort, a cached system prompt and a JSON schema, so the output is always valid. Verdict text lands in about [p50] s.
+  - Each judgment is one streamed request to **Claude Opus 5.5**: fast mode, low effort, a cached system prompt and a JSON schema, so the output is always valid. Verdict text lands in **p50 1.0 s, p95 1.5 s** (10 live calls, Fri Oct 23, `homer/scripts/latency.py`). [Update if the Sat 10 AM production check differs.]
   - Claude also names poets and coins epithets, writes Homer's lesson feedback, his sparring verses and the round verdicts, and writes the stitched song. The freeze whisper makes no model call: it picks the formula from your hand that fits the line, so it's instant.
 - **The stress scanner** (Python, CMU Pronouncing Dictionary) counts the beat deterministically. The **Beat** score never comes from the model's opinion.
 - **Python + FastAPI** service for the Claude calls, the scanner and the formula bank, in Docker behind Caddy on **DigitalOcean**.
