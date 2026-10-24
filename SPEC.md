@@ -1,4 +1,4 @@
-# Homer: Product Spec
+# MeNIN: Product Spec
 
 This is the source of truth for what we are building. If the code disagrees with this file, this file wins. If this file is wrong, change it first, then the code.
 
@@ -6,21 +6,23 @@ Background (pitch, tracks, schedule, demo script) lives in `Homer Cal Hacks 13.0
 
 ## The idea
 
-**Homer teaches you to improvise poetry out loud the way Homer did, then lets you battle other poets live.**
+**MeNIN teaches you to improvise poetry out loud the way Homer did, then lets you battle other poets live.**
 
-Homer never memorized the Iliad. He improvised it, using formulas: ready-made phrases that fit the beat ("the wine-dark sea", "swift-footed Achilles"). Every oral tradition that improvises works this way: Homer, Beowulf, freestyle rap. Learn the formulas and the beat, and you can improvise. Homer gives you both.
+The name: μῆνιν (*mēnin*, "rage") is the first word of the Iliad, and so the first word of Western literature.
+
+Homer never memorized the Iliad. He improvised it, using formulas: ready-made phrases that fit the beat ("the wine-dark sea", "swift-footed Achilles"). Every oral tradition that improvises works this way: Homer, Beowulf, freestyle rap. Learn the formulas and the beat, and you can improvise. MeNIN gives you both, with Homer himself as your teacher.
 
 The feel is professional and badass, never academic. Homer is a legendary bard, not a professor. You are learning to spit.
 
 ## Platform
 
-Homer is a universal iOS app (SwiftUI, iOS 18+, iPhone and iPad), shared with the team through TestFlight. Universal so the arena runs full-screen on an iPad or a Mac. There is no web app. The same app runs every mode; in a battle each device runs it as either the arena or a player.
+MeNIN is a universal iOS app (SwiftUI, iOS 18+, iPhone and iPad), shared with the team through TestFlight. Universal so the arena runs full-screen on an iPad or a Mac. There is no web app. The display name is MeNIN; internal names (the `Homer` Xcode target, the `homer/` folder, the bundle id) stay as they are. The same app runs every mode; in a battle each device runs it as either the arena or a player.
 
 The look: colorful but matte, open and simple. Flat layered color fields like cut paper, lots of negative space, no glow or neon.
 
 ## The games
 
-Homer is ancient Greek Wii Sports: party games from the Greek *agon* (contest), on one shared screen with phones as controllers. It's historically real: the Greeks didn't separate sport from poetry, and at the Panathenaic Games rhapsodes competed reciting Homer alongside the athletes.
+MeNIN is ancient Greek Wii Sports: party games from the Greek *agon* (contest), on one shared screen with phones as controllers. It's historically real: the Greeks didn't separate sport from poetry, and at the Panathenaic Games rhapsodes competed reciting Homer alongside the athletes.
 
 | Event | Host | What you do | Status |
 | --- | --- | --- | --- |
@@ -30,7 +32,7 @@ Homer is ancient Greek Wii Sports: party games from the Greek *agon* (contest), 
 | Other events | | Locked tiles on the event menu | Not building |
 
 - Each event is a config on one engine: host, hand, rubric, turn length, beat on or off.
-- **Socratic debate** reuses the poetry battle's turns, scene, and verdict. Your hand holds rhetorical moves instead of formulas ("define your terms", "counterexample", "analogy"). The freeze rescue becomes Socrates whispering a question to ask. It has its own five-axis rubric and no beat.
+- **Socratic debate** reuses the poetry battle's turns, scene, and verdict. Your hand holds rhetorical moves instead of formulas ("define your terms", "counterexample", "analogy"). The freeze rescue becomes Socrates whispering a question to ask. You tap a move card as you make the move, and the judge checks you really made it. Sides are dealt by turn order. It has its own five-axis rubric (Claim, Reason, Answer, Craft, Poise) and no beat.
 - **Discus** is a self-contained motion minigame: no voice, no Claude. Core Motion measures the swing and the release, and the arena shows the throw. You hold a button with your thumb while you swing and release by lifting your thumb; you never let go of the phone.
 - The 2-minute demo stays at least 80% poetry battle. An extra event that can't run 5 times in a row without failing by Sat 8 PM stays a locked tile for the demo. All checkpoints are in `docs/gtm/reality-check.md`.
 - Bard mode and Practice mode are the training, like Wii Sports Training.
@@ -81,7 +83,8 @@ Two to five human poets in one room, Jackbox-style:
 How a battle runs:
 
 - **Entrance.** Homer announces every poet by their epithet ("Enter Matus, Breaker of Deadlines!"). A poet without one gets one coined by Homer on join.
-- **Rounds.** Three rounds. Each round has a theme; every poet takes one turn; turn order rotates. The scene on the arena reacts to whoever is speaking.
+- **Rounds.** Three rounds. Each round has a theme; every poet takes one turn; turn order rotates. The scene on the arena reacts to whoever is speaking. In battles you hold to talk (push-to-talk) on your phone; solo modes use an open mic.
+- **The hall stays open.** When an event ends, the arena returns to the event menu with everyone still joined.
 - **Verdict.** The judge scores every verse. At the end of each round Homer reads the verdict aloud, and the best line of the round is carved in gold across the arena.
 - **Winner.** Highest total after three rounds.
 - **Finale: the song.** Homer stitches every verse of the battle into one poem and performs it over the beat while the scene replays the battle's colors, then crowns the champion. ("Rhapsode", one of the rank titles, means song-stitcher.)
@@ -170,5 +173,4 @@ Never cut: Bard lessons 1 to 3, the turn (beat, beat lane, freeze rescue, scene,
 
 ## Open questions
 
-- Push-to-talk with a headset mic, for a noisy judging hall.
 - Turn length (30 s) and lines per turn (4).

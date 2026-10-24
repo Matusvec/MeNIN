@@ -1,6 +1,6 @@
 # Instructions for AI agents in this repo
 
-1. Read `SPEC.md` before writing code. It defines what Homer is and does. If what you are about to build is not in it or contradicts it, leave a `TODO(spec):` note and keep going on spec'd work instead of inventing features.
+1. Read `SPEC.md` before writing code. It defines what MeNIN is and does (Homer is its host character). If what you are about to build is not in it or contradicts it, leave a `TODO(spec):` note and keep going on spec'd work instead of inventing features.
 2. `Homer Cal Hacks 13.0 Project Plan.md` is background (pitch, sponsor tracks, schedule). `SPEC.md` wins where they disagree.
 3. Build order: the turn (spec section "The turn") working end to end on two devices first. Everything else layers on top.
 
