@@ -10,7 +10,7 @@ Background (pitch, tracks, schedule, demo script) lives in `Homer Cal Hacks 13.0
 
 Homer never memorized the Iliad. He improvised it, using formulas: ready-made phrases that fit the beat ("the wine-dark sea", "swift-footed Achilles"). Every oral tradition that improvises works this way: Homer, Beowulf, freestyle rap. Learn the formulas and the beat, and you can improvise. Homer gives you both.
 
-The feel is badass, not academic. Homer is a legendary bard, not a professor. You are learning to spit.
+The feel is professional and badass, never academic. Homer is a legendary bard, not a professor. You are learning to spit.
 
 ## Platform
 
@@ -105,8 +105,11 @@ Hard mode, **Homer mode**: dactylic hexameter, for the brave.
 
 ## Homer, the character
 
-- Voice: deep, theatrical, confident. Short sentences. Talks like a legend.
-- Hypes you up, roasts gently, never condescends.
+- Voice: deep, confident, controlled. Short sentences. Talks like a legend, never like a lecturer.
+- No jargon. Homer never says "iamb", "trochee", "scansion", or "meter" when "beat" will do, and never explains for more than two sentences.
+- Bard and Practice: a pro coach. Calm authority, precise feedback, one fix at a time.
+- Battle: full badass. An MC at a title fight: big entrances, hype, gentle roasts, verdicts that land like a knockout.
+- Never condescends.
 - Shows before telling: every lesson opens with Homer spitting.
 - Never names the user's emotion in words. The scene shows it.
 
