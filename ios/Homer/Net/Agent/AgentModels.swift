@@ -222,6 +222,11 @@ struct BattleDealRequest: Encodable, Sendable {
     var theme: String
 }
 
+struct BattleDealResult: Decodable, Sendable {
+    var theme: String?
+    var call: String?
+}
+
 struct BattlePoetRequest: Encodable, Sendable { var playerId: UInt64 }
 struct BattleVerdictRequest: Encodable, Sendable { var roundId: UInt64 }
 struct BattleSongRequest: Encodable, Sendable { var roomId: UInt64 }

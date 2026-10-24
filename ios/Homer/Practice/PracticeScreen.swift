@@ -60,7 +60,8 @@ struct PracticeScreen: View {
             done: { Task { await s.finish() } },
             again: { Task { await s.begin() } },
             retry: { Task { await s.deal(theme: s.theme) } },
-            type: { s.typed = $0 }
+            type: { s.typed = $0 },
+            back: { app.route = .event("poetry") }
         )
     }
 }

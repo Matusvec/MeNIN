@@ -83,6 +83,8 @@ struct DiscusArenaRoot: View {
 /// A thrower's phone in a discus room.
 struct DiscusPhoneRoot: View {
     let battle: BattleClient
+    /// The back chevron: the phone's leave action (PlayerScreen confirms it mid-battle).
+    var onBack: (() -> Void)? = nil
     @State private var thrower = DiscusThrower()
     @State private var safetyAcked = DiscusSafety.acked
     @State private var telemetry = DiscusTelemetry.on
@@ -90,7 +92,7 @@ struct DiscusPhoneRoot: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.1)) { context in
             DiscusPhoneView(model: DiscusPresenter.phone(battle, thrower: thrower, safetyAcked: safetyAcked, now: context.date),
-                            onSafetyAck: acknowledge) {
+                            onSafetyAck: acknowledge, onBack: onBack) {
                 DiscusHoldPad { thrower.hold($0) }
             }
         }

@@ -12,6 +12,7 @@ struct PlayerScreen: View {
     @State private var autopilot: DevAutopilot?
     @State private var recorder: TurnRecorder?
     @State private var draft = ""
+    @State private var confirmLeave = false
     @AppStorage("poetName") private var savedName = ""
 
     var body: some View {
@@ -20,12 +21,19 @@ struct PlayerScreen: View {
                 DiscusPhoneRoot(battle: battle)  // no mic: TurnRecorder stays off in discus rooms
             } else {
                 PlayerView(model: model, actions: actions)
-                    .safeAreaInset(edge: .bottom) { typedFallback }
+                    .confirmationDialog("Leave the battle?", isPresented: $confirmLeave, titleVisibility: .visible) {
+                        Button("Leave", role: .destructive) { leave() }
+                    } message: {
+                        Text("Your seat stays open for a while; rejoin with the same code.")
+                    }
             }
         }
             .toolbar(.hidden, for: .navigationBar)
-            .onChange(of: battle.room?.phase) { _, phase in
-                if phase == RoomPhase.finished.rawValue { LastBattle.clear() }  // nothing to come back to
+            .onChange(of: battle.room?.phase) { _, _ in
+                // The hall stays open after a battle (P16), and join_room takes a same-device reconnect
+                // even in `finished`: keep the way back fresh while the room lives. Leave, or "no such
+                // room" on a rejoin, clears it.
+                if let me = battle.me, let code = battle.room?.code { LastBattle.save(code: code, name: me.name) }
             }
             .task {
                 MusicDirector.shared.stopAll()
@@ -57,8 +65,25 @@ struct PlayerScreen: View {
         }
     }
 
+    /// Mid-battle: the back chevron asks first.
+    private var midBattle: Bool {
+        guard battle.me != nil, let phase = battle.room?.phaseValue else { return false }
+        return phase != .lobby && phase != .finished
+    }
+
+    private func leave() {
+        if battle.me != nil { battle.leave() }
+        LastBattle.clear()
+        onLeave?()
+    }
+
     private var model: PlayerModel {
         var m = BattlePresenter.player(battle, recorder: recorder)
+        // Voice unavailable on my turn: the typed fallback takes push-to-talk's place in the action band.
+        if let turn = battle.currentTurn, battle.isMyTurn, turn.statusValue == .speaking,
+           case .unavailable = recorder?.phase {
+            m.typed = draft
+        }
         if battle.me == nil {
             m.code = initialCode
             if m.me == nil, !savedName.isEmpty { m.me = PoetPlate(id: "", name: savedName, epithet: "", seat: 0) }
@@ -89,33 +114,13 @@ struct PlayerScreen: View {
                 if let turn = battle.currentTurn, battle.isMyTurn { battle.playCard(turn.id, card: id) }
             },
             leave: {
-                if battle.me != nil { battle.leave() }
-                LastBattle.clear()
-                onLeave?()
+                if midBattle { confirmLeave = true } else { leave() }
+            },
+            type: { text in
+                draft = text
+                if let turn = battle.currentTurn, battle.isMyTurn { battle.updateTranscript(turn.id, text) }
             }
         )
-    }
-
-    /// Typing stands in for the mic only during your own turn, and only when voice is down.
-    @ViewBuilder
-    private var typedFallback: some View {
-        if let turn = battle.currentTurn, battle.isMyTurn, turn.statusValue == .speaking,
-           case .unavailable(let why) = recorder?.phase {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(why).font(.caption).foregroundStyle(.secondary)
-                TextField("Type your verse, one line per row", text: $draft, axis: .vertical)
-                    .lineLimit(2...6)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: draft) { _, text in battle.updateTranscript(turn.id, text) }
-                Button("Done") {
-                    battle.endTurn(turn.id, draft)
-                    draft = ""
-                }
-                .buttonStyle(.borderedProminent)
-            }
-            .padding()
-            .background(.thinMaterial)
-        }
     }
 }
 

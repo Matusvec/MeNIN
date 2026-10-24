@@ -6,12 +6,17 @@ import Foundation
 final class DebateContent {
     static let shared = DebateContent()
     private var questions: [DebateQuestion] = []
+    /// Socrates' battle lines by name ("Step up", "Entrance", …), templated with {name} {title} {side}.
+    private(set) var battleLines: [String: String] = [:]
     private var loading: Task<Void, Never>?
 
     func load(_ agent: AgentClient?) {
         guard questions.isEmpty, loading == nil, let agent else { return }
         loading = Task {
-            questions = (try? await agent.debateQuestions()) ?? []
+            if let content = try? await agent.debateContent() {
+                questions = content.questions
+                battleLines = content.battleLines
+            }
             loading = nil
         }
     }

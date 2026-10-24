@@ -17,6 +17,8 @@ final class AppModel {
         case battle(event: String)  // host the arena or join as a poet
         case arena(event: String)
         case player(code: String)
+        /// Discus solo: a throw with no server and no second phone (Events/Discus).
+        case discusThrow
         case dev
     }
 
@@ -83,7 +85,7 @@ final class AppModel {
             music.play(.trainingAmbience)
         case .player:
             music.stopAll()
-        case .arena, .firstOpen, .dev:
+        case .arena, .firstOpen, .dev, .discusThrow:
             break
         }
     }

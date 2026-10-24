@@ -182,7 +182,11 @@ final class ArenaConductor {
         let battleKey = "\(room.id).\(battle.generation)"
         if room.phaseValue == .theme, themeCards.isEmpty, let agent, !said.contains("themes \(battleKey) \(room.roundNo)") {
             said.insert("themes \(battleKey) \(room.roundNo)")
-            Task { themeCards = (try? await agent.themes(n: 3, demo: room.demo)) ?? [] }
+            Task {
+                let cards = (try? await agent.themesWithCalls(n: 3, demo: room.demo)) ?? []
+                for card in cards where !card.call.isEmpty { battle.calls[card.theme] = card.call }
+                themeCards = cards.map(\.theme)
+            }
         }
         if room.phaseValue != .theme, !themeCards.isEmpty { themeCards = [] }
         for poet in battle.players where poet.entered && poet.named {
@@ -190,7 +194,7 @@ final class ArenaConductor {
         }
         switch room.phaseValue {
         case .ready:
-            if let round = battle.currentRound { once("theme \(round.id)", round.theme) }
+            callUp(room)
         case .scored:
             guard let turn = battle.currentTurn else { return }
             if let score = battle.score(for: turn.id) {
@@ -258,6 +262,49 @@ final class ArenaConductor {
 
     func toggleMusicMute() {
         music.muted.toggle()
+    }
+
+    /// T1 step-up (P21): the theme once per round, then Homer calls the poet up by name, the
+    /// round's first poet with the theme's call ("Salt-Tongued Priya. The sea is yours."), the
+    /// rest with "Answer that." Socrates says which side the debater takes. Auto-ready holds the
+    /// count-in until the call ends.
+    private func callUp(_ room: RoomRow) {
+        guard let round = battle.currentRound else { return }
+        guard let turn = battle.currentTurn, turn.statusValue == .waiting, let poet = battle.player(turn.playerId) else {
+            if !said.contains("theme \(round.id)") {
+                said.insert("theme \(round.id)")
+                Task { await speak("theme \(round.id)", round.theme) }
+            }
+            return
+        }
+        let key = "callup \(turn.id)-\(turn.attempt)"
+        guard !said.contains(key) else { return }
+        said.insert(key)
+        let themeKey = "theme \(round.id)"
+        let sayTheme = !said.contains(themeKey)
+        said.insert(themeKey)
+        let named = poet.epithet.isEmpty ? poet.name : "\(poet.name), \(poet.epithet)"
+        let line: String
+        if room.event == "debate" {
+            let side = DebateContent.shared.side(for: round.theme, turnNo: turn.turnNo)
+            let template = DebateContent.shared.battleLines["Step up"] ?? "{name}, {title}. You say {side}. The floor is yours."
+            line = side.map { side in
+                template.replacingOccurrences(of: "{name}, {title}", with: named)
+                    .replacingOccurrences(of: "{name}", with: poet.name)
+                    .replacingOccurrences(of: "{title}", with: poet.epithet)
+                    .replacingOccurrences(of: "{side}", with: side)
+            } ?? "\(named). The floor is yours."
+        } else {
+            let first = battle.turns.filter { $0.roundId == turn.roundId }.map(\.turnNo).min() == turn.turnNo
+            let call = battle.calls[round.theme] ?? ""
+            line = first ? "\(named). \(call.isEmpty ? "The floor is yours." : call)" : "\(poet.name). Answer that."
+        }
+        battle.holdStart = true
+        Task {
+            if sayTheme { await speak(themeKey, round.theme) }
+            await speak(key, line)
+            battle.holdStart = false
+        }
     }
 
     /// The stitched song on the drum: every line scanned and rendered first, then the beat starts

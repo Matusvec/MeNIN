@@ -40,9 +40,10 @@ struct RootView: View {
                 guard !tile.locked else { return }
                 app.route = .event(tile.id)
             })
-            .overlay(alignment: .topTrailing) {
+            .overlay(alignment: .bottomLeading) {
+                // Out of the header's way (artist's phone layout).
                 if Self.devMenuEnabled {
-                    Button("Dev") { app.route = .dev }.padding()
+                    Button("Dev") { app.route = .dev }.font(.caption).padding()
                 }
             }
         case .event("poetry"):
@@ -57,14 +58,26 @@ struct RootView: View {
                     default: app.route = .battle(event: "poetry")
                     }
                 },
-                onProfile: { app.route = .home }
+                onProfile: { app.route = .home },
+                onBack: { app.route = .home }
             )
         case .event(let id):
             Routed(app: app, title: EventTile.all.first { $0.id == id }?.title ?? id) {
-                EventChoicesView(app: app, event: id)
+                EventEntryView(event: EventKind(rawValue: id) ?? .poetry, actions: EventEntryActions(
+                    // TODO(spec): Train = spar with Socrates, best of three (needs the debate brain).
+                    solo: id == "discus" ? { app.route = .discusThrow } : nil,
+                    fight: { app.route = .battle(event: id) },
+                    back: { app.route = .home }
+                ))
             }
         case .battle(let event):
-            Routed(app: app, title: "Fight") { BattleChoiceView(app: app, event: event) }
+            Routed(app: app, title: "Fight") {
+                BattleEntryView(event: EventKind(rawValue: event) ?? .poetry, actions: BattleEntryActions(
+                    host: { app.route = .arena(event: event) },
+                    join: { code in app.route = .player(code: code.uppercased()) },
+                    back: { app.route = .event(event) }
+                ))
+            }
         case .arena(let event):
             Routed(app: app, title: "Arena") { ArenaScreen(event: event, scene: app.scene) }
         case .player(let code):
@@ -74,29 +87,45 @@ struct RootView: View {
             Routed(app: app, title: "Bard") { BardScreen(app: app) }
         case .practice:
             Routed(app: app, title: "Practice") { PracticeScreen(app: app) }
+        case .discusThrow:
+            Routed(app: app, title: "Throw") {
+                DiscusSoloRoot()
+                    .overlay(alignment: .topLeading) {
+                        BackButton { app.route = .event("discus") }.padding(.leading, 16).padding(.top, 8)
+                    }
+            }
         case .dev:
-            Routed(app: app, title: "Dev") { DevMenu(app: app) }
+            Routed(app: app, title: "Dev", chrome: true) { DevMenu(app: app) }
         }
     }
 }
 
-/// A routed screen with a way home. Placeholder chrome; the art lead owns the look.
+/// A routed screen. On phones the art lead's PhoneScaffold carries the back chevron, so there's
+/// no bar; on the Mac and iPad (and in the dev menu) a Home button stays in the bar.
 private struct Routed<Content: View>: View {
     let app: AppModel
     let title: String
+    var chrome = false
     @ViewBuilder var content: Content
+    @Environment(\.horizontalSizeClass) private var sizeClass
 
     var body: some View {
         NavigationStack {
-            content
-                .containerBackground(.clear, for: .navigation)  // the scene shows behind every routed screen
-                .toolbarBackground(.hidden, for: .navigationBar)
-                .navigationTitle(title)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button("Home") { app.route = .home }
+            if sizeClass == .compact && !chrome {
+                content
+                    .containerBackground(.clear, for: .navigation)  // the scene shows behind every routed screen
+                    .toolbar(.hidden, for: .navigationBar)
+            } else {
+                content
+                    .containerBackground(.clear, for: .navigation)
+                    .toolbarBackground(.hidden, for: .navigationBar)
+                    .navigationTitle(title)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button("Home") { app.route = .home }
+                        }
                     }
-                }
+            }
         }
     }
 }
@@ -124,53 +153,6 @@ private struct FirstOpenScreen: View {
             self.flow = flow
             await flow.run()
             app.finishFirstOpen()
-        }
-    }
-}
-
-/// E1 for events whose choices aren't a designed screen yet (debate, discus). Placeholder
-/// chrome; the art lead owns the look. The host's one line comes with the tile.
-private struct EventChoicesView: View {
-    let app: AppModel
-    let event: String
-
-    var body: some View {
-        List {
-            switch event {
-            case "debate":
-                // TODO(spec): Train = spar with Socrates, best of three (needs the debate brain).
-                Button("Train with Socrates") {}.disabled(true)
-                Button("Fight") { app.route = .battle(event: "debate") }
-            case "discus":
-                // Solo throw: no server, no second phone (Events/Discus).
-                NavigationLink("Throw") { DiscusSoloRoot() }
-                Button("Fight") { app.route = .battle(event: "discus") }
-            default:
-                Button("Fight") { app.route = .battle(event: event) }
-            }
-        }
-    }
-}
-
-private struct BattleChoiceView: View {
-    let app: AppModel
-    let event: String
-    @State private var code = ""
-
-    var body: some View {
-        List {
-            Section {
-                Button("Host the arena on this screen") { app.route = .arena(event: event) }
-            } footer: {
-                Text("A Mac or an iPad, or a phone in landscape as a backup.")
-            }
-            Section("Join a battle") {
-                TextField("Room code", text: $code)
-                    .textInputAutocapitalization(.characters)
-                    .autocorrectionDisabled()
-                Button("Join") { app.route = .player(code: code.uppercased()) }
-                    .disabled(code.count != 4)
-            }
         }
     }
 }

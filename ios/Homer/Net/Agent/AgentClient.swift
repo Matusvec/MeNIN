@@ -59,14 +59,20 @@ struct AgentClient: Sendable {
     }
 
     func themes(n: Int = 3, demo: Bool) async throws -> [String] {
-        struct Themes: Decodable { var themes: [String] }
+        try await themesWithCalls(n: n, demo: demo).map(\.theme)
+    }
+
+    /// Themes with Homer's step-up call for each ("The sea is yours."), when the agent has one.
+    func themesWithCalls(n: Int = 3, demo: Bool) async throws -> [(theme: String, call: String)] {
+        struct Themes: Decodable { var themes: [String]; var calls: [String]? }
         var components = URLComponents(url: base.appending(path: "themes"), resolvingAgainstBaseURL: false)!
         components.queryItems = [URLQueryItem(name: "n", value: "\(n)"), URLQueryItem(name: "demo", value: demo ? "true" : "false")]
         var req = URLRequest(url: components.url!)
         if !Self.appKey.isEmpty { req.setValue(Self.appKey, forHTTPHeaderField: "X-Homer-Key") }
         let (data, response) = try await session.data(for: req)
         try check(response, body: data)
-        return try JSONDecoder().decode(Themes.self, from: data).themes
+        let t = try JSONDecoder().decode(Themes.self, from: data)
+        return t.themes.enumerated().map { i, theme in (theme, t.calls?.indices.contains(i) == true ? t.calls![i] : "") }
     }
 
     /// The scene's color layer in solo modes. Weights don't sum to 1; the renderer normalizes.
@@ -93,12 +99,22 @@ struct AgentClient: Sendable {
     }
 
     func debateQuestions() async throws -> [DebateQuestion] {
-        struct Debate: Decodable { var questions: [DebateQuestion] }
+        try await debateContent().questions
+    }
+
+    /// The questions and Socrates' battle lines ("Step up": "{name}, {title}. You say {side}. …").
+    func debateContent() async throws -> (questions: [DebateQuestion], battleLines: [String: String]) {
+        struct Debate: Decodable {
+            var questions: [DebateQuestion]
+            var lines: Lines?
+            struct Lines: Decodable { var battle: [String: String]? }
+        }
         var req = URLRequest(url: base.appending(path: "debate"))
         if !Self.appKey.isEmpty { req.setValue(Self.appKey, forHTTPHeaderField: "X-Homer-Key") }
         let (data, response) = try await session.data(for: req)
         try check(response, body: data)
-        return try JSONDecoder().decode(Debate.self, from: data).questions
+        let d = try JSONDecoder().decode(Debate.self, from: data)
+        return (d.questions, d.lines?.battle ?? [:])
     }
 
     /// One rescue question per move in the hand, prepared at step-up (about 3 s).
@@ -122,8 +138,9 @@ struct AgentClient: Sendable {
 
     // The arena ignores battle response bodies; results arrive through SpacetimeDB.
 
-    func battleDeal(_ request: BattleDealRequest) async throws {
-        _ = try await postRaw("battle/deal", request)
+    /// Deals the round; returns its step-up call ("The sea is yours."), empty in a debate.
+    func battleDeal(_ request: BattleDealRequest) async throws -> BattleDealResult {
+        try await post("battle/deal", request)
     }
 
     func battleJudge(_ request: BattleJudgeRequest) async throws {

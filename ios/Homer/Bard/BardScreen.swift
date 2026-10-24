@@ -53,7 +53,8 @@ struct BardScreen: View {
             retry: { s.start(lessonId: lessonId) },
             next: nil,  // TODO(spec): lessons 2 and 3 after the study
             spar: { app.route = .practice },
-            type: { s.turn.typed = $0 }
+            type: { s.turn.typed = $0 },
+            back: { app.route = .event("poetry") }
         )
     }
 }

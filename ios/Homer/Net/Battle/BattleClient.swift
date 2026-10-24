@@ -83,6 +83,10 @@ final class BattleClient: SpacetimeClientDelegate {
     /// Bumped each time this room starts over (Rematch, a new event, or a finished battle
     /// restarting from elsewhere), so per-round work like dealing and the song is asked again.
     @ObservationIgnored private(set) var generation = 0
+    /// Homer's step-up call per theme ("The sea is yours."), from the deal or the theme cards.
+    @ObservationIgnored var calls: [String: String] = [:]
+    /// Set while the arena's host is calling the next poet up: auto-ready waits for the line to end.
+    @ObservationIgnored var holdStart = false
     @ObservationIgnored private var lastPhaseSeen: RoomPhase?
     /// Set when the agent service is configured; nil leaves dealing and judging to whatever
     /// else serves the database (multiplayer's dev-agent, behind its own dev flag).
@@ -146,7 +150,10 @@ final class BattleClient: SpacetimeClientDelegate {
             quietly("emotion \(turn.id) \(tick)") { try await agent.battleEmotion(req) }
         case .dealing:
             let req = BattleDealRequest(roomId: room.id, roundNo: room.roundNo, theme: room.nextTheme)
-            once("deal \(room.id).\(generation) \(room.roundNo)") { try await agent.battleDeal(req) }
+            once("deal \(room.id).\(generation) \(room.roundNo)") { [weak self] in
+                let dealt = try await agent.battleDeal(req)
+                await self?.remember(call: dealt)
+            }
         case .roundEnd:
             if let round = currentRound {
                 once("verdict \(round.id)") { try await agent.battleVerdict(.init(roundId: round.id)) }
@@ -158,7 +165,10 @@ final class BattleClient: SpacetimeClientDelegate {
             // Deal the next round ahead so the next turn is ready the moment the verdict ends.
             if room.roundNo < room.rounds && !room.themeChoice {
                 let req = BattleDealRequest(roomId: room.id, roundNo: room.roundNo + 1, theme: "")
-                once("deal \(room.id).\(generation) \(room.roundNo + 1)") { try await agent.battleDeal(req) }
+                once("deal \(room.id).\(generation) \(room.roundNo + 1)") { [weak self] in
+                    let dealt = try await agent.battleDeal(req)
+                    await self?.remember(call: dealt)
+                }
             }
         case .judging:
             guard let turn = currentTurn, turn.statusValue == .judging, let poet = player(turn.playerId) else { return }
@@ -182,6 +192,11 @@ final class BattleClient: SpacetimeClientDelegate {
         }
     }
 
+    private func remember(call dealt: BattleDealResult) {
+        guard let theme = dealt.theme, let call = dealt.call, !call.isEmpty else { return }
+        calls[theme] = call
+    }
+
     /// auto_ready rooms (always on in demo): the arena starts each turn after a short step-up beat.
     private func autoStartIfNeeded() {
         guard let room, room.autoReady, room.phaseValue == .ready,
@@ -194,6 +209,10 @@ final class BattleClient: SpacetimeClientDelegate {
             // A poet reopening the app gets up to 20 s to come back (capped: a stale
             // `connected = false` from an old socket can't stall the battle).
             for _ in 0..<40 where player(turn.playerId)?.connected == false {
+                try? await Task.sleep(for: .milliseconds(500))
+            }
+            // Homer calls the poet up first; the count-in waits for his line (capped).
+            for _ in 0..<24 where holdStart {
                 try? await Task.sleep(for: .milliseconds(500))
             }
             if currentTurn?.id == turn.id, currentTurn?.statusValue == .waiting { startTurn(turn.id) }
