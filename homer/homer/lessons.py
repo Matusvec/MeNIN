@@ -506,4 +506,5 @@ def _helped(f: Feedback, a: Attempt, lesson: Lesson) -> Feedback:
 def _fill(line: str, values: dict) -> str:
     for k, v in values.items():
         line = line.replace("{" + k + "}", str(v))
-    return line
+    # content/lessons.md writes "{hits} hits." for any count: one hit is singular.
+    return re.sub(r"\bOne (hit|line|beat)s\b", r"One \1", line)

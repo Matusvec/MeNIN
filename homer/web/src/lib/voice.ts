@@ -18,13 +18,14 @@ export class HomerVoice {
   constructor(readonly ctx: AudioContext) {}
 
   private async open(): Promise<WebSocket> {
-    const fresh = this.token && (this.token.expiresAt ?? 0) - Date.now() > 30000
+    const fresh = this.token !== null && (this.token.expiresAt ?? 0) - Date.now() > 30000
     if (this.socket?.readyState === WebSocket.OPEN && fresh) return this.socket
     this.socket?.close()
-    this.token = await voiceToken()
+    // Cartesia closes an idle socket between lines; a token is good for minutes, so only reconnect.
+    const token = fresh && this.token ? this.token : (this.token = await voiceToken())
     const url =
-      `wss://api.cartesia.ai/tts/websocket?cartesia_version=${encodeURIComponent(this.token.cartesiaVersion)}` +
-      `&access_token=${encodeURIComponent(this.token.token)}`
+      `wss://api.cartesia.ai/tts/websocket?cartesia_version=${encodeURIComponent(token.cartesiaVersion)}` +
+      `&access_token=${encodeURIComponent(token.token)}`
     const socket = new WebSocket(url)
     await new Promise<void>((resolve, reject) => {
       const timer = window.setTimeout(() => reject(new Error('voice socket timeout')), 8000)
@@ -77,7 +78,7 @@ export class HomerVoice {
   }
 
   /** Speak `text`; resolves when the audio has finished playing. Throws if the voice can't be reached. */
-  async speak(text: string, onStart?: () => void): Promise<void> {
+  async speak(text: string, onStart?: () => void, host: 'homer' | 'socrates' = 'homer'): Promise<void> {
     if (this.busy) throw new Error('one generation at a time')
     this.busy = true
     try {
@@ -88,7 +89,7 @@ export class HomerVoice {
         JSON.stringify({
           model_id: this.token!.tts.model,
           transcript: text,
-          voice: { mode: 'id', id: this.token!.tts.voiceId },
+          voice: { mode: 'id', id: this.token!.tts.voices?.[host] || this.token!.tts.voiceId },
           output_format: { container: 'raw', encoding: 'pcm_f32le', sample_rate: SAMPLE_RATE },
           language: 'en',
           context_id: contextId,

@@ -7,7 +7,7 @@ export const AGENT_URL = (import.meta.env.VITE_AGENT_URL || 'https://206.189.237
 export type VoiceToken = {
   token: string
   cartesiaVersion: string
-  tts: { model: string; voiceId: string }
+  tts: { model: string; voiceId: string; voices?: Record<string, string> }
 }
 
 export class AgentError extends Error {

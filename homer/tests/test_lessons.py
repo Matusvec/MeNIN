@@ -278,3 +278,9 @@ def test_onsets_must_back_up_the_text_count():
 def test_a_line_of_small_words_is_no_line():
     f = say("beat", "you've you, I, me.\nI like computers and I do.")
     assert f.miss == "Three hits or fewer" and f.line.startswith("Zero hits.")
+
+
+def test_one_hit_is_singular():
+    from homer.lessons import _fill
+    assert _fill("{hits} hits. I need four. Add a word with weight.", {"hits": "One"}) == "One hit. I need four. Add a word with weight."
+    assert _fill("{hits} hits. I need four.", {"hits": "Two"}) == "Two hits. I need four."

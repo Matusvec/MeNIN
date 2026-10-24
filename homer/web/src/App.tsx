@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import GameStrip from './GameStrip'
 import ArenaPanel from './Arena'
 import Homer3D from './Homer3D'
+import JoinCard from './JoinCard'
+import { hasTestFlight, joinCodeFromPath, TESTFLIGHT_URL } from './lib/links'
 
-const TESTFLIGHT_URL = import.meta.env.VITE_TESTFLIGHT_URL || ''
 
 type HomerMode = 'bard' | 'judge' | 'battle'
 
@@ -149,6 +150,7 @@ function ModePage({
 }) {
   const info = modes.find((item) => item.id === mode)!
   const [isSpeaking, setIsSpeaking] = useState(false)
+  const [hallStatus, setHallStatus] = useState('') // the arena's plain-words wait ("Homer is dealing…")
   const [answer, setAnswer] = useState<string | null>(null)
   const [heard, setHeard] = useState(false)
   const [coachLine, setCoachLine] = useState(
@@ -208,7 +210,7 @@ function ModePage({
       {heard && (
         <p className="wired-note">
           Lessons 2 to 6 use your voice, over the beat. They’re in the app.{' '}
-          {TESTFLIGHT_URL && (
+          {hasTestFlight() && (
             <a className="testflight" href={TESTFLIGHT_URL} target="_blank" rel="noreferrer">
               Get it on TestFlight
             </a>
@@ -218,7 +220,7 @@ function ModePage({
     </>
   )
 
-  const battleContent = <ArenaPanel onLine={setCoachLine} onSpeaking={setIsSpeaking} />
+  const battleContent = <ArenaPanel onLine={setCoachLine} onSpeaking={setIsSpeaking} onStatus={setHallStatus} />
 
   return (
     <main className={`mode-screen ${mode}`}>
@@ -229,11 +231,12 @@ function ModePage({
         <span className="session-status">Session active</span>
       </header>
       <div className="mode-layout">
-        <aside className="coach-stage">
+        <aside className="coach-stage" data-waiting={hallStatus ? 'true' : undefined}>
           <Homer3D speaking={isSpeaking} mode={mode} />
           <div className="coach-dialogue">
             <span>Homer</span>
             <p>{coachLine}</p>
+            {hallStatus && <small className="hall-status">{hallStatus}</small>}
           </div>
         </aside>
         <section className="workspace">
@@ -267,6 +270,33 @@ export default function App() {
   }, [fullMessage])
 
   const isSpeaking = spokenMessage.length < fullMessage.length
+  const joinCode = joinCodeFromPath(window.location.pathname)
+
+  if (joinCode) {
+    return (
+      <main className="scene">
+        <div className="animated-background" aria-hidden="true">
+          <div className="scene-artboard">
+            <AegeanScene />
+            <span className="sun-haze" />
+            <span className="cloud cloud-one" />
+            <span className="cloud cloud-two" />
+            <span className="sea-light sea-light-one" />
+            <span className="sea-light sea-light-two" />
+          </div>
+        </div>
+        <header className="nameplate" aria-label="Homer">
+          <span>Homer</span>
+          <i aria-hidden="true" />
+          <i aria-hidden="true" />
+          <i aria-hidden="true" />
+        </header>
+        <section className="dialogue join-dialogue" aria-label={`Join room ${joinCode}`}>
+          <JoinCard code={joinCode} />
+        </section>
+      </main>
+    )
+  }
 
   if (activeMode) {
     return <ModePage mode={activeMode} onBack={() => setActiveMode(null)} />

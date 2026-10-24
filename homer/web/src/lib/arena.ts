@@ -7,8 +7,9 @@
 // or hands get dealt and verses judged twice. All battle state lives in SpacetimeDB.
 
 import { DbConnection } from '../stdb'
-import type { Player, Room, Round, Score, Turn } from '../stdb/types'
+import type { DiscusThrow, Player, Prosody, Room, Round, Score, Turn } from '../stdb/types'
 import { AGENT_URL } from './agent'
+import { conductDiscus } from './discus'
 import { Stage } from './stage'
 import { HomerVoice } from './voice'
 
@@ -26,6 +27,32 @@ export const DEMO_ROOM = {
   autoReady: true,
   themeChoice: false,
   demo: true,
+}
+
+export type GameEvent = 'poetry' | 'debate' | 'discus'
+
+/** The demo's one debate question, our thesis: "Is it cheating to let an AI write your love letter?" */
+const DEMO_QUESTION = 'ai-love-letter'
+
+/** One preset per game (BattleReducers.swift preset(event:demo:)): debate is one round, discus three throws each. */
+export const PRESETS: Record<GameEvent, typeof DEMO_ROOM> = {
+  poetry: DEMO_ROOM,
+  debate: { ...DEMO_ROOM, event: 'debate', rounds: 1 },
+  discus: { ...DEMO_ROOM, event: 'discus', rounds: 3 },
+}
+
+/** What a game's conductor gets each tick (discus: lib/discus.ts, multiplayer's). */
+export type Conductor = {
+  room: Room
+  poets: Player[]
+  turn: Turn | null
+  turns: Turn[]
+  throws: DiscusThrow[] // this room's discus_throw rows
+  revealKey: string | null // the reveal on screen now; carries the generation
+  battleKey: string // `${room.id}.${generation}`, for once-keys that reset on rematch
+  say: (key: string, text: string, then?: () => void) => void // Homer's line, queued, once per key
+  perform: (key: string, task: () => Promise<void>) => void // any timed hold, queued with his lines, once per key
+  advanceOnce: (from: string | null) => void
 }
 
 const TICK_MS = 300
@@ -49,6 +76,10 @@ export type ArenaView = {
   speaking: boolean
   error: string
   resumable: Room | null // an unfinished room this browser hosts, after a reload
+  throws: DiscusThrow[]
+  prosody: Prosody | null // this room's row: a thrower's wind-up (hits 1, loudness = power), a speaker's level
+  warming: boolean // Homer's next line is on its way from the voice, not yet heard
+  carvedBy: string // the poet whose line the round carved
   sound: boolean // the hall was started with a click: voice and drum are on
 }
 
@@ -110,6 +141,7 @@ export class Arena {
   private queue: Promise<void> = Promise.resolve()
   private line = ''
   private speaking = false
+  private warming = false
   private status: ArenaView['status'] = 'connecting'
   private error = ''
   // W2: Homer's voice and the drum, once a click has unlocked audio
@@ -136,16 +168,22 @@ export class Arena {
    * One tab drives the hall: two tabs share the token, so both would be the host and both
    * would drive. Holds a Web Lock for as long as this arena lives; without one, it only shows.
    */
-  connect(): void {
+  connect(attempt = 1): void {
     const locks = (navigator as Navigator & { locks?: LockManager }).locks
     if (!locks) {
       this.open()
       return
     }
     void locks.request(`menin-arena-${STDB_DB}`, { ifAvailable: true }, (lock) => {
+      // An arena disposed before the lock arrived (a remount; React StrictMode in dev) lets it go at once.
+      if (this.disposed) return
       if (!lock) {
-        this.status = 'other-tab'
-        this.publish()
+        // A remount's old arena lets go within milliseconds; another tab holds on. Ask again, briefly.
+        if (attempt < 4) window.setTimeout(() => !this.disposed && this.connect(attempt + 1), 500)
+        else {
+          this.status = 'other-tab'
+          this.publish()
+        }
         return
       }
       this.open()
@@ -182,7 +220,10 @@ export class Arena {
         // Rooms are found by host because reducers can't return values.
         conn.subscriptionBuilder().subscribe(`SELECT * FROM room WHERE host = 0x${this.identityHex}`)
         const db = conn.db
-        for (const table of [db.room, db.player, db.round, db.turn, db.score, db.songLine]) {
+        db.prosody.onUpdate(() => {
+          if (this.room()?.event === 'discus') this.publish()
+        })
+        for (const table of [db.room, db.player, db.round, db.turn, db.score, db.songLine, db.discusThrow]) {
           table.onInsert(() => this.changed())
           table.onDelete(() => this.changed())
           const updatable = table as unknown as { onUpdate?: (cb: () => void) => void }
@@ -203,6 +244,7 @@ export class Arena {
       .build()
     window.clearInterval(this.ticker)
     this.ticker = window.setInterval(() => this.tick(), TICK_MS)
+    this.side('', 0) // load the debate's questions and sides now, before any call-up needs them
   }
 
   /** After the watchdog gave up: try again from scratch. */
@@ -216,7 +258,10 @@ export class Arena {
     this.open()
   }
 
+  private disposed = false
+
   disconnect(): void {
+    this.disposed = true
     window.clearTimeout(this.watchdog)
     window.clearInterval(this.ticker)
     this.releaseLock?.()
@@ -229,10 +274,10 @@ export class Arena {
 
   // ----- the arena's reducers ---------------------------------------------------
 
-  createRoom(): void {
+  createRoom(event: GameEvent = 'poetry'): void {
     if (!this.conn) return
     this.awaitingCreated = true
-    this.call(() => this.conn!.reducers.createRoom(DEMO_ROOM))
+    this.call(() => this.conn!.reducers.createRoom(PRESETS[event]))
   }
 
   resume(room: Room): void {
@@ -280,7 +325,7 @@ export class Arena {
     this.roomSub?.unsubscribe()
     this.roomId = id
     const queries = [`SELECT * FROM room WHERE id = ${id}`].concat(
-      ['player', 'round', 'turn', 'score', 'scene', 'song_line', 'prosody'].map((t) => `SELECT * FROM ${t} WHERE room_id = ${id}`),
+      ['player', 'round', 'turn', 'score', 'scene', 'song_line', 'prosody', 'discus_throw'].map((t) => `SELECT * FROM ${t} WHERE room_id = ${id}`),
     )
     this.roomSub = this.conn.subscriptionBuilder().onApplied(() => this.changed()).subscribe(queries)
   }
@@ -332,8 +377,57 @@ export class Arena {
     this.trackGeneration(room)
     this.autoStartIfNeeded(room)
     this.askAgentIfNeeded(room)
-    this.speakIfDue(room)
+    if (room.event === 'discus') conductDiscus(this.conductor(room))
+    else this.speakIfDue(room)
+    if (room.event === 'debate') this.debateClock(room)
     this.drum(room)
+  }
+
+  private conductor(room: Room): Conductor {
+    return {
+      room,
+      poets: this.poets(),
+      turn: this.currentTurn(room),
+      turns: this.turns(),
+      throws: this.throws(),
+      revealKey: this.revealKey(),
+      battleKey: `${room.id}.${this.generation}`,
+      say: (key, text, then) => this.say(key, text, then),
+      perform: (key, task) => this.perform(task, key),
+      advanceOnce: (from) => this.advanceOnce(from),
+    }
+  }
+
+  private throws(): DiscusThrow[] {
+    return [...this.conn!.db.discusThrow.iter()].filter((t) => t.roomId === this.roomId)
+  }
+
+  // ----- debate ------------------------------------------------------------------
+
+  private debate: { ask: string; id: string; sides: string[] }[] | null = null
+  private debateAsked = false
+  private clockOffset = new Map<bigint, number>() // turn id -> this browser's offset from the server clock
+
+  /** The side a debater argues: by turn order (DebateContent.swift side(for:turnNo:)). */
+  private side(question: string, turnNo: number): string {
+    if (!this.debate && !this.debateAsked) {
+      this.debateAsked = true
+      void fetch(`${AGENT_URL}/debate`)
+        .then((r) => r.json())
+        .then((d: { questions: { ask: string; id: string; sides: string[] }[] }) => (this.debate = d.questions))
+        .catch(() => (this.debateAsked = false))
+    }
+    const q = this.debate?.find((x) => x.ask === question || x.id === question)
+    return q && q.sides.length >= 2 ? q.sides[turnNo % 2] : ''
+  }
+
+  /** No beat in debate. Socrates is silent but for the ten-second call (ArenaConductor.tick). */
+  private debateClock(room: Room): void {
+    const turn = this.currentTurn(room)
+    if (!turn || turn.status !== 'speaking' || turn.endsAt.toMillis() === 0n) return
+    if (!this.clockOffset.has(turn.id)) this.clockOffset.set(turn.id, Date.now() - Number(turn.startedAt.toMillis()))
+    const endsLocal = Number(turn.endsAt.toMillis()) + (this.clockOffset.get(turn.id) ?? 0)
+    if (Date.now() >= endsLocal - 10000) this.say(`ten ${turn.id} ${turn.attempt}`, 'Ten seconds.')
   }
 
   /** The beat on the turn's grid while a verse is live, and a strike per hit (ArenaConductor.tick). */
@@ -462,9 +556,11 @@ export class Arena {
         )
         return
       }
-      case 'dealing':
-        once(`deal ${battle} ${room.roundNo}`, () => this.deal(room.id, room.roundNo, room.nextTheme))
+      case 'dealing': {
+        const theme = room.nextTheme || (room.event === 'debate' && room.demo ? DEMO_QUESTION : '')
+        once(`deal ${battle} ${room.roundNo}`, () => this.deal(room.id, room.roundNo, theme))
         return
+      }
       case 'scored': {
         // The round's last verdict is on screen: have the agent work out the round's call now,
         // so round_end posts it at once (it's posted only in round_end).
@@ -506,6 +602,14 @@ export class Arena {
             linesExpected: room.linesPerTurn,
             hoard: poet.hoard,
             demo: room.demo,
+            ...(room.event === 'debate'
+              ? {
+                  side: this.side(this.currentRound(room)?.theme ?? '', turn.turnNo),
+                  turnSeconds: room.turnSeconds,
+                  // beat_at (Go) to now, the moment the turn reached judging, capped at the turn
+                  spokenSeconds: Math.min(room.turnSeconds, Math.max(0, (Date.now() - (this.clockOffset.get(turn.id) ?? 0) - Number(turn.beatAt.toMillis())) / 1000)),
+                }
+              : {}),
           }),
         )
         return
@@ -528,16 +632,33 @@ export class Arena {
       this.speaking = true
       this.publish()
       // The voice never holds a reveal hostage: at most the read time plus 4 s, then the battle moves on.
-      if (this.voice) await Promise.race([this.voice.speak(text).catch(() => sleep(readingTime(text))), sleep(readingTime(text) + 4000)])
-      else await sleep(readingTime(text))
+      const host = this.room()?.event === 'debate' ? 'socrates' : 'homer'
+      if (this.voice) {
+        this.warming = true
+        this.publish()
+        const heard = () => {
+          this.warming = false
+          this.publish()
+        }
+        const fallback = () => {
+          heard() // no voice coming: the line is up as text, nothing is "about to speak"
+          return sleep(readingTime(text))
+        }
+        await Promise.race([this.voice.speak(text, heard, host).catch(fallback), sleep(readingTime(text) + 4000)])
+        this.warming = false
+      } else await sleep(readingTime(text))
       this.speaking = false
       this.publish()
       then?.()
     })
   }
 
-  /** Queue any performance behind Homer's lines, one at a time. */
-  private perform(task: () => Promise<void>): void {
+  /** Queue any performance behind Homer's lines, one at a time (once per key, when given one). */
+  private perform(task: () => Promise<void>, key?: string): void {
+    if (key) {
+      if (this.said.has(key)) return
+      this.said.add(key)
+    }
     this.queue = this.queue.then(async () => {
       this.speaking = true
       this.publish()
@@ -570,8 +691,10 @@ export class Arena {
         this.say(`theme ${round.id}`, round.theme)
         const first = turn.turnNo === Math.min(...this.turns().filter((t) => t.roundId === round.id).map((t) => t.turnNo))
         const title = poet.epithet ? `${poet.name}, ${poet.epithet}.` : `${poet.name}.`
+        const side = room.event === 'debate' ? this.side(round.theme, turn.turnNo) : ''
         const call =
           turn.attempt > 1 ? 'Again.'
+          : side ? (first ? `${title} You argue ${side}.` : `${poet.name}, you argue ${side}. Answer that.`)
           : first ? `${title} ${this.calls.get(room.roundNo) ?? 'The floor is yours.'}`
           : `${poet.name}. Answer that.`
         this.say(`up ${turn.id} ${turn.attempt}`, call)
@@ -596,7 +719,7 @@ export class Arena {
         if (!song.length || this.said.has(key)) return
         this.said.add(key)
         const champion = [...poets].sort((a, b) => b.total - a.total)[0]
-        if (this.voice && this.stage) this.perform(() => this.singOnBeat(room, song))
+        if (room.event === 'poetry' && this.voice && this.stage) this.perform(() => this.singOnBeat(room, song))
         else song.forEach((text, i) => this.say(`${key} line ${i}`, text))
         if (champion) {
           const crown = `${champion.name}${champion.epithet ? `, ${champion.epithet}` : ''}. The hall is yours.`
@@ -605,6 +728,12 @@ export class Arena {
         return
       }
     }
+  }
+
+  private carvedBy(room: Room): string {
+    const round = this.currentRound(room)
+    const turn = round?.bestTurnId ? this.turns().find((t) => t.id === round.bestTurnId) : undefined
+    return turn ? this.poets().find((p) => p.id === turn.playerId)?.name ?? '' : ''
   }
 
   private songLines(): string[] {
@@ -617,6 +746,7 @@ export class Arena {
   // ----- the view ---------------------------------------------------------------
 
   private publish(): void {
+    if (this.disposed) return
     const room = this.room()
     const hosted = this.hostedRooms().sort((a, b) => (a.id < b.id ? 1 : -1))[0] ?? null
     this.onView({
@@ -631,6 +761,10 @@ export class Arena {
       speaking: this.speaking,
       error: this.error,
       resumable: !room && hosted ? hosted : null,
+      throws: room ? this.throws() : [],
+      prosody: room ? [...this.conn!.db.prosody.iter()].find((p) => p.roomId === this.roomId) ?? null : null,
+      warming: this.warming,
+      carvedBy: room ? this.carvedBy(room) : '',
       sound: Boolean(this.stage),
     })
   }
