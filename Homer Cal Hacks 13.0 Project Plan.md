@@ -250,4 +250,4 @@ Sponsor events worth attending for this build:
 
 Submission: Devpost by Sun 9:00 AM hard deadline, venue by 8:00. GitHub repo link, cover image, demo video opening with the moment. Judging Sun 10:30 to 12:30, whole team at the table. Closing 2:00 to 4:00 PM.
 
-Reference docs: Hacker Guide, Devpost, Figma track doc, Food menu. WiFi: Cal Hacks 13.0 / hackers!
+Reference docs: Hacker Guide, Devpost, Figma track doc, Food menu.
