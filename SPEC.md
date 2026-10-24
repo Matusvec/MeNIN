@@ -43,7 +43,7 @@ MeNIN is ancient Greek Wii Sports: party games from the Greek *agon* (contest), 
 
 ## Music
 
-MeNIN has an original soundtrack composed by a teammate: a hall and menu theme, an intro per event, the discus throw and fanfare, a champion sting, and training ambience. Music never plays while any mic in the room is open; during poetry turns only the procedural beat plays, and music ducks under Homer's and Socrates' voices. In a hall, only the arena plays music. In demo mode the hall theme stays ducked, and an operator key mutes all music. The brief for the composer (cue list, lengths, formats, loudness, loop points) is `docs/audio.md`.
+MeNIN has an original soundtrack composed by a teammate: a hall and menu theme, an intro per event, the discus throw and fanfare, a champion sting, and training ambience. Music never plays while any mic in the room is open; no sound effects beyond the beat and a soft strike on a hit (Matus: weird effects are worse than silence); during poetry turns only the procedural beat plays, and music ducks under Homer's and Socrates' voices. In a hall, only the arena plays music. In demo mode the hall theme stays ducked, and an operator key mutes all music. The brief for the composer (cue list, lengths, formats, loudness, loop points) is `docs/audio.md`.
 
 ## First open
 
@@ -94,7 +94,7 @@ Two to five human poets in one room, Jackbox-style:
 
 How a battle runs:
 
-- **Entrance.** Homer announces every poet by their epithet ("Enter Matus, Breaker of Deadlines!"). A poet without one gets one coined by Homer on join.
+- **Entrance.** Homer announces every poet with a fresh epithet he coins for this battle ("Enter Matus, Breaker of Deadlines!"), never one of that poet's last five; the hoard epithet is only a fallback (Matus, Sat 3:30 PM: the same one every time is boring).
 - **Rounds.** Three rounds. Each round has a theme; every poet takes one turn; turn order rotates. The scene on the arena reacts to whoever is speaking. The mic is hands-free everywhere (Matus's call, Sat 2 PM; push-to-talk confused first-timers): it opens with a haptic thump when your turn goes live and stays open for the whole verse, your words show live on the arena as you speak, and "I'm done" ends early.
 - **The hall stays open.** When an event ends, the arena returns to the event menu with everyone still joined.
 - **Verdict.** The judge scores every verse. At the end of each round Homer reads the verdict aloud, and the best line of the round is carved in gold across the arena.
@@ -107,9 +107,9 @@ How a battle runs:
 
 Shared by practice and battle. This is the core loop; get it right first.
 
-1. **Theme.** Homer announces it aloud ("A ship that never came home").
-2. **Hand.** You are dealt five formulas that fit the beat, drawn from the theme and your hoard: "the whale-road", "grey-eyed Athena", "when rose-fingered Dawn came early".
-3. **Speak.** Homer plays the beat: a slow drum-and-lyre loop, four beats a bar. Each line is one bar, followed by a rest bar to breathe (demo mode may drop the rests if we run long). In a battle the arena ducks the drum while a poet speaks, and the speaker's phone carries the beat as haptics, so the beat doesn't bleed into the mic. Thirty seconds, four lines (configurable). The beat lane shows the pulses; your words land on it live, and a stressed syllable that hits a beat sounds like a drum strike. A formula card lights up when you use it. The live transcript is always visible.
+1. **Theme.** Fresh every round: Homer generates a vivid, specific theme of six words or fewer with a feeling in it, never one of the last twenty ("The text you never sent"), and announces it aloud. The written themes are the fallback.
+2. **Homer's phrases.** Optional help, not homework: your phone shows three stock phrases that fit the theme and the beat ("the whale-road", "grey-eyed Athena"), under one line: "Stuck? Use one of Homer's phrases. It scores Craft." Using one pops "+Craft".
+3. **Speak.** The start is unmistakable: a 3-2-1 on the count-in beats, then "SPEAK" fills the phone and the arena in the poet's color. Homer plays the beat: a slow drum-and-lyre loop, four beats a bar. Each line is one bar, followed by a rest bar to breathe (demo mode may drop the rests if we run long). In a battle the arena ducks the drum while a poet speaks, and the speaker's phone carries the beat as haptics, so the beat doesn't bleed into the mic. Thirty seconds, four lines (configurable). The beat lane shows the pulses; your words land on it live, and a stressed syllable that hits a beat sounds like a drum strike. A formula card lights up when you use it. The live transcript is always visible.
 4. **Freeze rescue.** If you go silent for about a second mid-turn, your hand glows and Homer whispers one formula that fits.
 5. **Scene.** Reacts as you speak (see below).
 6. **Judge.** Scores 1 to 10 on five axes, speaks a one-line verdict, quotes your best line.
@@ -119,7 +119,7 @@ Shared by practice and battle. This is the core loop; get it right first.
 
 | Axis | What it measures | Source |
 | --- | --- | --- |
-| Beat | Did the stresses land | Meter scanner, not Claude's guess |
+| Flow (shown as Flow; key `beat`) | Did you keep a steady rhythm: about four stresses a line, forgiving | Meter scanner, not Claude's guess. Weighted below Image, Answer and Craft in the total |
 | Craft | Used formulas, varied them, coined new ones | Claude, with the hand and the scanner output |
 | Image | Strength of the imagery | Claude |
 | Answer | Responded to the last verse (or the theme, if first) | Claude, with the previous verse |
