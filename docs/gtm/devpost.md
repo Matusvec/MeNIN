@@ -145,6 +145,15 @@ Other events show as locked tiles, because we only unlock what's solid.
 - Hard mode: Homer's own dactylic hexameter
 - Ranks with Homeric titles: Suitor, Herald, Bard, Rhapsode, Homer
 
+## Built for the real world
+
+*(For Microsoft's track. Each line answers one of their five capabilities.)*
+- **Customer understanding:** we started from one community, spoken-word and slam poets in [the poet's scene], and tested on people who'd never freestyled.
+- **Measurable usefulness:** the stress scanner's Beat score is an objective measure. [N] first-timers went from [first] to [last] out of 10 in one lesson.
+- **A path from prototype to production:** TestFlight now, then the App Store. The agent service runs in Docker on DigitalOcean, and SpacetimeDB on Maincloud.
+- **Responsible design:** captions, push-to-talk, no audio through our server, gentle roasts, and the content and name filters (below).
+- **End-to-end functionality:** the live battle runs on real services, with nothing mocked.
+
 ## Where it can go wrong (and what we do about it)
 
 - **Speech recognition misses in noisy rooms.** Keyterms from your hand cut word errors from 20% to 3% with the drum at full volume in our tests, but those were recorded test mixes, and a loud hall with a real phone mic is harder. The live transcript is always on screen, so you see what Homer heard, and push-to-talk keeps the mic closed until you choose.
@@ -174,6 +183,9 @@ swift · swiftui · metal · avfoundation · core-haptics · [core-motion] · sp
 - [ ] MLH: Best Use of Gen AI
 - [ ] MLH: Best .Tech Domain Name (if registered)
 - [ ] MLH: Commit Fellowship (if we want it)
+- [ ] **Microsoft: Built for the Real World** and the Customer Impact Award ([opportunities.md](opportunities.md) #3)
+- [ ] MLH: Best Domain Name from GoDaddy Registry (only if we register one)
+- [ ] Fetch.ai, Moss (only if those integrations really ship; [opportunities.md](opportunities.md))
 - [ ] MLH: Best Use of DigitalOcean (the agent service runs there)
 - [ ] Apify plus Best Actor (only if the Actor builds the bank)
 

@@ -36,6 +36,8 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 - **Ask how to tag MLH Gen AI, .Tech and DigitalOcean**, since Devpost doesn't list them yet.
 - **Ask for the free .tech domain code**, then register `playmenin.tech` with it. The .Tech prize includes a .tech domain for up to 10 years.
 - **Opt in to the Commit Fellowship** category, if the team wants it.
+- **Ask about the GoDaddy Registry domain prize:** which TLDs count, and whether there's a free code ([opportunities.md](opportunities.md) #7).
+- **Ask what the MLH giveaway is** (#1-ask-mlh, Sat 6:50 AM).
 - Show nothing unless asked. If the coach is curious, hand them a phone.
 
 ### Figma (Booth #35, 11:45 AM)
