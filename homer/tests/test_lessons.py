@@ -272,6 +272,7 @@ def test_onsets_must_back_up_the_text_count():
     assert (short.miss, short.line) == ("Three hits or fewer", "Two hits. I need four. Add a word with weight.")
     assert say("beat", LESSON_ONE, bpm=80, onsets_ms=pulses(0, 4) + pulses(1, 3)).landed  # 3 heard is enough
     assert say("beat", LESSON_ONE, bpm=80, onsets_ms=pulses(0, 4) + pulses(1, 4, shift=300)).miss == "Three hits or fewer"
+    assert say("beat", LESSON_ONE, bpm=80, onsets_ms=pulses(0, 4, shift=160) + pulses(1, 4, shift=-160)).landed  # a laptop mic's slop
 
 
 def test_a_line_of_small_words_is_no_line():

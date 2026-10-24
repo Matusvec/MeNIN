@@ -41,8 +41,8 @@ from .config import load_env
 
 NAME = "homer-bard"
 DESCRIPTION = (
-    "Homer, the legendary bard, judges your improvised verse. Send him a few lines of four-beat verse and get "
-    "his verdict, five scores (Beat, Craft, Image, Answer, Range) and your best line back."
+    "Homer, the legendary bard, deals you a theme and five formulas that fit the beat, then judges the verse you "
+    "improvise with them: his verdict, five scores (Beat, Craft, Image, Answer, Range) and your best line."
 )
 README = Path(__file__).resolve().parents[1] / "AGENTVERSE.md"
 MAX_LINES, MAX_CHARS = 8, 800

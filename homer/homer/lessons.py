@@ -200,12 +200,11 @@ def _rushing(s: VerseScan, a: Attempt) -> bool:
 
 
 ONSET_MIN = 3  # stressed peaks on a line's pulses before the timing backs up the text's count
+ONSET_TOL_MS = 170  # how near a pulse a phone peak may land: wider than word timings, for laptop mics and first-timers
 
 
 def onset_hits(onsets_ms: list[float], bpm: float, lines: int, bars_per_line: int = 2, beats: int = 4) -> list[int]:
-    """Per line, how many of its speaking bar's pulses had a stressed peak within ON_BEAT_MS (each pulse once)."""
-    from .scanner import ON_BEAT_MS
-
+    """Per line, how many of its speaking bar's pulses had a stressed peak within ONSET_TOL_MS (each pulse once)."""
     beat = 60000.0 / bpm
     line_ms = bars_per_line * beats * beat
     out = []
@@ -213,7 +212,7 @@ def onset_hits(onsets_ms: list[float], bpm: float, lines: int, bars_per_line: in
         pulses = [n * line_ms + k * beat for k in range(beats)]
         used: set[int] = set()
         for o in onsets_ms:
-            k = next((k for k, p in enumerate(pulses) if k not in used and abs(o - p) <= ON_BEAT_MS), None)
+            k = next((k for k, p in enumerate(pulses) if k not in used and abs(o - p) <= ONSET_TOL_MS), None)
             if k is not None:
                 used.add(k)
         out.append(len(used))

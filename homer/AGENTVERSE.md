@@ -35,7 +35,7 @@ Say "give me a theme" again for another round.
 ## Behind it
 
 Homer hosts MeNIN, a party game of ancient Greek contests (poetry battles, Socratic debate, discus) on one shared screen with phones as controllers, built at Cal Hacks 13.0. This agent speaks the Agent Chat Protocol and calls the same agent service the game uses:
-- the dealer that builds a hand from a 158-formula bank;
+- the dealer that builds a hand from the game's formula bank, part hand-written and part mined from public-domain Homer translations;
 - the stress scanner that scores the Beat;
 - the judge that scores the rest. It runs on Claude, with a cached prompt and a streamed verdict.
 
