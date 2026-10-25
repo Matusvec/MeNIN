@@ -9,7 +9,8 @@ import CoachPanel from './Coach'
 import DiscusPanel from './Discus'
 import StadionPanel from './Stadion'
 import BoxingPanel from './Boxing'
-import { Arena, QUIET_SCENE, SILENT_VERDICT, STDB_DB, type ArenaView, type GameEvent, type SceneFeed } from './lib/arena'
+import ToxeiaPanel from './Toxeia'
+import { Arena, FIELD_EVENTS, QUIET_SCENE, SILENT_VERDICT, STDB_DB, type ArenaView, type GameEvent, type SceneFeed } from './lib/arena'
 import { webJoinLink } from './lib/links'
 import type { SceneTheme } from './scene/moods'
 import SceneBackdrop from './scene/SceneBackdrop'
@@ -68,6 +69,7 @@ const GAMES: Array<[GameEvent, string]> = [
   ['discus', 'Discus'],
   ['stadion', 'Stadion'],
   ['pygmachia', 'Pygmachia (beta)'], // live for Matus's first real fights (build 20); scripted runs follow
+  ['toxeia', 'Toxeia (beta)'], // module on prod 18:20; a scripted run passed 18:34 (2 archers, 6 arrows); Matus's real runs next
 ]
 
 const PHASES: Record<string, string> = {
@@ -115,9 +117,9 @@ function waitingFor(view: ArenaView | null): string {
     case 'judging':
       return room.event === 'debate' ? 'Socrates is weighing the argument…' : room.event === 'discus' ? '' : room.event === 'coach' ? 'Homer is answering…' : 'Homer is weighing the verse…'
     case 'round_end':
-      return !['discus', 'stadion', 'pygmachia'].includes(room.event) && !view.round?.verdict ? 'Calling the round…' : ''
+      return !FIELD_EVENTS.includes(room.event) && !view.round?.verdict ? 'Calling the round…' : ''
     case 'finale':
-      if (['discus', 'stadion', 'pygmachia'].includes(room.event) || view.song.length) return ''
+      if (FIELD_EVENTS.includes(room.event) || view.song.length) return ''
       return room.event === 'debate' ? 'Socrates finds the last question…' : 'Stitching the song…'
     default:
       return ''
@@ -296,7 +298,8 @@ export default function ArenaPanel({
   const discus = room.event === 'discus'
   const stadion = room.event === 'stadion'
   const boxing = room.event === 'pygmachia'
-  const field = discus || stadion || boxing // the field events: no verse, no judge, no song; their own panels
+  const archery = room.event === 'toxeia'
+  const field = FIELD_EVENTS.includes(room.event) // the field events: no verse, no judge, no song; their own panels
   const coach = room.event === 'coach' // Talk to Homer: a conversation, no scorecard (Coach.tsx)
   const begun = room.phase !== 'lobby'
   const over = room.phase === 'finale' || room.phase === 'finished'
@@ -321,8 +324,8 @@ export default function ArenaPanel({
           />
         ) : (
           <Heading
-            kicker={room.phase === 'lobby' ? `Room ${room.code}` : `Room ${room.code} · Round ${room.roundNo} of ${room.rounds}`}
-            title={room.phase === 'lobby' ? 'Enter the hall' : stadion ? 'The stadion · 192 m' : boxing ? 'Pygmachia · 60 s' : view.round?.theme || PHASES[room.phase] || room.phase}
+            kicker={room.phase === 'lobby' || archery ? `Room ${room.code}` : `Room ${room.code} · Round ${room.roundNo} of ${room.rounds}`}
+            title={room.phase === 'lobby' ? 'Enter the hall' : stadion ? 'The stadion · 192 m' : boxing ? 'Pygmachia · 60 s' : archery ? 'Toxeia · three arrows each' : view.round?.theme || PHASES[room.phase] || room.phase}
             note={room.phase === 'lobby' ? PHASES.lobby : room.phase === 'ready' && speaker ? `${speaker.name} steps up` : ''}
           />
         )}
@@ -337,7 +340,7 @@ export default function ArenaPanel({
           </div>
         )}
 
-        {((!coach && !boxing) || !begun) && <div className="scoreboard">
+        {((!coach && !boxing && !archery) || !begun) && <div className="scoreboard">
           {board.map((poet, i) => (
             <div
               key={poet.id.toString()}
@@ -374,6 +377,7 @@ export default function ArenaPanel({
         {discus && <DiscusPanel view={view} />}
         {stadion && <StadionPanel view={view} />}
         {boxing && view.bout && <BoxingPanel bout={view.bout} live={room.phase === 'speaking'} />}
+        {archery && <ToxeiaPanel view={view} />}
 
         {room.phase === 'scored' && score && !field && !coach && (
           // A judge that never answered posts SILENT_VERDICT and a neutral score: grey it and say so.
@@ -429,7 +433,7 @@ export default function ArenaPanel({
         <div className="wired-actions">
           {room.phase === 'lobby' && (
             <button className="primary-action" disabled={view.poets.length < (coach ? 1 : 2)} onClick={() => arena.current?.startBattle()}>
-              {view.poets.length < (coach ? 1 : 2) ? (coach ? 'Waiting for a poet' : 'Waiting for two poets') : 'Begin'}
+              {view.poets.length < (coach ? 1 : 2) ? (coach ? 'Waiting for a poet' : archery ? 'Waiting for the bow and the arrow' : 'Waiting for two poets') : 'Begin'}
             </button>
           )}
           {room.phase === 'finished' && (
@@ -449,7 +453,7 @@ export default function ArenaPanel({
         )}
         {!coach && !view.comeback && !['lobby', 'finished', 'speaking'].includes(room.phase) && (
             <button className="secondary-action operator" onClick={() => arena.current?.advanceOnce()}>
-              Next
+              {archery && room.phase === 'ready' ? 'Finish' : 'Next'}
             </button>
           )}
         </div>

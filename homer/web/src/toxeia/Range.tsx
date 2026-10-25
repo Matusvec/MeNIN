@@ -11,7 +11,7 @@ import type { CSSProperties } from 'react'
 
 export type ToxShot = {
   id: string
-  /** On the target face, −1…1 from the center (1 is the outer rim), y up. */
+  /** On the target face in face units (1 is the outer rim), y up. */
   x: number
   y: number
   score: number
@@ -20,7 +20,8 @@ export type ToxShot = {
 export type ToxWind = { speed: number; toward: number }
 
 export type RangeProps = {
-  /** The bow's live aim, −1…1 each way (null hides the ring). */
+  /** The bow's point of aim in face units (1 = the outer rim; it rides off the face
+   *  up to about ±1.64). Not the landing: the archer allows for wind and drop. Null hides it. */
   aim: { x: number; y: number } | null
   /** 0…1, from the arrow phone. */
   draw: number
@@ -51,9 +52,13 @@ type P = [number, number]
 const GROUND = 600
 const TARGET: P = [1090, 330]
 const R = 200 // the face's radius
-/** Ring radii (of R) and fills, outside in, the same as the phone's target. */
+const CLAY_DEEP = '#a9532d'
+/** Ten equal rings, scored 10 in the gold to 1 at the rim (the module's ring =
+ *  10 − floor(r / 0.1)): outer radius (of R) and fill, outside in, paired like an
+ *  archery face in the pots' colors. Ring 1 (0.9–1) is the meander rim, drawn
+ *  separately. The phone's target uses the same rings. */
 const RINGS: Array<[number, string]> = [
-  [0.9, SLIP], [0.74, CLAY], [0.58, INK], [0.42, SLIP], [0.27, CLAY], [0.13, GOLD],
+  [0.9, CLAY_DEEP], [0.8, SLIP], [0.7, SLIP], [0.6, INK], [0.5, INK], [0.4, CLAY], [0.3, CLAY], [0.2, GOLD], [0.1, GOLD],
 ]
 
 // The archer, in his own 220 × 240 frame facing right, placed at ARCHER.
@@ -80,8 +85,8 @@ function elbow(s: P, t: P): P {
   return [s[0] + UPPER * Math.cos(a - phi), s[1] + UPPER * Math.sin(a - phi)]
 }
 
-/** A point on the target face, in the frame. */
-const onFace = (x: number, y: number): P => [TARGET[0] + clamp(x, -1.15, 1.15) * R, TARGET[1] - clamp(y, -1.15, 1.15) * R]
+/** A point on the target face, in the frame (it may lie off the face). */
+const onFace = (x: number, y: number): P => [TARGET[0] + clamp(x, -1.7, 1.7) * R, TARGET[1] - clamp(y, -1.6, 1.6) * R]
 
 /** The meander round the rim: one key per step, between r 0.9 and 1. */
 function rimPath(): string {
@@ -129,7 +134,7 @@ export default function Range({ aim, draw, nocked, loosed = false, wind, shots, 
   const angle = pennantAngle(wind)
   const flutter = wind ? `${clamp(1.5 - wind.speed * 0.18, 0.35, 1.5).toFixed(2)}s` : '2s'
   const launch = toWorld([BOW_HAND[0] + 10, BOW_HAND[1]])
-  const ringAim = aim ? onFace(aim.x * 1.05, aim.y * 1.05) : null
+  const ringAim = aim ? onFace(aim.x, aim.y) : null
 
   return (
     <svg className="range-art" viewBox="0 0 1600 700" role="img" aria-label="The archery range">
@@ -170,7 +175,7 @@ export default function Range({ aim, draw, nocked, loosed = false, wind, shots, 
         <circle cx={TARGET[0]} cy={TARGET[1]} r={R} fill={INK} />
         <path d={RIM} fill="none" stroke={GOLD} strokeWidth="3.5" />
         {RINGS.map(([f, fill]) => (
-          <circle key={f} cx={TARGET[0]} cy={TARGET[1]} r={R * f} fill={fill} stroke={INK} strokeWidth="3" />
+          <circle key={f} cx={TARGET[0]} cy={TARGET[1]} r={R * f} fill={fill} stroke={fill === INK ? SLIP : INK} strokeWidth={fill === INK ? 1.5 : 2.5} />
         ))}
         {shots.map((s) => {
           const [x, y] = onFace(s.x, s.y)

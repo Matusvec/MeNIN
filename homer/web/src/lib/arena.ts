@@ -7,11 +7,12 @@
 // or hands get dealt and verses judged twice. All battle state lives in SpacetimeDB.
 
 import { DbConnection } from '../stdb'
-import type { DiscusThrow, Fight, Fighter, Heat, Player, Prosody, Punch, Room, Round, Runner, Scene as SceneRow, Score, Turn } from '../stdb/types'
+import type { Archer, ArrowShot, DiscusThrow, Fight, Fighter, Heat, Player, Prosody, Punch, Range, Room, Round, Runner, Scene as SceneRow, Score, Turn } from '../stdb/types'
 import { AGENT_URL, voiceStatus } from './agent'
 import { conductDiscus } from './discus'
 import { conductStadion } from './stadion'
 import { type Bout, conductPygmachia } from './boxing'
+import { conductToxeia, type ToxeiaFeed } from './toxeia'
 import { Stage } from './stage'
 import { HomerVoice } from './voice'
 
@@ -32,7 +33,10 @@ export const DEMO_ROOM = {
   demo: true,
 }
 
-export type GameEvent = 'poetry' | 'debate' | 'discus' | 'coach' | 'stadion' | 'pygmachia'
+export type GameEvent = 'poetry' | 'debate' | 'discus' | 'coach' | 'stadion' | 'pygmachia' | 'toxeia'
+
+/** The field events: no Claude, no verse; Homer only announces, and each has its own panel and conductor. */
+export const FIELD_EVENTS: string[] = ['discus', 'stadion', 'pygmachia', 'toxeia']
 
 /** Free-verse turns (a 3-2-1, one SPEAK window, the arena silent): poetry, and coach ("Talk to Homer"). */
 export const freeVerse = (event: string): boolean => event === 'poetry' || event === 'coach'
@@ -48,6 +52,7 @@ export const PRESETS: Record<GameEvent, typeof DEMO_ROOM> = {
   coach: { ...DEMO_ROOM, event: 'coach', rounds: 1 }, // Talk to Homer: the module keeps it open until End
   stadion: { ...DEMO_ROOM, event: 'stadion', rounds: 1 }, // the footrace: rounds are heats (demo: one)
   pygmachia: { ...DEMO_ROOM, event: 'pygmachia', rounds: 1 }, // boxing v1: one 60 s fight
+  toxeia: { ...DEMO_ROOM, event: 'toxeia', rounds: 1 }, // archery: archers come from the bow phone (next_archer)
 }
 
 /** What a game's conductor gets each tick (discus: lib/discus.ts, multiplayer's). */
@@ -69,7 +74,7 @@ export type Conductor = {
   say: (key: string, text: string, then?: () => void) => void // Homer's line, queued, once per key
   perform: (key: string, task: () => Promise<void>) => void // any timed hold, queued with his lines, once per key
   advanceOnce: (from: string | null) => void
-}
+} & ToxeiaFeed // toxeia: the range, the archers and their arrows (lib/toxeia.ts, multiplayer's)
 
 const TICK_MS = 300
 const FINALE_CAP_MS = 45000 // a finale still on screen this long is advanced (a song + crown is ~20 s): insurance only
@@ -110,7 +115,7 @@ export type ArenaView = {
   sound: boolean // the hall was started with a click: voice and drum are on
   comeback: { name: string; secondsLeft: number } | null // waiting for a poet's phone to come back, counting down
   voiceNote: string // the operator corner: why Homer is on text ("Voice credits out", "Voice offline"), or ''
-}
+} & ToxeiaFeed
 
 /** The verdict the agent posts when the judge never answered (homer/homer/judge.py SILENT_VERDICT): the
  *  score is a neutral fallback, not a judgment, and the scorecard says so. */
@@ -180,6 +185,9 @@ export class Arena {
   private identityHex = ''
   private roomId: bigint = 0n
   private roomSub: { unsubscribe: () => void } | null = null
+  // Archery's tables, apart and only while the room's event is toxeia: a hall without them (prod before the
+  // module ships there) never subscribes, and a set_event switch tears it down and sets it up.
+  private toxSub: { roomId: bigint; sub: { unsubscribe: () => void } } | null = null
   private awaitingCreated = false
   private ticker = 0
   // BattleClient's arena duties
@@ -297,7 +305,7 @@ export class Arena {
         db.fighter.onUpdate(() => {
           if (this.room()?.event === 'pygmachia') this.publish()
         })
-        for (const table of [db.room, db.player, db.round, db.turn, db.score, db.songLine, db.discusThrow, db.heat, db.runner, db.fight, db.fighter, db.punch]) {
+        for (const table of [db.room, db.player, db.round, db.turn, db.score, db.songLine, db.discusThrow, db.heat, db.runner, db.fight, db.fighter, db.punch, db.range, db.archer, db.arrowShot]) {
           table.onInsert(() => this.changed())
           table.onDelete(() => this.changed())
           const updatable = table as unknown as { onUpdate?: (cb: () => void) => void }
@@ -344,6 +352,7 @@ export class Arena {
     this.stage?.stopBeat()
     this.voice?.close()
     this.roomSub?.unsubscribe()
+    this.dropToxeia()
     this.conn?.disconnect()
     this.conn = null
   }
@@ -378,7 +387,12 @@ export class Arena {
   /** The reveal on screen now. An advance is valid only from the reveal it was meant for. */
   private revealKey(): string | null {
     const room = this.room()
-    return room ? `${room.id}.${this.generation} ${room.phase} ${room.roundNo} ${room.currentTurnId}` : null
+    if (!room) return null
+    const key = `${room.id}.${this.generation} ${room.phase} ${room.roundNo} ${room.currentTurnId}`
+    if (room.event !== 'toxeia') return key
+    // Archery has no turns, and an archer's three arrows share a round: each arrow is its own reveal.
+    const range = [...this.conn!.db.range.iter()].find((r) => r.roomId === room.id)
+    return range ? `${key} ${range.archerId}.${range.arrowNo}` : key
   }
 
   /** Advances once per reveal, however many callers ask. */
@@ -409,6 +423,30 @@ export class Arena {
       ['player', 'round', 'turn', 'score', 'scene', 'song_line', 'prosody', 'discus_throw', 'heat', 'runner', 'fight', 'fighter', 'punch'].map((t) => `SELECT * FROM ${t} WHERE room_id = ${id}`),
     )
     this.roomSub = this.conn.subscriptionBuilder().onApplied(() => this.changed()).subscribe(queries)
+    this.dropToxeia()
+  }
+
+  /** Archery's subscription follows the room's event (see toxSub). Errors are ignored: a hall without the tables. */
+  private followToxeia(room: Room): void {
+    if (room.event !== 'toxeia' || room.id !== this.roomId) return this.dropToxeia()
+    if (!this.conn || this.toxSub?.roomId === room.id) return
+    this.dropToxeia()
+    const sub = this.conn
+      .subscriptionBuilder()
+      .onApplied(() => this.changed())
+      .onError(() => {})
+      .subscribe(['range', 'archer', 'arrow_shot'].map((t) => `SELECT * FROM ${t} WHERE room_id = ${room.id}`))
+    this.toxSub = { roomId: room.id, sub }
+  }
+
+  private dropToxeia(): void {
+    if (!this.toxSub) return
+    try {
+      this.toxSub.sub.unsubscribe()
+    } catch {
+      // never applied (a hall without the tables): nothing to drop
+    }
+    this.toxSub = null
   }
 
   // ----- derived state ----------------------------------------------------------
@@ -456,11 +494,13 @@ export class Arena {
     const room = this.room()
     if (!room || this.status !== 'connected') return
     this.trackGeneration(room)
+    this.followToxeia(room)
     this.autoStartIfNeeded(room)
     this.askAgentIfNeeded(room)
     if (room.event === 'discus') conductDiscus(this.conductor(room))
     else if (room.event === 'stadion') conductStadion(this.conductor(room))
     else if (room.event === 'pygmachia') conductPygmachia(this.conductor(room))
+    else if (room.event === 'toxeia') conductToxeia(this.conductor(room))
     else this.speakIfDue(room)
     if (room.event === 'debate') this.debateClock(room)
     this.finaleBackstop(room)
@@ -491,6 +531,7 @@ export class Arena {
       runners: this.runners(),
       startRace: () => this.call(() => this.conn!.reducers.startRace({ roomId: room.id })),
       bout: this.bout(),
+      ...this.toxeia(),
       startFight: () => this.call(() => this.conn!.reducers.startFight({ roomId: room.id })),
       sayFresh: (key, text, maxAgeMs) => this.sayFresh(key, text, maxAgeMs),
       lastCall: () => this.lastFreshCall,
@@ -499,6 +540,17 @@ export class Arena {
       say: (key, text, then) => this.say(key, text, then),
       perform: (key, task) => this.perform(task, key),
       advanceOnce: (from) => this.advanceOnce(from),
+    }
+  }
+
+  /** This room's range, archers and arrows (archery); empty in any other event. */
+  private toxeia(): ToxeiaFeed {
+    const db = this.conn!.db
+    if (this.room()?.event !== 'toxeia') return { range: null, archers: [], arrows: [] }
+    return {
+      range: [...db.range.iter()].find((r: Range) => r.roomId === this.roomId) ?? null,
+      archers: [...db.archer.iter()].filter((a: Archer) => a.roomId === this.roomId),
+      arrows: [...db.arrowShot.iter()].filter((s: ArrowShot) => s.roomId === this.roomId),
     }
   }
 
@@ -654,6 +706,7 @@ export class Arena {
   private autoStartIfNeeded(room: Room): void {
     const turn = this.currentTurn(room)
     if (!room.autoReady || room.phase !== 'ready' || !turn || turn.status !== 'waiting') return
+    if (room.event === 'toxeia') return // the bow phone's next_archer starts each archer
     const key = `${turn.id}-${turn.attempt}`
     if (this.autoStarted === key) return
     this.autoStarted = key
@@ -708,7 +761,7 @@ export class Arena {
 
   /** Battle work from the agent when the phase calls for it, once per step; results arrive by subscription. */
   private askAgentIfNeeded(room: Room): void {
-    if (room.event === 'discus' || room.event === 'stadion' || room.event === 'pygmachia') return // no Claude in the field events
+    if (FIELD_EVENTS.includes(room.event)) return // no Claude in the field events
     const quietly = (key: string, work: () => Promise<unknown>) => {
       if (this.asked.has(key)) return
       this.asked.add(key)
@@ -1105,6 +1158,7 @@ export class Arena {
       heat: room ? this.heat() : null,
       runners: room ? this.runners() : [],
       bout: room?.event === 'pygmachia' ? this.bout() : null,
+      ...(room ? this.toxeia() : { range: null, archers: [], arrows: [] }),
       prosody: room ? [...this.conn!.db.prosody.iter()].find((p) => p.roomId === this.roomId) ?? null : null,
       warming: this.warming,
       carvedBy: room ? this.carvedBy(room) : '',
