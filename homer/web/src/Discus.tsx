@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react'
 import type { ArenaView } from './lib/arena'
-import { FIELD, PHAYLLOS, best, champion, flightOf, landing, type Landing } from './lib/discus'
+import { FIELD, PHAYLLOS, best, champion, flightOf, landing, releaseLabel, type Landing } from './lib/discus'
 import './discus.css'
 
 // The field in SVG units: the circle on the left, 80 m of ground to the right.
@@ -147,6 +147,7 @@ export default function DiscusPanel({ view }: { view: ArenaView }) {
       {landed && row && (
         <div className={`discus-result${row.foul ? ' foul' : ''}`}>
           {row.foul ? 'Foul' : `${row.distance.toFixed(1)} m`}
+          {releaseLabel(row) && <span className="discus-release">{releaseLabel(row)}</span>}
           {earned && <small>{EARNED[earned]}</small>}
         </div>
       )}

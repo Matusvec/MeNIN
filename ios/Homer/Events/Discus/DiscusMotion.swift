@@ -11,6 +11,8 @@ final class DiscusMotion {
 
     private let manager = CMMotionManager()
     private(set) var samples: [SwingSample] = []
+    /// The same updates in full (attitude, user acceleration), for DiscusRelease at the lift.
+    private(set) var releaseSamples: [DiscusRelease.Sample] = []
     var onSample: ((SwingSample) -> Void)?
 
     /// False on the simulator, which has no gyro.
@@ -24,6 +26,7 @@ final class DiscusMotion {
 
     func start() {
         samples.removeAll(keepingCapacity: true)
+        releaseSamples.removeAll(keepingCapacity: true)
         #if targetEnvironment(simulator)
         startSimulated()
         #else
@@ -34,6 +37,7 @@ final class DiscusMotion {
             MainActor.assumeIsolated {
                 let r = motion.rotationRate
                 let g = motion.gravity
+                self?.appendRelease(DiscusRelease.Sample(motion))
                 self?.append(SwingSample(t: motion.timestamp, rotation: [r.x, r.y, r.z], gravity: [g.x, g.y, g.z]))
             }
         }
@@ -47,6 +51,11 @@ final class DiscusMotion {
         #else
         manager.stopDeviceMotionUpdates()
         #endif
+    }
+
+    private func appendRelease(_ s: DiscusRelease.Sample) {
+        if releaseSamples.count >= Self.capacity { releaseSamples.removeFirst(releaseSamples.count - Self.capacity + 1) }
+        releaseSamples.append(s)
     }
 
     private func append(_ s: SwingSample) {

@@ -45,6 +45,10 @@ export const DiscusThrow = __t.object("DiscusThrow", {
   distance: __t.f32(),
   foul: __t.bool(),
   at: __t.timestamp(),
+  releaseSpeed: __t.f32(),
+  roll: __t.f32(),
+  spin: __t.f32(),
+  foulReason: __t.string(),
 });
 export type DiscusThrow = __Infer<typeof DiscusThrow>;
 

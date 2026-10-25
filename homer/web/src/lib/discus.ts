@@ -53,7 +53,25 @@ export function landing(row: DiscusThrow, all: DiscusThrow[]): Landing {
   return null
 }
 
+/** The release, as the arena shows it: "38° · 24 m/s". Null for throws from older phones. */
+export function releaseLabel(row: DiscusThrow): string | null {
+  return row.releaseSpeed > 0 ? `${Math.round(row.angle)}° · ${Math.round(row.releaseSpeed)} m/s` : null
+}
+
+/** Homer's word on the technique, from the release (newer phones only), or null. */
+export function technique(row: DiscusThrow): string | null {
+  if (row.foul || row.releaseSpeed <= 0) return null
+  const off = Math.abs(row.roll - row.angle)
+  if (row.angle > 45) return 'Too steep. The wind took it.'
+  if (row.angle < 20) return 'Too flat. It dug in early.'
+  if (off > 35) return 'It wobbled. Keep the disc flat on its line.'
+  if (row.spin < 4) return 'No spin on it. It wandered.'
+  if (row.angle >= 30 && row.angle <= 42 && off <= 20) return 'Flat and fast. That one flew.'
+  return null
+}
+
 function landingLine(row: DiscusThrow, all: DiscusThrow[]): string {
+  if (row.foul && row.foulReason === 'sector') return 'Out of the sector. A foul.'
   if (row.foul) return "Into the crowd. They'll live."
   switch (landing(row, all)) {
     case 'hall':
@@ -104,6 +122,8 @@ export function conductDiscus(c: Conductor): void {
           await sleep(ms)
         })
         c.say(`discus land ${turn.id}`, landingLine(row, c.throws))
+        const word = technique(row)
+        if (word) c.say(`discus technique ${turn.id}`, word)
         c.perform(`discus landed ${turn.id}`, async () => {
           await sleep(LANDED_MS)
           c.advanceOnce(from)

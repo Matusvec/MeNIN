@@ -65,6 +65,7 @@ import StartFightReducer from "./start_fight_reducer";
 import StartRaceReducer from "./start_race_reducer";
 import StartTurnReducer from "./start_turn_reducer";
 import ThrowDiscusReducer from "./throw_discus_reducer";
+import ThrowDiscusFullReducer from "./throw_discus_full_reducer";
 import ThrowPunchReducer from "./throw_punch_reducer";
 import UpdateTranscriptReducer from "./update_transcript_reducer";
 
@@ -364,6 +365,7 @@ const reducersSchema = __reducers(
   __reducerSchema("start_race", StartRaceReducer),
   __reducerSchema("start_turn", StartTurnReducer),
   __reducerSchema("throw_discus", ThrowDiscusReducer),
+  __reducerSchema("throw_discus_full", ThrowDiscusFullReducer),
   __reducerSchema("throw_punch", ThrowPunchReducer),
   __reducerSchema("update_transcript", UpdateTranscriptReducer),
 );

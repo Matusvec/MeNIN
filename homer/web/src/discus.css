@@ -125,6 +125,14 @@
   text-align: center;
 }
 
+.discus-result .discus-release {
+  display: block;
+  margin-top: 0.35rem;
+  color: #577685;
+  font: 600 1.05rem/1.2 "Helvetica Neue", Helvetica, Arial, sans-serif;
+  letter-spacing: 0.04em;
+}
+
 .discus-result.foul {
   color: #b0485a;
 }

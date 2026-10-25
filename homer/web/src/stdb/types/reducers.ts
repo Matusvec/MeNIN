@@ -37,6 +37,7 @@ import StartFightReducer from "../start_fight_reducer";
 import StartRaceReducer from "../start_race_reducer";
 import StartTurnReducer from "../start_turn_reducer";
 import ThrowDiscusReducer from "../throw_discus_reducer";
+import ThrowDiscusFullReducer from "../throw_discus_full_reducer";
 import ThrowPunchReducer from "../throw_punch_reducer";
 import UpdateTranscriptReducer from "../update_transcript_reducer";
 
@@ -71,6 +72,7 @@ export type StartFightParams = __Infer<typeof StartFightReducer>;
 export type StartRaceParams = __Infer<typeof StartRaceReducer>;
 export type StartTurnParams = __Infer<typeof StartTurnReducer>;
 export type ThrowDiscusParams = __Infer<typeof ThrowDiscusReducer>;
+export type ThrowDiscusFullParams = __Infer<typeof ThrowDiscusFullReducer>;
 export type ThrowPunchParams = __Infer<typeof ThrowPunchReducer>;
 export type UpdateTranscriptParams = __Infer<typeof UpdateTranscriptReducer>;
 

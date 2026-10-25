@@ -22,4 +22,8 @@ export default __t.row({
   distance: __t.f32(),
   foul: __t.bool(),
   at: __t.timestamp(),
+  releaseSpeed: __t.f32().name("release_speed"),
+  roll: __t.f32(),
+  spin: __t.f32(),
+  foulReason: __t.string().name("foul_reason"),
 });

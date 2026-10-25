@@ -75,9 +75,22 @@ enum DiscusSwing {
         return weight > 0 ? sum / weight : 0
     }
 
-    static func measure(_ reading: SwingReading, tuning: DiscusPhysics.Tuning = .standard) -> DiscusThrow {
-        let flight = DiscusPhysics.distance(speed: reading.speed, angle: reading.angle, timing: reading.timing, tuning: tuning)
-        return DiscusThrow(speed: reading.speed, angle: reading.angle, timing: reading.timing,
-                           distance: flight.metres, foul: flight.foul)
+    /// The throw from the hold, and from DiscusRelease when the phone has device-motion detail.
+    /// The release's launch angle counts when it's a real launch (10–75°): a flat or downswing
+    /// release reads near 0° or below, and falls back to the swing plane's tilt, which the first
+    /// real throws validated, so no throw flies shorter than it did before. The sector heading
+    /// is recorded, not called a foul, until it's been checked on a real swing.
+    static let launchAngles = 10.0...75.0
+
+    static func measure(_ reading: SwingReading, release: DiscusRelease.Result? = nil,
+                        tuning: DiscusPhysics.Tuning = .standard) -> DiscusThrow {
+        let angle = release.map(\.angle).flatMap { launchAngles.contains($0) ? $0 : nil } ?? reading.angle
+        let flight = DiscusPhysics.distance(speed: reading.speed, angle: angle, timing: reading.timing,
+                                            roll: release?.roll, spin: release?.spin, tuning: tuning)
+        return DiscusThrow(speed: reading.speed, angle: angle, timing: reading.timing,
+                           distance: flight.metres, foul: flight.foul,
+                           releaseSpeed: DiscusPhysics.releaseSpeed(speed: reading.speed, tuning: tuning),
+                           roll: release?.roll ?? 0, spin: release?.spin ?? 0, yawFromFacing: release?.yawFromFacing ?? 0,
+                           foulReason: flight.foul ? "late" : "")
     }
 }

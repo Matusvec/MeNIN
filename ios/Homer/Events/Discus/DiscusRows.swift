@@ -16,6 +16,11 @@ struct DiscusThrowRow: Codable, Sendable, Identifiable, Equatable {
     var distance: Float  // metres, 0 for a foul
     var foul: Bool
     var at: SpacetimeTimestamp
+    // Appended columns (throw_discus_full); 0 / "" for throws from older phones.
+    var releaseSpeed: Float  // m/s
+    var roll: Float  // degrees off flat
+    var spin: Float  // rad/s
+    var foulReason: String  // "" | "late" | "sector"
 }
 
 @MainActor
@@ -30,6 +35,21 @@ enum DiscusTables {
 }
 
 extension Reducer {
+    /// The throw with its release in detail (new phones); the server keeps throw_discus for old ones.
+    struct ThrowDiscusFull: Codable, Sendable {
+        static let name = "throw_discus_full"
+        var turnId: UInt64
+        var speed: Float
+        var angle: Float
+        var timing: Float
+        var distance: Float
+        var foul: Bool
+        var releaseSpeed: Float
+        var roll: Float
+        var spin: Float
+        var foulReason: String
+    }
+
     struct ThrowDiscus: Codable, Sendable {
         static let name = "throw_discus"
         var turnId: UInt64
@@ -49,8 +69,9 @@ extension BattleClient {
     /// Once per throw, when the thumb lifts. The server refuses it unless this phone is the
     /// thrower and the turn is live.
     func throwDiscus(_ turnId: UInt64, _ t: DiscusThrow) {
-        call(Reducer.ThrowDiscus.name, Reducer.ThrowDiscus(
+        call(Reducer.ThrowDiscusFull.name, Reducer.ThrowDiscusFull(
             turnId: turnId, speed: Float(t.speed), angle: Float(t.angle), timing: Float(t.timing),
-            distance: Float(t.distance), foul: t.foul))
+            distance: Float(t.distance), foul: t.foul, releaseSpeed: Float(t.releaseSpeed),
+            roll: Float(max(-180, min(180, t.roll))), spin: Float(max(0, min(60, t.spin))), foulReason: t.foulReason))
     }
 }

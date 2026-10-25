@@ -89,8 +89,10 @@ final class DiscusThrower {
         case .lift(let at):
             guard stage == .winding else { return }
             let samples = motion.samples
+            let detail = motion.releaseSamples.filter { $0.t >= heldFrom && $0.t <= at }
             putDown()
             let reading = DiscusSwing.read(samples, heldFrom: heldFrom, releasedAt: at)
+            let release = detail.first.flatMap { DiscusRelease.analyze(detail, facing: $0) }
             lastReading = reading
             if reading.isDrop && dropsLeft > 0 {
                 dropsLeft -= 1
@@ -99,7 +101,7 @@ final class DiscusThrower {
                 notice = Self.dropNotice
                 return
             }
-            let t = DiscusSwing.measure(reading, tuning: tuning)
+            let t = DiscusSwing.measure(reading, release: release, tuning: tuning)
             record(reading, t)
             stage = .thrown(t, at: Date())
             onThrow?(t)
