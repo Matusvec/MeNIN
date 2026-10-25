@@ -35,7 +35,7 @@ From the track doc, in their words:
 
 **"Don't treat the Figma as the ground truth. Use the power of Figma to make it better. Don't assume one way is good or not."** That was Matus to the artist session at 23:50 on Friday. The agent had just read his concept frame through the Figma MCP and started copying it over the work it had already done. His correction set the whole workflow: Figma is a tool for comparing ideas, not a spec to transcribe. AI is a creative partner, and the designer keeps the point of view.
 
-What that looks like in practice. MeNIN is built by one designer (Matus) and a team of Claude Code sessions: leader, pm, artist, swift, multiplayer, gtm.
+What that looks like in practice. MeNIN is built by two designers (Matus designed the app; our web designer, a teammate, made the website in Figma Make) and a team of Claude Code sessions: leader, pm, artist, swift, multiplayer, builder, gtm.
 
 1. **Two directions, one vocabulary.** The artist session put both looks into one Figma variable collection with two modes: **Atelier** (Matus's concept: cream, Bodoni Moda, wine) and **Cut paper** (the first art pass: a dark sea, Fraunces, ink slabs). Every variable carries its Swift name as code syntax, and the app reads the same tokens through one `Direction` switch. Flipping a frame's mode in Figma and flipping the launch flag in the app show the same thing.
 2. **Editable designs, not screenshots.** Matus's home frame was rebuilt as token-bound components. A clickable prototype covers both flows (first open to practice, and battle: join → arena → champion).
@@ -45,6 +45,47 @@ What that looks like in practice. MeNIN is built by one designer (Matus) and a t
 That handoff is the reusable part. Another team could run the same setup on a different idea.
 
 Before and after numbers to capture for Adoptability: minutes from a Figma frame to a working component, the number of rework rounds, and the number of times the design and the code disagreed.
+
+## Sat night: one hall, two codebases, one set of variables
+
+*gtm writes this from the sessions' entries below; the numbers in brackets are filled from them. SPEC `6144b56` (Matus, Sat 8:40 PM: "now it's about polish").*
+
+**The problem.** By Saturday afternoon MeNIN had two front ends that didn't look like one product. The website, the big screen everyone sees, began as a **Figma Make app** that our web designer built and committed at 12:33 PM. It kept its own art and palette: Aegean blues, creams, a flowing white scene. The iPhone app wore **Atelier**: cream, Bodoni and wine. The 12:36 PM handoff between them was a CSS reference file (`docs/design/atelier-tokens.css`). It shared the seat colors and the type scale, but not the look. We rated it 3 of 5, because nothing kept the two in sync.
+
+**What we did.** Matus asked for the app to "match the color scheme on the website, like the blue". The team ran it through the Figma variables we already had, not through code:
+1. **builder** pulled the website's real tokens out of its CSS (`homer/web/src/wired.css`, `index.css`): [N] colors, [N] type and spacing values. [minutes].
+2. **artist** added a third mode, **Hall**, to the "MeNIN" collection in "MeNIN · Directions". It sits beside Atelier and Cut paper, and every variable keeps its Swift name. Then artist laid out the frames that change: join, the event menu, the waits, the verdict, with more of the flowing scene behind them. [N variables, N frames, minutes].
+3. **swift** added `case hall` to the app's `Direction` switch (`ios/Homer/UI/Tokens.swift`), read the values from the Hall mode, and shipped **build 32**. [minutes from Hall values to build 32; lines in Tokens.swift; view files touched].
+
+**Before → after (Adoptability).**
+- Before (Sat 12:36 PM): matching the app to the website meant hand-copying values from a CSS file into Swift, screen by screen, with no record of which value came from where.
+- After (Sat ~10:15 PM): one new mode in Figma and one new case in the app. Flipping a Figma frame to Hall shows the app's look before any code is written. [Whole-app reskin: N lines of tokens + N view files; N rework rounds; N issues found in the real-phone visual pass.]
+
+**Friction, kept honest.**
+- The sync is still by convention, not live. A Figma change reaches Swift only when an agent re-reads the variables (the same limit as the Fri 23:39 entry).
+- [Hard-coded colors that the reskin exposed in views, and how many.]
+- [Anything in the website's palette that had no app equivalent.]
+- [What the real-phone visual pass caught that the Figma frames didn't.]
+- The website itself didn't change. It was already the reference, so this stage only moved the app.
+
+**Why it's repeatable.** One variable collection, one mode per look, and every variable named after its code token. A third look cost one mode and one enum case, not a fork. Another team can copy exactly that.
+
+### Deck text for Matus (one slide, 200 words max; Matus edits the deck)
+
+**Slide: "One hall, two codebases"**
+> Our big screen is a website that began in **Figma Make**. Our phone app is **SwiftUI**. By Saturday night they looked like two products.
+>
+> We already kept every design token in one Figma variable collection, each variable named after its Swift token, with one mode per look (Atelier, Cut paper). So the fix was a **third mode, Hall**:
+> 1. Extract the website's real colors and type from its CSS. [minutes]
+> 2. Add Hall to the variables, and lay out the changed frames in Figma first. [minutes]
+> 3. Add one case to the app's `Direction` switch, and ship build 32. [minutes]
+>
+> **Before:** hand-copying values from a CSS file, screen by screen.
+> **After:** one mode in Figma, one case in code. [N lines, N view files, N rework rounds.]
+>
+> **Friction:** the sync is by convention, not live. [hard-coded colors found]. [what the real-phone pass caught].
+>
+> *Embed: the Directions file with a frame flipped Atelier → Hall; a photo of build 32 next to the website.*
 
 ## Log format
 

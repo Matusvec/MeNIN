@@ -780,7 +780,7 @@ The checkpoint (`docs/gtm/reality-check.md`): an extra event that can't run **5 
 
 **Rules for every run**
 
-- **Set up as at the table:** the arena is the website, full screen in a browser on the arena Mac, on Ethernet. Phones in poetry and debate have wired EarPods. The production agent service runs with Moss dealing, demo mode is on, and every phone is on **build 31 or later**, which TestFlight shows as 0.1.0 (202610242009). That's the build judges get (leader, 8:13 PM), and every phone in a run is on the same build. Check the number in TestFlight on every phone before an event's first run. **Runs on builds 24 to 30 don't count:** build 31 fixes the SDK cache behind every game's screens (stuck screens after a reconnect), so every series starts again on 31. Run it in the hacking hall, not in a quiet room.
+- **Set up as at the table:** the arena is the website, full screen in a browser on the arena Mac, on Ethernet. Phones in poetry and debate have wired EarPods. The production agent service runs with Moss dealing, demo mode is on, and every phone is on **build 31 or later**, which TestFlight shows as 0.1.0 (202610242009). That's the build judges get (leader, 8:13 PM), and every phone in a run is on the same build. Check the number in TestFlight on every phone before an event's first run. **Runs on builds 24 to 30 don't count:** build 31 fixes the SDK cache behind every game's screens (stuck screens after a reconnect), so every series starts again on 31. **Build 32** is swift's Hall reskin, due about 10:15 PM. If its diff from 31 touches only `ios/Homer/UI/`, `ios/Homer/Scene/` and the tokens, runs on 31 count for 32 (pm checks the diff and tells the leader). That excludes `UI/Events.swift`, which holds the scoring order and totals. If the diff touches `Net/`, `Battle/`, `Events/`, audio or `UI/Events.swift`, every series starts again on 32. Either way, build 32 gets the visual pass below. Run it in the hacking hall, not in a quiet room.
 - **The count:** 5 clean runs in a row per event, 3 for Talk to Homer, and 2 for two-phone archery. A failure resets that event's count to 0, and you can start again right away. A new build, a redeploy or a code change also resets it.
 - **When:** debate, poetry and Talk to Homer have to finish by 9 PM, when the hall noise test starts. The motion events (discus, the Stadion, boxing and archery) use no mic, so hall noise doesn't touch them. If there are enough people, run them at the same time on a second laptop in the hall. If not, run them after 9 PM and finish by the leader's cutoff (proposed: 10:30 PM, so the tiles are settled before the 11 PM freeze).
 - **Order:** debate, then poetry, then Talk to Homer, about 50 minutes for all three. The motion events go in this order: the Stadion, boxing, discus, then archery, about 45 minutes for all four. Boxing comes after the Stadion because SPEC opens boxing only once the Stadion passes. Archery goes last because it's the newest, and until it passes, its tile stays locked.
@@ -953,6 +953,39 @@ Archery has two modes (SPEC, Sat 7:20 PM). **Camera mode is the main one:** the 
   - An archer gets more or fewer than three arrows.
   - The wrong archer is named the winner.
 - **Write down, but not a failure (two phones):** a phone fumbled in the pass. If it happens twice in the series, tell the leader, since judges would pass the phones at the table.
+
+### Visual pass (build 32)
+
+One pass through every phone screen on build 32, the Hall reskin (SPEC "The look", Sat 8:40 PM). It isn't a 5-run series. Fix what fails, and check again on the next build.
+
+- **Phones:** every iPhone size we can get, from the SE to the Pro Max, on real phones (Matus asked for real phones, not simulators). Write down each phone's model. For a size nobody has, the leader decides whether swift checks it in one simulator, only while the Mac has more than 30% memory free.
+- **The screens, on every phone:**
+  - first open (F0 to F4) and the event menu
+  - join, the mic check and the wait (J1 to J3)
+  - a poetry turn, from step-up to SPEAK with Homer's phrases and the ring, then "I'm done", the wait and the verdict
+  - a debate turn with its move cards
+  - the discus (safety card, wind-up, distance)
+  - the Stadion run screen and the boxing fight screen, both with health and stamina
+  - both archery phones (the bow, the arrow) and the camera-mode pad
+  - Talk to Homer on the phone
+  - Bard lesson 1 (title, try, note, landed)
+  - Practice (setup, spar)
+- **Also a failure:**
+  - Anything clips, overflows or gets cut off with "…", including the longest name, theme and epithet we've seen.
+  - A turn screen needs scrolling.
+  - The primary action isn't at the bottom, in the thumb zone.
+  - The scene isn't behind the join screen, the event menu, the waits and the verdict.
+  - The scene flashes for no reason. It should move only with a voice, a word or a change of feeling.
+  - Any text is hard to read at arm's length in hall light, especially over the moving scene. That includes SPEAK in the poet's color and the score numbers.
+  - The colors don't match the website's palette, or there's any glow or neon.
+  - A wait over a moment has no loading mark and no line.
+  - Lesson 1's score label changed from "Beat" without the leader's OK. The study's pitch line says "Beat score".
+
+| Phone (model) | Screen size | Screens checked | Pass or fail | What failed |
+| --- | --- | --- | --- | --- |
+| | | | | |
+| | | | | |
+| | | | | |
 
 ### Results
 
