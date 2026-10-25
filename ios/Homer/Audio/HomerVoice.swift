@@ -225,18 +225,41 @@ final class HomerVoice {
     private static var bakedCache: [String: [Float]] = [:]
 
     /// Bundled audio for a fixed line, if it was rendered at the stage's format.
-    /// The text each baked lesson demo speaks, as `bakedKey` of the server's `demoSpoken` when it
-    /// was baked. Re-bake a demo and update its hash together.
-    static let bakedDemos: [String: String] = [
-        // L1 and L2 speak live (Matus: the epic delivery, not a beat-locked rap).
-        "lesson-epithet-demo": "5969ac75645b4629",
+    /// The text each baked lesson demo speaks (`bakedKey` of the server's `demoSpoken` when it was
+    /// baked) and how far before beat 1 its file starts. Re-bake a demo and update both together.
+    /// `pulses`: per line, the beat each stress was baked on (nil: one stress per beat, 0...3).
+    static let bakedDemos: [String: (text: String, prerollMs: Double, pulses: [[Int]]?)] = [
+        // The Iliad and Odyssey openings (pm, Sat 10:50 PM), baked beat-locked at natural speed: a
+        // stress whose pickup won't fit one beat waits for the next pulse instead of rushing.
+        "lesson-beat-demo": ("9aabd2c0b786d6b2", 2000, [[0, 1, 3, 4], [0, 1, 2, 4], [0, 1, 2, 3], [0, 2, 4, 5]]),
+        "lesson-formula-demo": ("88ea25f47bc2bb1f", 2000, [[0, 1, 3, 4], [0, 2, 4, 5], [0, 2, 4, 6], [0, 1, 2, 3]]),
+        "lesson-epithet-demo": ("5969ac75645b4629", 1000, nil),
     ]
 
-    /// A baked lesson demo, only if it speaks exactly `text`: a rewritten verse falls back to live
-    /// voice, so the caption and the audio can never disagree.
-    static func bundledDemo(_ key: String, text: String) -> [Float]? {
-        guard bakedDemos[key] == bakedKey(text) else { return nil }
-        return bundled(key)
+    /// A baked lesson demo and its pre-roll, only if it speaks exactly `text`: a rewritten verse
+    /// falls back to live voice, so the caption and the audio can never disagree.
+    static func bundledDemo(_ key: String, text: String) -> (samples: [Float], prerollMs: Double, pulses: [[Int]]?)? {
+        guard let baked = bakedDemos[key], baked.text == bakedKey(text), let samples = bundled(key) else { return nil }
+        return (samples, baked.prerollMs, baked.pulses)
+    }
+
+    /// The demo lane with each stress on the beat the bake put it on, its pickup words moving with
+    /// it, so the dots, the drum and Homer's voice agree.
+    static func lane(_ lane: BeatLane, pulses: [[Int]], lineMs: Double) -> BeatLane {
+        var out = lane
+        let beatMs = 60_000 / lane.bpm
+        for (n, line) in pulses.enumerated() {
+            let idx = out.words.indices.filter { Int(out.words[$0].t / lineMs) == n }
+            let stresses = idx.filter { out.words[$0].stressed }
+            guard stresses.count == line.count, !stresses.isEmpty else { continue }
+            let shifts = zip(stresses, line).map { Double(n) * lineMs + Double($1) * beatMs - out.words[$0].t }
+            var k = 0
+            for i in idx {
+                while k < stresses.count - 1 && i > stresses[k] { k += 1 }  // a pickup belongs to the next stress
+                out.words[i].t += shifts[k]
+            }
+        }
+        return out
     }
 
     static func bundled(_ key: String) -> [Float]? {

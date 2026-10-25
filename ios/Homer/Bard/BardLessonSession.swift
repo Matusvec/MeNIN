@@ -16,8 +16,6 @@ final class BardLessonSession {
     }
 
     static let bpm = 80
-    /// Baked demos (Resources/Voice/lesson-<id>-demo.caf) start this long before beat 1.
-    static let demoPrerollMs = 1000.0
 
     private(set) var phase = Phase.loading {
         didSet { if phase != oldValue { Self.log.notice("bard phase \(String(describing: self.phase), privacy: .public) try \(self.tryNo)") } }
@@ -108,8 +106,9 @@ final class BardLessonSession {
             demoLane = lane
         }
         if let demo = HomerVoice.bundledDemo("lesson-\(lesson.id)-demo", text: lesson.demoSpoken) {
-            // Baked so every stressed syllable sits on its pulse; the file starts 1 s before beat 1.
-            turn.playVoice(demo, atMs: clock.beatAtMs - Self.demoPrerollMs)
+            // Baked so every stressed syllable sits on its pulse; the file starts its pre-roll before beat 1.
+            turn.playVoice(demo.samples, atMs: clock.beatAtMs - demo.prerollMs)
+            if let pulses = demo.pulses, let lane = demoLane { demoLane = HomerVoice.lane(lane, pulses: pulses, lineMs: clock.lineMs) }
             for (n, line) in lines.enumerated() {
                 await waitUntil(clock.beatAtMs + clock.lineMs * Double(n) - 300)
                 guard !Task.isCancelled else { return }

@@ -121,6 +121,9 @@ enum JudgeEvent: Equatable, Sendable {
     /// Arrives first, so text-to-speech can start before the scores are done.
     case verdict(String)
     case scorecard(JudgeResult)
+    /// The server couldn't judge it (`event: error`, e.g. "nothing to judge": a transcript with no
+    /// scannable words). Not a silent judge: there was no verse to hear.
+    case failed(String)
 }
 
 /// One Bard lesson from GET /lessons (parsed live from content/lessons.md).

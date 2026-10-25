@@ -49,7 +49,9 @@ struct ScorecardView: View {
     /// The server's fallback when the judge never answers: a neutral 4/4/4 with this
     /// exact verdict (homer/homer/judge.py SILENT_VERDICT). Older rows have none.
     static let neutralVerdict = "Homer is silent on this one."
-    private var isNeutral: Bool { ruling.verdict == Self.neutralVerdict || ruling.verdict.isEmpty }
+    /// The server's neutral fallbacks: Homer's, and Socrates' in a debate (builder, Sat 10:47 PM).
+    static let neutralVerdicts: Set<String> = [neutralVerdict, "Socrates is silent on this one."]
+    private var isNeutral: Bool { Self.neutralVerdicts.contains(ruling.verdict) || ruling.verdict.isEmpty }
 
     private var isDebate: Bool { ruling.axes.contains { ["claim", "poise"].contains($0.name.lowercased()) } }
 

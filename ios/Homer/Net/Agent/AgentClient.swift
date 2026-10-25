@@ -46,9 +46,9 @@ struct AgentClient: Sendable {
                     var parser = SSEParser()
                     for try await line in bytes.lines {
                         // `lines` drops the blank separator line, so a new `event:` also ends the previous one.
-                        for event in parser.feed(line) { try continuation.yield(Self.judgeEvent(event)) }
+                        for event in parser.feed(line) { if let e = try Self.judgeEvent(event) { continuation.yield(e) } }
                     }
-                    for event in parser.finish() { try continuation.yield(Self.judgeEvent(event)) }
+                    for event in parser.finish() { if let e = try Self.judgeEvent(event) { continuation.yield(e) } }
                     continuation.finish()
                 } catch {
                     continuation.finish(throwing: error)
@@ -219,7 +219,9 @@ struct AgentClient: Sendable {
         throw Failure.status(http.statusCode, detail)
     }
 
-    static func judgeEvent(_ event: SSEParser.Event) throws -> JudgeEvent {
+    /// Nil for an event the phone doesn't use (a keep-alive or status line while the judge warms up):
+    /// it's skipped, never a reason to drop the stream.
+    static func judgeEvent(_ event: SSEParser.Event) throws -> JudgeEvent? {
         let data = Data(event.data.utf8)
         switch event.name {
         case "verdict":
@@ -227,8 +229,11 @@ struct AgentClient: Sendable {
             return .verdict(try JSONDecoder().decode(Verdict.self, from: data).verdict)
         case "scorecard":
             return .scorecard(try JSONDecoder().decode(JudgeResult.self, from: data))
+        case "error":
+            struct Detail: Decodable { var detail: String? }
+            return .failed((try? JSONDecoder().decode(Detail.self, from: data))?.detail ?? event.data)
         default:
-            throw Failure.stream(event.data)
+            return nil
         }
     }
 }

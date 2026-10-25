@@ -149,7 +149,10 @@ final class PracticeSession {
         stopListening()  // the engine stays up: Homer speaks the verdict through it
         MusicDirector.shared.setMicOpen(false)
         MusicDirector.shared.play(.trainingAmbience)
-        await judge(verse)
+        // The judge call runs in its own task: whatever task called finish() (the window's timer,
+        // Done, a view's task) may be cancelled by now, and a cancelled caller would close the
+        // judge's stream a few ms in (builder's log, 22:47: /judge 200 in 11 ms, no fallback).
+        await Task { @MainActor in await self.judge(verse) }.value
     }
 
     func stop() {
@@ -302,6 +305,7 @@ final class PracticeSession {
             phase = .verdict
             return
         }
+        noVerse = false
         let request = JudgeRequest(
             transcript: verse, words: nil, bpm: Self.bpm, linesExpected: Self.lines, mode: .practice, theme: theme,
             hand: hand.map(\.text), played: Array(played), rescues: rescues, previous: nil,
@@ -315,16 +319,24 @@ final class PracticeSession {
                 try? await Task.sleep(for: .seconds(2))
             }
             await ask(agent, request)
+            if noVerse { break }  // nothing to judge: asking again won't change it
             Self.log.notice("practice judge try \(attempt): result \(self.result == nil ? "none" : (self.result!.isSilent ? "silent" : "scored"), privacy: .public) verdict \(self.verdictText ?? "-", privacy: .public) words \(verse.split(separator: " ").count)")
             if let r = result, !r.isSilent { break }
             if result == nil, verdictText != nil { break }  // a streamed verdict with no scorecard
         }
-        if verdictText == nil {
+        if noVerse, result == nil {
+            verdictText = Self.noVerseLine
+            Task { await homer.say(Self.noVerseLine) }
+        } else if verdictText == nil {
             verdictText = Self.silentLine
             Task { await homer.say(Self.silentLine) }
         }
         phase = .verdict
     }
+
+    private static let noVerseLine = "No verse came. Again."
+    /// The judge said there was nothing to judge (no scannable words), on this verse.
+    @ObservationIgnored private var noVerse = false
 
     private static let silentLine = "Homer is silent on this one."
 
@@ -339,6 +351,9 @@ final class PracticeSession {
                     Task { await homer.say(text) }
                 case .scorecard(let r):
                     accept(r)
+                case .failed(let detail):
+                    Self.log.error("practice judge: server error \(detail, privacy: .public)")
+                    noVerse = true
                 }
             }
         } catch {
@@ -348,6 +363,7 @@ final class PracticeSession {
                 accept(try await agent.judge(request))
             } catch {
                 Self.log.error("practice judge failed: \(String(describing: error), privacy: .public)")
+                if case AgentClient.Failure.status(422, _) = error { noVerse = true }  // "nothing to judge"
             }
         }
     }

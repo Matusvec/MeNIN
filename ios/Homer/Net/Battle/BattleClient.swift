@@ -44,7 +44,10 @@ final class BattleClient: SpacetimeClientDelegate {
     func connect(to server: URL, database: String) {
         guard client == nil else { return }
         self.database = database
-        let c = SpacetimeClient(serverUrl: server, moduleName: database)
+        // Venue Wi-Fi drops are the common failure: retry fast (0.5 s, capped at 3 s) so a phone is
+        // back within ~3 s of the network, with jitter so four phones don't retry in lockstep.
+        let c = SpacetimeClient(serverUrl: server, moduleName: database,
+                                reconnectPolicy: ReconnectPolicy(initialDelaySeconds: 0.5, maxDelaySeconds: 3, jitterRatio: 0.3))
         c.delegate = self
         client = c
         connection = .connecting
