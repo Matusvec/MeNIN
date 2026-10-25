@@ -185,31 +185,72 @@ export default function World3D({ speaking = false, fallback = null }: World3DPr
       line.rotation.x = -Math.PI / 2
       line.position.y = 0.08
     }
-    // Stands: three marble tiers around the far half of the track.
-    const tiers = 3
-    for (let t = 0; t < tiers; t++) {
-      const tier = add(
-        new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 64, 1, false, Math.PI * 0.5, Math.PI), new THREE.MeshStandardMaterial({ color: t % 2 ? MARBLE_SHADE : MARBLE, roughness: 0.7, side: THREE.DoubleSide })),
-        stadion,
-      )
-      tier.scale.set(32 + t * 2.2, 1.1 + t * 1.1, 15 + t * 2.2)
-      tier.position.y = (1.1 + t * 1.1) / 2
-      tier.position.z = -0.5
+    // Stands: stepped marble rows around the far half of the track. Each row is a hollow
+    // half-ellipse ring, a step higher than the one in front, so every spectator sits on top of one.
+    const ROWS = 4
+    const ROW_DEPTH = 1.6
+    const ROW_RISE = 0.85
+    const STAND_RX = 31.2 // just outside the track (30 x 13)
+    const STAND_RZ = 14.2
+    const halfRing = (rx0: number, rz0: number, rx1: number, rz1: number) => {
+      // Shape y > 0 becomes the far side (world z < 0) once the extrusion is turned upright.
+      const shape = new THREE.Shape()
+      const steps = 48
+      for (let i = 0; i <= steps; i++) {
+        const a = (i / steps) * Math.PI
+        if (i === 0) shape.moveTo(Math.cos(a) * rx1, Math.sin(a) * rz1)
+        else shape.lineTo(Math.cos(a) * rx1, Math.sin(a) * rz1)
+      }
+      for (let i = steps; i >= 0; i--) {
+        const a = (i / steps) * Math.PI
+        shape.lineTo(Math.cos(a) * rx0, Math.sin(a) * rz0)
+      }
+      shape.closePath()
+      return shape
     }
+    for (let row = 0; row < ROWS; row++) {
+      const inner = row * ROW_DEPTH
+      const height = (row + 1) * ROW_RISE
+      const geometry = new THREE.ExtrudeGeometry(
+        halfRing(STAND_RX + inner, STAND_RZ + inner, STAND_RX + inner + ROW_DEPTH, STAND_RZ + inner + ROW_DEPTH),
+        { depth: height, bevelEnabled: false, curveSegments: 1 },
+      )
+      geometry.rotateX(-Math.PI / 2)
+      add(new THREE.Mesh(geometry, mat(row % 2 ? MARBLE_SHADE : MARBLE, 0.7)), stadion)
+    }
+    // A low wall behind the top row.
+    const wallInner = ROWS * ROW_DEPTH
+    const wall = new THREE.ExtrudeGeometry(
+      halfRing(STAND_RX + wallInner, STAND_RZ + wallInner, STAND_RX + wallInner + 0.5, STAND_RZ + wallInner + 0.5),
+      { depth: (ROWS + 1.4) * ROW_RISE, bevelEnabled: false, curveSegments: 1 },
+    )
+    wall.rotateX(-Math.PI / 2)
+    add(new THREE.Mesh(wall, mat(MARBLE_SHADE, 0.7)), stadion)
     scene.add(stadion)
 
-    // The crowd: Mii-like spectators (a bright body and a skin head) on the stands.
-    const crowdCount = 150
+    // The crowd: Mii-like spectators (a bright body and a skin head), one per seat, evenly spaced along
+    // each row with a little jitter, sitting on the step (body bottom on the step's top).
+    const SEATS_PER_ROW = 38
+    const crowdCount = ROWS * SEATS_PER_ROW
+    const BODY_HALF = 0.32 + 0.45 / 2 // capsule radius + half its straight length
     const crowdBody = new THREE.InstancedMesh(new THREE.CapsuleGeometry(0.32, 0.45, 4, 8), mat(0xffffff, 0.75), crowdCount)
     const crowdHead = new THREE.InstancedMesh(new THREE.SphereGeometry(0.3, 12, 8), mat(0xf3c097, 0.7), crowdCount)
     const crowdSeats: Array<{ x: number; y: number; z: number; phase: number; jump: number }> = []
     const crowdColor = new THREE.Color()
     for (let i = 0; i < crowdCount; i++) {
-      const t = i % tiers
-      const a = Math.PI * (0.06 + 0.88 * Math.random())
-      const rx = 32 + t * 2.2 - 1, rz = 15 + t * 2.2 - 1
-      crowdSeats.push({ x: Math.cos(a) * rx, y: 1.1 + t * 1.1 + 0.55, z: -Math.sin(a) * rz - 0.5, phase: Math.random() * Math.PI * 2, jump: 0 })
-      crowdBody.setColorAt(i, crowdColor.setHex(CROWD[i % CROWD.length]))
+      const row = Math.floor(i / SEATS_PER_ROW)
+      const seat = i % SEATS_PER_ROW
+      const a = Math.PI * (0.05 + 0.9 * ((seat + 0.5 + (Math.random() - 0.5) * 0.4) / SEATS_PER_ROW))
+      // The middle of the row's step, a touch toward the back so they sit in front of the next riser.
+      const mid = row * ROW_DEPTH + ROW_DEPTH * 0.6
+      crowdSeats.push({
+        x: Math.cos(a) * (STAND_RX + mid),
+        y: (row + 1) * ROW_RISE + BODY_HALF,
+        z: -Math.sin(a) * (STAND_RZ + mid),
+        phase: Math.random() * Math.PI * 2,
+        jump: 0,
+      })
+      crowdBody.setColorAt(i, crowdColor.setHex(CROWD[(i * 7) % CROWD.length]))
     }
     crowdBody.castShadow = true
     stadion.add(crowdBody, crowdHead)
@@ -322,15 +363,19 @@ export default function World3D({ speaking = false, fallback = null }: World3DPr
     }
 
     // Gulls: little Vs that circle, and scatter when the sea is clicked.
-    const gullMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
+    // Wings are thin boxes, not planes, so a gull never turns edge-on into a streak.
+    const gullMaterial = mat(0xf4f1ea, 0.8)
+    const gullBodyGeometry = new THREE.SphereGeometry(0.22, 10, 8)
+    const gullWing = new THREE.BoxGeometry(1.3, 0.08, 0.42)
+    gullWing.translate(0.65, 0, 0)
     const gulls = Array.from({ length: 6 }, (_, i) => {
       const group = new THREE.Group()
-      const wing = new THREE.PlaneGeometry(1.4, 0.25)
-      wing.translate(0.7, 0, 0)
-      const left = new THREE.Mesh(wing, gullMaterial)
-      const right = new THREE.Mesh(wing, gullMaterial)
+      const body = new THREE.Mesh(gullBodyGeometry, gullMaterial)
+      body.scale.set(1, 0.8, 2)
+      const left = new THREE.Mesh(gullWing, gullMaterial)
+      const right = new THREE.Mesh(gullWing, gullMaterial)
       right.rotation.y = Math.PI
-      group.add(left, right)
+      group.add(body, left, right)
       scene.add(group)
       return { group, left, right, radius: 18 + i * 6, height: 22 + (i % 3) * 5, speed: 0.12 + i * 0.02, angle: i * 1.3, scatter: 0 }
     })
@@ -352,8 +397,8 @@ export default function World3D({ speaking = false, fallback = null }: World3DPr
       new THREE.CylinderGeometry(1, 1, 1, 32, 1, true, Math.PI * 0.5, Math.PI),
       new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide }),
     )
-    crowdHitbox.scale.set(36, 6, 19)
-    crowdHitbox.position.y = 3
+    crowdHitbox.scale.set(STAND_RX + wallInner, (ROWS + 2) * ROW_RISE, STAND_RZ + wallInner)
+    crowdHitbox.position.y = ((ROWS + 2) * ROW_RISE) / 2
     stadion.add(crowdHitbox)
     const cheer = (strength = 1) => crowdSeats.forEach((seat) => (seat.jump = Math.max(seat.jump, strength * (0.6 + Math.random() * 0.4))))
     const onClick = (event: MouseEvent) => {
