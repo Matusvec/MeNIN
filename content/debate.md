@@ -40,32 +40,32 @@ He was the old man in the marketplace of Athens who said he knew nothing, then a
 
 Each round has one question with two sides. Sides are assigned by turn order, not chosen (see `docs/ux-flow.md`). Arguing a side you don't hold is the game.
 
-All questions are PG and steer clear of politics and religion, so a mixed room can play.
+Every question is a real dilemma from Homer's world or from Greek thought, so anyone can argue it with no preparation: the story is in the question. All are PG and steer clear of modern politics and religion. Myth is fine. Both sides must be arguable, and Socrates never takes one. The demo's one fixed question is `achilles-choice`.
 
 | id | Socrates asks | Side A | Side B | Kind |
 | --- | --- | --- | --- | --- |
 | `invisible` | "If you could turn invisible, would you stay honest?" | Yes | No | classic |
+| `achilles-choice` | "Achilles could live a long life and be forgotten, or die young and be sung forever. Which would you choose?" | Glory | A long life | homeric |
+| `calypso` | "Calypso offered Odysseus a life that never ends, if he stayed with her. Should he have taken it?" | Yes | No | homeric |
+| `helen` | "Is Helen to blame for the Trojan War?" | Yes | No | homeric |
+| `armor` | "Achilles' armor goes to the best of the Greeks. Clever Odysseus, or mighty Ajax?" | Odysseus | Ajax | homeric |
+| `achilles-quits` | "Agamemnon dishonored Achilles. Was Achilles right to walk away from the war?" | Yes | No | homeric |
+| `lethe` | "Would you drink from the river Lethe to forget your worst memory?" | Yes | No | homeric |
+| `suitors` | "Odysseus came home and punished every suitor in his hall. Was that justice?" | Yes | No | homeric |
+| `song-worth` | "Is a song about you worth dying for?" | Yes | No | homeric |
+| `wooden-horse` | "Was the wooden horse a fair way to win at Troy?" | Yes | No | homeric |
+| `sirens` | "The Sirens sing the most beautiful song there is, and it can drown you. Do you listen?" | Listen | Plug your ears | homeric |
+| `hector` | "Should Hector have stayed inside the walls with his family instead of facing Achilles?" | Yes | No | homeric |
 | `wronged` | "Is it better to be wronged than to do wrong?" | Yes | No | classic |
 | `teach-goodness` | "Can you teach someone to be good?" | Yes | No | classic |
 | `knowing-is-doing` | "If you know what's right, will you always do it?" | Yes | No | classic |
-| `ship` | "Replace every plank of a ship, one by one. Is it still the same ship?" | Same ship | New ship | classic |
+| `ship` | "Theseus's ship is repaired plank by plank, until no old plank is left. Is it still the same ship?" | Same ship | New ship | classic |
 | `wisest-rules` | "Should the wisest person be in charge?" | Yes | No | classic |
-| `ever-lie` | "Is it ever right to lie?" | Yes | No | classic |
-| `bad-rule` | "Should you follow a rule you think is wrong?" | Yes | No | classic |
-| `same-person` | "Are you the same person you were ten years ago?" | Yes | No | classic |
+| `ever-lie` | "Odysseus lied his way home. Is it ever right to lie?" | Yes | No | classic |
+| `bad-rule` | "Antigone broke the king's law to bury her brother. Should you obey a law you think is wrong?" | Yes | No | classic |
+| `same-person` | "You can't step in the same river twice. Are you the same person you were ten years ago?" | Yes | No | classic |
 | `one-homer` | "Was Homer one poet, or many?" | One | Many | classic |
-| `hot-dog` | "Is a hot dog a sandwich?" | Yes | No | everyday |
-| `five-minutes` | "Is it a lie to say you're five minutes away when you're fifteen?" | Yes | No | everyday |
-| `bad-haircut` | "Should you tell a friend their haircut is bad?" | Yes | No | everyday |
-| `spoilers` | "Do spoilers ruin a story?" | Yes | No | everyday |
-| `cereal-soup` | "Is cereal a soup?" | Yes | No | everyday |
-| `sleep-waste` | "Is sleep a waste of time?" | Yes | No | everyday |
-| `pineapple` | "Does pineapple belong on pizza?" | Yes | No | everyday |
-| `ai-love-letter` | "Is it cheating to let an AI write your love letter?" | Yes | No | wild |
-| `feared-loved` | "Is it better to be feared or loved?" | Feared | Loved | wild |
-| `robots-day-off` | "Should robots get a day off?" | Yes | No | wild |
-| `animals-languages` | "Would you rather talk to animals, or speak every human language?" | Animals | Languages | wild |
-| `fame-or-truth` | "Would you rather be famous and wrong, or right and forgotten?" | Famous | Right | wild |
+| `feared-loved` | "Should a king be feared, or loved?" | Feared | Loved | classic |
 
 ---
 
