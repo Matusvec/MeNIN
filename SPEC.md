@@ -175,7 +175,7 @@ Judging is a 2-minute pitch with a live demo at a shared table, three times over
 - Optional: the judges pick from 3 theme cards on the arena (first thing to cut).
 - Rematch resets in under 10 seconds.
 - One operator tap on the arena replays the first-open line with captions (the same pre-rendered audio), since we pitch three times on the same arena.
-- Judges play on team iPhones handed to them, already on the join screen. Judges can't install TestFlight builds at the table.
+- Judges play on team iPhones handed to them, already on the join screen. Judges can't install TestFlight builds at the table. Overnight (after the 11 PM freeze), the website also becomes a phone controller in Safari (scan the QR, play in the browser, no app), poetry first, as the fallback if the public TestFlight beta isn't approved by morning. The public beta is submitted for review once the judging build is frozen.
 
 The script is `docs/gtm/demo-script.md`.
 
