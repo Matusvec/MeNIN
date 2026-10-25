@@ -100,7 +100,7 @@ Judged on workflow design, adoptability, output quality, presentation and innova
 - ✅ A root `.gitignore` now covers `.env*`, `.token-*`, `*.p8`, `Secrets.xcconfig` and `node_modules` (83abf4b).
 - ⚠️ Stadion and boxing exist only as uncommitted changes. Claim them only once they're committed and pass 5 clean runs.
 - ⚠️ `spacetime/CONTRACT.md` line 16 still names the local database `homer`; the demo one is `homer-calhacks`.
-- ✅ No secrets are committed. The droplet IP is public in a few files, which is fine.
+- ✅ No secrets are committed: the freeze secret scan (gitleaks, all 365 commits) came back clean (leader, Sat ~10:05 PM). The droplet IP is public in a few files, which is fine.
 - ✅ The Google Calendar link in `slack-intel.md` is removed (gtm, Sat ~5:30 PM).
 
 ## The Receipts section (for the README and Devpost)

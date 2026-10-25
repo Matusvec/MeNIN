@@ -78,7 +78,7 @@ Before and after numbers to capture for Adoptability: minutes from a Figma frame
 
 **Before → after (Adoptability).**
 - Before (Sat 12:36 PM): matching the app to the website meant hand-copying values from a CSS file into Swift, screen by screen, with no record of which value came from where.
-- After (Sat 9:06 PM, build 32 uploaded): one new mode in Figma and one new case in the app. Flipping a Figma frame to Hall shows the app's look before any code is written: 72 of 73 fills on the Verdict frame, in one step. In code, the whole-app reskin was +69/−36 lines of tokens plus 5 small view edits, in 22 minutes, with 3 rework rounds. [What the real-phone visual pass on build 34 finds.]
+- After (Sat 9:06 PM, build 32 uploaded): one new mode in Figma and one new case in the app. Flipping a Figma frame to Hall shows the app's look before any code is written: 72 of 73 fills on the Verdict frame, in one step. In code, the whole-app reskin was +69/−36 lines of tokens plus 5 small view edits, in 22 minutes, with 3 rework rounds. [What the real-phone visual pass on build 38 finds.]
 
 **Friction, kept honest.**
 - The sync is still by convention, not live. A Figma change reaches Swift only when an agent re-reads the variables (the same limit as the Fri 23:39 entry).
@@ -87,7 +87,7 @@ Before and after numbers to capture for Adoptability: minutes from a Figma frame
 - In code, 13 hard-coded colors are left (12 in the app-icon art, 1 shadow). There were 3 rework rounds: builder's sheet changed 6 values, the computed contrast ratios changed 3, and a grey system blur was dropped.
 - **The values went into Swift by hand**, from a token table agreed in both directions. They weren't read back from Figma with `get_variable_defs`. That read-back is the cheap check to add next time.
 - Step 1 was an audit, not a lookup: the Make-built website kept every color hard-coded (128 of them), so naming them took judgment, and the spacing (73 values) was too scattered to tokenize tonight.
-- [What the real-phone visual pass on build 34 caught that the Figma frames didn't.]
+- [What the real-phone visual pass on build 38 caught that the Figma frames didn't.]
 - The website itself didn't change. It was already the reference, so this stage only moved the app.
 
 **The scene: four rounds of a designer's feedback, through Figma renders of the real scene code** (artist, Sat 9:03–9:20 PM). A painted stand-in couldn't show Matus what the phone would actually do. So artist ran the website's own WebGL scene code headless, with the app's candidate values and a scripted voice, and placed each render full-bleed in all 12 Hall frames and the flip frame. Each round had a fresh render in Figma within 2–3 minutes. Matus's direction, in his words:
