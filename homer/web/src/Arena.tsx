@@ -140,10 +140,13 @@ export default function ArenaPanel({
   onLine,
   onSpeaking,
   onStatus,
+  onPhase,
 }: {
   onLine: (line: string) => void
   onSpeaking: (speaking: boolean) => void
   onStatus: (status: string) => void
+  /** The room's phase and event, for Homer's pose (null before a room exists). */
+  onPhase?: (phase: string | null, event: string | null) => void
 }) {
   const [view, setView] = useState<ArenaView | null>(null)
   const arena = useRef<Arena | null>(null)
@@ -226,6 +229,9 @@ export default function ArenaPanel({
   useEffect(() => {
     onStatus(status)
   }, [status, onStatus])
+  useEffect(() => {
+    onPhase?.(view?.room?.phase ?? null, view?.room?.event ?? null)
+  }, [view?.room?.phase, view?.room?.event, onPhase])
 
   const room = view?.room ?? null
   const qr = useQr(room ? webJoinLink(room.code) : '') // a page that opens MeNIN, or points to TestFlight

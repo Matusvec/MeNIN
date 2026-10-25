@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import GameStrip from './GameStrip'
 import ArenaPanel from './Arena'
-import Homer3D from './Homer3D'
+import Homer3D, { type HomerAction } from './Homer3D'
 import World3D from './world/World3D'
 import JoinCard from './JoinCard'
+import { FIELD_EVENTS } from './lib/arena'
 import { hasTestFlight, joinCodeFromPath, TESTFLIGHT_URL } from './lib/links'
 import MusicToggle from './MusicToggle'
 
@@ -138,6 +139,31 @@ function AegeanScene() {
   )
 }
 
+/** What Homer does on the arena, from the room's phase: he waves poets in, sits on his throne to
+ *  listen and judge, points as the verdict lands, sings the finale and presents the laurel. */
+function homerActionFor(phase: string | null, event: string | null): HomerAction {
+  const field = event !== null && FIELD_EVENTS.includes(event)
+  switch (phase) {
+    case 'dealing':
+    case 'ready':
+      return 'listen'
+    case 'speaking':
+      return field ? 'cheer' : 'judge'
+    case 'judging':
+      return field ? 'idle' : 'judge'
+    case 'scored':
+      return field ? 'cheer' : 'verdict'
+    case 'round_end':
+      return 'idle'
+    case 'finale':
+      return field ? 'cheer' : 'sing'
+    case 'finished':
+      return 'laurel'
+    default:
+      return 'welcome' // no room yet, or the lobby
+  }
+}
+
 function ModePage({
   mode,
   onBack,
@@ -148,6 +174,8 @@ function ModePage({
   const info = modes.find((item) => item.id === mode)!
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [hallStatus, setHallStatus] = useState('') // the arena's plain-words wait ("Homer is dealing…")
+  const [homerAction, setHomerAction] = useState<HomerAction>('welcome')
+  const onPhase = useCallback((phase: string | null, event: string | null) => setHomerAction(homerActionFor(phase, event)), [])
   const [answer, setAnswer] = useState<string | null>(null)
   const [heard, setHeard] = useState(false)
   const [coachLine, setCoachLine] = useState(
@@ -217,11 +245,12 @@ function ModePage({
     </>
   )
 
-  const battleContent = <ArenaPanel onLine={setCoachLine} onSpeaking={setIsSpeaking} onStatus={setHallStatus} />
+  const battleContent = <ArenaPanel onLine={setCoachLine} onSpeaking={setIsSpeaking} onStatus={setHallStatus} onPhase={onPhase} />
 
   return (
     <main className={`mode-screen ${mode}`}>
-      <div className="mode-scene" aria-hidden="true"><World3D speaking={isSpeaking} fallback={<AegeanScene />} /></div>
+      {/* The arena's live sea covers this from the lobby on, so it stays the light SVG (no third WebGL canvas). */}
+      <div className="mode-scene" aria-hidden="true"><AegeanScene /></div>
       <header className="mode-topbar">
         <button className="mode-back" onClick={onBack}>‹ Main menu</button>
         <div><span>MeNIN</span><strong>{info.label}</strong></div>
@@ -229,7 +258,7 @@ function ModePage({
       </header>
       <div className="mode-layout">
         <aside className="coach-stage" data-waiting={hallStatus ? 'true' : undefined}>
-          <Homer3D speaking={isSpeaking} mode={mode} />
+          <Homer3D speaking={isSpeaking} mode={mode} action={mode === 'battle' ? homerAction : undefined} />
           <div className="coach-dialogue">
             <span>Homer</span>
             <p>{coachLine}</p>
