@@ -42,7 +42,8 @@ struct ToxeiaPhoneRoot: View {
         m.shot = Int(s.range?.arrowNo ?? 0)
         m.total = s.archer.map { Int($0.total) }
         if let wind = s.range?.wind { m.wind = ArcheryWind(speed: Double(abs(wind)), toward: wind >= 0 ? 0 : 180) }
-        if let shot = s.lastShot, shot.archerId == s.range?.archerId {
+        // flight 0 = the window ran out with no loose: nothing hit the face.
+        if let shot = s.lastShot, shot.archerId == s.range?.archerId, shot.flight > 0 {
             m.lastShot = ArcheryShot(x: Double(shot.x) / Self.faceRadius, y: Double(shot.y) / Self.faceRadius, score: Int(shot.ring))
         }
         if s.needsName {

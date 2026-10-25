@@ -58,9 +58,10 @@ final class ToxeiaSession {
         claimed = true
     }
 
+    /// The next archer's name; an empty name is "That's everyone" (the module goes to the finale).
     func name(_ archer: String) {
         let name = archer.trimmingCharacters(in: .whitespaces)
-        guard let room = battle.room, !name.isEmpty else { return }
+        guard let room = battle.room else { return }
         battle.call(Reducer.NextArcher.name, Reducer.NextArcher(roomId: room.id, name: name))
     }
 

@@ -11,8 +11,9 @@ enum ArcheryRole: Equatable {
     case bow, arrow
 }
 
-/// Where an arrow struck the target face: x, y from the center, −1…1 (1 is the
-/// rim, y up), and what it scored.
+/// Where an arrow struck the target face, in face units from the center (1 is the
+/// outer rim, y up; a miss lies beyond it), and what it scored: 10 in the gold down
+/// to 1 at the rim (the module's ring = 10 − floor(r / 0.1)), 0 off the face.
 struct ArcheryShot: Equatable {
     var x: Double
     var y: Double
@@ -42,7 +43,8 @@ struct BowModel: Equatable {
 
     var phase: Phase = .role
     var archer: PoetPlate?
-    /// Where the phone points, −1…1 each way, as in boxing.
+    /// Where the phone points, −1…1 each way, as in boxing: ±1 is ±1 m at the
+    /// target, ±1.64 face radii (the face is 0.61 m). The point of aim, not the landing.
     var yaw: Double = 0
     var pitch: Double = 0
     /// Arrows loosed this turn, of `arrows`.
@@ -57,6 +59,7 @@ struct BowModel: Equatable {
 struct BowActions {
     /// "Ready": the archer holds the bow at the target and the aim is zeroed.
     var ready: (() -> Void)?
+    /// The next archer's name; "" means that's everyone (the event goes to its finale).
     var setName: ((String) -> Void)?
     var back: (() -> Void)?
 }
@@ -125,7 +128,19 @@ struct BowView: View {
                 }
                 .padding(.horizontal, Metrics.s5)
                 Spacer(minLength: 0)
-                readyButton(name.trimmingCharacters(in: .whitespaces).isEmpty ? "Ready" : "I'm up: \(name.trimmingCharacters(in: .whitespaces))")
+                let typed = name.trimmingCharacters(in: .whitespaces)
+                // A name is needed to go on: an empty Ready never ends the event by accident.
+                readyButton(typed.isEmpty ? "Type a name" : "I'm up: \(typed)", enabled: !typed.isEmpty)
+                if let setName = actions.setName {
+                    Button("That's everyone") {
+                        naming = false
+                        setName("")
+                    }
+                    .font(Typeface.text(17, weight: 700))
+                    .foregroundStyle(StadionPalette.slip.opacity(0.8))
+                    .padding(.vertical, Metrics.s2)
+                    .accessibilityHint("Ends the archery and goes to the results")
+                }
             }
             .onAppear { name = next ?? "" }
         case .aiming:
@@ -176,7 +191,7 @@ struct BowView: View {
         if !n.isEmpty { actions.setName?(n) }
     }
 
-    private func readyButton(_ title: String) -> some View {
+    private func readyButton(_ title: String, enabled: Bool = true) -> some View {
         Button {
             commitName()
             naming = false
@@ -192,7 +207,8 @@ struct BowView: View {
         }
         .buttonStyle(.plain)
         .padding(.horizontal, Metrics.s5)
-        .disabled(actions.ready == nil)
+        .disabled(actions.ready == nil || !enabled)
+        .opacity(enabled ? 1 : 0.5)
     }
 }
 
@@ -451,29 +467,35 @@ private struct ArrowCount: View {
     }
 }
 
-/// The target face, as on the big screen: a meander rim, then rings of cream,
-/// terracotta and black to a gold center. The aim is a thin ring that moves with
-/// the bow; the last arrow is a black shaft in the face.
+/// The target face, as on the big screen: ten rings scored 10 to 1, gold, terracotta,
+/// black, cream, deep terracotta, and the meander rim as ring 1. The face takes 60%
+/// of the frame, so the aim ring can ride off it as far as the bow can point
+/// (±1.64 face radii). The last arrow is a black hole in the face.
 private struct TargetFace: View {
     var lastShot: ArcheryShot?
-    /// yaw, pitch −1…1.
+    /// yaw, pitch −1…1 (±1 m at the target).
     var aim: CGPoint
+
+    /// Metres per face radius.
+    static let faceRadius = 0.61
 
     var body: some View {
         GeometryReader { geo in
-            let d = min(geo.size.width, geo.size.height)
+            let frame = min(geo.size.width, geo.size.height)
+            let d = frame * 0.6
             let r = d / 2
             ZStack {
-                Circle().fill(StadionPalette.figure)
-                MeanderRing().stroke(StadionPalette.gold, lineWidth: 1.6).padding(d * 0.012)
+                Circle().fill(StadionPalette.figure).frame(width: d, height: d)
+                MeanderRing().stroke(StadionPalette.gold, lineWidth: 1.4).padding(d * 0.012).frame(width: d, height: d)
                 ForEach(Array(Self.rings.enumerated()), id: \.offset) { _, ring in
                     Circle().fill(ring.1).frame(width: d * ring.0, height: d * ring.0)
-                    Circle().strokeBorder(StadionPalette.figure, lineWidth: 1.5).frame(width: d * ring.0, height: d * ring.0)
+                    Circle().strokeBorder(ring.1 == StadionPalette.figure ? StadionPalette.slip : StadionPalette.figure, lineWidth: 1)
+                        .frame(width: d * ring.0, height: d * ring.0)
                 }
                 if let s = lastShot {
-                    Circle().fill(StadionPalette.figure).frame(width: d * 0.045, height: d * 0.045)
+                    Circle().fill(StadionPalette.figure).frame(width: d * 0.05, height: d * 0.05)
                         .overlay(Circle().strokeBorder(StadionPalette.slip, lineWidth: 1.5))
-                        .offset(x: CGFloat(s.x) * r * 0.86, y: CGFloat(-s.y) * r * 0.86)
+                        .offset(x: face(s.x) * r, y: -face(s.y) * r)
                 }
                 // The aim: a thin ring with four ticks, white-hot cream on a black keyline.
                 ZStack {
@@ -486,22 +508,24 @@ private struct TargetFace: View {
                     }
                 }
                 .frame(width: d * 0.16, height: d * 0.16)
-                .offset(x: clamp(aim.x) * r * 1.05, y: -clamp(aim.y) * r * 1.05)
+                .offset(x: face(Double(aim.x) / Self.faceRadius) * r, y: -face(Double(aim.y) / Self.faceRadius) * r)
                 .animation(.linear(duration: 0.06), value: aim)
             }
-            .frame(width: d, height: d)
+            .frame(width: frame, height: frame)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .aspectRatio(1, contentMode: .fit)
         .accessibilityHidden(true)
     }
 
-    private func clamp(_ v: CGFloat) -> CGFloat { min(1.1, max(-1.1, v)) }
+    /// Face units, kept inside the frame (±1.66 radii).
+    private func face(_ v: Double) -> CGFloat { CGFloat(min(1.62, max(-1.62, v))) }
 
-    /// Diameter (of the face) and fill, outside in.
+    /// Outer diameter (of the face) and fill, outside in: rings 2 to 10; ring 1 is the rim.
     static let rings: [(CGFloat, Color)] = [
-        (0.9, StadionPalette.slip), (0.74, StadionPalette.clay), (0.58, StadionPalette.figure),
-        (0.42, StadionPalette.slip), (0.27, StadionPalette.clay), (0.13, StadionPalette.gold),
+        (0.9, Color(hex: 0xA9532D)), (0.8, StadionPalette.slip), (0.7, StadionPalette.slip),
+        (0.6, StadionPalette.figure), (0.5, StadionPalette.figure), (0.4, StadionPalette.clay),
+        (0.3, StadionPalette.clay), (0.2, StadionPalette.gold), (0.1, StadionPalette.gold),
     ]
 }
 

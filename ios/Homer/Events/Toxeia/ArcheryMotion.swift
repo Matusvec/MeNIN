@@ -18,8 +18,10 @@ final class BowMotion: @unchecked Sendable {
         var pitch = 0.0  // -1 (low) ... 1 (high)
     }
 
-    static let yawRange = Double.pi / 6  // ±30°: aiming is finer than punching
-    static let pitchRange = Double.pi / 6
+    /// ±12° of turn = ±1, which the module maps to ±1 m on the face (radius 0.61 m), so the gold
+    /// (6.1 cm) is about ±0.7° of aim: steadiness matters (multiplayer's calibration).
+    static let yawRange = 12 * Double.pi / 180
+    static let pitchRange = 12 * Double.pi / 180
     static let smoothing = 0.35  // one-pole per sample at 100 Hz: steady, not sluggish
 
     private let manager = CMMotionManager()
