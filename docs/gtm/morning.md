@@ -3,9 +3,9 @@
 | Time | What | Who | From |
 | --- | --- | --- | --- |
 | 7:00 | Pack from the packing list. The Mac, three iPhones and the power banks at 100%, or charging now. | All | run-sheet.md: Sunday timeline (7:00), Power, Packing list |
-| 7:00 | Watch **`~/Movies/MeNIN-video/out/rough-cut-v4.mp4`** once, start to finish, sound on (builder renders it with the 4.22 take; leader QAs it overnight). | **MATUS** | video.md: "Morning, 7:00" |
+| 7:00 | Watch **`~/Movies/MeNIN-video/out/menin-demo-3min-final.mp4`** (2:41) once, start to finish, sound on; then `menin-demo-2min-final.mp4` (1:56, Cartesia's cut). Both passed the leader's frame and audio checks overnight (three independent reviews, v4 → v7). | **MATUS** | video.md: "Morning, 7:00" |
 | 7:20 | Any fixes go to builder, in one message. Confirm Sunya is up for the 8:00 repo flip. | **MATUS** | video.md: "Morning, 7:00"; run-sheet.md: Sat night |
-| 7:40 | **YouTube, Unlisted:** the final 3:00 cut, titled **"MeNIN: Homer teaches you to speak. Then you battle. (Cal Hacks 13.0)"**, with the description from video.md (e). Then the 2:00 export as its own Unlisted video, for Cartesia. Play both in a logged-out window. | **MATUS** | video.md: Export, (e) YouTube |
+| 7:40 | **YouTube, Unlisted:** `menin-demo-3min-final.mp4` (2:41), titled **"MeNIN: Homer teaches you to speak. Then you battle. (Cal Hacks 13.0)"**, with the description from video.md (e). Then `menin-demo-2min-final.mp4` (1:56) as its own Unlisted video, for Cartesia. Play both in a logged-out window. | **MATUS** | video.md: Export, (e) YouTube |
 | 7:45 | **Devpost: swap the video link** from the interim `menin-backup-90s` upload to the 3:00 YouTube link, and press Submit again. | **MATUS** | devpost.md: Submission checklist |
 | 7:45 | **Figma deck clicks (~10 min):** share as Anyone with the link → can view; slide 16, embed both prototype flows; slide 17, embed Directions; slide 3, the 3:00 YouTube link; present it logged out. | **MATUS** | figma-deck-clicks.md: steps 1–4, 7 |
 | 7:55 | **FigJam share:** board c8DkYceOjp3OJ7PPLeYUcn → Anyone with the link → can view. Confirm the concept file the same way; Paul confirms the website's Make file. | **MATUS** (Make: Paul) | video.md: Morning step 5; figma-deck-clicks.md: step 6 |
