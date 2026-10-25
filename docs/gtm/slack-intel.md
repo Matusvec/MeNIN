@@ -11,7 +11,7 @@ Read-only: we never post, reply or react in Slack. Anything we'd need to say the
 Read directly from the channels, Sat 9 AM. Each hint is quoted, and each one says what we do about it.
 
 **Spacetime.** Their CEO: "Something that's hard to build without Spacetime!" (#0-general, Fri 6:52 PM). The guide: Spacetime as the core real-time backend, "not just added on the side".
-- **Do:** show a moment that's hard without it. Kill the app on one phone mid-battle and reopen it: the poet takes their seat back with their score, because a new identity with the same name takes over a disconnected seat (spacetime/CONTRACT.md, `join_room`). It's tested in multiplayer's check runs or take 2 of the evening shoot (about 8:30 PM), and shown only if it passes.
+- **Do:** show a moment that's hard without it. Kill the app on one phone mid-battle and reopen it: the poet takes their seat back with their score, because a new identity with the same name takes over a disconnected seat (spacetime/CONTRACT.md, `join_room`). It's tested in multiplayer's check runs or take 2 of the evening shoot (on Matus's "done" call), and shown only if it passes.
 - **Do:** say "private hands in a private table, the whole battle as a server-side phase machine, a scheduled reducer for the turn timer".
 - **Do:** go to their workshop, 4–5 PM in the Theater, since Spacetime staff judge the track.
 - Their workshop slides are a Figma deck (#cohost-spacetime, Oct 21). It isn't readable from here, so someone should open it in a browser and skim for what they say they want. They also run a startup program with up to $50k in credits (same post), which is for after the hackathon.

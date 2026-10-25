@@ -103,11 +103,11 @@ Homer writes a fresh theme every round, always from his own world (nothing inven
 
 ## Figma
 
-Matus drew the first concept in Figma Design. The art session reads frames, exact values and assets straight from the file through the Figma MCP server. We compared two design directions in one variable collection with two modes, every variable carrying its Swift name, and picked Atelier, the look that ships. The clickable prototypes and the stage log are linked above and in our Figma Slides deck: [link].
+Matus drew the first concept in Figma Design. The art session reads frames, exact values and assets straight from the file through the Figma MCP server. We compared two design directions in one variable collection with two modes, every variable carrying its Swift name, and picked Atelier, the look that ships. The clickable prototypes and the stage log are linked above and in our Figma Slides deck: https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm.
 
 ## Impact and responsibility
 
-- **Who it's for, and how we measure it:** spoken-word and slam poets in [the poet's scene]. The stress scanner's Beat score is an objective skill measure. At Cal Hacks, [N] people who'd never freestyled took lesson one, and their Beat score went from [first] to [last] out of 10. Next, we track Beat accuracy across a poet's first five sessions.
+- **Who it's for, and how we measure it:** spoken-word and slam poets in [the poet's scene]. The stress scanner's Beat score is an objective skill measure, and every lesson try gets one. **[A: the study ran]** At Cal Hacks, [N] people who'd never freestyled took lesson one, and their Beat score went from [first] to [last] out of 10. **[B: no study]** *(Drop the study sentence.)* Next, we track Beat accuracy across a poet's first five sessions.
 - **Accessibility:** captions on everything Homer says. In battles, a haptic thump and the 3-2-1 ticks tell you your turn has started; in lessons, the beat is in your palm as haptics, so you can feel it without hearing it.
 - **Consent:** the mic is hands-free but opens only on your turn, with a haptic thump, and "I'm done" closes it early.
 - **Privacy:** no audio passes through our server, because phones stream straight to Cartesia. Transcripts, scores and lines live in the room's tables, and Rematch clears them. [Confirm before publishing: how long finished rooms are kept, and Cartesia's retention setting on our account.] No account is required.

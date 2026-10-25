@@ -17,7 +17,7 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 | 2:15 PM *(optional)* | Meta, main floor (sponsor-06), right next to Cartesia | No staff named. Their workshop is 2–3 PM at Gate 4. | Two booths in one stop. **Raised stakes:** "Top track submissions" get "Round 2: Meta AI Hackathon" and an "All-expenses-paid trip to Meta Global HQ in Menlo Park!" (#0-announcements, Sat 1:51 PM). Meta has posted no judging hints in Slack, so catching the workshop's end or the booth staff is the only way to hear what they want. |
 | **3:30 PM** | **Spacetime**, main floor (sponsor-14), next to Anthropic, or Spacetime's CEO in the Theater ("all weekend") | Spacetime's CEO and team | Before their 4–5 PM workshop in the Theater, while the CEO is free |
 | 3:45 PM *(optional)* | Anthropic, main floor (sponsor-13), next to Spacetime | Anthropic's track team | One step over from Spacetime |
-| ~~4:45–5:30 PM~~ | ~~The main video shoot~~: **postponed to about 8:30–9:00 PM**, after boxing lands (Matus: "we film later") ([video.md](video.md)) | | |
+| ~~4:45–5:30 PM~~ | ~~The main video shoot~~: **postponed to Matus's "done" call** (archery and boxing v2 first; likely about 9:00–9:30 PM) ([video.md](video.md)) | | |
 
 **Who goes:** two people. The poet performs, and one more person explains the tech (Matus, or the operator if Matus is designing). The Mac stays at the build table.
 
@@ -105,7 +105,7 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 
 ### Anthropic (sponsor-13, optional)
 - **Show** a verdict, then point at the three scores: "Claude judges content only, Image, Answer and Craft, on an anchored scale, with the phrases Homer dealt you and the verse you answered in front of it. In the lessons, a deterministic stress scanner scores the beat, not Claude."
-- **The line:** "For spoken-word and slam poets in [the poet's scene], who practice alone between weekly open mics. Tonight we run a first-timer study for one real number. And the app itself is built by a team of Claude Code sessions."
+- **The line:** "For spoken-word and slam poets in [the poet's scene], who practice alone between weekly open mics." **[A: the study ran]** "Five first-timers went from [first] to [last] on Beat in one lesson." **[B: no study]** "Every lesson try gets a Beat score from a scanner, not the AI, so improvement is measurable." "And the app itself is built by a team of Claude Code sessions."
 - **Ask:** "Is our community narrow enough?" Their track is "Claude for Public Benefit", and it wants a named community, a real problem, a working product with impact measured, and meaningful use of Claude.
 
 ## Booth log (fill in as you go)

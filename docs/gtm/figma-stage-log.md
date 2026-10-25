@@ -13,7 +13,7 @@ This log is the main thing Figma judges. Prizes: **Best Stage Log, $2,000** ("th
   - [x] **A prototype exists to embed:** the "Prototype · Atelier" page in "MeNIN · Directions", with two flows (artist, Sat 08:40–09:10), both Anyone can view:
     - Flow 1, first open → event menu → Poetry → Practice turn → verdict: https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102
     - Flow 2, join → arena turn → carved line → champion: https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364
-  - [ ] The prototype and the Directions file embedded in the deck, plus the repo link (it works once the repo goes public Sun 8 AM). Slides 8–10 show the real frames, with links to both flows, the Directions file and the repo. A live embed is a step in the Slides app (the MCP can't insert one).
+  - [ ] The prototype and the Directions file embedded in the deck, plus the repo link (it works once the repo goes public Sun 8 AM). Slides 8–10 show the real frames, with links to both flows, the Directions file and the repo. **The live embeds are required** ("Must embed your Figma files (Make(s) and/or Figma prototypes)") and are Matus's step in the Slides app: the Plugin API has no way to create an embed. Paste each prototype link onto slide 8 and the Directions link onto slide 9.
 - [x] "MeNIN · Directions" shared as **Anyone with the link → can view** (Matus, Sat AM): https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv
 - [ ] Any new Figma file (the deck, a FigJam diagram) also shared with "Anyone"
 - [ ] Figma tagged on Devpost

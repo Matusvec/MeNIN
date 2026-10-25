@@ -6,13 +6,13 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 
 | Placeholder | Kind | Comes from | When |
 | --- | --- | --- | --- |
-| `[N]`, `[first]`, `[last]`, `[time]` | **Number** | The first-timer study on the build named in `docs/study.md` (build 18, 0.1.0 (202610241606); if it's missing, the newest of builds 14, 11 and 4), using one of pm's line options. It's a lesson, so it's the strict "Beat" score, not the battle's Flow. | Sat 8 PM |
+| `[N]`, `[first]`, `[last]`, `[time]` (**only in the [A] lines; if the study doesn't run, use the [B] lines**: Matus hasn't confirmed it) | **Number** | The first-timer study on the build named in `docs/study.md` (build 18, 0.1.0 (202610241606); if it's missing, the newest of builds 14, 11 and 4), using one of pm's line options. It's a lesson, so it's the strict "Beat" score, not the battle's Flow. | Sat 8 PM |
 | `[real-mic WER]` | **Number** | swift's rerun of the keyterm test on a real iPhone mic. If it differs from 3%/20%, it replaces those numbers everywhere. | When swift runs it |
 | `[turn-to-voice p50]` | **Number** | The measured time from a turn's end to Homer's first word, on the evening shoot's build (its latency HUD), or multiplayer's check-run tally if it has the number | Sat ~9 PM |
 | `[poet's name]`, `[the poet's scene]`, `[poet quote]`, `[composer's name]`, `[how the score was made]`, `[team]` | **A fact only Matus has** | Matus (the list went to leader) | Today |
 | `[If debate passed]` | Checkpoint | The Sat 8 PM check: 5 runs in a row without a failure. Delete the section if it failed. (Discus already passed its check early: 5 of 5 clean real-phone runs on the website (16:46–16:49 PM, build 18) plus 5 scripted runs, throws of 19.8 to 66.9 m, one real foul handled, no stalls or drops (leader, Sat ~4:50 PM).) | Sat 8 PM |
 | ~~`[URL]`~~ | Link | **Filled: https://play.206.189.237.157.sslip.io** (`homer/DEPLOY.md`; it answered HTTP 200 at Sat 5:50 PM). Still open it on a phone on cellular before submitting. | Done |
-| `[TestFlight public link]`, `[Video]`, `[Figma Slides]`, `[ASI:One link]` | Link | Apple's Beta App Review; [video.md](video.md); the Slides deck; builder | As each lands |
+| `[TestFlight public link]`, `[Video]`, `[ASI:One link]` (the Figma Slides link is filled: https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm) | Link | Apple's Beta App Review; [video.md](video.md); the Slides deck; builder | As each lands |
 
 ---
 
@@ -22,7 +22,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 
 *Trademarks: no "Wii", "Wii Sports", "Guitar Hero" or "Olympic" anywhere in this page.*
 
-**Try it:** **https://play.206.189.237.157.sslip.io**: open it on a laptop and it becomes the arena, then join from your iPhone · iPhone app: [TestFlight public link] · [playmenin.tech, if registered] · Video: [Video] · Figma: [Figma Slides] · Clickable prototypes: [first open → practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102) · [a full battle](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364)
+**Try it:** **https://play.206.189.237.157.sslip.io**: open it on a laptop and it becomes the arena, then join from your iPhone · iPhone app: [TestFlight public link] · [playmenin.tech, if registered] · Video: [Video] · Figma Slides (the stage log): https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm · Clickable prototypes: [first open → practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102) · [a full battle](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364)
 
 ---
 
@@ -102,7 +102,7 @@ Other events show as locked tiles, because we only unlock what's solid: an event
   - Claude also writes each round's fresh theme and Homer's call to the first poet, coins a fresh epithet for every poet each battle, writes Homer's lesson feedback, his sparring verses and the round verdicts, and writes the stitched song. The freeze whisper makes no model call: it picks the dealt phrase that fits the line, so it's instant.
 - **The stress scanner** (Python, CMU Pronouncing Dictionary) counts the beat deterministically. It scores **Beat** in the lessons, where Homer teaches it, and it never comes from the model's opinion. Battles aren't scored on rhythm at all.
 - **Python + FastAPI** service for the Claude calls, the scanner and the formula bank, in Docker behind Caddy on **DigitalOcean**.
-- **Figma.** Matus drew the first concept in Figma Design. The art session reads frames, exact values and assets straight from the file through the Figma MCP server, so it builds from the design rather than from screenshots. We compared two design directions, "Atelier" and "Cut paper", in a single Figma variable collection with two modes. Every variable carries its Swift name, so one mode switch in Figma matches one launch flag in the app. Matus picked Atelier by flipping the same frames between modes, and it's the look that ships. The art session built two clickable prototype flows through the MCP, bound to the same tokens: [first open to practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102), and [a full battle from join to champion](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364). Design file: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv · Full stage log: [Figma Slides].
+- **Figma.** Matus drew the first concept in Figma Design. The art session reads frames, exact values and assets straight from the file through the Figma MCP server, so it builds from the design rather than from screenshots. We compared two design directions, "Atelier" and "Cut paper", in a single Figma variable collection with two modes. Every variable carries its Swift name, so one mode switch in Figma matches one launch flag in the app. Matus picked Atelier by flipping the same frames between modes, and it's the look that ships. The art session built two clickable prototype flows through the MCP, bound to the same tokens: [first open to practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102), and [a full battle from join to champion](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364). Design file: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv · Full stage log: https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm.
 - **Original score by [composer's name].**
 - Built by [team] and a team of Claude Code sessions (leader, product, art, multiplayer, iOS, agent service and go-to-market), working from one spec with one folder each.
 
@@ -130,7 +130,7 @@ The total is out of 100. Clichés and dodging the theme cost. In the lessons, **
 
 ## Accomplishments that we're proud of
 
-- [N] people who'd never freestyled took lesson one at Cal Hacks. Their Beat score went from **[first] to [last]** out of 10, in about [time] minutes. *(Beat only, first try vs last. If fewer than three landed, drop the time.)*
+- **[A: the study ran]** [N] people who'd never freestyled took lesson one at Cal Hacks. Their Beat score went from **[first] to [last]** out of 10, in about [time] minutes. *(Beat only, first try vs last. If fewer than three landed, drop the time.)* **[B: no study]** *(Delete this bullet.)*
 - A live battle on iPhones, with Homer's spoken verdict [turn-to-voice p50] s after the last word.
 - 3% word error rate in our tests, with a drum at full volume as test noise, down from 20%, by feeding the phrases Homer dealt each poet to the recognizer.
 - The stitched song: the room leaves with one poem it made together.
@@ -155,7 +155,7 @@ The total is out of 100. Clichés and dodging the theme cost. In the lessons, **
 
 *(For Microsoft's track. Each line answers one of their five capabilities.)*
 - **Customer understanding:** we started from one community, spoken-word and slam poets in [the poet's scene], and tested on people who'd never freestyled.
-- **Measurable usefulness:** the stress scanner's Beat score is an objective measure. [N] first-timers went from [first] to [last] out of 10 in one lesson.
+- **Measurable usefulness:** the stress scanner's Beat score is an objective measure, and every lesson try gets one, so a poet sees their first try against their last. **[A: the study ran]** [N] first-timers went from [first] to [last] out of 10 in one lesson. **[B: no study]** *(End the bullet after "their last".)*
 - **A path from prototype to production:** TestFlight now, then the App Store. The website is live at https://play.206.189.237.157.sslip.io, served from the same DigitalOcean droplet as the agent service (Docker), and SpacetimeDB runs on Maincloud.
 - **Responsible design:** captions, a hands-free mic that opens only on your turn, no audio through our server, gentle roasts, and the content and name filters (below).
 - **End-to-end functionality:** the live battle runs on real services, with nothing mocked.
@@ -229,6 +229,7 @@ Main prizes are automatic.
 - [ ] README has a **Cartesia section**: setup (XcodeGen, signing, `.env`), the Cartesia features used, known limitations
 - [ ] README explains where SpacetimeDB is used (tables, reducers, the 20 Hz stream, the private cards, the SDK patches)
 - [ ] Video, 2:00, opening with the moment ([video.md](video.md))
+- [ ] **Figma deck ready:** **Matus, in the Figma Slides app** (the MCP can't create embeds): share the deck as "Anyone with the link → can view"; on slide 8, paste or Insert → Embed Flow 1 (https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102) and Flow 2 (https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364) over the stand-in images; on slide 9, embed the Directions file (https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv); put the team's names on slide 1. The Make file counts as an embed too, but it was never prompted, so the prototypes are the better proof.
 - [ ] **Figma entry, exactly as Figma staff said** (#spons-figma, Sat 3:07 PM): the Figma Slides link goes in Project Details → **"Try it Out links"**; select **"[Figma] Best Figma Workflow Hack"** under Sponsors & Special Prizes; set the Slides sharing to **"View all"**. The design files are shared with "Anyone" too, and the whole team is Edu verified.
 - [ ] **Matus submits build 18 (0.1.0, `202610241606`) for external review (Beta App Review) as soon as it finishes processing**, so the public TestFlight link works. `docs/study.md` calls it the build the judges will see: free verse, content-only scoring, and the fix for silent turns. If a later build passes the 8 PM runs instead, submit that one too. Leader confirms the judging build at 11 PM.
 - [ ] TestFlight public link installs on an iPhone that isn't on our internal tester list
