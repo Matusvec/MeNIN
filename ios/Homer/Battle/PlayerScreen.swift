@@ -20,7 +20,11 @@ struct PlayerScreen: View {
 
     var body: some View {
         Group {
-            if battle.me != nil, battle.room?.event == "discus" {
+            if battle.me != nil, battle.room?.event == "stadion" {
+                StadionPhoneRoot(battle: battle, onBack: { if midBattle { confirmLeave = true } else { leave() } })
+            } else if battle.me != nil, battle.room?.event == "pygmachia" {
+                BoxingPhoneRoot(battle: battle, onBack: { if midBattle { confirmLeave = true } else { leave() } })
+            } else if battle.me != nil, battle.room?.event == "discus" {
                 DiscusPhoneRoot(battle: battle, onBack: { if midBattle { confirmLeave = true } else { leave() } })  // no mic in discus
             } else {
                 PlayerView(model: model, actions: actions)

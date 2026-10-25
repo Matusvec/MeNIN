@@ -33,7 +33,8 @@ final class CartesiaSTT: @unchecked Sendable {
     private let queue = DispatchQueue(label: "com.matusvec.homer.stt")
 
     /// `keyterms` bias recognition toward the poet's formulas (ink-2 only; up to 100 terms,
-    /// 1200 characters). Live test: word error 3% with them vs 6–20% without, even under the beat.
+    /// 1200 characters). Probe on synthetic fixtures (docs/voice-wer/): word error 3% with them on
+    /// every fixture, vs 6–9% without on clean or quieter-drum mixes and 20% with the drum at 0 dB.
     init(token: VoiceToken, keyterms: [String] = [], session: URLSession = .shared, endpoint: URL = CartesiaSTT.endpoint) {
         let stt = token.stt ?? .init(model: "ink-2", encoding: "pcm_s16le", sampleRate: Int(MicEngine.sttSampleRate))
         var components = URLComponents(url: endpoint, resolvingAgainstBaseURL: false)!

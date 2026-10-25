@@ -33,6 +33,8 @@ final class BattleClient: SpacetimeClientDelegate {
         tokens = KeychainTokenStore(service: "com.matusvec.homer.spacetimedb.\(role.rawValue)")
         BattleTables.registerAll()
         DiscusTables.registerAll()  // Events/Discus (multiplayer)
+        StadionTables.registerAll()
+        BoxingTables.registerAll()
     }
 
     // MARK: connection
@@ -248,6 +250,17 @@ final class BattleClient: SpacetimeClientDelegate {
     }
 
     /// Subscribes to everything this device needs for one room, replacing the previous room.
+    @ObservationIgnored private var eventSubscription: SubscriptionHandle?
+
+    /// The live-sport tables, in their own subscription and only inside that event's room, so a
+    /// battle room (or a server without these tables) never subscribes to them.
+    func watchEventTables(_ event: String) {
+        let tables: [String] = event == "stadion" ? ["heat", "runner"] : event == "pygmachia" ? ["fight", "fighter", "punch"] : []
+        guard !tables.isEmpty, roomId != 0 else { return }
+        eventSubscription?.unsubscribe(sendDroppedRows: true)
+        eventSubscription = client?.subscribe(queries: tables.map { "SELECT * FROM \($0) WHERE room_id = \(roomId)" })
+    }
+
     func watchRoom(_ id: UInt64) {
         guard id != roomId || roomSubscription == nil else { return }
         roomSubscription?.unsubscribe(sendDroppedRows: true)

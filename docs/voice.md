@@ -235,7 +235,7 @@ Built in `ios/Homer/` (the swift session owns it). Verified with unit tests and 
 
 ## Live tests still to run
 
-**Setup:** the probe lives in the swift session's scratchpad, not the repo:
+**Setup:** the probe and its results are in `docs/voice-wer/` (moved from the swift session's scratchpad). The old scratchpad path:
 
 `/private/tmp/claude-501/-Users-matus-dev-projects-MeNIN/2ad722dd-4ba3-4bf9-a094-3e6eeba175bb/scratchpad/voice-probe/`
 

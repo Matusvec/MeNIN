@@ -1,0 +1,15 @@
+ink-2           beat_+0dB.wav          wer=0.20 first_text=1546ms final_after_finalize=74ms words=0 partial_words=False first_word_start=None lag=None err=0
+ink-2           beat_+0dB_hpf150.wav   wer=0.20 first_text=1547ms final_after_finalize=71ms words=0 partial_words=False first_word_start=None lag=None err=0
+ink-2           beat_+12dB.wav         wer=0.06 first_text=1544ms final_after_finalize=72ms words=0 partial_words=False first_word_start=None lag=None err=0
+ink-2           beat_+6dB.wav          wer=0.06 first_text=1546ms final_after_finalize=73ms words=0 partial_words=False first_word_start=None lag=None err=0
+ink-2           clean.wav              wer=0.09 first_text=1544ms final_after_finalize=80ms words=0 partial_words=False first_word_start=None lag=None err=0
+ink-2       +kt beat_+0dB.wav          wer=0.03 first_text=1548ms final_after_finalize=62ms words=0 partial_words=False first_word_start=None lag=None err=0
+ink-2       +kt beat_+0dB_hpf150.wav   wer=0.03 first_text=1546ms final_after_finalize=71ms words=0 partial_words=False first_word_start=None lag=None err=0
+ink-2       +kt beat_+12dB.wav         wer=0.03 first_text=1560ms final_after_finalize=73ms words=0 partial_words=False first_word_start=None lag=None err=0
+ink-2       +kt beat_+6dB.wav          wer=0.03 first_text=1548ms final_after_finalize=79ms words=0 partial_words=False first_word_start=None lag=None err=0
+ink-2       +kt clean.wav              wer=0.03 first_text=1550ms final_after_finalize=81ms words=0 partial_words=False first_word_start=None lag=None err=0
+ink-whisper     beat_+0dB.wav          wer=0.11 first_text=2769ms final_after_finalize=-152ms words=34 partial_words=False first_word_start=0.48 lag=1303 err=0
+ink-whisper     beat_+0dB_hpf150.wav   wer=0.09 first_text=2769ms final_after_finalize=-233ms words=34 partial_words=False first_word_start=0.48 lag=1313 err=0
+ink-whisper     beat_+12dB.wav         wer=0.09 first_text=2768ms final_after_finalize=-234ms words=34 partial_words=False first_word_start=0.48 lag=1291 err=0
+ink-whisper     beat_+6dB.wav          wer=0.09 first_text=2769ms final_after_finalize=-32ms words=34 partial_words=False first_word_start=0.496 lag=1351 err=0
+ink-whisper     clean.wav              wer=0.06 first_text=2767ms final_after_finalize=-235ms words=35 partial_words=False first_word_start=0.48 lag=1318 err=0
