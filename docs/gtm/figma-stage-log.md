@@ -35,7 +35,7 @@ From the track doc, in their words:
 
 **"Don't treat the Figma as the ground truth. Use the power of Figma to make it better. Don't assume one way is good or not."** That was Matus to the artist session at 23:50 on Friday. The agent had just read his concept frame through the Figma MCP and started copying it over the work it had already done. His correction set the whole workflow: Figma is a tool for comparing ideas, not a spec to transcribe. AI is a creative partner, and the designer keeps the point of view.
 
-What that looks like in practice. MeNIN is built by one designer (Matus) and a team of Claude Code sessions: leader, pm, artist, swift, multiplayer, gtm.
+What that looks like in practice. MeNIN is built by two designers (Matus designed the app; our web designer, a teammate, made the website in Figma Make) and a team of Claude Code sessions: leader, pm, artist, swift, multiplayer, builder, gtm.
 
 1. **Two directions, one vocabulary.** The artist session put both looks into one Figma variable collection with two modes: **Atelier** (Matus's concept: cream, Bodoni Moda, wine) and **Cut paper** (the first art pass: a dark sea, Fraunces, ink slabs). Every variable carries its Swift name as code syntax, and the app reads the same tokens through one `Direction` switch. Flipping a frame's mode in Figma and flipping the launch flag in the app show the same thing.
 2. **Editable designs, not screenshots.** Matus's home frame was rebuilt as token-bound components. A clickable prototype covers both flows (first open to practice, and battle: join → arena → champion).

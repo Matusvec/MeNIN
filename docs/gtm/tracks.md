@@ -86,7 +86,7 @@ Criteria: Workflow Design, Adoptability ("a measurable before and after"), Outpu
 - [ ] The deck and any FigJam file also shared with "Anyone"
 - [ ] **Every teammate Edu verified** at figma.com/education/apply
 
-**How MeNIN hits it:** one designer plus a team of Claude Code sessions, with Figma as the source of truth between them. That's a workflow another team could copy, which is what "Adoptability" means.
+**How MeNIN hits it:** two designers plus a team of Claude Code sessions, with Figma's variables as the shared vocabulary between them (not the ground truth: Matus's rule, Fri 23:50). That's a workflow another team could copy, which is what "Adoptability" means.
 
 **Where we are (Sat AM):** the workflow is real now.
 - Matus drew the concept in Figma Design. The art session reads it through the Figma MCP, building from the file rather than from screenshots.
@@ -100,7 +100,7 @@ Criteria: Workflow Design, Adoptability ("a measurable before and after"), Outpu
 | --- | --- | --- |
 | 1 | Title | MeNIN: ancient Greek party games, hosted by Homer. Team. |
 | 2 | The problem | Poets practice alone between weekly open mics. One sentence. |
-| 3 | The workflow | One designer plus a team of Claude Code sessions, with Figma as the handoff between them. Reuse the FigJam how-it's-built diagram from [video.md](video.md). |
+| 3 | The workflow | Two designers (the app, and the website in Figma Make) plus a team of Claude Code sessions, with Figma as the handoff between them. Reuse the FigJam how-it's-built diagram from [video.md](video.md). |
 | 4–7 | The stage log | One slide each for Ideation, Prototyping, Handoff and Code generation, **200 words max each**: the tool and why, minutes, a 1–5 rating, what made it in, and the friction. Pull from the log's entries; keep the dead ends (glow → matte, web → iOS). |
 | 8 | The prototype | **Embed the "Prototype · Atelier" flows.** Flow 1, first open → event menu → Poetry → Practice turn → verdict: https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102 · Flow 2, join → arena turn → carved line → champion: https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364 |
 | 9 | Two directions, one switch | **Embed the Directions file.** One mode switch flips Atelier ↔ Cut paper, and every token has its Swift name. Matus picked Atelier this way (Sat 11:55 AM), and it ships. |

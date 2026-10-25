@@ -90,7 +90,7 @@ Ask them: "Is our community narrow enough?"
 > "Party games for one room: one screen, everyone's phone is a controller. The main event is a poetry battle where the judge scores how well you answer the person before you, and at the end Homer stitches everyone's lines into one song."
 
 **Figma** (Booth #35)
-> "One designer and six Claude Code sessions, with Figma as the source of truth between them. We're keeping a stage log, including what broke, like the web-to-iOS pivot."
+> "Two designers and a team of Claude Code sessions, with Figma's variables as the shared vocabulary between them. We're keeping a stage log, including what broke, like the web-to-iOS pivot."
 Ask them: "What makes a stage log win?"
 
 ## Q&A bank
