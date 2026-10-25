@@ -1,0 +1,278 @@
+/* The arena's event board (EventCards.tsx), in the hall's own language: Wii Sports buttons (glossy
+   white, chunky white rim, a soft blue selection glow) carrying Greek pottery: black-figure emblems
+   on terracotta medallions, and a meander band on the featured event. */
+
+.event-board {
+  --clay: #c8693a;
+  --clay-light: #e3915b;
+  --clay-dark: #9c4a24;
+  --figure: #1f1a17;
+  --wii-blue: #5ab4d8;
+  --wii-blue-dark: #2f8bb4;
+  --ink: #2c4757;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin-top: 1.25rem;
+}
+
+.event-card {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.85rem;
+  align-items: center;
+  min-height: 5.6rem;
+  padding: 0.8rem 0.95rem;
+  text-align: left;
+  color: var(--ink);
+  background: linear-gradient(180deg, #ffffff 0%, #f0f7fb 55%, #dcebf3 100%);
+  border: 3px solid #fff;
+  border-radius: 1.45rem;
+  box-shadow:
+    0 0 0 1px rgb(120 160 185 / 35%),
+    0 0.3rem 0 rgb(110 135 150 / 55%),
+    0 0.8rem 1.4rem rgb(40 90 120 / 12%);
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+/* The Wii gloss: a soft highlight over the top of every button. */
+.event-card::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 50%;
+  border-radius: 1.2rem 1.2rem 50% 50% / 1.2rem 1.2rem 0.8rem 0.8rem;
+  background: linear-gradient(180deg, rgb(255 255 255 / 95%), rgb(255 255 255 / 0%));
+  pointer-events: none;
+}
+
+/* Selected: the Wii's pulsing blue ring. */
+.event-card:hover:not(:disabled),
+.event-card:focus-visible {
+  transform: translateY(-2px) scale(1.01);
+  outline: none;
+  animation: wii-select 1.4s ease-in-out infinite;
+}
+
+@keyframes wii-select {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 4px #8fd6f5,
+      0 0 0 7px rgb(143 214 245 / 30%),
+      0 0.3rem 0 rgb(110 135 150 / 55%),
+      0 0.9rem 1.6rem rgb(40 120 170 / 20%);
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px #b9e8fb,
+      0 0 0 10px rgb(143 214 245 / 18%),
+      0 0.3rem 0 rgb(110 135 150 / 55%),
+      0 0.9rem 1.6rem rgb(40 120 170 / 20%);
+  }
+}
+
+.event-card:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow:
+    0 0 0 4px #8fd6f5,
+    0 0.1rem 0 rgb(110 135 150 / 55%);
+  animation: none;
+}
+
+.event-card:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* The medallion: a terracotta tondo with a black rim and a cream ring, the figure in black. */
+.event-emblem {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  color: var(--figure);
+  background: radial-gradient(circle at 35% 30%, var(--clay-light), var(--clay) 62%, var(--clay-dark));
+  border: 3px solid var(--figure);
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 3px #edd3ae,
+    inset 0 0 0 4px var(--figure),
+    0 2px 0 rgb(0 0 0 / 12%);
+}
+
+.event-emblem svg {
+  width: 2rem;
+  height: 2rem;
+  fill: currentColor;
+}
+
+/* Details "incised" through the black glaze, so they show the clay. */
+.event-emblem .incise {
+  fill: var(--clay);
+}
+
+.event-emblem .incise-line {
+  fill: none;
+  stroke: var(--clay);
+}
+
+.event-text {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.event-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.event-host {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #5f8ba3;
+}
+
+.event-tag {
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.event-tag.beta {
+  color: #3d2f0e;
+  background: #f3d27a;
+  box-shadow: inset 0 -1px 0 rgb(0 0 0 / 12%);
+}
+
+.event-tag.start {
+  color: #fff;
+  background: linear-gradient(180deg, var(--wii-blue), var(--wii-blue-dark));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 45%);
+}
+
+.event-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--ink);
+}
+
+.event-line {
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: #5f7a89;
+}
+
+/* The go button: the hall's round, glossy blue button. */
+.event-go {
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(180deg, #7cc8e6, var(--wii-blue-dark));
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 0 #287794;
+  transition: transform 0.16s ease;
+}
+
+.event-card:hover:not(:disabled) .event-go,
+.event-card:focus-visible .event-go {
+  transform: translateX(3px);
+}
+
+/* The featured event: taller, a bigger medallion, and a meander band in the clay along the top. */
+.event-card.featured {
+  grid-column: 1 / -1;
+  min-height: 7.6rem;
+  padding: 1.55rem 1.3rem 1rem;
+}
+
+.event-card.featured::after {
+  content: '';
+  position: absolute;
+  top: 0.45rem;
+  right: 1.2rem;
+  left: 1.2rem;
+  height: 0.65rem;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath d='M0 9h12V1H4v5h5V3.5H6.5' fill='none' stroke='%23c8693a' stroke-width='1.6' stroke-linecap='square'/%3E%3C/svg%3E") repeat-x left center / auto 100%;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.event-card.featured .event-emblem {
+  width: 4.6rem;
+  height: 4.6rem;
+}
+
+.event-card.featured .event-emblem svg {
+  width: 2.8rem;
+  height: 2.8rem;
+}
+
+.event-card.featured .event-name {
+  font-size: 1.55rem;
+}
+
+.event-card.featured .event-go {
+  width: 2.7rem;
+  height: 2.7rem;
+  font-size: 1.5rem;
+}
+
+/* "New event": smaller buttons, no description. */
+.event-board.compact .event-card {
+  min-height: 4rem;
+  padding: 0.55rem 0.75rem;
+}
+
+.event-board.compact .event-emblem {
+  width: 2.7rem;
+  height: 2.7rem;
+}
+
+.event-board.compact .event-emblem svg {
+  width: 1.55rem;
+  height: 1.55rem;
+}
+
+.event-board.compact .event-name {
+  font-size: 1rem;
+}
+
+@media (max-width: 560px) {
+  .event-board {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .event-card,
+  .event-go {
+    transition: none;
+  }
+
+  .event-card:hover:not(:disabled),
+  .event-card:focus-visible {
+    animation: none;
+    box-shadow:
+      0 0 0 4px #8fd6f5,
+      0 0.3rem 0 rgb(110 135 150 / 55%);
+  }
+}

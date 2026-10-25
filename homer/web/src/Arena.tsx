@@ -14,6 +14,8 @@ import { Arena, FIELD_EVENTS, QUIET_SCENE, SILENT_VERDICT, STDB_DB, type ArenaVi
 import { webJoinLink } from './lib/links'
 import type { SceneTheme } from './scene/moods'
 import SceneBackdrop from './scene/SceneBackdrop'
+import EventCards from './EventCards'
+import { EVENTS } from './lib/events'
 import TailVerse, { type WordMark } from './TailVerse'
 import './wired.css'
 import { useMusic } from './music'
@@ -63,15 +65,7 @@ const AXES: Record<string, Array<[string, number]>> = {
 
 // One ink per seat, so a poet keeps their color all battle (ios/Homer/UI/Tokens.swift Palette.seats, Atelier).
 const SEAT_INKS = ['#2D5C66', '#C8452C', '#A8741F', '#5B3F73', '#6E7A2E'] // sea, vermilion, gold, plum; olive for a 5th (= the phone's Palette.seats)
-const GAMES: Array<[GameEvent, string]> = [
-  ['poetry', 'Poetry battle'],
-  ['coach', 'Talk to Homer'],
-  ['debate', 'Socratic debate'],
-  ['discus', 'Discus'],
-  ['stadion', 'Stadion'],
-  ['pygmachia', 'Pygmachia (beta)'], // live for Matus's first real fights (build 20); scripted runs follow
-  ['toxeia', 'Toxeia (beta)'], // module on prod 18:20; a scripted run passed 18:34 (2 archers, 6 arrows); Matus's real runs next
-]
+// The events the hall can open, and how they read: lib/events.ts (EVENTS).
 
 const PHASES: Record<string, string> = {
   lobby: 'Scan the code with the MeNIN app, or type it in',
@@ -140,10 +134,13 @@ export default function ArenaPanel({
   onLine,
   onSpeaking,
   onStatus,
+  onPhase,
 }: {
   onLine: (line: string) => void
   onSpeaking: (speaking: boolean) => void
   onStatus: (status: string) => void
+  /** The room's phase and event, for Homer's pose (null before a room exists). */
+  onPhase?: (phase: string | null, event: string | null) => void
 }) {
   const [view, setView] = useState<ArenaView | null>(null)
   const arena = useRef<Arena | null>(null)
@@ -226,6 +223,9 @@ export default function ArenaPanel({
   useEffect(() => {
     onStatus(status)
   }, [status, onStatus])
+  useEffect(() => {
+    onPhase?.(view?.room?.phase ?? null, view?.room?.event ?? null)
+  }, [view?.room?.phase, view?.room?.event, onPhase])
 
   const room = view?.room ?? null
   const qr = useQr(room ? webJoinLink(room.code) : '') // a page that opens MeNIN, or points to TestFlight
@@ -267,20 +267,15 @@ export default function ArenaPanel({
         <div className="arena" data-phase="none">
           <Heading kicker="Host a battle" title="Open the hall" note="This screen is the arena. Phones join with the MeNIN app." />
           {view.status === 'offline' && <p className="wired-note">{view.error || 'Lost the hall. Reconnecting…'}</p>}
+          {/* The event board (EventCards, styled by the artist); opening one hosts its room. */}
+          <EventCards
+            disabled={view.status !== 'connected'}
+            onPick={(event) => {
+              arena.current?.startSound()
+              arena.current?.createRoom(event)
+            }}
+          />
           <div className="wired-actions open-choices">
-            {GAMES.map(([event, label], i) => (
-              <button
-                key={event}
-                className={i === 0 ? 'primary-action' : 'secondary-action'}
-                disabled={view.status !== 'connected'}
-                onClick={() => {
-                  arena.current?.startSound()
-                  arena.current?.createRoom(event)
-                }}
-              >
-                Open the hall: {label}
-              </button>
-            ))}
             {view.resumable && (
               <button
                 className="secondary-action"
@@ -480,19 +475,15 @@ export default function ArenaPanel({
 
         {/* New event: another game in the same hall; every phone stays joined (set_event → lobby → Begin). */}
         {picking && ['lobby', 'finished'].includes(room.phase) && (
-          <div className="wired-actions open-choices event-picker">
-            {GAMES.filter(([event]) => event !== room.event).map(([event, label]) => (
-              <button
-                key={event}
-                className="secondary-action"
-                onClick={() => {
-                  setPicking(false)
-                  arena.current?.setEvent(event)
-                }}
-              >
-                {label}
-              </button>
-            ))}
+          <div className="event-picker">
+            <EventCards
+              compact
+              events={EVENTS.filter((event) => event.id !== room.event)}
+              onPick={(event) => {
+                setPicking(false)
+                arena.current?.setEvent(event)
+              }}
+            />
           </div>
         )}
 

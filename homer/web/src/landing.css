@@ -1,0 +1,333 @@
+/* The Poets' Hall (Landing.tsx), after the team's Figma Make design: a pale sky wash over the
+   3D island, a light display heading on the left, and a white poet card on the right. */
+
+.landing {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr auto;
+  grid-template-areas:
+    'header'
+    'intro'
+    'poets'
+    'foot';
+  min-height: 100svh;
+  padding: clamp(1.25rem, 3vw, 2.5rem) clamp(1.25rem, 5vw, 5rem);
+  overflow: hidden;
+  isolation: isolate;
+  color: #2f5266;
+  background: #d9eef8;
+}
+
+.landing-world {
+  position: fixed; /* fixed, so the scaled-up blur never widens the scrolling page */
+  z-index: -2;
+  inset: 0;
+  filter: saturate(0.85) blur(2px);
+  transform: scale(1.03); /* hides the blur's soft edge */
+}
+
+/* Washes the island out on the text side so the heading reads from across a room. */
+.landing::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(100deg, rgb(236 247 252 / 94%) 0%, rgb(232 245 251 / 82%) 42%, rgb(226 242 250 / 38%) 100%);
+  pointer-events: none;
+}
+
+.landing-header {
+  grid-area: header;
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgb(47 82 102 / 14%);
+}
+
+.landing-wordmark {
+  font-size: clamp(1.8rem, 2.6vw, 2.4rem);
+  font-weight: 300;
+  letter-spacing: -0.01em;
+  color: #2a7fa6;
+}
+
+.landing-hall {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #4f7488;
+}
+
+.landing-intro {
+  grid-area: intro;
+  margin: clamp(1.25rem, 4vh, 2.5rem) 0 clamp(1rem, 3vh, 2rem);
+}
+
+.landing-kicker {
+  margin: 0 0 1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #2a8fb5;
+}
+
+.landing-intro h1 {
+  max-width: none;
+  margin: 0;
+  font-size: clamp(2.5rem, 4.4vw, 4.4rem);
+  font-weight: 300;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: #2a4d62;
+}
+
+.landing-lede {
+  max-width: 26rem;
+  margin: 1.4rem 0 0;
+  font-size: clamp(1rem, 1.3vw, 1.2rem);
+  line-height: 1.5;
+  color: #557689;
+}
+
+.landing-poets {
+  grid-area: poets;
+  align-self: start;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1rem, 2vw, 1.75rem);
+  width: 100%;
+  max-width: 72rem;
+}
+
+.poet-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: hidden;
+  border: 3px solid #fff;
+  border-radius: 1.6rem;
+  background: rgb(255 255 255 / 92%);
+  box-shadow: 0 1.5rem 3rem rgb(38 88 120 / 18%);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.poet-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 2rem 3.5rem rgb(38 88 120 / 24%);
+}
+
+.poet-badge {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  z-index: 2;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.4rem 0.75rem;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fff;
+  background: #5fa88a;
+}
+
+.poet-figure {
+  position: relative;
+  height: clamp(10rem, 24vh, 16rem);
+  background: radial-gradient(ellipse at 50% 75%, #ffffff 0%, #eef6fa 60%, #e3eff5 100%);
+}
+
+.poet-copy {
+  padding: 1.1rem 1.4rem 1.2rem;
+  border-top: 1px solid #e5eef3;
+}
+
+.poet-title {
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #2a8fb5;
+}
+
+.poet-copy h2 {
+  margin: 0.35rem 0 0.25rem;
+  font-size: 2.2rem;
+  font-weight: 300;
+  color: #2a4d62;
+}
+
+.poet-craft {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6b8796;
+}
+
+.poet-choose {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 3.6rem;
+  padding: 0 1.4rem;
+  border: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(180deg, #5bb3d6, #2f8bb4);
+  cursor: pointer;
+}
+
+.poet-choose:hover,
+.poet-choose:focus-visible {
+  background: linear-gradient(180deg, #4aa6cc, #22789f);
+}
+
+.poet-choose:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: -6px;
+}
+
+.poet-choose:disabled {
+  cursor: default;
+  color: #6f8794;
+  background: #e3ebef;
+}
+
+/* Locked poets: the avatar dimmed and desaturated behind a lock badge. */
+.poet-card.locked {
+  background: rgb(246 249 251 / 88%);
+}
+
+.poet-card.locked:hover {
+  transform: none;
+  box-shadow: 0 1.5rem 3rem rgb(38 88 120 / 18%);
+}
+
+.poet-card.locked .poet-figure canvas {
+  filter: grayscale(0.6) contrast(0.9);
+  opacity: 0.78;
+}
+
+.poet-card.locked .poet-copy h2,
+.poet-card.locked .poet-title {
+  color: #7d97a5;
+}
+
+.poet-badge.locked {
+  color: #4d6573;
+  background: #dbe5ea;
+}
+
+.poet-badge svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  fill: currentColor;
+}
+
+.landing-footnote {
+  grid-area: foot;
+  margin: 1.5rem 0 0;
+  font-size: 0.95rem;
+  font-style: italic;
+  text-align: center;
+  color: #3f6478;
+}
+
+/* The hall's way back to the landing page, under Homer's nameplate. */
+.back-to-poets {
+  position: absolute;
+  z-index: 6;
+  top: 7.4rem;
+  left: 1.25rem;
+  padding: 0.45rem 0.85rem;
+  border: 2px solid rgb(255 255 255 / 80%);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  background: rgb(36 64 86 / 55%);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+}
+
+.back-to-poets:hover,
+.back-to-poets:focus-visible {
+  background: rgb(36 64 86 / 75%);
+}
+
+@media (max-width: 720px) {
+  .back-to-poets {
+    top: calc(max(1.25rem, env(safe-area-inset-top)) + 4.9rem);
+    left: 1rem;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 960px) {
+  .landing-poets {
+    grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .landing {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'header'
+      'intro'
+      'poets'
+      'foot';
+    height: 100svh;
+    overflow: auto;
+  }
+
+  .landing-intro {
+    margin: 2rem 0 1.5rem;
+  }
+}
+
+/* The hall's single path (no dropdown when there is only one): the trigger's look, with a go arrow. */
+.select-trigger.single {
+  cursor: pointer;
+}
+
+.path-go {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(180deg, #5bb3d6, #2f8bb4);
+  transition: transform 0.18s ease;
+}
+
+.select-trigger.single:hover .path-go,
+.select-trigger.single:focus-visible .path-go {
+  transform: translateX(3px);
+}
+
+/* One path: no A button, so the dialogue has two columns. */
+.dialogue.single-path {
+  grid-template-columns: minmax(0, 1.2fr) minmax(17rem, 0.8fr);
+}
+
+@media (max-width: 760px) {
+  .dialogue.single-path {
+    grid-template-columns: 1fr;
+  }
+}

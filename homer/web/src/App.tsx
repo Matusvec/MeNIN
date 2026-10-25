@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react'
-import GameStrip from './GameStrip'
+import { useCallback, useEffect, useState } from 'react'
 import ArenaPanel from './Arena'
-import Homer3D from './Homer3D'
+import Homer3D, { type HomerAction } from './Homer3D'
+import { resolveAction } from './poets/rig'
+import World3D from './world/World3D'
 import JoinCard from './JoinCard'
+import Landing from './Landing'
+import { FIELD_EVENTS } from './lib/arena'
 import { hasTestFlight, joinCodeFromPath, TESTFLIGHT_URL } from './lib/links'
 import MusicToggle from './MusicToggle'
 
@@ -137,6 +140,31 @@ function AegeanScene() {
   )
 }
 
+/** What Homer does on the arena, from the room's phase: he waves poets in, sits on his throne to
+ *  listen and judge, points as the verdict lands, sings the finale and presents the laurel. */
+function homerActionFor(phase: string | null, event: string | null): HomerAction {
+  const field = event !== null && FIELD_EVENTS.includes(event)
+  switch (phase) {
+    case 'dealing':
+    case 'ready':
+      return 'listen'
+    case 'speaking':
+      return field ? 'cheer' : 'judge'
+    case 'judging':
+      return field ? 'idle' : 'judge'
+    case 'scored':
+      return field ? 'cheer' : 'verdict'
+    case 'round_end':
+      return 'idle'
+    case 'finale':
+      return field ? 'cheer' : 'sing'
+    case 'finished':
+      return 'laurel'
+    default:
+      return 'welcome' // no room yet, or the lobby
+  }
+}
+
 function ModePage({
   mode,
   onBack,
@@ -147,6 +175,8 @@ function ModePage({
   const info = modes.find((item) => item.id === mode)!
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [hallStatus, setHallStatus] = useState('') // the arena's plain-words wait ("Homer is dealing…")
+  const [homerAction, setHomerAction] = useState<HomerAction>('welcome')
+  const onPhase = useCallback((phase: string | null, event: string | null) => setHomerAction(homerActionFor(phase, event)), [])
   const [answer, setAnswer] = useState<string | null>(null)
   const [heard, setHeard] = useState(false)
   const [coachLine, setCoachLine] = useState(
@@ -216,10 +246,11 @@ function ModePage({
     </>
   )
 
-  const battleContent = <ArenaPanel onLine={setCoachLine} onSpeaking={setIsSpeaking} onStatus={setHallStatus} />
+  const battleContent = <ArenaPanel onLine={setCoachLine} onSpeaking={setIsSpeaking} onStatus={setHallStatus} onPhase={onPhase} />
 
   return (
     <main className={`mode-screen ${mode}`}>
+      {/* The arena's live sea covers this from the lobby on, so it stays the light SVG (no third WebGL canvas). */}
       <div className="mode-scene" aria-hidden="true"><AegeanScene /></div>
       <header className="mode-topbar">
         <button className="mode-back" onClick={onBack}>‹ Main menu</button>
@@ -228,7 +259,7 @@ function ModePage({
       </header>
       <div className="mode-layout">
         <aside className="coach-stage" data-waiting={hallStatus ? 'true' : undefined}>
-          <Homer3D speaking={isSpeaking} mode={mode} />
+          <Homer3D speaking={isSpeaking} mode={mode} action={mode === 'battle' ? homerAction : undefined} />
           <div className="coach-dialogue">
             <span>Homer</span>
             <p>{coachLine}</p>
@@ -243,11 +274,33 @@ function ModePage({
   )
 }
 
+// The landing page (the Poets' Hall) lives at /, each poet's hall at /<poet>. The server serves
+// index.html for unknown paths, so a reload on /homer stays in Homer's hall.
+const onPoetPath = () => window.location.pathname.replace(/\/+$/, '') === '/homer'
+
 export default function App() {
+  const [inHall, setInHall] = useState(onPoetPath)
+  useEffect(() => {
+    const sync = () => setInHall(onPoetPath())
+    window.addEventListener('popstate', sync)
+    return () => window.removeEventListener('popstate', sync)
+  }, [])
+  const goTo = (path: string) => {
+    window.history.pushState(null, '', path)
+    setInHall(onPoetPath())
+  }
+
+  const joinCode = joinCodeFromPath(window.location.pathname)
+  if (!joinCode && !inHall) return <Landing onChoose={(poet) => goTo(`/${poet}`)} />
+  return <HomerHall joinCode={joinCode} onBack={() => goTo('/')} />
+}
+
+function HomerHall({ joinCode, onBack }: { joinCode: string | null; onBack: () => void }) {
   const [isOpen, setIsOpen] = useState(false)
   const [selectedMode, setSelectedMode] = useState<HomerMode | null>(null)
   const [activeMode, setActiveMode] = useState<HomerMode | null>(null)
   const selected = modes.find((mode) => mode.id === selectedMode)
+  const onlyMode = modes.length === 1 ? modes[0] : null
   const fullMessage =
     selected?.response ??
     'I’m Homer. I made the Iliad up out loud. Your turn.'
@@ -266,20 +319,12 @@ export default function App() {
   }, [fullMessage])
 
   const isSpeaking = spokenMessage.length < fullMessage.length
-  const joinCode = joinCodeFromPath(window.location.pathname)
 
   if (joinCode) {
     return (
       <main className="scene">
         <div className="animated-background" aria-hidden="true">
-          <div className="scene-artboard">
-            <AegeanScene />
-            <span className="sun-haze" />
-            <span className="cloud cloud-one" />
-            <span className="cloud cloud-two" />
-            <span className="sea-light sea-light-one" />
-            <span className="sea-light sea-light-two" />
-          </div>
+          <World3D fallback={<div className="scene-artboard"><AegeanScene /></div>} />
         </div>
         <header className="nameplate" aria-label="Homer">
           <span>Homer</span>
@@ -301,23 +346,12 @@ export default function App() {
   return (
     <main className="scene">
       <div className="animated-background" aria-hidden="true">
-        <div className="scene-artboard">
-          <AegeanScene />
-          <span className="sun-haze" />
-          <span className="cloud cloud-one" />
-          <span className="cloud cloud-two" />
-          <span className="cloud cloud-three" />
-          <span className="sea-light sea-light-one" />
-          <span className="sea-light sea-light-two" />
-          <span className="sea-light sea-light-three" />
-          <span className="gull gull-one" />
-          <span className="gull gull-two" />
-          <Homer3D speaking={isSpeaking} mode={selectedMode} />
-        </div>
+        {/* Homer stands inside the world, on the plaza: one camera, one light, real shadows. */}
+        <World3D speaking={isSpeaking} homerAction={resolveAction(selectedMode)} fallback={<div className="scene-artboard"><AegeanScene /></div>} />
       </div>
 
-      <GameStrip />
       <MusicToggle className="floating" />
+      <button className="back-to-poets" type="button" onClick={onBack}>‹ All poets</button>
 
       <header className="nameplate" aria-label="Homer">
         <span>Homer</span>
@@ -326,60 +360,76 @@ export default function App() {
         <i aria-hidden="true" />
       </header>
 
-      <section className="dialogue" aria-labelledby="dialogue-title">
+      <section className={`dialogue${onlyMode ? ' single-path' : ''}`} aria-labelledby="dialogue-title">
         <div className="dialogue-copy">
           <p className="welcome">{selected ? selected.label : 'Homer speaks'}</p>
           <h1 id="dialogue-title">{spokenMessage}<span className="typing-cursor" /></h1>
         </div>
 
-        <div className="mode-select">
+        {/* One path: a direct button, no dropdown. The dropdown comes back once there are more. */}
+        {onlyMode ? (
+          <div className="mode-select">
+            <button className="select-trigger single" type="button" onClick={() => setActiveMode(onlyMode.id)}>
+              <span>
+                <small>Your path</small>
+                <strong>{onlyMode.label}</strong>
+              </span>
+              <span className="path-go" aria-hidden="true">›</span>
+            </button>
+          </div>
+        ) : (
+          <div className="mode-select">
+            <button
+              className="select-trigger"
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded={isOpen}
+              onClick={() => setIsOpen((open) => !open)}
+            >
+              <span>
+                <small>Choose your path</small>
+                <strong>{selected?.label ?? 'Select a mode'}</strong>
+              </span>
+              <span className={`select-arrow ${isOpen ? 'open' : ''}`} aria-hidden="true" />
+            </button>
+
+            {isOpen && (
+              <div className="dropdown" role="listbox" aria-label="Homer mode">
+                {modes.map((mode) => (
+                  <button
+                    key={mode.id}
+                    className={selectedMode === mode.id ? 'selected' : ''}
+                    type="button"
+                    role="option"
+                    aria-selected={selectedMode === mode.id}
+                    onClick={() => {
+                      setSelectedMode(mode.id)
+                      setIsOpen(false)
+                    }}
+                  >
+                    <span className="option-mark" aria-hidden="true" />
+                    <span>
+                      <strong>{mode.label}</strong>
+                      <small>{mode.description}</small>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* The A button confirms a dropdown pick; with one path the path button is the action. */}
+        {!onlyMode && (
           <button
-            className="select-trigger"
+            className="continue-button"
             type="button"
-            aria-haspopup="listbox"
-            aria-expanded={isOpen}
-            onClick={() => setIsOpen((open) => !open)}
+            aria-label={selected ? `Continue to ${selected.label}` : 'Select a mode'}
+            onClick={() => (selected ? setActiveMode(selected.id) : setIsOpen(true))}
           >
-            <span>
-              <small>Choose your path</small>
-              <strong>{selected?.label ?? 'Select a mode'}</strong>
-            </span>
-            <span className={`select-arrow ${isOpen ? 'open' : ''}`} aria-hidden="true" />
+            A
           </button>
-
-          {isOpen && (
-            <div className="dropdown" role="listbox" aria-label="Homer mode">
-              {modes.map((mode) => (
-                <button
-                  key={mode.id}
-                  className={selectedMode === mode.id ? 'selected' : ''}
-                  type="button"
-                  role="option"
-                  aria-selected={selectedMode === mode.id}
-                  onClick={() => {
-                    setSelectedMode(mode.id)
-                    setIsOpen(false)
-                  }}
-                >
-                  <span className="option-mark" aria-hidden="true" />
-                  <span>
-                    <strong>{mode.label}</strong>
-                    <small>{mode.description}</small>
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <button
-          className="continue-button"
-          type="button"
-          aria-label={selected ? `Continue to ${selected.label}` : 'Select a mode'}
-          onClick={() => selected ? setActiveMode(selected.id) : setIsOpen(true)}
-        >
-          A
-        </button>
+        )}
       </section>
     </main>
   )
