@@ -16,6 +16,9 @@
      <blockquote class="reply"><b>Homer</b><p>…</p></blockquote>   his latest answer, big
    </div>
 
+   A verse attempt carries its score (see "Your score per attempt" below);
+   a talk-back carries none.
+
    Bard mode adds, inside .coach: .lesson-title (span + h2 + p), .verse-model
    (b + p per line), .note-card (b + p, small.score), .landed. */
 
@@ -251,6 +254,140 @@
   background: #e3f1f6;
 }
 
+/* ── Your score per attempt: are you getting better? ──────────────────────── */
+/* Each verse attempt carries its /100 and the trend from your last one; the best
+   so far is a gold seal; the newest scored attempt shows its three content bars.
+   A talk-back has no score. Hooks on li.turn.you: .scored, .best (best so far),
+   .latest (the newest scored attempt), .neutral (the judge timed out). After the p:
+
+     <div class="attempt-score">
+       <strong>41</strong><small>/100</small>
+       <em class="trend up | down | same">34 → 41 ↑</em>      no em on the first
+     </div>
+     <div class="attempt-bars">                                 .latest only
+       <div class="high?" style="--v: 8"><strong>8</strong><i class="bar"></i><span>Image</span></div>
+       … Answer, Craft (the arena's score-panel row, same order)
+     </div> */
+
+.coach .turn.you.scored {
+  min-width: min(21rem, 85%);
+}
+
+.coach .attempt-score {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  margin-top: 0.35rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #c3dce5;
+}
+
+.coach .attempt-score strong {
+  color: #2c4b5c;
+  font: 700 1.6rem/1 Georgia, serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.coach .attempt-score small {
+  color: #5f7d8c;
+  font: 600 0.85rem/1 system-ui, sans-serif;
+}
+
+.coach .attempt-score .trend {
+  margin-left: auto;
+  padding: 0.25rem 0.65rem;
+  color: #4d6b79;
+  font: 600 0.9rem/1 system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  background: #d2e6ed;
+  border-radius: 99rem;
+}
+
+/* Climbing: the trend goes solid blue. */
+.coach .attempt-score .trend.up {
+  color: #fff;
+  background: #328eaf;
+}
+
+/* The best so far: the score as a gold seal, and it says so. */
+.coach .turn.you.best .attempt-score strong {
+  padding: 0.12rem 0.45rem;
+  color: #2c2416;
+  background: #e2bd6c;
+  border-radius: 0.4rem;
+}
+
+.coach .turn.you.best .attempt-score small::after {
+  content: ' · best so far';
+}
+
+.coach .turn.you.latest.best .attempt-score strong {
+  animation: coach-stamp 0.45s ease-out 0.2s both;
+}
+
+/* The judge never answered: a neutral 4/4/4, grey, so nobody reads it as a judgment. */
+.coach .turn.you.neutral .attempt-score strong {
+  color: #8a9ca5;
+}
+
+.coach .turn.you.neutral .attempt-score small::after {
+  content: ' · neutral, the judge timed out';
+}
+
+.coach .turn.you.neutral .attempt-score .trend {
+  display: none;
+}
+
+/* The newest attempt's three content bars, filling in turn. */
+.coach .attempt-bars {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
+
+.coach .attempt-bars > div {
+  display: grid;
+  grid-template-columns: 4.6rem 1fr 1.6rem;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.coach .attempt-bars > div:nth-child(2) { --i: 1; }
+.coach .attempt-bars > div:nth-child(3) { --i: 2; }
+
+.coach .attempt-bars span {
+  order: 1;
+  color: #355d72;
+  font: 700 0.72rem/1 system-ui, sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.coach .attempt-bars .bar {
+  order: 2;
+  height: 0.7rem;
+  background: linear-gradient(90deg, #328eaf calc(var(--fill) * 10%), #c9dfe7 0);
+  mask-image: repeating-linear-gradient(90deg, #000 0 calc(10% - 2px), transparent calc(10% - 2px) 10%);
+  animation: arena-fill 0.5s ease-out calc(var(--i, 0) * 0.25s) both;
+}
+
+.coach .attempt-bars .high .bar {
+  background: linear-gradient(90deg, #c99a3e calc(var(--fill) * 10%), #c9dfe7 0);
+}
+
+.coach .turn.you.neutral .attempt-bars .bar {
+  background: linear-gradient(90deg, #9aaab3 calc(var(--fill) * 10%), #dbe7eb 0);
+}
+
+.coach .attempt-bars strong {
+  order: 3;
+  justify-self: end;
+  color: #2c4b5c;
+  font: 700 1.05rem/1 Georgia, serif;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── Bard mode: the lesson pieces ─────────────────────────────────────────── */
 
 .coach .lesson-title span {
@@ -365,7 +502,13 @@
   .coach .mic-mark::after,
   .coach .turn,
   .coach .note-card,
-  .coach .landed {
+  .coach .landed,
+  .coach .turn.you.latest.best .attempt-score strong {
+    animation: none;
+  }
+
+  .coach .attempt-bars .bar {
+    --fill: var(--v, 0);
     animation: none;
   }
 }

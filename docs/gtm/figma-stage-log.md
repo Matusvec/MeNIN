@@ -7,13 +7,13 @@ This log is the main thing Figma judges. Prizes: **Best Stage Log, $2,000** ("th
 ## What Figma requires (from the official track doc)
 
 - [ ] **Everyone on the team is Edu verified**: https://www.figma.com/education/apply
-- [ ] **Figma Slides** deck (required) showing the work and the workflow. Start from their example and edit it: https://www.figma.com/slides/hViyGFvaHxTBqzYKkaYPho
-  - [ ] Stage log in the deck: which Figma product we used and why, **200 words max per stage**
+- [ ] **Figma Slides** deck (required) showing the work and the workflow. Drafted by the artist session through the Figma MCP (Sat 17:40), ten slides on tracks.md's plan, for Matus to edit: https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm. Still to do: Matus sets sharing to Anyone with the link → can view.
+  - [x] Stage log in the deck: which Figma product we used and why, **200 words max per stage** (slides 4–7, one per stage, each with its entries, minutes, rating, what made it in and the friction)
   - [ ] Demo video, **3 min max** (our 2-minute video works)
   - [x] **A prototype exists to embed:** the "Prototype · Atelier" page in "MeNIN · Directions", with two flows (artist, Sat 08:40–09:10), both Anyone can view:
     - Flow 1, first open → event menu → Poetry → Practice turn → verdict: https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102
     - Flow 2, join → arena turn → carved line → champion: https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364
-  - [ ] The prototype and the Directions file embedded in the deck, plus the repo link (it works once the repo goes public Sun 8 AM)
+  - [ ] The prototype and the Directions file embedded in the deck, plus the repo link (it works once the repo goes public Sun 8 AM). Slides 8–10 show the real frames, with links to both flows, the Directions file and the repo. A live embed is a step in the Slides app (the MCP can't insert one).
 - [x] "MeNIN · Directions" shared as **Anyone with the link → can view** (Matus, Sat AM): https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv
 - [ ] Any new Figma file (the deck, a FigJam diagram) also shared with "Anyone"
 - [ ] Figma tagged on Devpost
