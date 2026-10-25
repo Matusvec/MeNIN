@@ -1158,6 +1158,29 @@ One pass through every phone screen on the 1 AM fix build (leader: build 44, plu
 | | | | | |
 | | | | | |
 
+### Sunday morning: the debate check (build 45)
+
+One demo-mode debate on the new fixed question, in the same slot as the visual pass. The debate question pool and the demo question changed in the 10:47 PM deploy, so this one run closes the gap (leader).
+
+- **Set up:** two team phones on build 45, a demo-mode hall on the website, New event → Socratic debate → Begin. The question must be "Achilles could live a long life and be forgotten, or die young and be sung forever. Which would you choose?", with the sides Glory and A long life.
+- **Who plays:** two of the team. Debater 1 argues properly and taps at least one move as they make it. Debater 2 gives a deliberately weak turn: one short claim, no reason, and the other side's point ignored. The two verdicts should then differ clearly.
+- **Grade each of Socrates' verdicts (real feedback):**
+  - It opens with a short quote of the debater's own words, then his own call: at most two sentences and about sixteen words.
+  - The call names the reason that held or the point they dodged. It's specific to this turn and could not have been said about the other one.
+  - It never says which side is right, never counts anything aloud, and never names a move by its id.
+  - It's spoken in Socrates' voice and captioned.
+- **Grade the scores (real scoring):**
+  - Claim, Reason, Answer and Craft come back 1 to 10, with Poise measured. Debater 2's weak turn scores clearly lower than debater 1's: at least 2 points lower on Reason and on Answer.
+  - The scores aren't all the same number, and not everything is a 6 or 7 (the judge is anchored).
+  - A tapped move that wasn't really made doesn't raise Craft.
+- **Fail:**
+  - Either verdict is "Socrates is silent on this one." or shows greyed neutral 4s. That means a timeout, so tell builder with the time.
+  - Either verdict is generic.
+  - The weak turn scores like the strong one.
+  - The wrong question or wrong sides show up.
+  - Any music plays from Begin to the crown.
+- **Write down:** both verdicts word for word, and both sets of scores.
+
 ### Results
 
 | Event | Run | Time | Pass or fail | What failed | Notes |
