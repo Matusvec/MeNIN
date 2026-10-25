@@ -39,7 +39,7 @@ def test_detectors_line_up_with_the_tables(lesson):
 
 def test_demo_is_speakable_and_on_the_beat():
     l = lessons()["beat"]
-    assert spoken_demo(l).splitlines()[0] == "the mast went down in the black of the storm"
+    assert spoken_demo(l).splitlines()[0] == "sing, goddess, the wrath of achilles"
     lane = demo_lane(l, 80)
     hits = [w["t"] for w in lane["words"] if w["stressed"]][:4]
     assert hits == [0, 750, 1500, 2250] and lane["lines"] == 4
@@ -234,12 +234,12 @@ def test_help_after_the_third_and_fifth_misses():
     assert say("beat", miss, try_no=2).help is None
     third = say("beat", miss, try_no=3)
     assert not third.landed and third.help["kind"] == "half"
-    assert third.help["half"] == "the MAST went DOWN /"
-    assert third.help["say"] == common()["Help after three misses"].replace("{half}", "the mast went down")
+    assert third.help["half"] == "SING, GODdess, /"
+    assert third.help["say"] == common()["Help after three misses"].replace("{half}", "sing, goddess,")
     assert say("beat", miss, try_no=4).help is None
     fifth = say("beat", miss, try_no=5)
-    assert fifth.landed and fifth.help["kind"] == "walkthrough" and fifth.help["line"] == "the MAST went DOWN / in the BLACK of the STORM"
-    assert fifth.help["say"] == common()["Walkthrough after five misses"].replace("{line}", "the mast went down in the black of the storm")
+    assert fifth.landed and fifth.help["kind"] == "walkthrough" and fifth.help["line"] == "SING, GODdess, / the WRATH of aCHILles"
+    assert fifth.help["say"] == common()["Walkthrough after five misses"].replace("{line}", "sing, goddess, the wrath of achilles")
     assert fifth.line == third.line  # Homer still names the miss; the walkthrough follows it
 
 
