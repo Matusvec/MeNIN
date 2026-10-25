@@ -2,18 +2,20 @@
 
 This is the shared state for **Battle mode** only. Bard and Practice are single-device and talk to the agent service directly, so they are not modeled here. The module lives in `src/index.ts`; if this file and the code disagree, fix one of them.
 
-**Events.** Each game is a config on one engine (SPEC "The games"). `room.event` picks it: `poetry`, `debate` or `discus`. The module knows how many score axes an event has, what kind of card the hand holds (`EVENTS` in `src/index.ts`), and its turn timing (`turnWindow`). The axis labels, the host, the beat on or off, and the copy all live in the app's event config.
+**Events.** Each game is a config on one engine (SPEC "The games"). `room.event` picks it: `poetry`, `debate`, `discus`, `coach`, `stadion` or `pygmachia`. The module knows how many score axes an event has, what kind of card the hand holds (`EVENTS` in `src/index.ts`), and its turn timing (`turnWindow`). The axis labels, the host, the beat on or off, and the copy all live in the app's event config.
 
 | Event | Axes | Hand | Turn | Agent |
 | --- | --- | --- | --- | --- |
 | `poetry` | 5: beat, craft, image, answer, range | `formula` cards | free verse: a 2.25 s count-in (3-2-1), then one window of turn_seconds (10 s a line; the demo's 2 lines = 20 s) | yes |
 | `debate` | 5: claim, reason, answer, craft, poise | `move` cards | a 3 s count-in, then 45 s | yes, the same endpoints as poetry |
 | `discus` | none | empty | no count-in, 30 s in the circle | **none**: see [Discus](#discus) |
-| `coach` | none: Homer's reply is `score.verdict` | empty | free verse: 2.25 s count-in, then 20 s | yes: the theme, then a reply per turn; see [Coach](#coach) |
+| `coach` | none, or the 5 poetry axes for a verse attempt; Homer's reply is `score.verdict` | empty | free verse: 2.25 s count-in, then 20 s | yes: the theme, then a reply per turn; see [Coach](#coach) |
+| `stadion` | none | empty | no turns: everyone runs at once, a 3 s count-in, then up to 40 s | **none**: see [Stadion](#stadion) |
+| `pygmachia` | none | empty | no turns: two fighters live, a 3 s count-in, then 60 s or a knockout | **none**: see [Pygmachia](#pygmachia) |
 
 An open hall switches events with `set_event`, keeping its poets (P16).
 
-Server: SpacetimeDB 2.13. Database name: `homer`.
+Server: SpacetimeDB 2.13. Databases: `homer-calhacks` on Maincloud is the demo (the app, the website and the agent); `homer-test` on a local server is smoke's; `homer` is the old local dev database.
 
 ## Who's who
 
@@ -53,8 +55,14 @@ finale ─advance─▶ finished
 any phase but lobby ─rematch─▶ dealing (or theme)
 lobby │ finished ─set_event─▶ lobby (another event, same poets)
 
-discus:  lobby ─start_battle─▶ ready ─start_turn─▶ speaking ─throw_discus / timer─▶ scored
+discus:  lobby ─start_battle─▶ ready ─start_turn─▶ speaking ─throw_discus(_full) / timer─▶ scored
          scored ─advance─▶ ready (next thrower, or the next round's first) │ finale (after the last throw) ─advance─▶ finished
+
+stadion: lobby ─start_battle─▶ ready ─start_race─▶ speaking (racing) ─all across / cap─▶ scored
+         scored ─advance─▶ ready (next heat) │ finale ─advance─▶ finished
+
+pygmachia: lobby ─start_battle─▶ ready ─start_fight─▶ speaking (fighting) ─knockout / bell─▶ scored
+           scored ─advance─▶ ready (next bout: winner stays on) │ finale ─advance─▶ finished
 ```
 
 | Phase | Meaning | Who moves it on |
@@ -189,13 +197,33 @@ Every `set_scene` also appends `id, room_id, turn_id, ms` (milliseconds since `s
 
 `id, room_id, line_no, turn_id` (whose verse it came from), `text`.
 
-### `discus_throw` (public). Writer: phone (`throw_discus`).
+### `discus_throw` (public). Writer: phone (`throw_discus`, `throw_discus_full`).
 
-`id, room_id, turn_id, player_id, throw_no` (the round number: each round is one throw each), `speed` (f32, peak rotation rate before release, rad/s), `angle` (f32, release angle in degrees above horizontal), `timing` (f32, speed at release over peak speed, 0–1), `distance` (f32, metres, 0 for a foul), `foul` (bool), `at` (when it landed in the database; the arena flies the discus from here). A turn that timed out has no row (its status is `skipped`).
+`id, room_id, turn_id, player_id, throw_no` (the round number: each round is one throw each), `speed` (f32, peak rotation rate before release, rad/s), `angle` (f32, release angle in degrees above horizontal), `timing` (f32, speed at release over peak speed, 0–1), `distance` (f32, metres, 0 for a foul), `foul` (bool), `at` (when it landed in the database; the arena flies the discus from here), then the appended release columns, 0 / `''` from older phones: `release_speed` (f32, m/s off the hand), `roll` (f32, degrees the disc was tilted off flat), `spin` (f32, rad/s), `foul_reason` (`''`, `late` or `sector`). A turn that timed out has no row (its status is `skipped`). Older clients decode only the first eleven columns; the SDK ignores trailing ones.
+
+### `heat` (public, one row per room). Writer: arena (`start_race`), the module.
+
+`room_id` (pk), `heat_no`, `go_at` (the gun; epoch until `start_race`), `cap_at` (`go_at` + 40 s), `ended_at` (epoch while running).
+
+### `runner` (public, one row per runner). Writer: phone (`set_stride`), the module.
+
+`player_id` (pk), `room_id`, `heat_no`, `speed` (f32, m/s of game speed), `distance` (f32, metres, never down, at most 192), `place` (u32, 0 while running: the finish order, then the rest by distance at the end), `time` (f32, seconds from `go_at` to the line, interpolated; 0 for a runner who didn't cross), `updated_at`.
+
+### `fight` (public, one row per room). Writer: arena (`start_fight`), the module.
+
+`room_id` (pk), `go_at` (the bell; epoch until `start_fight`), `ends_at` (`go_at` + 60 s), `ended_at` (epoch while on), `winner_id` (0 for a draw, or not over), `ko` (bool).
+
+### `fighter` (public, one row per fighter in the current bout). Writers: phone (`set_fist_aim`, `throw_punch`), the module.
+
+`player_id` (pk), `room_id`, `seat` (0 = the one who stays on, 1 = the challenger), `health` (f32, 100 down to 0), `guard` (bool: the phone upright at the face; it covers the head only), `aim_yaw`, `aim_pitch` (f32, −1…1: left/right, low/high; the latest from the phone), `counter_until` (a block opens this fighter's 0.5 s counter window; epoch for none), `updated_at`. Poets not in the bout have no row: they're waiting.
+
+### `punch` (public, insert-only, one row per punch). Writer: phone (`throw_punch`), resolved by the module.
+
+`id` (insert order), `room_id`, `player_id`, `target_id`, `zone` (`head` if aimed at pitch ≥ 0, else `body`), `power` (f32, 0–1), `aim_yaw`, `aim_pitch`, `result` (`landed`, `blocked` or `missed`), `damage` (f32), `counter` (bool: landed inside the puncher's counter window), `at`, `t` (unused, 0), `kind` (`jab`, `hook` or `uppercut`, from the phone: flavour, for the animation).
 
 ### Private tables
 
-`config` (the owner and the service key), `service` (the agent identities), `turn_timer` (the scheduled turn ends), and `presence` (one row per open connection: connection_id, identity; `player.connected` is true while an identity has any). No client sees these.
+`config` (the owner and the service key), `service` (the agent identities), `turn_timer` (the scheduled turn ends), `race_timer` and `fight_timer` (a heat's cap, a bout's final bell), and `presence` (one row per open connection: connection_id, identity; `player.connected` is true while an identity has any). No client sees these.
 
 ## Reducers
 
@@ -203,12 +231,14 @@ Every `set_scene` also appends `id, room_id, turn_id, ms` (milliseconds since `s
 
 | Reducer | Args | When | Effect |
 | --- | --- | --- | --- |
-| `create_room` | event String, rounds u32, bars_per_line u32 (1 or 2), lines_per_turn u32, bpm u32 (40–160), form String, auto_ready bool, theme_choice bool, demo bool | Tap "Start a battle". The demo is `("poetry", 1, 2, 2, 80, "four_beat", true, false, true)`: one 20 s window. bars_per_line and bpm are validated and stored but don't time a battle turn. The turn may not exceed 120 s. | A new room in `lobby`. demo forces 1 round, 2 lines, 2 poets and auto-ready. Any older lobby of this host is closed, so a double tap leaves one room. Find yours with `SELECT * FROM room WHERE host = <your identity>` and take the highest id. |
+| `create_room` | event String, rounds u32, bars_per_line u32 (1 or 2), lines_per_turn u32, bpm u32 (40–160), form String, auto_ready bool, theme_choice bool, demo bool | Tap "Start a battle". The demo is `("poetry", 1, 2, 2, 80, "four_beat", true, false, true)`: one 20 s window. bars_per_line and bpm are validated and stored but don't time a battle turn. The turn may not exceed 120 s. | A new room in `lobby`. demo forces 1 round, 2 lines, at most 4 poets and auto-ready. Any older lobby of this host is closed, so a double tap leaves one room. Find yours with `SELECT * FROM room WHERE host = <your identity>` and take the highest id. |
 | `start_battle` | room_id | Begin (2+ poets) | `lobby` → `dealing` (or `theme`), with round_no = 1 |
 | `choose_theme` | room_id, theme | A judge taps a card in `theme` | Sets `next_theme` and moves to `dealing`. The 3 cards come from the content bank on the arena. |
 | `start_turn` | turn_id | auto_ready, or after the 5 s step-up wait | Same as the phone's Ready tap |
 | `advance` | room_id | After each reveal finishes (verdict TTS, round verdict, song) | `scored` → next turn's `ready`, or `round_end`; `round_end` → next round, or `finale`; `finale` → `finished` |
 | `skip_turn` | turn_id | A poet never steps up (the phone dropped: wait 10 s), or the judge never answers | The current turn is `skipped` and the phase becomes `scored` |
+| `start_race` | room_id | Stadion: after "Runners, to your marks" | From `ready`: `go_at` = now + 3 s, `cap_at` = `go_at` + 40 s, `speaking`. Errors: `not a stadion`, `the runners are not on the line`. |
+| `start_fight` | room_id | Pygmachia: the bell | From `ready`: `go_at` = now + 3 s, `ends_at` = `go_at` + 60 s, `speaking`. Errors: `not a fight`, `the fighters are not in their corners`. |
 | `end_battle` | room_id | The host's End button (coach has no end of its own) | Any phase but lobby or finished: `finished`. The live turn (waiting, speaking or judging) becomes `skipped` and its timer is cancelled, so a late `end_turn` or `post_score` is refused. Works for any event. |
 | `rematch` | room_id | "Rematch", or to un-wedge a demo | Any phase but lobby: clears rounds, turns, scores, samples, song, reactions and throws; zeroes totals; empties hands; goes straight to `dealing` (discus: straight to the first throw's `ready`). Poets, names, epithets and seats stay. |
 | `set_event` | room_id, event String, rounds u32 (1–5; ignored in demo) | "New event" (P16), from `lobby` or `finished` | Switches `room.event` and resets the room like a rematch, then returns it to `lobby` so latecomers can join. Poets, names, epithets and seats stay; hands switch to the new event's card kind. turn_seconds and auto_ready follow the new event (auto_ready goes back to the demo default when leaving discus). Errors: `finish this event first`, `unknown event`. |
@@ -227,6 +257,10 @@ Every `set_scene` also appends `id, room_id, turn_id, ms` (milliseconds since `s
 | `end_turn` | turn_id, final transcript | All lines spoken, Done tapped, or the mic closed at ends_at | An empty transcript on attempt 1 goes back to `ready` with attempt 2. Empty on attempt 2 is `skipped`. Otherwise `judging`. |
 | `set_prosody` | room_id, loudness f32, pitch f32, hits u32 | About 20 Hz while you're the speaker. In the lobby any poet may send it (the entrance flare). | Overwrites the room's prosody row. Frames from anyone else, or in other phases, are dropped silently. |
 | `react` | room_id, kind | A spectator or poet taps a reaction | Inserts a reaction |
+| `throw_discus_full` | turn_id, speed, angle, timing, distance, foul, release_speed f32, roll f32, spin f32, foul_reason String | Newer phones, instead of `throw_discus` | The same as `throw_discus`, plus the release columns (release_speed 0–40, roll −180–180, spin 0–60, foul_reason `''`/`late`/`sector`). |
+| `set_stride` | room_id, speed f32, distance f32 | Stadion: about 10 Hz while running | Never an error. Ignored before `go_at`, after crossing, or outside a race. distance is kept monotone and clamped to 25 m/s × elapsed; crossing 192 m places and times the runner; when all are across (or at the cap) the rest are placed by distance and the room moves to `scored`. Points by place go to `player.total` (last gets 1). |
+| `set_fist_aim` | room_id, yaw f32, pitch f32, guard bool | Pygmachia: about 20 Hz while fighting | The fighter's aim (clamped to −1…1) and guard. Silent outside a fight. |
+| `throw_punch` | room_id, kind String, power f32, yaw f32, pitch f32 | Pygmachia: one per punch | Silent before the bell, after it, for a poet not in the bout, or faster than 4 a second. |yaw| > 0.5 misses; a head punch into a raised guard is blocked (the blocker's counter window opens); otherwise it lands for 4 + 12·power, ×1.5 inside your own counter window. Punching drops your guard. Health 0 is a knockout. |
 | `throw_discus` | turn_id, speed f32, angle f32, timing f32, distance f32, foul bool | Discus: once, when the thrower's thumb lifts | Thrower only, while the turn is `speaking`. Refused out of range (speed 0–60, angle −90–90, timing 0–1, distance 0–100). Inserts a `discus_throw` (distance 0 if foul), marks the turn `scored`, raises `player.total` to the best throw in tenths of a metre, and moves to `scored`. |
 
 ### Agent service
@@ -237,7 +271,7 @@ All of these require the caller to be a registered service identity (or the owne
 | --- | --- | --- | --- |
 | `name_poet` | player_id, name, epithet | A player row with `named` = false | Sets a PG name and an epithet (coins one if `''`), and `named` = true |
 | `deal_round` | room_id, round_no, theme, hands [[player_id, [card]]] | The phase is `dealing`; or `round_end` for round_no + 1, to deal ahead (not with theme_choice) | Creates the round and its turns in rotated seat order, and tops each hand up to 5 from that poet's list (send at least 5 candidates each, skipping duplicates). In `dealing` it moves to `ready`. It must cover every poet, and each round is dealt once. |
-| `post_score` | turn_id, axes [u8], verdict, best_line, coined | The turn's status is `judging` | Inserts the score, adds to the poet's total, and moves to `scored`. The total is the axes weighted in rubric order: poetry [0, 2, 4, 4, 0] (beat/flow, craft, image, answer, range: content only; at most 100 a verse), debate [1, 1, 1, 1, 1] (at most 50). `axes` is stored as sent, in rubric order. It refuses the wrong number of axes for the room's event. |
+| `post_score` | turn_id, axes [u8], verdict, best_line, coined | The turn's status is `judging` | Inserts the score, adds to the poet's total, and moves to `scored`. The total is the axes weighted in rubric order: poetry [0, 2, 4, 4, 0] (beat/flow, craft, image, answer, range: content only; at most 100 a verse), debate [1, 1, 1, 1, 1] (at most 50). `axes` is stored as sent, in rubric order. It refuses the wrong number of axes for the room's event. Coach takes either `[]` (a talk-back reply, total 0) or the 5 poetry axes (a verse attempt, weighted like poetry). |
 | `decline_turn` | turn_id | The verse isn't fit for the hall | The turn is `declined`, scores nothing, and the phase becomes `scored` |
 | `post_verdict` | round_id, verdict, best_turn_id, best_line | The phase is `round_end` | Sets the round verdict and the carved line (once per round) |
 | `post_song` | room_id, turn_ids [u64], lines [String] | Any time after round 1 (pre-stitch); performed at `finale` | Replaces the song (max 16 lines; the demo cap of 4 is the agent's job) |
@@ -307,6 +341,22 @@ Judge mode (SPEC "The website"): a conversation with Homer. Phones speak, the ar
 - `advance` from `scored` goes to the next poet in seat order. After the last poet, the next cycle of turns is appended to the same round (turn_no keeps counting; round_no stays 1), so a solo poet gets every turn. There is no round_end or finale: the host ends it with `end_battle`.
 - Turns, transcripts and replies stay until a rematch, which starts a fresh conversation in `dealing`.
 
+## Stadion
+
+Everyone races at once (SPEC "The games"): no turns, no Claude.
+
+- `start_battle` (one runner is enough: a time trial) lays out the heat (`heat_no` = `round_no`) and a `runner` row per poet at 0 m, and goes to `ready`. The arena calls `start_race` after Homer's marks.
+- The phones show the 3-2-1 off `heat.go_at`, then stream `set_stride` with their own integrated distance. The module places each runner as they cross 192 m and ends the heat when all are across or at `cap_at`.
+- `scored` shows the places and times; `advance` goes to the next heat or the finale. The champion is the best `player.total` (points by place).
+
+## Pygmachia
+
+Boxing (SPEC "The games"), lean v1: health only, 60 s or a knockout, no Claude.
+
+- `start_battle` needs two poets. With three or four it's winner-stays-on: `room.rounds` = poets − 1 bouts; bout 1 is seats 0 and 1, then the last winner (the incumbent on a draw) meets the next seat. `fighter` holds the two in the current bout.
+- The phones calibrate centre at `fight.go_at` and stream `set_fist_aim` (with the guard) and `throw_punch`; the module resolves each punch into a `punch` row and the fighters' health.
+- A knockout or the bell ends the bout (`winner_id`, `ko`; the most health wins at the bell, equal is a draw); the winner's `player.total` goes up by one, and the room goes to `scored`.
+
 ## Discus
 
 Discus is a motion minigame: no voice, no Claude, no agent (SPEC "The games", UX flow section 9). It reuses rooms, rounds and turns:
@@ -314,7 +364,7 @@ Discus is a motion minigame: no voice, no Claude, no agent (SPEC "The games", UX
 - `create_room` with event `"discus"` and rounds = throws each (3 is the format; best counts). The poetry fields must still be valid (pass the standard preset's) because they are kept for `set_event`. auto_ready is forced on and turn_seconds is 30.
 - `start_battle` lays out the round's turns itself (rotated seat order, like `deal_round`) and goes straight to `ready`. The arena's auto-start calls `start_turn` after its step-up wait, so `speaking` means "the thrower is in the circle" (D1 and D2), with `beat_at` = `started_at` and `ends_at` 30 s later.
 - While the thumb is down, the thrower's phone streams the wind-up over `set_prosody`: `loudness` = swing power 0–1, `pitch` = 0, `hits` = 1 while the discus is held and 0 otherwise. The arena drives its power gauge and the scene's instant layer from it.
-- Release is the thumb lifting, never motion alone. The phone computes the distance (one formula, in the app) and calls `throw_discus` once. The arena reads the new `discus_throw` row, flies it, and calls `advance` after the reveal (D3 to D6).
+- Release is the thumb lifting, never motion alone. The phone computes the distance (one formula, in the app) and calls `throw_discus` once (newer phones: `throw_discus_full`, with the release in detail). The arena reads the new `discus_throw` row, flies it, and calls `advance` after the reveal (D3 to D6). The release angle counts from 10° up (lower falls back to the swing plane's tilt); the sector heading is recorded, but `sector` isn't a foul until it's checked on a real phone.
 - No throw by `ends_at` + 2 s: the scheduler marks the turn `skipped` and moves to `scored`; there is no retry.
 - `advance` from `scored` goes to the next thrower, or straight into the next round's first throw (no `round_end`), then `finale` (the champion) and `finished`. `end_turn` is refused in a discus room.
 - The leaderboard: `player.total` is each poet's best in tenths of a metre; the throws themselves are in `discus_throw`.
@@ -337,7 +387,7 @@ cd spacetime && npm install
 npm run typecheck
 npm run publish:local                    # keeps data; publish:local:reset wipes it
 npm run publish:test                     # the isolated test database `homer-test` (no dev-agent, no shared key)
-npm run smoke                            # poetry, discus, set_event, debate and coach over HTTP against homer-test, 119 checks (~2 min)
+npm run smoke                            # poetry, discus, set_event, debate, coach, stadion and pygmachia over HTTP against homer-test, 171 checks (~3 min)
 npm run logs
 ```
 
