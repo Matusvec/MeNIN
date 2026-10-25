@@ -8,6 +8,7 @@
 //   CODE=ABCD POETS=2 BATTLES=5 STDB_DB=... npm run phones
 //   HOST=<identity hex> NAMES=Bo BATTLES=1 ...     # the newest lobby that arena hosts
 //   HOST=<identity hex> NAMES=Bo STAY=1 ...        # a companion: every battle, until left alone
+//   CODE=ABCD LAZY=Bo npm run phones               # Stadion: Bo jogs at 4 m/s (hits the cap)
 //
 // With HOST, it waits for that arena's newest lobby and follows it if the arena opens a
 // new room before the battle begins. It leaves the room after the last battle.
@@ -77,7 +78,8 @@ class Phone {
         .onConnect(c => {
           c.subscriptionBuilder()
             .onApplied(() => resolve())
-            .subscribe([`SELECT * FROM room WHERE id = ${RID}`, `SELECT * FROM turn WHERE room_id = ${RID}`, 'SELECT * FROM hand']);
+            .subscribe([`SELECT * FROM room WHERE id = ${RID}`, `SELECT * FROM turn WHERE room_id = ${RID}`, 'SELECT * FROM hand',
+              `SELECT * FROM heat WHERE room_id = ${RID}`, `SELECT * FROM runner WHERE room_id = ${RID}`]);
         })
         .onConnectError((_c, e) => reject(e))
         .build();
@@ -100,9 +102,18 @@ class Phone {
     return h?.cards[0] ?? '';
   }
 
-  // Called on every tick: acts once per turn attempt.
+  // Called on every tick: acts once per turn attempt (once per heat in the Stadion).
   async step() {
     const r = this.room();
+    if (r?.event === 'stadion') {
+      const h = [...this.conn.db.heat.iter()][0];
+      const key = h ? `heat ${h.heatNo} ${ms(h.goAt)}` : '';
+      if (r.phase === 'speaking' && h && ms(h.goAt) > 0 && !this.handled.has(key)) {
+        this.handled.add(key);
+        await this.run(h);
+      }
+      return;
+    }
     if (!r || !r.currentTurnId) return;
     const t = this.turn(r.currentTurnId);
     if (!t || t.playerId !== this.me) return;
@@ -130,6 +141,30 @@ class Phone {
     await sleep(2500);
     await call(() => this.conn.reducers.endTurn({ turnId: t.id, transcript: all }));
     console.log(`${clock()} ${this.name} spoke${card ? ` (played "${card}")` : ''}`);
+  }
+
+  // A sprint from the gun: up to a top speed of 12–15 m/s over 2 s (LAZY runners jog at 4),
+  // streaming its own distance at 10 Hz until the module places it or the race ends.
+  async run(h: any) {
+    await sleep(Math.max(0, ms(h.goAt) - Date.now()));
+    const lazy = (process.env.LAZY ?? '').split(',').includes(this.name);
+    const top = lazy ? 4 : 12 + Math.random() * 3;
+    const t0 = Date.now();
+    let distance = 0;
+    let last = t0;
+    for (;;) {
+      const now = Date.now();
+      const speed = top * Math.min(1, (now - t0) / 2000);
+      distance += speed * ((now - last) / 1000);
+      last = now;
+      await this.conn.reducers.setStride({ roomId: RID, speed, distance }).catch(() => {});
+      const me = [...this.conn.db.runner.iter()].find(x => x.playerId === this.me);
+      if ((me && me.place > 0) || this.room()?.phase !== 'speaking') {
+        console.log(`${clock()} ${this.name} ${me && me.time > 0 ? `crossed in ${me.time.toFixed(2)} s, place ${me.place}` : `stopped at ${Math.round(me?.distance ?? 0)} m, place ${me?.place ?? 0}`}`);
+        return;
+      }
+      await sleep(100);
+    }
   }
 
   async throw(turnId: bigint) {

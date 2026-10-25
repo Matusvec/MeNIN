@@ -48,6 +48,36 @@ export const DiscusThrow = __t.object("DiscusThrow", {
 });
 export type DiscusThrow = __Infer<typeof DiscusThrow>;
 
+export const Fight = __t.object("Fight", {
+  roomId: __t.u64(),
+  goAt: __t.timestamp(),
+  endsAt: __t.timestamp(),
+  endedAt: __t.timestamp(),
+  winnerId: __t.u64(),
+  ko: __t.bool(),
+});
+export type Fight = __Infer<typeof Fight>;
+
+export const FightTimer = __t.object("FightTimer", {
+  scheduledId: __t.u64(),
+  scheduledAt: __t.scheduleAt(),
+  roomId: __t.u64(),
+});
+export type FightTimer = __Infer<typeof FightTimer>;
+
+export const Fighter = __t.object("Fighter", {
+  playerId: __t.u64(),
+  roomId: __t.u64(),
+  seat: __t.u32(),
+  health: __t.f32(),
+  guard: __t.bool(),
+  aimYaw: __t.f32(),
+  aimPitch: __t.f32(),
+  counterUntil: __t.timestamp(),
+  updatedAt: __t.timestamp(),
+});
+export type Fighter = __Infer<typeof Fighter>;
+
 export const Hand = __t.object("Hand", {
   playerId: __t.u64(),
   roomId: __t.u64(),
@@ -61,6 +91,15 @@ export const HandDeal = __t.object("HandDeal", {
   cards: __t.array(__t.string()),
 });
 export type HandDeal = __Infer<typeof HandDeal>;
+
+export const Heat = __t.object("Heat", {
+  roomId: __t.u64(),
+  heatNo: __t.u32(),
+  goAt: __t.timestamp(),
+  capAt: __t.timestamp(),
+  endedAt: __t.timestamp(),
+});
+export type Heat = __Infer<typeof Heat>;
 
 export const Player = __t.object("Player", {
   id: __t.u64(),
@@ -93,6 +132,32 @@ export const Prosody = __t.object("Prosody", {
   hits: __t.u32(),
 });
 export type Prosody = __Infer<typeof Prosody>;
+
+export const Punch = __t.object("Punch", {
+  id: __t.u64(),
+  roomId: __t.u64(),
+  playerId: __t.u64(),
+  targetId: __t.u64(),
+  zone: __t.string(),
+  power: __t.f32(),
+  aimYaw: __t.f32(),
+  aimPitch: __t.f32(),
+  result: __t.string(),
+  damage: __t.f32(),
+  counter: __t.bool(),
+  at: __t.timestamp(),
+  t: __t.f32(),
+  kind: __t.string(),
+});
+export type Punch = __Infer<typeof Punch>;
+
+export const RaceTimer = __t.object("RaceTimer", {
+  scheduledId: __t.u64(),
+  scheduledAt: __t.scheduleAt(),
+  roomId: __t.u64(),
+  heatNo: __t.u32(),
+});
+export type RaceTimer = __Infer<typeof RaceTimer>;
 
 export const Reaction = __t.object("Reaction", {
   id: __t.u64(),
@@ -136,6 +201,18 @@ export const Round = __t.object("Round", {
   dealtAt: __t.timestamp(),
 });
 export type Round = __Infer<typeof Round>;
+
+export const Runner = __t.object("Runner", {
+  playerId: __t.u64(),
+  roomId: __t.u64(),
+  heatNo: __t.u32(),
+  speed: __t.f32(),
+  distance: __t.f32(),
+  place: __t.u32(),
+  time: __t.f32(),
+  updatedAt: __t.timestamp(),
+});
+export type Runner = __Infer<typeof Runner>;
 
 export const Scene = __t.object("Scene", {
   roomId: __t.u64(),

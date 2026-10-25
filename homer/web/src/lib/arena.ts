@@ -7,9 +7,11 @@
 // or hands get dealt and verses judged twice. All battle state lives in SpacetimeDB.
 
 import { DbConnection } from '../stdb'
-import type { DiscusThrow, Player, Prosody, Room, Round, Scene as SceneRow, Score, Turn } from '../stdb/types'
+import type { DiscusThrow, Fight, Fighter, Heat, Player, Prosody, Punch, Room, Round, Runner, Scene as SceneRow, Score, Turn } from '../stdb/types'
 import { AGENT_URL, voiceStatus } from './agent'
 import { conductDiscus } from './discus'
+import { conductStadion } from './stadion'
+import { type Bout, conductPygmachia } from './boxing'
 import { Stage } from './stage'
 import { HomerVoice } from './voice'
 
@@ -30,7 +32,7 @@ export const DEMO_ROOM = {
   demo: true,
 }
 
-export type GameEvent = 'poetry' | 'debate' | 'discus' | 'coach'
+export type GameEvent = 'poetry' | 'debate' | 'discus' | 'coach' | 'stadion' | 'pygmachia'
 
 /** Free-verse turns (a 3-2-1, one SPEAK window, the arena silent): poetry, and coach ("Talk to Homer"). */
 export const freeVerse = (event: string): boolean => event === 'poetry' || event === 'coach'
@@ -44,6 +46,8 @@ export const PRESETS: Record<GameEvent, typeof DEMO_ROOM> = {
   debate: { ...DEMO_ROOM, event: 'debate', rounds: 1 },
   discus: { ...DEMO_ROOM, event: 'discus', rounds: 3 },
   coach: { ...DEMO_ROOM, event: 'coach', rounds: 1 }, // Talk to Homer: the module keeps it open until End
+  stadion: { ...DEMO_ROOM, event: 'stadion', rounds: 1 }, // the footrace: rounds are heats (demo: one)
+  pygmachia: { ...DEMO_ROOM, event: 'pygmachia', rounds: 1 }, // boxing v1: one 60 s fight
 }
 
 /** What a game's conductor gets each tick (discus: lib/discus.ts, multiplayer's). */
@@ -53,6 +57,13 @@ export type Conductor = {
   turn: Turn | null
   turns: Turn[]
   throws: DiscusThrow[] // this room's discus_throw rows
+  heat: Heat | null // stadion: this room's heat row (go_at, cap_at, ended_at)
+  runners: Runner[] // stadion: this room's runner rows, any order
+  startRace: () => void // stadion: the host's start_race (the race has no turn, so auto-start doesn't apply)
+  bout: Bout | null // pygmachia: the fight, fighters and punches, on this browser's clock
+  startFight: () => void // pygmachia: the host's start_fight from `ready`
+  sayFresh: (key: string, text: string, maxAgeMs: number) => void // a call dropped if it can't start in time
+  lastCall: () => number // when the last fresh call was queued
   revealKey: string | null // the reveal on screen now; carries the generation
   battleKey: string // `${room.id}.${generation}`, for once-keys that reset on rematch
   say: (key: string, text: string, then?: () => void) => void // Homer's line, queued, once per key
@@ -90,6 +101,9 @@ export type ArenaView = {
   error: string
   resumable: Room | null // an unfinished room this browser hosts, after a reload
   throws: DiscusThrow[]
+  heat: Heat | null // stadion
+  runners: Runner[] // stadion, any order (the panel sorts)
+  bout: Bout | null // pygmachia
   prosody: Prosody | null // this room's row: a thrower's wind-up (hits 1, loudness = power), a speaker's level
   warming: boolean // Homer's next line is on its way from the voice, not yet heard
   carvedBy: string // the poet whose line the round carved
@@ -195,6 +209,9 @@ export class Arena {
   private finaleSince: { key: string; at: number; done: boolean } | null = null
   private prosodyListeners = new Set<() => void>() // the backdrop, told the moment a prosody frame lands
   private heardEntrance = new Set<bigint>() // poets whose "Enter X, epithet!" was spoken in this hall
+  private punchSeen = new Map<bigint, number>() // punch id -> when it arrived here
+  private fightClock: { go: number; offset: number } | null = null // server go_at -> this browser's clock
+  private lastFreshCall = 0
   private onsets = { turn: 0n, count: 0, armed: true } // the live verse's voice onsets
 
   constructor(private onView: (view: ArenaView) => void) {}
@@ -272,7 +289,15 @@ export class Arena {
           for (const listener of this.prosodyListeners) listener()
           if (this.room()?.event === 'discus') this.publish()
         })
-        for (const table of [db.room, db.player, db.round, db.turn, db.score, db.songLine, db.discusThrow]) {
+        // Boxing: each punch's arrival on this browser's clock, so the arm, the hit and Homer's call line up.
+        db.punch.onInsert((_ctx, row) => {
+          if (!this.punchSeen.has(row.id)) this.punchSeen.set(row.id, Date.now())
+        })
+        // The fighters' aim and guard stream ~20 Hz: re-render only in a fight (like discus's wind-up).
+        db.fighter.onUpdate(() => {
+          if (this.room()?.event === 'pygmachia') this.publish()
+        })
+        for (const table of [db.room, db.player, db.round, db.turn, db.score, db.songLine, db.discusThrow, db.heat, db.runner, db.fight, db.fighter, db.punch]) {
           table.onInsert(() => this.changed())
           table.onDelete(() => this.changed())
           const updatable = table as unknown as { onUpdate?: (cb: () => void) => void }
@@ -381,7 +406,7 @@ export class Arena {
     this.roomSub?.unsubscribe()
     this.roomId = id
     const queries = [`SELECT * FROM room WHERE id = ${id}`].concat(
-      ['player', 'round', 'turn', 'score', 'scene', 'song_line', 'prosody', 'discus_throw'].map((t) => `SELECT * FROM ${t} WHERE room_id = ${id}`),
+      ['player', 'round', 'turn', 'score', 'scene', 'song_line', 'prosody', 'discus_throw', 'heat', 'runner', 'fight', 'fighter', 'punch'].map((t) => `SELECT * FROM ${t} WHERE room_id = ${id}`),
     )
     this.roomSub = this.conn.subscriptionBuilder().onApplied(() => this.changed()).subscribe(queries)
   }
@@ -434,6 +459,8 @@ export class Arena {
     this.autoStartIfNeeded(room)
     this.askAgentIfNeeded(room)
     if (room.event === 'discus') conductDiscus(this.conductor(room))
+    else if (room.event === 'stadion') conductStadion(this.conductor(room))
+    else if (room.event === 'pygmachia') conductPygmachia(this.conductor(room))
     else this.speakIfDue(room)
     if (room.event === 'debate') this.debateClock(room)
     this.finaleBackstop(room)
@@ -460,6 +487,13 @@ export class Arena {
       turn: this.currentTurn(room),
       turns: this.turns(),
       throws: this.throws(),
+      heat: this.heat(),
+      runners: this.runners(),
+      startRace: () => this.call(() => this.conn!.reducers.startRace({ roomId: room.id })),
+      bout: this.bout(),
+      startFight: () => this.call(() => this.conn!.reducers.startFight({ roomId: room.id })),
+      sayFresh: (key, text, maxAgeMs) => this.sayFresh(key, text, maxAgeMs),
+      lastCall: () => this.lastFreshCall,
       revealKey: this.revealKey(),
       battleKey: `${room.id}.${this.generation}`,
       say: (key, text, then) => this.say(key, text, then),
@@ -470,6 +504,45 @@ export class Arena {
 
   private throws(): DiscusThrow[] {
     return [...this.conn!.db.discusThrow.iter()].filter((t) => t.roomId === this.roomId)
+  }
+
+  /** The fight on this browser's clock. The server's go_at is start_fight + 3 s, so first sight of a new
+   *  go_at fixes the offset (good to a network one-way trip, like the turn clock). */
+  private bout(): Bout | null {
+    const db = this.conn!.db
+    const fight: Fight | undefined = [...db.fight.iter()].find((f) => f.roomId === this.roomId)
+    const names = new Map(this.poets().map((p) => [p.id, p.name]))
+    const fighters = [...db.fighter.iter()]
+      .filter((f: Fighter) => f.roomId === this.roomId)
+      .sort((a, b) => a.seat - b.seat)
+      .map((f) => ({ id: f.playerId, name: names.get(f.playerId) ?? 'Fighter', seat: f.seat, hp: f.health, guard: f.guard, yaw: f.aimYaw, pitch: f.aimPitch }))
+    const goMs = fight ? Number(fight.goAt.toMillis()) : 0
+    if (goMs > 0 && this.fightClock?.go !== goMs) this.fightClock = { go: goMs, offset: Date.now() - (goMs - 3000) }
+    const local = (ms: number) => (ms > 0 && this.fightClock ? ms + this.fightClock.offset : null)
+    const punches = [...db.punch.iter()]
+      .filter((p: Punch) => p.roomId === this.roomId)
+      .sort((a, b) => (a.id < b.id ? -1 : 1))
+      .map((p) => ({
+        id: String(p.id), from: p.playerId, to: p.targetId, kind: p.kind, zone: p.zone, power: p.power, yaw: p.aimYaw,
+        result: p.result, damage: p.damage, counter: p.counter, at: this.punchSeen.get(p.id) ?? 0,
+      }))
+    return {
+      fighters,
+      punches,
+      goAt: local(goMs),
+      endsAt: fight ? local(Number(fight.endsAt.toMillis())) : null,
+      ended: Boolean(fight && Number(fight.endedAt.toMillis()) > 0),
+      ko: Boolean(fight?.ko),
+      winnerId: fight?.winnerId ?? 0n,
+    }
+  }
+
+  private heat(): Heat | null {
+    return [...this.conn!.db.heat.iter()].find((h) => h.roomId === this.roomId) ?? null
+  }
+
+  private runners(): Runner[] {
+    return [...this.conn!.db.runner.iter()].filter((r) => r.roomId === this.roomId)
   }
 
   // ----- debate ------------------------------------------------------------------
@@ -631,7 +704,7 @@ export class Arena {
 
   /** Battle work from the agent when the phase calls for it, once per step; results arrive by subscription. */
   private askAgentIfNeeded(room: Room): void {
-    if (room.event === 'discus') return // discus has no Claude
+    if (room.event === 'discus' || room.event === 'stadion' || room.event === 'pygmachia') return // no Claude in the field events
     const quietly = (key: string, work: () => Promise<unknown>) => {
       if (this.asked.has(key)) return
       this.asked.add(key)
@@ -735,6 +808,25 @@ export class Arena {
   }
 
   // ----- Homer (ArenaConductor.speakIfDue) -------------------------------------
+
+  /** A call that only makes sense right now (a punch): queued like any line, dropped if it can't start in time. */
+  private sayFresh(key: string, text: string, maxAgeMs: number): void {
+    if (this.said.has(key) || !text) return
+    this.said.add(key)
+    const gen = this.generation
+    const queued = Date.now()
+    this.lastFreshCall = queued
+    this.pending += 1
+    this.queue = this.queue.then(async () => {
+      try {
+        if (Date.now() - queued > maxAgeMs) return // the action moved on: never over the action
+        await this.sayNow(gen, text)
+      } finally {
+        this.pending -= 1
+        this.lineEndsAt = null
+      }
+    })
+  }
 
   private say(key: string, text: string, then?: () => void): void {
     if (this.said.has(key) || !text) return
@@ -1006,6 +1098,9 @@ export class Arena {
       error: this.error,
       resumable: !room && hosted ? hosted : null,
       throws: room ? this.throws() : [],
+      heat: room ? this.heat() : null,
+      runners: room ? this.runners() : [],
+      bout: room?.event === 'pygmachia' ? this.bout() : null,
       prosody: room ? [...this.conn!.db.prosody.iter()].find((p) => p.roomId === this.roomId) ?? null : null,
       warming: this.warming,
       carvedBy: room ? this.carvedBy(room) : '',

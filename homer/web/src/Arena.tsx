@@ -7,6 +7,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, 
 import QRCode from 'qrcode'
 import CoachPanel from './Coach'
 import DiscusPanel from './Discus'
+import StadionPanel from './Stadion'
+import BoxingPanel from './Boxing'
 import { Arena, QUIET_SCENE, SILENT_VERDICT, STDB_DB, type ArenaView, type GameEvent, type SceneFeed } from './lib/arena'
 import { webJoinLink } from './lib/links'
 import type { SceneTheme } from './scene/moods'
@@ -58,13 +60,16 @@ const AXES: Record<string, Array<[string, number]>> = {
 }
 
 // One ink per seat, so a poet keeps their color all battle (ios/Homer/UI/Tokens.swift Palette.seats, Atelier).
-const SEAT_INKS = ['#2D5C66', '#B5832F', '#6E7A2E', '#C8452C', '#5B3F73']
+const SEAT_INKS = ['#2D5C66', '#C8452C', '#A8741F', '#5B3F73', '#6E7A2E'] // sea, vermilion, gold, plum; olive for a 5th (= the phone's Palette.seats)
 const GAMES: Array<[GameEvent, string]> = [
   ['poetry', 'Poetry battle'],
   ['coach', 'Talk to Homer'],
   ['debate', 'Socratic debate'],
   ['discus', 'Discus'],
+  ['stadion', 'Stadion'],
 ]
+// Boxing shows on the dev server only until it has passed a browser run with scripted fighters on homer-test.
+if (import.meta.env.DEV) GAMES.push(['pygmachia', 'Pygmachia'])
 
 const PHASES: Record<string, string> = {
   lobby: 'Scan the code with the MeNIN app, or type it in',
@@ -111,9 +116,9 @@ function waitingFor(view: ArenaView | null): string {
     case 'judging':
       return room.event === 'debate' ? 'Socrates is weighing the argument…' : room.event === 'discus' ? '' : room.event === 'coach' ? 'Homer is answering…' : 'Homer is weighing the verse…'
     case 'round_end':
-      return room.event !== 'discus' && !view.round?.verdict ? 'Calling the round…' : ''
+      return !['discus', 'stadion', 'pygmachia'].includes(room.event) && !view.round?.verdict ? 'Calling the round…' : ''
     case 'finale':
-      if (room.event === 'discus' || view.song.length) return ''
+      if (['discus', 'stadion', 'pygmachia'].includes(room.event) || view.song.length) return ''
       return room.event === 'debate' ? 'Socrates finds the last question…' : 'Stitching the song…'
     default:
       return ''
@@ -290,19 +295,22 @@ export default function ArenaPanel({
   }
 
   const discus = room.event === 'discus'
+  const stadion = room.event === 'stadion'
+  const boxing = room.event === 'pygmachia'
+  const field = discus || stadion || boxing // the field events: no verse, no judge, no song; their own panels
   const coach = room.event === 'coach' // Talk to Homer: a conversation, no scorecard (Coach.tsx)
   const begun = room.phase !== 'lobby'
   const over = room.phase === 'finale' || room.phase === 'finished'
   const top = over ? [...view.poets].sort((a, b) => b.total - a.total)[0] : undefined
   const champion = top && top.total > 0 ? top : null // nobody scored, nobody crowned
   const speaker = view.turn ? view.poets.find((p) => p.id === view.turn!.playerId) : undefined
-  const showVerse = !discus && !coach && view.turn?.transcript && ['speaking', 'judging'].includes(room.phase)
+  const showVerse = !field && !coach && view.turn?.transcript && ['speaking', 'judging'].includes(room.phase)
   // Ranked once the battle starts; discus keeps join order (a total would give a throw away before its arc lands).
-  const board = begun && !discus ? [...view.poets].sort((a, b) => b.total - a.total || a.seat - b.seat) : view.poets
+  const board = begun && !field ? [...view.poets].sort((a, b) => b.total - a.total || a.seat - b.seat) : view.poets
 
   return (
     <>
-      {room.event !== 'discus' && backdrop}
+      {!field && backdrop}
       <div className="arena" data-phase={room.phase}>
         {begun && <span className="join-chip">Join · {room.code}</span>}
 
@@ -315,7 +323,7 @@ export default function ArenaPanel({
         ) : (
           <Heading
             kicker={room.phase === 'lobby' ? `Room ${room.code}` : `Room ${room.code} · Round ${room.roundNo} of ${room.rounds}`}
-            title={room.phase === 'lobby' ? 'Enter the hall' : view.round?.theme || PHASES[room.phase] || room.phase}
+            title={room.phase === 'lobby' ? 'Enter the hall' : stadion ? 'The stadion · 192 m' : boxing ? 'Pygmachia · 60 s' : view.round?.theme || PHASES[room.phase] || room.phase}
             note={room.phase === 'lobby' ? PHASES.lobby : room.phase === 'ready' && speaker ? `${speaker.name} steps up` : ''}
           />
         )}
@@ -334,13 +342,14 @@ export default function ArenaPanel({
           {board.map((poet, i) => (
             <div
               key={poet.id.toString()}
-              className={[speaker?.id === poet.id ? 'up' : '', begun && !discus && i === 0 && poet.total > 0 ? 'lead' : ''].join(' ').trim()}
+              className={[speaker?.id === poet.id ? 'up' : '', begun && !field && i === 0 && poet.total > 0 ? 'lead' : ''].join(' ').trim()}
+              style={{ '--seat': SEAT_INKS[poet.seat % SEAT_INKS.length] } as CSSProperties}
             >
               <span className="name">
                 {poet.name}
                 {poet.epithet && <small className="epithet">{poet.epithet}</small>}
               </span>
-              <strong>{room.phase === 'lobby' ? (poet.entered ? '✓' : '…') : discus ? '' : poet.total}</strong>
+              <strong>{room.phase === 'lobby' ? (poet.entered ? '✓' : '…') : field ? '' : poet.total}</strong>
               <small className="status">{champion?.id === poet.id ? 'Champion' : away(poet.id, poet.connected) ? 'away' : ' '}</small>
             </div>
           ))}
@@ -364,8 +373,10 @@ export default function ArenaPanel({
         )}
 
         {discus && <DiscusPanel view={view} />}
+        {stadion && <StadionPanel view={view} />}
+        {boxing && view.bout && <BoxingPanel bout={view.bout} live={room.phase === 'speaking'} />}
 
-        {room.phase === 'scored' && score && !discus && !coach && (
+        {room.phase === 'scored' && score && !field && !coach && (
           // A judge that never answered posts SILENT_VERDICT and a neutral score: grey it and say so.
           <div className={`score-panel five${!score.verdict || score.verdict === SILENT_VERDICT ? ' neutral' : ''}`}>
             {(!score.verdict || score.verdict === SILENT_VERDICT) && (
@@ -385,7 +396,7 @@ export default function ArenaPanel({
           </div>
         )}
 
-        {!discus && room.phase === 'finale' && view.song.length > 0 && (
+        {!field && room.phase === 'finale' && view.song.length > 0 && (
           <blockquote className="live-verse song">
             {view.song.map((line, i) => (
               <span key={i}>{line}</span>
@@ -393,7 +404,7 @@ export default function ArenaPanel({
           </blockquote>
         )}
 
-        {!discus && champion && room.phase === 'finished' && (
+        {!field && champion && room.phase === 'finished' && (
           <div className="crown">
             <span className="label">Champion of the Agon</span>
             <strong className="name">{champion.name}</strong>
@@ -402,7 +413,7 @@ export default function ArenaPanel({
           </div>
         )}
 
-        {!discus && ['round_end', 'finished'].includes(room.phase) && view.round?.bestLine && (
+        {!field && ['round_end', 'finished'].includes(room.phase) && view.round?.bestLine && (
           <div className="carved">
             <span className="label">Carved</span>
             <p className="carved-line">“{view.round.bestLine}”</p>

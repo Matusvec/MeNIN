@@ -270,8 +270,13 @@ r = await room(D.id);
 T = await turn(r.current_turn_id);
 check(r.phase === 'ready' && r.round_no === 2 && T.player_id === DB.id, 'no verdict: throw 2 starts, Bo first');
 await call(arena, 'start_turn', T.id);
-await call(bo, 'throw_discus', T.id, 14, 37, 0.97, 41.4, false);
+check(await fails(bo, 'throw_discus_full', T.id, 14, 37, 0.97, 41.4, false, 24.1, 6, 9.5, 'wobble'), 'throw_discus_full refuses an unknown foul reason');
+await call(bo, 'throw_discus_full', T.id, 14, 37, 0.97, 41.4, false, 24.1, 6, 9.5, '');
 check((await totalOf(DB.id)) === 414, 'Bo\'s best is 41.4 m');
+const full = await throwOf(T.id);
+check(Math.abs(full.release_speed - 24.1) < 1e-4 && full.roll === 6 && Math.abs(full.spin - 9.5) < 1e-4 && full.foul_reason === '', 'throw_discus_full keeps the release: 24.1 m/s, 6° of roll, 9.5 rad/s of spin');
+const v1 = (await sql(null, `SELECT * FROM discus_throw WHERE room_id = ${D.id}`)).find(x => x.throw_no === 1 && x.player_id === DA.id);
+check(v1.release_speed === 0 && v1.foul_reason === '', 'a v1 throw reads 0 and empty for the new columns');
 
 await call(arena, 'advance', D.id);
 T = await turn((await room(D.id)).current_turn_id);
@@ -418,6 +423,144 @@ const P1 = (await sql(null, 'SELECT * FROM room'))
   .sort((a, b) => b.id - a.id)[0];
 await call(ada, 'join_room', P1.code, 'Ada', '', []);
 check(await fails(arena, 'start_battle', P1.id), 'a poetry battle still needs two poets');
+
+// ---------------------------------------------------------------- stadion
+
+// Everyone races at once: phones stream strides, the module places them at 192 m.
+await call(arena, 'create_room', 'stadion', 1, 2, 2, 80, 'four_beat', false, false, true);
+const St = (await sql(null, 'SELECT * FROM room'))
+  .filter(x => x.host[0] === `0x${arena.hex}`)
+  .sort((a, b) => b.id - a.id)[0];
+check(St.event === 'stadion' && St.auto_ready && St.turn_seconds === 40 && St.rounds === 1, 'stadion room: auto-ready, one heat, a 40 s cap');
+await call(ada, 'join_room', St.code, 'Ada', '', []);
+await call(bo, 'join_room', St.code, 'Bo', '', []);
+const sPlayers = await sql(null, `SELECT * FROM player WHERE room_id = ${St.id}`);
+const SA = sPlayers.find(p => p.name === 'Ada');
+const SB = sPlayers.find(p => p.name === 'Bo');
+const runnerOf = async id => (await sql(null, `SELECT * FROM runner WHERE player_id = ${id}`))[0];
+const heatOf = async () => (await sql(null, `SELECT * FROM heat WHERE room_id = ${St.id}`))[0];
+check(await fails(arena, 'start_race', St.id), 'no race before the battle begins');
+await call(arena, 'start_battle', St.id);
+r = await room(St.id);
+let ht = await heatOf();
+check(r.phase === 'ready' && r.current_turn_id === 0 && ht.heat_no === 1 && ht.go_at[0] === 0
+  && (await sql(null, `SELECT * FROM runner WHERE room_id = ${St.id}`)).length === 2, 'stadion skips dealing: two runners on the line, no turns');
+await call(ada, 'set_stride', St.id, 10, 50);
+check((await runnerOf(SA.id)).distance === 0, 'a stride before the race is ignored, without an error');
+check(await fails(ada, 'start_race', St.id), 'only the arena fires the gun');
+check(await fails(arena, 'start_race', E.id), 'start_race is for the stadion only');
+
+async function race(label) {
+  await call(arena, 'start_race', St.id);
+  const h = await heatOf();
+  check((await room(St.id)).phase === 'speaking' && h.cap_at[0] - h.go_at[0] === 40_000_000, `${label}: the gun, a 3-2-1, then 40 s at most`);
+  await call(ada, 'set_stride', St.id, 10, 30);
+  check((await runnerOf(SA.id)).distance === 0, `${label}: no head start during the 3-2-1`);
+  await sleep(3500);
+  await call(ada, 'set_stride', St.id, 14, 150);
+  const early = (await runnerOf(SA.id)).distance;
+  check(early > 0 && early <= 25 * 1.5, `${label}: nobody outruns 25 m/s (${early.toFixed(1)} m about 0.5 s after the gun)`);
+  console.log('     waiting 8 s for the runners...');
+  await sleep(8000);
+  await call(ada, 'set_stride', St.id, 14, 195);
+  const a = await runnerOf(SA.id);
+  check(a.place === 1 && a.distance === 192 && a.time > 7.6 && a.time < 9.5, `${label}: Ada crosses first, in ${a.time.toFixed(2)} s, timed to the line`);
+  await call(ada, 'set_stride', St.id, 14, 250);
+  check((await runnerOf(SA.id)).time === a.time, `${label}: strides after the line change nothing`);
+  await call(bo, 'set_stride', St.id, 8, 100);
+  await call(bo, 'set_stride', St.id, 8, 80);
+  check((await runnerOf(SB.id)).distance === 100 && (await room(St.id)).phase === 'speaking', `${label}: distance never goes down, and the race runs until all are across`);
+}
+
+await race('heat 1');
+await call(bo, 'set_stride', St.id, 9, 193);
+check((await runnerOf(SB.id)).place === 2 && (await room(St.id)).phase === 'scored', 'Bo crosses second: all across, the results');
+let sTotals = await sql(null, `SELECT * FROM player WHERE room_id = ${St.id}`);
+check(sTotals.find(p => p.id === SA.id).total === 2 && sTotals.find(p => p.id === SB.id).total === 1, 'points by place: I gets 2, II gets 1');
+check((await heatOf()).ended_at[0] > 0, 'the heat records when it ended');
+await call(arena, 'advance', St.id);
+check((await room(St.id)).phase === 'finale', 'one heat: the finale');
+await call(arena, 'advance', St.id);
+check((await room(St.id)).phase === 'finished', 'stadion finished');
+
+await call(arena, 'rematch', St.id);
+check((await room(St.id)).phase === 'ready' && (await runnerOf(SA.id)).distance === 0 && (await runnerOf(SA.id)).place === 0, 'rematch: back on the line');
+await race('rematch');
+const capped = await heatOf();
+console.log(`     waiting ${Math.round((Number(capped.cap_at[0]) / 1000 - Date.now()) / 1000) + 2} s for the cap...`);
+await sleep(Number(capped.cap_at[0]) / 1000 - Date.now() + 2000);
+const b = await runnerOf(SB.id);
+check((await room(St.id)).phase === 'scored' && b.place === 2 && b.time === 0, 'the cap ends the heat: Bo, still running, is placed II by distance, untimed');
+sTotals = await sql(null, `SELECT * FROM player WHERE room_id = ${St.id}`);
+check(sTotals.find(p => p.id === SA.id).total === 2 && sTotals.find(p => p.id === SB.id).total === 1, 'the rematch counted from zero');
+
+// ---------------------------------------------------------------- pygmachia
+
+// Boxing: two fighters live; phones send aim, guard and punches, the module resolves them.
+await call(arena, 'create_room', 'pygmachia', 1, 2, 2, 80, 'four_beat', false, false, true);
+const Bx = (await sql(null, 'SELECT * FROM room'))
+  .filter(x => x.host[0] === `0x${arena.hex}`)
+  .sort((a, b) => b.id - a.id)[0];
+check(Bx.event === 'pygmachia' && Bx.auto_ready && Bx.turn_seconds === 60, 'pygmachia room: auto-ready, 60 s');
+await call(ada, 'join_room', Bx.code, 'Ada', '', []);
+check(await fails(arena, 'start_battle', Bx.id), 'a fight needs two fighters');
+await call(bo, 'join_room', Bx.code, 'Bo', '', []);
+const bPlayers = await sql(null, `SELECT * FROM player WHERE room_id = ${Bx.id}`);
+const BA = bPlayers.find(p => p.name === 'Ada');
+const BB = bPlayers.find(p => p.name === 'Bo');
+const fighterOf = async id => (await sql(null, `SELECT * FROM fighter WHERE player_id = ${id}`))[0];
+const fightOf = async () => (await sql(null, `SELECT * FROM fight WHERE room_id = ${Bx.id}`))[0];
+const punchesIn = async () => sql(null, `SELECT * FROM punch WHERE room_id = ${Bx.id}`);
+await call(arena, 'start_battle', Bx.id);
+check((await room(Bx.id)).phase === 'ready' && (await fighterOf(BA.id)).health === 100 && (await fighterOf(BB.id)).seat === 1, 'two fighters in their corners at full health');
+check(await fails(ada, 'start_fight', Bx.id), 'only the arena rings the bell');
+await call(arena, 'start_fight', Bx.id);
+const bell = await fightOf();
+check((await room(Bx.id)).phase === 'speaking' && bell.ends_at[0] - bell.go_at[0] === 60_000_000, 'the bell: a 3-2-1, then 60 s');
+await call(ada, 'throw_punch', Bx.id, 'jab', 1, 0, 0.5);
+check((await punchesIn()).length === 0, 'no punching during the 3-2-1');
+await call(ada, 'set_fist_aim', Bx.id, 0.2, 2, false);
+check((await fighterOf(BA.id)).aim_yaw > 0.19 && (await fighterOf(BA.id)).aim_pitch === 1, 'fist aim streams in, clamped to -1..1');
+await sleep(3200);
+await call(ada, 'throw_punch', Bx.id, 'jab', 1, 0.1, 0.5);
+let hit = (await punchesIn()).at(-1);
+check(hit.result === 'landed' && hit.zone === 'head' && hit.damage === 16 && (await fighterOf(BB.id)).health === 84, 'a full-power jab to the head lands for 16');
+await call(ada, 'throw_punch', Bx.id, 'jab', 1, 0.1, 0.5);
+check((await punchesIn()).length === 1, 'no more than four punches a second');
+await sleep(300);
+await call(bo, 'set_fist_aim', Bx.id, 0, 0.5, true);
+await call(ada, 'throw_punch', Bx.id, 'jab', 0.5, 0, 0.6);
+hit = (await punchesIn()).at(-1);
+const bb = await fighterOf(BB.id);
+check(hit.result === 'blocked' && hit.damage === 0 && bb.health === 84 && bb.counter_until[0] > 0, "a head punch into Bo's guard is blocked, opening his counter window");
+await call(bo, 'throw_punch', Bx.id, 'jab', 1, 0, 0.2);
+hit = (await punchesIn()).at(-1);
+check(hit.result === 'landed' && hit.counter && hit.damage === 24 && (await fighterOf(BA.id)).health === 76 && !(await fighterOf(BB.id)).guard, 'his counter lands half again (24), and punching dropped his guard');
+await call(bo, 'set_fist_aim', Bx.id, 0, 0.5, true);
+await sleep(300);
+await call(ada, 'throw_punch', Bx.id, 'jab', 0, 0, -0.5);
+hit = (await punchesIn()).at(-1);
+check(hit.result === 'landed' && hit.zone === 'body' && hit.damage === 4, 'the guard covers the head only: a body shot gets through');
+await sleep(300);
+await call(ada, 'throw_punch', Bx.id, 'jab', 1, 0.9, 0.5);
+hit = (await punchesIn()).at(-1);
+check(hit.result === 'missed' && hit.damage === 0, 'a punch aimed wide misses');
+await call(bo, 'set_fist_aim', Bx.id, 0, 0.5, false);
+for (let i = 0; i < 8 && (await room(Bx.id)).phase === 'speaking'; i++) {
+  await sleep(270);
+  await call(ada, 'throw_punch', Bx.id, 'jab', 1, 0, 0.5);
+}
+const ko = await fightOf();
+check((await room(Bx.id)).phase === 'scored' && ko.ko && ko.winner_id === BA.id && (await fighterOf(BB.id)).health === 0, 'Bo goes down: a knockout, Ada wins');
+check((await sql(null, `SELECT * FROM player WHERE id = ${BA.id}`))[0].total === 1, "the winner's total goes up by one");
+const afterKo = (await punchesIn()).length;
+await sleep(300);
+await call(ada, 'throw_punch', Bx.id, 'jab', 1, 0, 0.5);
+check((await punchesIn()).length === afterKo, 'no punches after the knockout');
+await call(arena, 'advance', Bx.id);
+check((await room(Bx.id)).phase === 'finale', 'one bout: the finale');
+await call(arena, 'rematch', Bx.id);
+check((await room(Bx.id)).phase === 'ready' && (await fighterOf(BB.id)).health === 100 && (await punchesIn()).length === 0, 'rematch: back in the corners, healed');
 
 console.log(failures === 0 ? '\nall checks passed' : `\n${failures} check(s) failed`);
 process.exit(failures === 0 ? 0 : 1);

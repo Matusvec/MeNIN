@@ -211,6 +211,11 @@ const discusThrow = table(
     distance: t.f32(), // metres; 0 for a foul
     foul: t.bool(),
     at: t.timestamp(),
+    // From throw_discus_v2 (0 / '' from older phones): the release in detail.
+    releaseSpeed: t.f32().default(0), // m/s off the hand
+    roll: t.f32().default(0), // degrees the disc was tilted off flat at release
+    spin: t.f32().default(0), // rad/s about the disc's own axis
+    foulReason: t.string().default(''), // '' | 'late' (into the crowd) | 'sector' (outside the 34.92° sector)
   }
 );
 
@@ -242,6 +247,108 @@ const turnTimer = table(
   }
 );
 
+// The Stadion's current heat, one row per room: the shared gun everyone runs from (go_at),
+// the cap, and when it ended. Epoch is "not yet", as everywhere in the module.
+const heat = table(
+  { public: true },
+  {
+    roomId: t.u64().primaryKey(),
+    heatNo: t.u32(),
+    goAt: t.timestamp(),
+    capAt: t.timestamp(),
+    endedAt: t.timestamp(),
+  }
+);
+
+// A runner in the Stadion's heat. The phone streams its speed and its own integrated
+// distance; the module places it when it crosses the line (place 0 = still running) and
+// times it from go_at (time 0 = not finished).
+const runner = table(
+  { public: true },
+  {
+    playerId: t.u64().primaryKey(),
+    roomId: t.u64().index('btree'),
+    heatNo: t.u32(),
+    speed: t.f32(),
+    distance: t.f32(),
+    place: t.u32(),
+    time: t.f32(),
+    updatedAt: t.timestamp(),
+  }
+);
+
+// Private: ends a heat at its cap.
+const raceTimer = table(
+  {},
+  {
+    scheduledId: t.u64().primaryKey().autoInc(),
+    scheduledAt: t.scheduleAt(),
+    roomId: t.u64().index('btree'),
+    heatNo: t.u32(),
+  }
+);
+
+// Pygmachia (boxing), one row per room: the bell (go_at), the end, and the result.
+const fight = table(
+  { public: true },
+  {
+    roomId: t.u64().primaryKey(),
+    goAt: t.timestamp(),
+    endsAt: t.timestamp(),
+    endedAt: t.timestamp(),
+    winnerId: t.u64(), // 0: a draw, or not over
+    ko: t.bool(),
+  }
+);
+
+// A fighter: health, guard, and the live fist aim from the phone (latest wins, ~20 Hz).
+// Aim is normalized -1..1: yaw left/right, pitch low/high.
+const fighter = table(
+  { public: true },
+  {
+    playerId: t.u64().primaryKey(),
+    roomId: t.u64().index('btree'),
+    seat: t.u32(),
+    health: t.f32(),
+    guard: t.bool(),
+    aimYaw: t.f32(),
+    aimPitch: t.f32(),
+    counterUntil: t.timestamp(),
+    updatedAt: t.timestamp(),
+  }
+);
+
+// Every punch thrown, in order, and what the module made of it (the `punch` table).
+const punches = table(
+  { public: true },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    roomId: t.u64().index('btree'),
+    playerId: t.u64(),
+    targetId: t.u64(),
+    zone: t.string(), // 'head' | 'body'
+    power: t.f32(),
+    aimYaw: t.f32(),
+    aimPitch: t.f32(),
+    result: t.string(), // 'landed' | 'blocked' | 'missed'
+    damage: t.f32(),
+    counter: t.bool(),
+    at: t.timestamp(),
+    t: t.f32(), // unused (0): the module times punches by `at`
+    kind: t.string().default(''), // 'jab' | 'hook' | 'uppercut', from the phone: flavour, for the animation
+  }
+);
+
+// Private: rings the final bell.
+const fightTimer = table(
+  {},
+  {
+    scheduledId: t.u64().primaryKey().autoInc(),
+    scheduledAt: t.scheduleAt(),
+    roomId: t.u64().index('btree'),
+  }
+);
+
 // Private: one row per open connection. A poet is connected while any of their
 // sockets is open, so a phone that reconnects before the server notices its old
 // socket died isn't marked gone when that old socket finally closes.
@@ -270,6 +377,13 @@ const spacetimedb = schema({
   service,
   turnTimer,
   presence,
+  heat,
+  runner,
+  raceTimer,
+  fight,
+  fighter,
+  punch: punches,
+  fightTimer,
 });
 export default spacetimedb;
 
@@ -284,6 +398,8 @@ type Ctx = ReducerCtx<InferSchema<typeof spacetimedb>>;
 type Room = Infer<typeof room.rowType>;
 type Player = Infer<typeof player.rowType>;
 type Turn = Infer<typeof turn.rowType>;
+type Fight = Infer<typeof fight.rowType>;
+type Fighter = Infer<typeof fighter.rowType>;
 
 const HAND_SIZE = 5;
 const MIN_PLAYERS = 2;
@@ -298,9 +414,20 @@ const DEBATE_SECONDS = 45;
 const POETRY_COUNT_IN_MICROS = 2_250_000n; // 3-2-1, then free verse: no metronome, no bars
 const POETRY_SECONDS_PER_LINE = 10; // the demo's two lines: one 20 s window
 const COACH_SECONDS = 20; // a coach turn: free verse, one 20 s window
+const STADION_METRES = 192; // one stadion, Olympia's track
+const STADION_COUNT_IN_MICROS = 3_000_000n; // 3-2-1, then the gun
+const STADION_CAP_SECONDS = 40; // a heat ends here even if someone is still running
+const STADION_MAX_SPEED = 25; // m/s of game speed; a hard arm pump is about 14
+const FIGHT_COUNT_IN_MICROS = 3_000_000n; // 3-2-1, then the bell
+const FIGHT_SECONDS = 60;
+const FIGHT_HEALTH = 100;
+const COUNTER_MICROS = 500_000n; // a block opens a counter window this long
+const PUNCH_GAP_MICROS = 250_000n; // at most four punches a second
+const AIM_WIDTH = 0.5; // a punch aimed further off-center than this misses
 const THROW_SECONDS = 30; // a discus thrower's time in the circle
 const MAX_SPEED = 60; // rad/s; a phone gyro tops out near 35
 const MAX_DISTANCE = 100; // metres
+const MAX_RELEASE_SPEED = 40; // m/s off the hand; the world record's is about 25
 
 // Each event is a config on the same engine (SPEC "The games"). Axis labels
 // live in the app's event config; here we only need how many there are and
@@ -313,6 +440,8 @@ const EVENTS: Record<string, { axes: number; card: string; weights: number[] }> 
   debate: { axes: 5, card: 'move', weights: [1, 1, 1, 1, 1] }, // claim, reason, answer, craft, poise
   discus: { axes: 0, card: '', weights: [] },
   coach: { axes: 0, card: '', weights: [] }, // Judge mode: Homer replies in score.verdict, no scores
+  stadion: { axes: 0, card: '', weights: [] }, // everyone races at once: no turns, no Claude
+  pygmachia: { axes: 0, card: '', weights: [] }, // boxing: two fighters, live, no Claude
 };
 
 // ---------------------------------------------------------------- helpers
@@ -339,6 +468,14 @@ function isDiscus(r: Room): boolean {
 
 function isCoach(r: Room): boolean {
   return r.event === 'coach';
+}
+
+function isStadion(r: Room): boolean {
+  return r.event === 'stadion';
+}
+
+function isPygmachia(r: Room): boolean {
+  return r.event === 'pygmachia';
 }
 
 function seconds(s: number): bigint {
@@ -370,9 +507,11 @@ function eventSettings(
     event === 'discus' ? THROW_SECONDS
     : event === 'debate' ? DEBATE_SECONDS
     : coach ? COACH_SECONDS
+    : event === 'stadion' ? STADION_CAP_SECONDS
+    : event === 'pygmachia' ? FIGHT_SECONDS
     : lines * POETRY_SECONDS_PER_LINE;
   if (turnSeconds > 120) throw new SenderError('a turn cannot run past 120 seconds');
-  return { rounds: demo || coach ? 1 : rounds, turnSeconds, autoReady: event === 'discus' || coach || demo || autoReady };
+  return { rounds: demo || coach ? 1 : rounds, turnSeconds, autoReady: event === 'discus' || event === 'stadion' || event === 'pygmachia' || coach || demo || autoReady };
 }
 
 // Inserts a round and its turns in seat order, rotated by one seat each
@@ -424,6 +563,79 @@ function startThrowRound(ctx: Ctx, r: Room, roundNo: number): void {
   const turns = layOutRound(ctx, r.id, roundNo, `Throw ${roundNo}`);
   ctx.db.room.id.update({ ...r, roundNo, phase: 'ready', nextTheme: '', currentTurnId: turns[0].id });
 }
+
+// A Stadion heat: every poet on the line at 0 m, waiting for the arena's start_race.
+function startHeat(ctx: Ctx, r: Room, heatNo: number): void {
+  const row = { roomId: r.id, heatNo, goAt: EPOCH, capAt: EPOCH, endedAt: EPOCH };
+  if (ctx.db.heat.roomId.find(r.id)) ctx.db.heat.roomId.update(row);
+  else ctx.db.heat.insert(row);
+  ctx.db.runner.roomId.delete(r.id);
+  for (const p of playersOf(ctx, r.id)) {
+    ctx.db.runner.insert({ playerId: p.id, roomId: r.id, heatNo, speed: 0, distance: 0, place: 0, time: 0, updatedAt: ctx.timestamp });
+  }
+  ctx.db.room.id.update({ ...getRoom(ctx, r.id), phase: 'ready', roundNo: heatNo, nextTheme: '', currentTurnId: 0n });
+}
+
+// Closes a heat: whoever hasn't crossed is placed by distance after the finishers, every
+// runner scores points by place (last gets 1), and the race goes to the results.
+function endRace(ctx: Ctx, roomId: bigint): void {
+  const runners = [...ctx.db.runner.roomId.filter(roomId)];
+  const crossed = runners.filter(x => x.place > 0).length;
+  runners
+    .filter(x => x.place === 0)
+    .sort((a, b) => b.distance - a.distance)
+    .forEach((x, i) => ctx.db.runner.playerId.update({ ...x, place: crossed + i + 1 }));
+  for (const x of [...ctx.db.runner.roomId.filter(roomId)]) {
+    const p = ctx.db.player.id.find(x.playerId);
+    if (p) ctx.db.player.id.update({ ...p, total: p.total + (runners.length - x.place + 1) });
+  }
+  const h = ctx.db.heat.roomId.find(roomId);
+  if (h) ctx.db.heat.roomId.update({ ...h, endedAt: ctx.timestamp });
+  ctx.db.raceTimer.roomId.delete(roomId);
+  idleScene(ctx, roomId);
+  setPhase(ctx, getRoom(ctx, roomId), 'scored', 0n);
+}
+
+// A bout: both fighters at full health, guards down, waiting for the arena's start_fight.
+function startBout(ctx: Ctx, r: Room, boutNo: number): void {
+  const row = { roomId: r.id, goAt: EPOCH, endsAt: EPOCH, endedAt: EPOCH, winnerId: 0n, ko: false };
+  if (ctx.db.fight.roomId.find(r.id)) ctx.db.fight.roomId.update(row);
+  else ctx.db.fight.insert(row);
+  ctx.db.fighter.roomId.delete(r.id);
+  ctx.db.punch.roomId.delete(r.id);
+  playersOf(ctx, r.id).forEach((p, seat) =>
+    ctx.db.fighter.insert({
+      playerId: p.id, roomId: r.id, seat, health: FIGHT_HEALTH, guard: false,
+      aimYaw: 0, aimPitch: 0, counterUntil: EPOCH, updatedAt: ctx.timestamp,
+    })
+  );
+  ctx.db.room.id.update({ ...getRoom(ctx, r.id), phase: 'ready', roundNo: boutNo, nextTheme: '', currentTurnId: 0n });
+}
+
+// The final bell or a knockout: the winner scores a point and the fight goes to the result.
+function endFight(ctx: Ctx, roomId: bigint, winnerId: bigint, ko: boolean): void {
+  const f = ctx.db.fight.roomId.find(roomId);
+  if (f) ctx.db.fight.roomId.update({ ...f, endedAt: ctx.timestamp, winnerId, ko });
+  const w = winnerId ? ctx.db.player.id.find(winnerId) : undefined;
+  if (w) ctx.db.player.id.update({ ...w, total: w.total + 1 });
+  ctx.db.fightTimer.roomId.delete(roomId);
+  idleScene(ctx, roomId);
+  setPhase(ctx, getRoom(ctx, roomId), 'scored', 0n);
+}
+
+// The sender's fighter and their opponent in a fight that is on (count-in included), or null.
+function inFight(ctx: Ctx, roomId: bigint): { f: Fight; me: Fighter; foe: Fighter } | null {
+  const r = ctx.db.room.id.find(roomId);
+  const f = ctx.db.fight.roomId.find(roomId);
+  if (!r || !f || !isPygmachia(r) || r.phase !== 'speaking' || f.endedAt.microsSinceUnixEpoch !== 0n) return null;
+  const p = playerOf(ctx, roomId);
+  const fighters = [...ctx.db.fighter.roomId.filter(roomId)];
+  const me = fighters.find(x => x.playerId === p?.id);
+  const foe = fighters.find(x => x.playerId !== p?.id);
+  return me && foe ? { f, me, foe } : null;
+}
+
+const unit = (x: number) => (Number.isFinite(x) ? Math.min(1, Math.max(-1, x)) : 0);
 
 function getRoom(ctx: Ctx, roomId: bigint): Room {
   const r = ctx.db.room.id.find(roomId);
@@ -516,6 +728,13 @@ function clearBattle(ctx: Ctx, roomId: bigint): void {
   ctx.db.songLine.roomId.delete(roomId);
   ctx.db.reaction.roomId.delete(roomId);
   ctx.db.discusThrow.roomId.delete(roomId);
+  ctx.db.heat.roomId.delete(roomId);
+  ctx.db.runner.roomId.delete(roomId);
+  ctx.db.raceTimer.roomId.delete(roomId);
+  ctx.db.fight.roomId.delete(roomId);
+  ctx.db.fighter.roomId.delete(roomId);
+  ctx.db.punch.roomId.delete(roomId);
+  ctx.db.fightTimer.roomId.delete(roomId);
   for (const p of playersOf(ctx, roomId)) {
     ctx.db.player.id.update({ ...p, total: 0 });
     const h = ctx.db.hand.playerId.find(p.id);
@@ -535,10 +754,19 @@ function idleScene(ctx: Ctx, roomId: bigint): void {
 
 function beginBattle(ctx: Ctx, r: Room): void {
   const n = playersOf(ctx, r.id).length;
-  const min = isCoach(r) ? 1 : MIN_PLAYERS; // Judge mode: one poet and Homer
+  const min = isCoach(r) || isStadion(r) ? 1 : MIN_PLAYERS; // Judge mode: one poet and Homer; a lone runner races the clock
   if (n < min) throw new SenderError(`need at least ${min} poet${min === 1 ? '' : 's'}`);
   if (isDiscus(r)) {
     startThrowRound(ctx, r, 1);
+    return;
+  }
+  if (isStadion(r)) {
+    startHeat(ctx, r, 1);
+    return;
+  }
+  if (isPygmachia(r)) {
+    if (n !== 2) throw new SenderError('a fight needs exactly two fighters');
+    startBout(ctx, r, 1);
     return;
   }
   ctx.db.room.id.update({
@@ -751,7 +979,11 @@ export const advance = spacetimedb.reducer({ roomId: t.u64() }, (ctx, { roomId }
   const r = getRoom(ctx, roomId);
   requireHost(ctx, r);
 
-  if (r.phase === 'scored') {
+  if (r.phase === 'scored' && (isStadion(r) || isPygmachia(r))) {
+    // The motion games have no turns: the next heat or bout, or the champion.
+    if (r.roundNo < r.rounds) (isStadion(r) ? startHeat : startBout)(ctx, r, r.roundNo + 1);
+    else setPhase(ctx, r, 'finale', 0n);
+  } else if (r.phase === 'scored') {
     const cur = getTurn(ctx, r.currentTurnId);
     const next = turnsOf(ctx, cur.roundId).find(x => x.turnNo === cur.turnNo + 1);
     if (next) setPhase(ctx, r, 'ready', next.id);
@@ -803,6 +1035,8 @@ export const endBattle = spacetimedb.reducer({ roomId: t.u64() }, (ctx, { roomId
   const r = getRoom(ctx, roomId);
   requireHost(ctx, r);
   if (r.phase === 'lobby' || r.phase === 'finished') throw new SenderError(`cannot end from ${r.phase}`);
+  ctx.db.raceTimer.roomId.delete(roomId);
+  ctx.db.fightTimer.roomId.delete(roomId);
   for (const tr of [...ctx.db.turn.roomId.filter(roomId)]) {
     ctx.db.turnTimer.turnId.delete(tr.id);
     if (tr.id === r.currentTurnId && ['waiting', 'speaking', 'judging'].includes(tr.status)) {
@@ -968,42 +1202,196 @@ export const endTurn = spacetimedb.reducer(
 
 // The thrower's phone, once, when the thumb lifts. A foul lands at 0 m.
 // player.total keeps the best throw in tenths of a metre, so it ranks the field.
+// The arena fires the gun: a 3-2-1, then everyone runs at once until all have crossed
+// or the cap.
+export const startRace = spacetimedb.reducer({ roomId: t.u64() }, (ctx, { roomId }) => {
+  const r = getRoom(ctx, roomId);
+  requireHost(ctx, r);
+  if (!isStadion(r)) throw new SenderError('not a stadion');
+  if (r.phase !== 'ready') throw new SenderError('the runners are not on the line');
+  const h = ctx.db.heat.roomId.find(roomId)!;
+  const goAt = after(ctx.timestamp, STADION_COUNT_IN_MICROS);
+  const capAt = after(goAt, seconds(STADION_CAP_SECONDS));
+  ctx.db.heat.roomId.update({ ...h, goAt, capAt, endedAt: EPOCH });
+  ctx.db.raceTimer.insert({ scheduledId: 0n, scheduledAt: ScheduleAt.time(capAt.microsSinceUnixEpoch), roomId, heatNo: h.heatNo });
+  setPhase(ctx, r, 'speaking', 0n);
+});
+
+// A runner's phone, about 10 Hz: its arm-pump speed and its own integrated distance.
+// Never an error (a stream must not spam refusals): before the gun, after crossing or
+// outside a race it is ignored. Distance never goes down and can't outrun the max speed.
+export const setStride = spacetimedb.reducer(
+  { roomId: t.u64(), speed: t.f32(), distance: t.f32() },
+  (ctx, { roomId, speed, distance }) => {
+    const r = ctx.db.room.id.find(roomId);
+    if (!r || !isStadion(r) || r.phase !== 'speaking') return;
+    const p = playerOf(ctx, roomId);
+    const h = ctx.db.heat.roomId.find(roomId);
+    const me = p ? ctx.db.runner.playerId.find(p.id) : undefined;
+    if (!h || !me || me.place > 0 || !Number.isFinite(speed) || !Number.isFinite(distance)) return;
+    const elapsed = Number(ctx.timestamp.microsSinceUnixEpoch - h.goAt.microsSinceUnixEpoch) / 1e6;
+    if (elapsed <= 0) return;
+    const v = Math.min(STADION_MAX_SPEED, Math.max(0, speed));
+    const d = Math.max(me.distance, Math.min(distance, STADION_MAX_SPEED * elapsed));
+    if (d < STADION_METRES) {
+      ctx.db.runner.playerId.update({ ...me, speed: v, distance: d, updatedAt: ctx.timestamp });
+      return;
+    }
+    // Crossed: back out the overshoot at this speed, never faster than the max speed allows.
+    const overshoot = v > 0 ? (d - STADION_METRES) / v : 0;
+    const time = Math.max(STADION_METRES / STADION_MAX_SPEED, elapsed - overshoot);
+    const place = [...ctx.db.runner.roomId.filter(roomId)].filter(x => x.place > 0).length + 1;
+    ctx.db.runner.playerId.update({ ...me, speed: v, distance: STADION_METRES, place, time: Math.round(time * 1000) / 1000, updatedAt: ctx.timestamp });
+    if ([...ctx.db.runner.roomId.filter(roomId)].every(x => x.place > 0)) endRace(ctx, roomId);
+  }
+);
+
+export const raceTimeout = spacetimedb.reducer(
+  { onSchedule: raceTimer },
+  { timer: raceTimer.rowType },
+  (ctx, { timer }) => {
+    const r = ctx.db.room.id.find(timer.roomId);
+    const h = ctx.db.heat.roomId.find(timer.roomId);
+    if (!r || !h || !isStadion(r) || r.phase !== 'speaking' || h.heatNo !== timer.heatNo) return;
+    endRace(ctx, r.id);
+  }
+);
+
+// The arena rings the bell: a 3-2-1, then 60 s or a knockout.
+export const startFight = spacetimedb.reducer({ roomId: t.u64() }, (ctx, { roomId }) => {
+  const r = getRoom(ctx, roomId);
+  requireHost(ctx, r);
+  if (!isPygmachia(r)) throw new SenderError('not a fight');
+  if (r.phase !== 'ready') throw new SenderError('the fighters are not in their corners');
+  const f = ctx.db.fight.roomId.find(roomId)!;
+  const goAt = after(ctx.timestamp, FIGHT_COUNT_IN_MICROS);
+  const endsAt = after(goAt, seconds(FIGHT_SECONDS));
+  ctx.db.fight.roomId.update({ ...f, goAt, endsAt, endedAt: EPOCH, winnerId: 0n, ko: false });
+  ctx.db.fightTimer.insert({ scheduledId: 0n, scheduledAt: ScheduleAt.time(endsAt.microsSinceUnixEpoch), roomId });
+  setPhase(ctx, r, 'speaking', 0n);
+});
+
+// A fighter's phone, about 20 Hz: where the fists point, and whether the guard is up (the
+// phone held upright at the face; it covers the head only). Silent outside a fight.
+export const setFistAim = spacetimedb.reducer(
+  { roomId: t.u64(), yaw: t.f32(), pitch: t.f32(), guard: t.bool() },
+  (ctx, { roomId, yaw, pitch, guard }) => {
+    const live = inFight(ctx, roomId);
+    if (live) ctx.db.fighter.playerId.update({ ...live.me, aimYaw: unit(yaw), aimPitch: unit(pitch), guard, updatedAt: ctx.timestamp });
+  }
+);
+
+// A punch. Aimed high it goes for the head, low for the body; too far off-center misses.
+// A head punch into a raised guard is blocked and opens the blocker's counter window; a
+// landed punch costs health with its power, half again inside your own counter window.
+// Punching drops your guard. Silent before the bell, after it, or faster than 4 a second.
+export const throwPunch = spacetimedb.reducer(
+  { roomId: t.u64(), kind: t.string(), power: t.f32(), aimYaw: t.f32(), aimPitch: t.f32() },
+  (ctx, args) => {
+    const live = inFight(ctx, args.roomId);
+    if (!live || ctx.timestamp.microsSinceUnixEpoch < live.f.goAt.microsSinceUnixEpoch) return;
+    const { me, foe } = live;
+    const now = ctx.timestamp.microsSinceUnixEpoch;
+    const mine = [...ctx.db.punch.roomId.filter(args.roomId)].filter(x => x.playerId === me.playerId);
+    if (mine.some(x => now - x.at.microsSinceUnixEpoch < PUNCH_GAP_MICROS)) return;
+    const power = Math.max(0, Math.min(1, Number.isFinite(args.power) ? args.power : 0));
+    const yaw = unit(args.aimYaw);
+    const pitch = unit(args.aimPitch);
+    const zone = pitch >= 0 ? 'head' : 'body';
+    const counter = me.counterUntil.microsSinceUnixEpoch > now;
+    let result = 'landed';
+    let damage = 0;
+    if (Math.abs(yaw) > AIM_WIDTH) result = 'missed';
+    else if (zone === 'head' && foe.guard) result = 'blocked';
+    else damage = Math.round((4 + 12 * power) * (counter ? 1.5 : 1) * 10) / 10;
+    ctx.db.punch.insert({
+      id: 0n, roomId: args.roomId, playerId: me.playerId, targetId: foe.playerId, zone, power, aimYaw: yaw, aimPitch: pitch,
+      result, damage, counter: counter && result === 'landed', at: ctx.timestamp, t: 0,
+      kind: ['jab', 'hook', 'uppercut'].includes(args.kind) ? args.kind : 'jab',
+    });
+    ctx.db.fighter.playerId.update({ ...me, guard: false, counterUntil: counter && result === 'landed' ? EPOCH : me.counterUntil, updatedAt: ctx.timestamp });
+    if (result === 'blocked') {
+      ctx.db.fighter.playerId.update({ ...foe, counterUntil: after(ctx.timestamp, COUNTER_MICROS), updatedAt: ctx.timestamp });
+    } else if (result === 'landed') {
+      const health = Math.max(0, foe.health - damage);
+      ctx.db.fighter.playerId.update({ ...foe, health, updatedAt: ctx.timestamp });
+      if (health <= 0) endFight(ctx, args.roomId, me.playerId, true);
+    }
+  }
+);
+
+export const fightTimeout = spacetimedb.reducer(
+  { onSchedule: fightTimer },
+  { timer: fightTimer.rowType },
+  (ctx, { timer }) => {
+    const r = ctx.db.room.id.find(timer.roomId);
+    const f = ctx.db.fight.roomId.find(timer.roomId);
+    if (!r || !f || !isPygmachia(r) || r.phase !== 'speaking' || f.endedAt.microsSinceUnixEpoch !== 0n) return;
+    const [a, b] = [...ctx.db.fighter.roomId.filter(r.id)];
+    const winner = !a || !b || a.health === b.health ? 0n : a.health > b.health ? a.playerId : b.playerId;
+    endFight(ctx, r.id, winner, false);
+  }
+);
+
+type ThrowArgs = { turnId: bigint; speed: number; angle: number; timing: number; distance: number; foul: boolean };
+type Release = { releaseSpeed: number; roll: number; spin: number; foulReason: string };
+
+// One throw, from either reducer: the phone measures it and works out the distance; the
+// module checks the numbers are plausible, keeps the best, and moves to the reveal.
+function recordThrow(ctx: Ctx, a: ThrowArgs, release: Release): void {
+  const { r, tr } = requireSpeaker(ctx, a.turnId);
+  if (!isDiscus(r)) throw new SenderError('this is not a discus event');
+  const ranges: [string, number, number, number][] = [
+    ['speed', a.speed, 0, MAX_SPEED],
+    ['angle', a.angle, -90, 90],
+    ['timing', a.timing, 0, 1],
+    ['distance', a.distance, 0, MAX_DISTANCE],
+    ['release_speed', release.releaseSpeed, 0, MAX_RELEASE_SPEED],
+    ['roll', release.roll, -180, 180],
+    ['spin', release.spin, 0, MAX_SPEED],
+  ];
+  for (const [name, v, lo, hi] of ranges) {
+    if (!Number.isFinite(v) || v < lo || v > hi) throw new SenderError(`${name} must be ${lo} to ${hi}`);
+  }
+  if (!['', 'late', 'sector'].includes(release.foulReason)) throw new SenderError("foul_reason is '', 'late' or 'sector'");
+  const distance = a.foul ? 0 : a.distance;
+  ctx.db.turnTimer.turnId.delete(tr.id);
+  ctx.db.discusThrow.insert({
+    id: 0n,
+    roomId: r.id,
+    turnId: tr.id,
+    playerId: tr.playerId,
+    throwNo: r.roundNo,
+    speed: a.speed,
+    angle: a.angle,
+    timing: a.timing,
+    distance,
+    foul: a.foul,
+    at: ctx.timestamp,
+    ...release,
+    foulReason: a.foul ? release.foulReason || 'late' : '',
+  });
+  ctx.db.turn.id.update({ ...tr, status: 'scored' });
+  const p = ctx.db.player.id.find(tr.playerId)!;
+  const best = Math.round(distance * 10);
+  if (best > p.total) ctx.db.player.id.update({ ...p, total: best });
+  idleScene(ctx, r.id);
+  setPhase(ctx, r, 'scored');
+}
+
+// The first discus phones (build 18 and 19): kept exactly as it was.
 export const throwDiscus = spacetimedb.reducer(
   { turnId: t.u64(), speed: t.f32(), angle: t.f32(), timing: t.f32(), distance: t.f32(), foul: t.bool() },
-  (ctx, a) => {
-    const { r, tr } = requireSpeaker(ctx, a.turnId);
-    if (!isDiscus(r)) throw new SenderError('this is not a discus event');
-    const ranges: [string, number, number, number][] = [
-      ['speed', a.speed, 0, MAX_SPEED],
-      ['angle', a.angle, -90, 90],
-      ['timing', a.timing, 0, 1],
-      ['distance', a.distance, 0, MAX_DISTANCE],
-    ];
-    for (const [name, v, lo, hi] of ranges) {
-      if (!Number.isFinite(v) || v < lo || v > hi) throw new SenderError(`${name} must be ${lo} to ${hi}`);
-    }
-    const distance = a.foul ? 0 : a.distance;
-    ctx.db.turnTimer.turnId.delete(tr.id);
-    ctx.db.discusThrow.insert({
-      id: 0n,
-      roomId: r.id,
-      turnId: tr.id,
-      playerId: tr.playerId,
-      throwNo: r.roundNo,
-      speed: a.speed,
-      angle: a.angle,
-      timing: a.timing,
-      distance,
-      foul: a.foul,
-      at: ctx.timestamp,
-    });
-    ctx.db.turn.id.update({ ...tr, status: 'scored' });
-    const p = ctx.db.player.id.find(tr.playerId)!;
-    const best = Math.round(distance * 10);
-    if (best > p.total) ctx.db.player.id.update({ ...p, total: best });
-    idleScene(ctx, r.id);
-    setPhase(ctx, r, 'scored');
-  }
+  (ctx, a) => recordThrow(ctx, a, { releaseSpeed: 0, roll: 0, spin: 0, foulReason: '' })
+);
+
+// Newer phones send the release in detail too, for the arena's technique call.
+export const throwDiscusFull = spacetimedb.reducer(
+  {
+    turnId: t.u64(), speed: t.f32(), angle: t.f32(), timing: t.f32(), distance: t.f32(), foul: t.bool(),
+    releaseSpeed: t.f32(), roll: t.f32(), spin: t.f32(), foulReason: t.string(),
+  },
+  (ctx, { releaseSpeed, roll, spin, foulReason, ...a }) => recordThrow(ctx, a, { releaseSpeed, roll, spin, foulReason })
 );
 
 // ~20 Hz from the speaking phone. In the lobby any poet may send it, so the

@@ -54,13 +54,18 @@ import ReactReducer from "./react_reducer";
 import RematchReducer from "./rematch_reducer";
 import RescueReducer from "./rescue_reducer";
 import SetEventReducer from "./set_event_reducer";
+import SetFistAimReducer from "./set_fist_aim_reducer";
 import SetProsodyReducer from "./set_prosody_reducer";
 import SetSceneReducer from "./set_scene_reducer";
 import SetServiceKeyReducer from "./set_service_key_reducer";
+import SetStrideReducer from "./set_stride_reducer";
 import SkipTurnReducer from "./skip_turn_reducer";
 import StartBattleReducer from "./start_battle_reducer";
+import StartFightReducer from "./start_fight_reducer";
+import StartRaceReducer from "./start_race_reducer";
 import StartTurnReducer from "./start_turn_reducer";
 import ThrowDiscusReducer from "./throw_discus_reducer";
+import ThrowPunchReducer from "./throw_punch_reducer";
 import UpdateTranscriptReducer from "./update_transcript_reducer";
 
 // Import all procedure arg schemas
@@ -68,12 +73,17 @@ import UpdateTranscriptReducer from "./update_transcript_reducer";
 // Import all table schema definitions
 import ColorSampleRow from "./color_sample_table";
 import DiscusThrowRow from "./discus_throw_table";
+import FightRow from "./fight_table";
+import FighterRow from "./fighter_table";
 import HandRow from "./hand_table";
+import HeatRow from "./heat_table";
 import PlayerRow from "./player_table";
 import ProsodyRow from "./prosody_table";
+import PunchRow from "./punch_table";
 import ReactionRow from "./reaction_table";
 import RoomRow from "./room_table";
 import RoundRow from "./round_table";
+import RunnerRow from "./runner_table";
 import SceneRow from "./scene_table";
 import ScoreRow from "./score_table";
 import SongLineRow from "./song_line_table";
@@ -114,6 +124,31 @@ const tablesSchema = __schema({
       { name: 'discus_throw_id_key', constraint: 'unique', columns: ['id'] },
     ],
   }, DiscusThrowRow),
+  fight: __table({
+    name: 'fight',
+    indexes: [
+      { accessor: 'roomId', name: 'fight_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'fight_room_id_key', constraint: 'unique', columns: ['roomId'] },
+    ],
+  }, FightRow),
+  fighter: __table({
+    name: 'fighter',
+    indexes: [
+      { accessor: 'playerId', name: 'fighter_player_id_idx_btree', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+      { accessor: 'roomId', name: 'fighter_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'fighter_player_id_key', constraint: 'unique', columns: ['playerId'] },
+    ],
+  }, FighterRow),
   hand: __table({
     name: 'hand',
     indexes: [
@@ -128,6 +163,17 @@ const tablesSchema = __schema({
       { name: 'hand_player_id_key', constraint: 'unique', columns: ['playerId'] },
     ],
   }, HandRow),
+  heat: __table({
+    name: 'heat',
+    indexes: [
+      { accessor: 'roomId', name: 'heat_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'heat_room_id_key', constraint: 'unique', columns: ['roomId'] },
+    ],
+  }, HeatRow),
   player: __table({
     name: 'player',
     indexes: [
@@ -156,6 +202,20 @@ const tablesSchema = __schema({
       { name: 'prosody_room_id_key', constraint: 'unique', columns: ['roomId'] },
     ],
   }, ProsodyRow),
+  punch: __table({
+    name: 'punch',
+    indexes: [
+      { accessor: 'id', name: 'punch_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+      { accessor: 'roomId', name: 'punch_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'punch_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, PunchRow),
   reaction: __table({
     name: 'reaction',
     indexes: [
@@ -199,6 +259,20 @@ const tablesSchema = __schema({
       { name: 'round_id_key', constraint: 'unique', columns: ['id'] },
     ],
   }, RoundRow),
+  runner: __table({
+    name: 'runner',
+    indexes: [
+      { accessor: 'playerId', name: 'runner_player_id_idx_btree', algorithm: 'btree', columns: [
+        'playerId',
+      ] },
+      { accessor: 'roomId', name: 'runner_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'runner_player_id_key', constraint: 'unique', columns: ['playerId'] },
+    ],
+  }, RunnerRow),
   scene: __table({
     name: 'scene',
     indexes: [
@@ -279,13 +353,18 @@ const reducersSchema = __reducers(
   __reducerSchema("rematch", RematchReducer),
   __reducerSchema("rescue", RescueReducer),
   __reducerSchema("set_event", SetEventReducer),
+  __reducerSchema("set_fist_aim", SetFistAimReducer),
   __reducerSchema("set_prosody", SetProsodyReducer),
   __reducerSchema("set_scene", SetSceneReducer),
   __reducerSchema("set_service_key", SetServiceKeyReducer),
+  __reducerSchema("set_stride", SetStrideReducer),
   __reducerSchema("skip_turn", SkipTurnReducer),
   __reducerSchema("start_battle", StartBattleReducer),
+  __reducerSchema("start_fight", StartFightReducer),
+  __reducerSchema("start_race", StartRaceReducer),
   __reducerSchema("start_turn", StartTurnReducer),
   __reducerSchema("throw_discus", ThrowDiscusReducer),
+  __reducerSchema("throw_punch", ThrowPunchReducer),
   __reducerSchema("update_transcript", UpdateTranscriptReducer),
 );
 
