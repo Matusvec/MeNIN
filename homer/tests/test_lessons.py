@@ -2,15 +2,16 @@ import asyncio
 
 import pytest
 
-from homer.lessons import Attempt, DETECTORS, common, demo_lane, demo_words, feedback, lessons, spoken_demo
+from homer.lessons import THIN, Attempt, DETECTORS, common, demo_lane, demo_words, feedback, lessons, spoken_demo
 
 # The rows each detector list was written against, in order. If content/lessons.md
 # reorders or renames a row, this fails before Homer says the wrong line.
 ROWS = {
-    "beat": ["Three hits or fewer", "Five hits or more", "No break", "A hit on a small word", "Ahead of the drum"],
+    "beat": ["Two hits or fewer", "Six hits or more", "No break", "A hit on a small word", "Ahead of the drum",
+             "Content is thin"],
     "formula": ["Froze, and didn't use the whispered card", "No card from the hand", "Changed the card's words",
                 "The card alone, nothing of their own", "Their own half is off"],
-    "epithet": ["Three or more hits in the title", "One hit in the title", "Generic, judged weak",
+    "epithet": ["Four or more hits in the title", "No hit in the title", "Generic, judged weak",
                 "Title not used in the line", "The line around it is off"],
     "turn": ["No turn", "Turned at line 1 or 2", "Turned at line 4", "Said the feeling instead of showing it",
              "The turn cost a hit"],
@@ -33,12 +34,12 @@ def test_the_six_lessons_parse():
 @pytest.mark.parametrize("lesson", ROWS)
 def test_detectors_line_up_with_the_tables(lesson):
     assert [m for m, _ in lessons()[lesson].misses] == ROWS[lesson]
-    assert len(DETECTORS[lesson]) == len(ROWS[lesson])
+    assert len(DETECTORS[lesson]) == len([r for r in ROWS[lesson] if r != THIN])  # the content row is checked by name
 
 
 def test_demo_is_speakable_and_on_the_beat():
     l = lessons()["beat"]
-    assert spoken_demo(l).splitlines()[0] == "the wind was cold the waves were grey"
+    assert spoken_demo(l).splitlines()[0] == "the mast went down in the black of the storm"
     lane = demo_lane(l, 80)
     hits = [w["t"] for w in lane["words"] if w["stressed"]][:4]
     assert hits == [0, 750, 1500, 2250] and lane["lines"] == 4
@@ -55,14 +56,17 @@ def say(lesson, transcript, craft=8, **kw):
     "transcript, miss, line",
     [
         ("the road was long, the night was cold\nI walked alone, I walked in the rain", None, "Four and four. That's the beat. It's yours now."),
-        ("the cat sat on the mat\nthe road was long, the night was cold", "Three hits or fewer", "Three hits. I need four. Add a word with weight."),
-        ("big black dogs ran fast through cold dark woods\nthe road was long, the night was cold", "Five hits or more", "Six hits. Too many. Cut a word."),
+        ("the cat on the mat\nthe road was long, the night was cold", "Two hits or fewer", None),
+        ("big black dogs ran fast through cold dark woods\nthe road was long, the night was cold", "Six hits or more", None),
+        ("the cat sat on the mat\nthe road was long, the night was cold", None, None),  # three hits count as four
         ("", "No speech heard", "I heard nothing. Again, and louder."),
     ],
 )
 def test_lesson_one(transcript, miss, line):
     f = say("beat", transcript)
-    assert (f.miss, f.line) == (miss, line) and f.landed == (miss is None)
+    assert f.miss == miss and f.landed == (miss is None)
+    if line:
+        assert f.line == line
 
 
 @pytest.mark.parametrize(
@@ -90,17 +94,18 @@ def test_lesson_two_fills_the_whispered_card():
     "transcript, craft, miss",
     [
         ("Matus, Breaker of Deadlines\nhere comes Matus, breaker of deadlines, home", 8, None),
-        ("Matus, Breaker\nI walk the long road home tonight", 8, "One hit in the title"),
-        ("Matus, Breaker of the Old Gods' Iron Chains\nthe road", 8, "Three or more hits in the title"),
+        ("Matus, of the\nI walk the long road home tonight", 8, "No hit in the title"),
+        ("Matus, Breaker of the Old Gods' Iron Chains\nthe road", 8, "Four or more hits in the title"),
+        ("Matus, Breaker\nhere comes Matus, the breaker, home at last", 8, None),  # one hit is enough now
         ("Matus, Breaker of Deadlines\nhere comes Matus, breaker of deadlines, home", 4, "Generic, judged weak"),
         ("Matus, Breaker of Deadlines\nI walk the long road home tonight", 8, "Title not used in the line"),
-        ("Matus, Breaker of Deadlines\nbreaker of deadlines", 8, "The line around it is off"),
+        ("Matus, Swift of Foot\nswift of foot", 8, "The line around it is off"),  # two hits: two short of four
     ],
 )
 def test_lesson_three(transcript, craft, miss):
     f = say("epithet", transcript, craft=craft, name="Matus")
     assert f.miss == miss
-    if miss is None:
+    if miss is None and "Deadlines" in transcript:
         assert f.title == "Breaker of Deadlines" and f.line.startswith("Breaker of Deadlines. Good.")
 
 
@@ -225,16 +230,16 @@ def test_lesson_six_the_boast(boast, verse, miss, fill):
 
 
 def test_help_after_the_third_and_fifth_misses():
-    miss = "the cat sat on the mat\nthe road was long, the night was cold"
+    miss = "the cat on the mat\nthe road was long, the night was cold"  # two hits: two short of four
     assert say("beat", miss, try_no=2).help is None
     third = say("beat", miss, try_no=3)
     assert not third.landed and third.help["kind"] == "half"
-    assert third.help["half"] == "the WIND was COLD /"
-    assert third.help["say"] == common()["Help after three misses"].replace("{half}", "the wind was cold")
+    assert third.help["half"] == "the MAST went DOWN /"
+    assert third.help["say"] == common()["Help after three misses"].replace("{half}", "the mast went down")
     assert say("beat", miss, try_no=4).help is None
     fifth = say("beat", miss, try_no=5)
-    assert fifth.landed and fifth.help["kind"] == "walkthrough" and fifth.help["line"] == "the WIND was COLD / the WAVES were GREY"
-    assert fifth.help["say"] == common()["Walkthrough after five misses"].replace("{line}", "the wind was cold the waves were grey")
+    assert fifth.landed and fifth.help["kind"] == "walkthrough" and fifth.help["line"] == "the MAST went DOWN / in the BLACK of the STORM"
+    assert fifth.help["say"] == common()["Walkthrough after five misses"].replace("{line}", "the mast went down in the black of the storm")
     assert fifth.line == third.line  # Homer still names the miss; the walkthrough follows it
 
 
@@ -243,7 +248,7 @@ def test_help_line_shows_each_lessons_move():
 
     assert help_for(lessons()["turn"], 5)["line"].startswith("then I SAW my BROTHer")
     assert help_for(lessons()["boast"], 5)["line"] == "the KINGS are DUST / and I'm STILL HERE"
-    assert help_for(lessons()["answer"], 3)["half"] == "but a CANdle in the RAIN /"
+    assert help_for(lessons()["answer"], 3)["half"] == "but a LAMP in the RAIN /"
 
 
 def test_a_landed_try_needs_no_help():
@@ -260,24 +265,51 @@ def pulses(line, count, shift=0.0, bpm=80):
     return [(8 * line + k) * beat + shift for k in range(count)]
 
 
-def test_onsets_hear_rushing_without_word_timings():
+def test_rushing_the_drum_is_a_note_never_a_miss():
     early = pulses(0, 4, -100) + pulses(1, 4, -100)
     on = pulses(0, 4, 10) + pulses(1, 4, 10)
-    assert say("beat", LESSON_ONE, bpm=80, onsets_ms=early).miss == "Ahead of the drum"
-    assert say("beat", LESSON_ONE, bpm=80, onsets_ms=on).landed
+    rushed = say("beat", LESSON_ONE, bpm=80, onsets_ms=early)
+    assert rushed.landed and rushed.miss is None
+    assert rushed.line == lessons()["beat"].success + " One note: let the drum come to you."
+    assert say("beat", LESSON_ONE, bpm=80, onsets_ms=on).line == lessons()["beat"].success
 
 
-def test_onsets_must_back_up_the_text_count():
-    short = say("beat", LESSON_ONE, bpm=80, onsets_ms=pulses(0, 4) + pulses(1, 2))
-    assert (short.miss, short.line) == ("Three hits or fewer", "Two hits. I need four. Add a word with weight.")
-    assert say("beat", LESSON_ONE, bpm=80, onsets_ms=pulses(0, 4) + pulses(1, 3)).landed  # 3 heard is enough
-    assert say("beat", LESSON_ONE, bpm=80, onsets_ms=pulses(0, 4) + pulses(1, 4, shift=300)).miss == "Three hits or fewer"
-    assert say("beat", LESSON_ONE, bpm=80, onsets_ms=pulses(0, 4, shift=160) + pulses(1, 4, shift=-160)).landed  # a laptop mic's slop
+def test_timing_never_cuts_the_text_count():
+    # Matus: content over exact timing. Peaks off the pulse, or too few of them, no longer cost a line its hits.
+    assert say("beat", LESSON_ONE, bpm=80, onsets_ms=pulses(0, 4) + pulses(1, 2)).landed
+    assert say("beat", LESSON_ONE, bpm=80, onsets_ms=pulses(0, 4) + pulses(1, 4, shift=300)).landed
+    assert say("beat", LESSON_ONE, bpm=80, onsets_ms=[]).landed
+
+
+def test_the_break_and_a_small_hit_are_notes():
+    f = say("beat", "the cat sat on the mat\nthe road was long, the night was cold")  # three hits, one on "the"
+    assert f.landed and f.line.startswith(lessons()["beat"].success + " One note:")
+
+
+def test_thin_content_doesnt_land_and_good_content_does():
+    class Content(FakeChecks):
+        def __init__(self, scores):
+            super().__init__()
+            self.scores, self.themes = scores, []
+
+        async def content(self, a, theme):
+            self.themes.append(theme)
+            return self.scores
+
+    thin = Content({"image": 2, "answer": 3, "craft": 3, "verdict": "Words, but no road."})
+    f = asyncio.run(feedback(Attempt("beat", LESSON_ONE), checks=thin))
+    assert (f.landed, f.miss) == (False, THIN)
+    assert f.line == dict(lessons()["beat"].misses)[THIN]  # the table's line, when it has one
+    assert "road that brought you here" in thin.themes[0]  # judged against the exercise
+    good = Content({"image": 6, "answer": 6, "craft": 5, "verdict": "There's the road."})
+    assert asyncio.run(feedback(Attempt("beat", LESSON_ONE), checks=good)).landed
+    silent = Content(None)  # a silent judge never fails the poet
+    assert asyncio.run(feedback(Attempt("beat", LESSON_ONE), checks=silent)).landed
 
 
 def test_a_line_of_small_words_is_no_line():
     f = say("beat", "you've you, I, me.\nI like computers and I do.")
-    assert f.miss == "Three hits or fewer" and f.line.startswith("Zero hits.")
+    assert f.miss == "Two hits or fewer" and f.line.startswith("Zero hits.")
 
 
 def test_one_hit_is_singular():

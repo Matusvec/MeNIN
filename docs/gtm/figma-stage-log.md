@@ -4,6 +4,25 @@ This log is the main thing Figma judges. Prizes: **Best Stage Log, $2,000** ("th
 
 **Owner: artist session + Matus. Append entries as you work and never rewrite old ones.** Judges reward a log that is "honest about friction" and that records rework and dead ends, so keep those in.
 
+## Figma files
+
+Share column: "anonymous embed OK" means Figma's public oEmbed endpoint returns the file's title and embed to a logged-out request (checked Sat 21:30; a made-up file key returns 404). That's what a link-viewable file does. Matus's Share dialog is the final word.
+
+| File or node | What it shows | Sharing |
+|---|---|---|
+| **MeNIN · Directions** (Design): https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv | The "MeNIN" variable collection (modes **Atelier**, **Cut paper** and **Hall**; 52 variables, each with its Swift name as iOS code syntax), the components, and every page below | Anyone with the link can view (Matus, Sat AM); anonymous embed OK |
+| Page **Hall · Reskin**: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=30-102 | 12 Hall frames (Join, Turn, Wait, Verdict, the camera Arrow pad, at SE and Pro Max, plus Join keyboard-up and Arrow pad held). Backgrounds are real renders of the scene code | same file |
+| Turn, voice colours mid-shoot: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=34-179 | "Colours on voice": the moods washing through the white sea behind the turn | same file |
+| Join, at rest: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=31-179 | "Blue at rest": the website's wavy white with cool blue, gathered low | same file |
+| Button system: component set https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=48-215, sheet https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=48-216 | 12 variants (Primary, Secondary, Tertiary, Destructive × Default, Pressed, Disabled; Icon on/off), bound to 16 button variables, shown over the scene | same file |
+| Flip, Atelier → Hall: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=36-128 | One prototype frame twice, side by side; only the variable mode differs (for the deck) | same file |
+| Prototype flow 1 (first open → event menu → Poetry → Practice turn → verdict): https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102 | Clickable Atelier prototype | same file |
+| Prototype flow 2 (join → arena turn → carved line → champion): https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364 | Clickable Atelier prototype | same file |
+| **MeNIN · Discus (Make)**: https://www.figma.com/make/MexcUVEohKsNVAw5pHh596 | Figma Make seeded with the live discus screens (Sat 09:00) | anonymous embed OK |
+| **MeNIN · Stage log (Figma track)** (Slides): https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm | The ten-slide deck | anonymous embed OK; Matus to confirm "can view" in Share |
+
+Receipts in the repo, so the work survives any file change: `docs/figma/` holds 14 PNG exports at frame size (1x; the MCP screenshot doesn't upscale). They are hall-{join,turn,wait,verdict,arrow}-{se,promax}.png, hall-join-se-keyboard.png, hall-arrow-se-held.png, hall-flip-atelier-to-hall.png and hall-buttons.png.
+
 ## What Figma requires (from the official track doc)
 
 - [ ] **Everyone on the team is Edu verified**: https://www.figma.com/education/apply
@@ -54,12 +73,12 @@ Before and after numbers to capture for Adoptability: minutes from a Figma frame
 
 **What we did.** Matus asked for the app to "match the color scheme on the website, like the blue". The team ran it through the Figma variables we already had, not through code:
 1. **builder** pulled the website's real tokens out of its CSS (`homer/web/src/index.css`, `wired.css`) in 15 minutes, with Claude Code (a CSS scan plus headless Chrome), not Figma. **The website had no color variables at all.** 128 distinct hard-coded colors became 37 named color tokens. 69 type values became 16 type roles on 2 families, and 17 radii became 8 radius tokens. The 73 spacing values were left as they are. The sheet is `docs/hall-tokens.md`.
-2. **artist** added a third mode, **Hall**, to the "MeNIN" collection in "MeNIN · Directions". It sits beside Atelier and Cut paper, and every variable keeps its Swift name. All 36 variables got Hall values: the 31 existing ones plus 5 new seat variables. That took 5 minutes, plus a 3-minute contrast round. Then artist laid out the frames that change, with more of the flowing scene behind them: 12 frames in 8 minutes: 5 screens (join, a turn, the wait, the verdict and the arrow pad), each on the SE and the Pro Max, plus keyboard-up and held states. **The flip test:** switching the Verdict frame to Hall flipped 72 of its 73 bound fills in one step, and 8 of 9 on Join. The one left in each is the painted scene art, whose inks are hard-coded. Side by side: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=36-128 · the Hall page: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=30-102
+2. **artist** added a third mode, **Hall**, to the "MeNIN" collection in "MeNIN · Directions". It sits beside Atelier and Cut paper, and every variable keeps its Swift name. All 36 variables got Hall values: the 31 existing ones plus 5 new seat variables. That took 5 minutes, plus a 3-minute contrast round. Then artist laid out the frames that change, with more of the flowing scene behind them: 12 frames in 8 minutes: 5 screens (join, a turn, the wait, the verdict and the arrow pad), each on the SE and the Pro Max, plus keyboard-up and held states. **The flip test:** switching the Verdict frame to Hall flipped 72 of its 73 bound fills in one step, and 8 of 9 on Join. The one left in each is the painted scene art, whose inks are hard-coded. Side by side: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=36-128 (`docs/figma/hall-flip-atelier-to-hall.png`) · the Hall page: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=30-102
 3. **swift** added `case hall` to the app's `Direction` switch (`ios/Homer/UI/Tokens.swift`), put in the Hall values, and shipped **build 32** (0.1.0, `202610242101`, uploaded 9:06 PM). It took 22 minutes from the agreed token table to the upload. Tokens.swift changed by +69/−36 lines, and only 5 view files outside it were touched, 1–9 lines each. **32 view files (119 views) took the new look with no edits, and no screen needed a hand-edited color.**
 
 **Before → after (Adoptability).**
 - Before (Sat 12:36 PM): matching the app to the website meant hand-copying values from a CSS file into Swift, screen by screen, with no record of which value came from where.
-- After (Sat 9:06 PM, build 32 uploaded): one new mode in Figma and one new case in the app. Flipping a Figma frame to Hall shows the app's look before any code is written: 72 of 73 fills on the Verdict frame, in one step. In code, the whole-app reskin was +69/−36 lines of tokens plus 5 small view edits, in 22 minutes, with 3 rework rounds. [What the real-phone visual pass on build 33 finds.]
+- After (Sat 9:06 PM, build 32 uploaded): one new mode in Figma and one new case in the app. Flipping a Figma frame to Hall shows the app's look before any code is written: 72 of 73 fills on the Verdict frame, in one step. In code, the whole-app reskin was +69/−36 lines of tokens plus 5 small view edits, in 22 minutes, with 3 rework rounds. [What the real-phone visual pass on build 34 finds.]
 
 **Friction, kept honest.**
 - The sync is still by convention, not live. A Figma change reaches Swift only when an agent re-reads the variables (the same limit as the Fri 23:39 entry).
@@ -68,8 +87,20 @@ Before and after numbers to capture for Adoptability: minutes from a Figma frame
 - In code, 13 hard-coded colors are left (12 in the app-icon art, 1 shadow). There were 3 rework rounds: builder's sheet changed 6 values, the computed contrast ratios changed 3, and a grey system blur was dropped.
 - **The values went into Swift by hand**, from a token table agreed in both directions. They weren't read back from Figma with `get_variable_defs`. That read-back is the cheap check to add next time.
 - Step 1 was an audit, not a lookup: the Make-built website kept every color hard-coded (128 of them), so naming them took judgment, and the spacing (73 values) was too scattered to tokenize tonight.
-- [What the real-phone visual pass on build 33 caught that the Figma frames didn't.]
+- [What the real-phone visual pass on build 34 caught that the Figma frames didn't.]
 - The website itself didn't change. It was already the reference, so this stage only moved the app.
+
+**The scene: four rounds of a designer's feedback, through Figma renders of the real scene code** (artist, Sat 9:03–9:20 PM). A painted stand-in couldn't show Matus what the phone would actually do. So artist ran the website's own WebGL scene code headless, with the app's candidate values and a scripted voice, and placed each render full-bleed in all 12 Hall frames and the flip frame. Each round had a fresh render in Figma within 2–3 minutes. Matus's direction, in his words:
+1. "keep the cool wavy white background … and maybe even throw in a mix of cool blue"
+2. "the background behind the poetry battle that shoots colors, that background is what I want"
+3. "I just want the BLUE shooting there"
+4. **"blue at rest, colours on voice"** ("I LOVE the background")
+
+That's four direction changes in 17 minutes, three of them after the values were already in code. It's the honest part: **build 33 shipped round 3 (blue only)**, because the archive couldn't wait. Round 4 shipped in **build 34** (9:33 PM), along with the button system. One deliberate departure from the website is measured: the scene's tilt is flipped so the blue gathers low, behind the cards, because ink text on the blue streak measured only 4.1:1. Two render bugs cost a pass. Renders: Turn, mid-shoot (https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=34-179; repo copy `docs/figma/hall-turn-promax.png`) · Join, at rest (https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=31-179; `docs/figma/hall-join-promax.png`).
+
+**The buttons.** Matus called them "generic and boring". In 6 minutes, artist built one component set: 12 variants (Primary, Secondary, Tertiary/link and Destructive, each Default, Pressed and Disabled, with or without an icon) on 16 new color variables named after their Swift tokens. The primary is the website's pressable key, a sea gradient on a hard ledge. Matus approved it over the scene he'd just picked, and the spec went to swift as values for build 34. Friction: Helvetica Neue isn't served to Figma, so the sheet renders in a stand-in face. The website's blue fails as a small label on white (3.6:1), so labels use a deeper sea (4.8:1). Button sheet: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=48-216 (`docs/figma/hall-buttons.png`)
+
+**Matus approved the Hall reskin** (the scene and the button system; leader, Sat ~9:35 PM).
 
 **Why it's repeatable.** One variable collection, one mode per look, and every variable named after its code token. A third look cost one mode and one enum case, not a fork. Another team can copy exactly that.
 
@@ -88,7 +119,22 @@ Before and after numbers to capture for Adoptability: minutes from a Figma frame
 >
 > **Friction:** the sync is by convention, not live: values went in by hand, not read back from Figma. 3 rework rounds. 13 hard-coded colors left. [what the real-phone pass caught]
 >
-> *Embed: the Atelier → Hall side by side (https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=36-128); a photo of build 32 next to the website. Live embeds need the Directions file shared "Anyone with the link → can view".*
+> *Embed: the Atelier → Hall side by side (https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=36-128); Join (node 31-179); a photo of build 34 next to the website. The Directions file is already link-viewable, so these embed (see "Figma files" above). If an embed won't load in Slides, drop in the PNG from `docs/figma/` (hall-flip-atelier-to-hall.png, hall-join-promax.png).*
+
+**Slide: "The designer in the loop"**
+> Matus judged the scene the way a player sees it: moving, reacting to a voice. So every render in Figma came from the website's real scene code, run with a scripted voice, never a painted mock-up.
+>
+> Four rounds in 17 minutes, a fresh render in Figma every 2–3 minutes:
+> 1. "keep the cool wavy white … throw in a mix of cool blue"
+> 2. "the background … that shoots colors, that background is what I want"
+> 3. "I just want the BLUE shooting there"
+> 4. **"blue at rest, colours on voice"**: "I LOVE the background"
+>
+> Then the buttons ("generic and boring"): one component set, 12 variants on 16 variables, approved over that background in 6 minutes.
+>
+> **Friction:** three of the four rounds came after the code had values, so build 33 shipped round 3, and round 4 followed minutes later in build 34. Our blue failed contrast as a small label (3.6:1), so labels use a deeper sea (4.8:1).
+>
+> *Embed: Turn, mid-shoot (node 34-179); Join, at rest (node 31-179); the button sheet (node 48-216). PNG fallbacks in `docs/figma/`: hall-turn-promax.png, hall-join-promax.png, hall-buttons.png.*
 
 ## Log format
 
@@ -238,3 +284,25 @@ Figma's four stages are **Ideation, Prototyping, Handoff, Code generation**. Giv
 - Worked (1-5): 4
 - What made it into the project: **a whole-app reskin as one enum case.** `Direction.hall` is the new default, and every `Palette` token picks three ways. `ios/Homer/UI/Tokens.swift` is **+69/−36**, and **5 view files** changed outside it, each by 1–9 lines: `Controls.swift` (the primary key becomes the website's sea gradient on a hard ledge, through a new `Palette.action` token), `Scorecard.swift` (verdict numerals in Inter), `HomeView.swift` (no page fill, so the scene shows), and `AppIconArt.swift` and `RootView.swift` (light/dark through `Direction.isLight`). **32 view files (119 views) restyled with no edits and 0 hand-edited colours in any screen.** 13 hard-coded colours remain outside the tokens: 12 in the app-icon art and 1 shadow. The sports' pottery colours stay on purpose, because the website's sports use the same ones. Build **32 (0.1.0, 202610242101)**, uploaded to TestFlight at 21:06.
 - Friction: **3 rework rounds in 20 minutes.** (1) builder's extracted sheet (`docs/hall-tokens.md`) landed after the first values were in, and changed 6 of them: ink2, ink3, onPage2, accent (the website's label blue `#2F7F9C`), sea and gold. Gold text stayed at the darker bar gold so it reads on light. (2) The artist's computed contrast ratios changed 3 more (ink2 and onPage2 `#3F5F72`, goldDeep `#7A5A1E`). (3) A system blur under the frosted cards, which the Figma flip test asked for, rendered **grey** on the light sea, so it was dropped for 0.92 white alone, which stays readable over a strong gold mood. The leader also caught a stale gallery sample that still drew the old metronome turn ("BREATHE · 3 bars left"); the live turn has used the free-verse ring since build 17, and the sample now shows the real one. Still open: the product manager's SE-to-Pro-Max pass on a real phone (build 32), and Matus's whiter-scene tweak (build 33).
+
+### Prototyping · Designer feedback on the scene: keep the wavy white, add cool blue · Sat Oct 24, 21:03–21:20
+- Tool(s): Figma Design via the MCP (upload_assets onto full-bleed scene layers in all 12 Hall frames plus the flip frame), fed by real renders: the website's own WebGL scene code, run headless with the app's candidate values and driven by a scripted voice (emotion, energy, stressed-syllable strikes). A painted stand-in couldn't show Matus what the phone would actually do.
+- Minutes: 17
+- Worked (1-5): 4
+- What made it into the project: Matus's direction in his own words, round by round: "keep the cool wavy white background … and maybe even throw in a mix of cool blue"; then "the background behind the poetry battle that shoots colors, that background is what I want"; then "I just want the BLUE shooting there"; and finally **"blue at rest, colours on voice"** ("I LOVE the background"). Each round got a fresh render in Figma within 2–3 minutes: Turn · Pro Max (34-179) mid-shoot and Join · Pro Max (31-179) at rest. In code (`ios/Homer/Scene/Moods.swift`): the Hall rest is the website's wavy-white field (same speed, drift, amplitude, flecks), with the deepest ink a light tint of the site's #328EAF (#7AB6D0) covering about 13% of the screen, and the voice's moods washing in over it.
+- Friction: four direction changes in 17 minutes, three of them after values were already in the tree. Build 33 shipped the blue-only round because the archive couldn't wait; colours-on-voice goes into 34. The ink areas were measured from the renders (the website's rest is 16% deepest ink by nearest colour, about 8% once the layer shadows are separated). One deliberate departure from the site: the tilt is flipped so the blue gathers low, behind the cards, because ink text on the blue streak measured 4.1:1. Two render bugs cost a pass: a viewport shorter than the canvas left a white band at the bottom, and a missing semicolon in the harness.
+
+### Prototyping · One button system for the Hall · Sat Oct 24, 21:17–21:23
+- Tool(s): Figma Design via the MCP: a component set with variant axes Kind × State, plus Label (text) and Icon (boolean) properties, bound to new variables, and a showcase sheet over the real scene render. Matus had called the buttons "generic and boring"; one component set gives swift a single spec to build and lets Matus judge them over the background he loves.
+- Minutes: 6
+- Worked (1-5): 4
+- What made it into the project: "Hall/Button system" (https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=48-215). That's **12 variants**: Primary, Secondary, Tertiary/link and Destructive, each in Default, Pressed and Disabled, with and without an icon. **16 new colour variables** (`color/button/*`, code syntax `Palette.button…`) are bound to the gradient stops, rims, labels and ledge effects. The primary is the website's pressable key: the sea gradient #65B9D8 → #328EAF, a 2 pt white rim, and a hard 4.5 pt ledge (#287794) with no blur; pressed, it travels 3.5 pt onto a 1 pt ledge. One typeface: Helvetica Neue Bold 17. The sheet is at https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=48-216, and the 5 buttons in the Hall frames are swapped to the new primary. The spec went to swift as values for build 34 (`HomerButtonStyle`).
+- Friction: Helvetica Neue isn't served to Figma (it's an Apple system font), so the sheet renders in Arimo Bold as a stand-in and the app uses the real face. The website's #328EAF fails as a small label on white (3.6:1), so the link and secondary labels use a deeper sea, #2A7A9A (4.8:1). Binding a fill to a variable dropped its paint opacity (the link's 10% pressed tint came out solid blue), so it's bound to paper-3 instead. Every instance first showed the set's default label until the labels were set per kind. Binding the gradient stops themselves to variables worked first time.
+
+### Prototyping · The app icon in the Hall theme: three options, judged at real sizes · Sat Oct 24, 21:34–21:39
+- Tool(s): Figma Design via the MCP: three 1024 × 1024 icon **components** on a new "App icon" page, and a home-screen mock built from **instances** scaled to 180, 120, 60 and 40 pt inside the iOS corner mask, so the small sizes are judged, not the big one. The backgrounds are real renders of the scene code, uploaded with upload_assets.
+- Minutes: 5
+- Worked (1-5): 4
+- What made it into the project: page "App icon" (https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=51-102). **A · Rising M**: the approved rest scene with a sea-ink Bodoni M rising out of the blue, the Atelier icon's idea in the Hall palette. **B · Voice**: the same M over a voice shooting colour through the sea. **C · Key**: a white M on the new pressable key (the button system's sea gradient and ledge, bound to the same variables). Real-size mock: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=51-114. All three are exported to `docs/design/app-icon/AppIcon-hall-{A,B,C}-1024.png`: opaque, no alpha channel, as the App Store requires.
+- Friction: the first voice render was captured too late in the wash and the whole square went gold, with no white or blue left, so it was re-rendered 0.45 s into the shot. At 40 pt Bodoni's hairline left stem thins out in A and B, while C's white M on the blue key stays crisp; the mock made that visible before anyone shipped it. get_screenshot's PNGs carry an alpha channel, so each export was round-tripped through JPEG to drop it.
+- Designer's pick (21:38, about 4 minutes after the link went out): **C · Key**. Three options plus the real-size test, then Matus chose. The 1024 PNG (sRGB, no alpha) went to swift for build 35 and to `docs/figma/app-icon-key.png`. 9 minutes from request to an icon in the build queue.

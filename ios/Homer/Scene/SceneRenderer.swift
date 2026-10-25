@@ -251,7 +251,7 @@ final class SceneRenderer: NSObject, MTKViewDelegate {
             // and darkens the corners more.
             let light = Direction.current.isLight
             let white: SIMD4<Float> = switch Direction.current {
-            case .hall: SIMD4<Float>(0.985, 0.995, 1.0, 0)
+            case .hall: SIMD4<Float>(0.99, 0.995, 1.0, 0) // the website's poetry white point
             case .atelier: SIMD4<Float>(0.995, 0.99, 0.975, 0)
             case .cutPaper: SIMD4<Float>(0.965, 0.95, 0.925, 0)
             }

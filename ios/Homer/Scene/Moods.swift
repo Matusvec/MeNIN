@@ -100,16 +100,22 @@ extension Mood {
     private static let atelierStyles = Mood.allCases.map { $0.makeStyle(.atelier) }
     private static let cutPaperStyles = Mood.allCases.map { $0.makeStyle(.cutPaper) }
 
+    /// Hall: blue at rest, colours on voice (Matus, Sat 9:20 PM). The rest below is
+    /// the wavy white with cool blue; the voice's moods keep their own hues and wash
+    /// in over it, then settle back.
     private func makeStyle(_ direction: Direction) -> MoodStyle {
         switch self {
         case .rest where direction == .hall:
-            // The website's light Aegean (homer/web/src/scene/moods.ts), whiter and
-            // moving more: mostly white paper, the sea blue flowing through it in
-            // slow bands, a few blue flecks drifting.
+            // The website's wavy white sea (homer/web/src/scene/moods.ts rest: same field,
+            // speed, drift and flecks), with Matus's mix of cool blue: the deepest ink is a
+            // light tint of the site's #328EAF, about 13% of the screen. The tilt is
+            // flipped so the blue gathers low, behind the cards and the action; the
+            // context set straight on the scene at the top always sits on white (ink on
+            // the blue streak is ~4.1:1). The voice's moods shoot through it as on the site.
             return MoodStyle(
-                inks: [0x8CC4D9, 0xC4E3EE, 0xE6F3F8, 0xF7FBFC],
-                field: FieldMotion(speed: 0.07, drift: [0.03, 0.005], turb: 1.2, jag: 0, detail: 0.2, scale: 0.8, tremble: 0, lightY: -0.45, lightAmt: 0.1, soft: 0.004, lift: 0.1, tilt: -0.35, amp: 0.45),
-                flecks: FleckMotion(spawn: .anywhere, vel: [0.01, 0.018], radial: 0, jitter: 0.02, bounce: 0, sway: 0.012, drag: 0.2, life: 8...12, size: 2...4, shape: .dot, alpha: 0.55, ink: 0),
+                inks: [0x7AB6D0, 0xC4E3EE, 0xD9EEF5, 0xEAF7FB],
+                field: FieldMotion(speed: 0.05, drift: [0.02, 0], turb: 1.1, jag: 0, detail: 0.2, scale: 0.85, tremble: 0, lightY: -0.45, lightAmt: 0.1, soft: 0.004, lift: 0.03, tilt: 0.45, amp: 0.38),
+                flecks: FleckMotion(spawn: .anywhere, vel: [0.008, 0.016], radial: 0, jitter: 0.02, bounce: 0, sway: 0.01, drag: 0.2, life: 8...12, size: 2...4, shape: .dot, alpha: 0.5, ink: 0),
                 wash: .below)
         case .rest where direction == .atelier:
             // The page from the concept (#F7F3EC), with faint paper layers in it.

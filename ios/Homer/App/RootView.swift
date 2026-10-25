@@ -100,7 +100,7 @@ struct RootView: View {
             Routed(app: app, title: "Arena") { ArenaScreen(event: event, scene: app.scene) }
         case .player(let code):
             // A new code is a new screen: no recorder or connection state carries over between rooms.
-            Routed(app: app, title: "Poet") { PlayerScreen(initialCode: code, onLeave: { app.route = .home }).id(code) }
+            Routed(app: app, title: "Poet") { PlayerScreen(initialCode: code, onLeave: { app.route = .home }, scene: app.scene).id(code) }
         case .bard:
             // TODO(spec): the lesson path (2 and 3 next); lesson 1 ships for the 6 PM study.
             Routed(app: app, title: "Bard") { BardScreen(app: app) }

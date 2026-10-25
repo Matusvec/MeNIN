@@ -113,6 +113,9 @@ enum Palette {
     /// paper; the website's action blue in Hall. Text on it is onHero.
     static var action: Color { pick(0x682C3E, 0x1C1524, 0x328EAF) }
 
+    /// A pressed link's capsule and empty score segments (Hall's sea-track).
+    static var buttonTrack: Color { pick(0xF2ECE2, 0xE9DCC6, 0xD4E8EE) }
+
     /// The accent on paper: labels, marks, the beat that's playing now.
     static var accent: Color { pick(0x682C3E, 0x1F5361, 0x2F7F9C) }
 

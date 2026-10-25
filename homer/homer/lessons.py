@@ -182,6 +182,7 @@ class Checks(Protocol):
     """What some lessons need beyond the scanner. The server provides it; tests fake it."""
 
     async def craft(self, a: Attempt) -> int: ...
+    async def content(self, a: Attempt, theme: str) -> dict | None: ...  # the battle judge: {image, answer, craft, verdict}
     async def emotions(self, lines: list[str]) -> list[dict[str, float] | None]: ...
     async def answer(self, thrown: str, lines: list[str]) -> dict | None: ...  # {"stance", "answer"}
     async def boast(self, setup: list[str], closing: str) -> dict | None: ...  # {"closes_setup", "image"}
@@ -199,41 +200,29 @@ def _rushing(s: VerseScan, a: Attempt) -> bool:
     return off is not None and off < -RUSH_MS
 
 
-ONSET_MIN = 3  # stressed peaks on a line's pulses before the timing backs up the text's count
 ONSET_TOL_MS = 170  # how near a pulse a phone peak may land: wider than word timings, for laptop mics and first-timers
 
 
-def onset_hits(onsets_ms: list[float], bpm: float, lines: int, bars_per_line: int = 2, beats: int = 4) -> list[int]:
-    """Per line, how many of its speaking bar's pulses had a stressed peak within ONSET_TOL_MS (each pulse once)."""
-    beat = 60000.0 / bpm
-    line_ms = bars_per_line * beats * beat
-    out = []
-    for n in range(lines):
-        pulses = [n * line_ms + k * beat for k in range(beats)]
-        used: set[int] = set()
-        for o in onsets_ms:
-            k = next((k for k, p in enumerate(pulses) if k not in used and abs(o - p) <= ONSET_TOL_MS), None)
-            if k is not None:
-                used.add(k)
-        out.append(len(used))
-    return out
+# Matus (Sat 9:52 PM): "care more about content than exact timing. I'd keep the beats though." The hit count is
+# the text's and lenient (a four-beat line is 3 to 5 hits; every lesson's "a hit short" means two short), and the
+# timing (the drum, the break, where a hit falls) is a note at most, never a miss. Content decides (CONTENT_BAR).
+FOUR = range(3, 6)  # hits that count as a four-beat line
 
 
-def heard_hits(i: int, line: LineScan, a: Attempt) -> int:
-    """A line's hits: the text's count, unless the phone heard fewer than ONSET_MIN of them land on the beat."""
-    timed = a.facts.get("onset_hits")
-    if timed is None or i >= len(timed) or timed[i] >= ONSET_MIN:
-        return line.hits
-    return min(line.hits, timed[i])
+def short_line(line: LineScan) -> bool:
+    return line.hits < FOUR.start
 
 
 BEAT: list[Detector] = [
-    lambda s, a: next(({"hits": spell(h)} for i, l in enumerate(s.lines) if (h := heard_hits(i, l, a)) <= 3), None),
-    lambda s, a: {"hits": spell(x.hits)} if (x := _first(s, lambda l: l.hits >= 5)) else None,
-    lambda s, a: {} if _first(s, lambda l: l.break_source is None) else None,
-    lambda s, a: {"word": x.weak_beats[0]} if (x := _first(s, lambda l: bool(l.weak_beats))) else None,
-    lambda s, a: {} if _rushing(s, a) else None,
+    lambda s, a: {"hits": spell(x.hits)} if (x := _first(s, short_line)) else None,
+    lambda s, a: {"hits": spell(x.hits)} if (x := _first(s, lambda l: l.hits >= FOUR.stop)) else None,
+    lambda s, a: {} if _first(s, lambda l: l.break_source is None) else None,  # soft
+    lambda s, a: {"word": x.weak_beats[0]} if (x := _first(s, lambda l: bool(l.weak_beats))) else None,  # soft
+    lambda s, a: {} if _rushing(s, a) else None,  # soft
 ]
+
+# Rows that are notes, not misses: when the try lands, the first one that applies follows the success line.
+SOFT: dict[str, set[int]] = {"beat": {2, 3, 4}}
 
 
 def onset_offset(onsets_ms: list[float], bpm: float) -> float | None:
@@ -277,7 +266,7 @@ FORMULA: list[Detector] = [
     lambda s, a: {} if not _card_lines(a, s) and not any(_near(c, line) for c in a.hand for line in s.lines) else None,
     lambda s, a: {} if not _card_lines(a, s) else None,  # near, but not word for word
     lambda s, a: {} if any(len(_tokens(line)) - len(formulas.key(c)) <= 1 for c, line in _card_lines(a, s)) else None,
-    lambda s, a: {} if all(line.hits < 4 for _, line in _card_lines(a, s)) else None,
+    lambda s, a: {} if all(short_line(line) for _, line in _card_lines(a, s)) else None,
 ]
 
 
@@ -298,11 +287,11 @@ def _title_line(a: Attempt, s: VerseScan) -> LineScan | None:
 
 
 EPITHET: list[Detector] = [
-    lambda s, a: {} if strong_hits(title_of(a, s)) >= 3 else None,
-    lambda s, a: {} if strong_hits(title_of(a, s)) <= 1 else None,
+    lambda s, a: {} if strong_hits(title_of(a, s)) >= 4 else None,  # a two-hit title, ±1
+    lambda s, a: {} if strong_hits(title_of(a, s)) == 0 else None,
     None,  # "Generic, judged weak": the judge's Craft score, checked in feedback()
     lambda s, a: {} if _title_line(a, s) is None else None,
-    lambda s, a: {} if (x := _title_line(a, s)) is not None and x.hits < 4 else None,
+    lambda s, a: {} if (x := _title_line(a, s)) is not None and short_line(x) else None,
 ]
 
 # Lesson 4: the feeling named instead of shown. Homer's rule: show it, never say it.
@@ -318,7 +307,7 @@ TURN: list[Detector | None] = [
     lambda s, a: {} if a.facts["turn_at"] == 1 else None,  # turned at line 2: too soon
     lambda s, a: {} if a.facts["turn_at"] == 3 else None,  # turned on the last line
     lambda s, a: {} if FEELING_RE.search(" ".join(line.text for line in s.lines)) else None,
-    lambda s, a: {} if len(s.lines) >= 3 and s.lines[2].hits < 4 else None,  # the bend cost line 3 a hit
+    lambda s, a: {} if len(s.lines) >= 3 and short_line(s.lines[2]) else None,  # the bend cost line 3 hits
 ]
 
 ANSWER: list[Detector | None] = [
@@ -326,7 +315,7 @@ ANSWER: list[Detector | None] = [
     lambda s, a: {} if a.facts["stance"] == "agreed" else None,
     lambda s, a: {} if a.facts["stance"] == "denied" else None,
     lambda s, a: {} if len(s.lines) < 2 else None,  # only one line
-    lambda s, a: {} if any(line.hits < 4 for line in s.lines[:2]) else None,
+    lambda s, a: {} if any(short_line(line) for line in s.lines[:2]) else None,
     lambda s, a: {} if a.facts["answer"] < GOOD_ANSWER else None,  # clean, but under the bar
 ]
 
@@ -347,7 +336,7 @@ BOAST: list[Detector | None] = [
     lambda s, a: {} if len(s.lines) > 1 else None,  # landed it, then kept talking
     lambda s, a: {} if HEDGE_RE.search(s.lines[0].text) else None,
     lambda s, a: {} if not a.facts["closes_setup"] else None,
-    lambda s, a: {} if s.lines[0].hits < 4 else None,
+    lambda s, a: {} if short_line(s.lines[0]) else None,
     lambda s, a: {} if a.facts["image"] < GOOD_IMAGE else None,  # clean, but nothing to see
 ]
 
@@ -358,6 +347,12 @@ LINES = {"beat": 2, "formula": 1, "epithet": 2, "turn": 4, "answer": 2, "boast":
 GOOD_CRAFT = 6
 GOOD_ANSWER = 7  # lesson 5 lands at Answer 7 or more
 GOOD_IMAGE = 7  # lesson 6 lands at Image 7 or more
+# Lessons 1 and 2 have no content check of their own: the battle judge weighs the verse the way battles do
+# (Image x4, Answer x4, Craft x2, out of 100) against the exercise, and a thin one doesn't land.
+CONTENT_LESSONS = {"beat", "formula"}
+CONTENT_WEIGHTS = {"image": 4, "answer": 4, "craft": 2}
+CONTENT_BAR = 40  # the low end of a real attempt (the judge's neutral 4s make 40): only filler and off-topic fall short
+THIN = "Content is thin"  # content/lessons.md may give it its own row; else Homer's own verdict on the verse
 SILENT = "Homer is silent"  # a Claude check didn't answer: no line, never a canned one
 
 
@@ -402,7 +397,6 @@ async def _facts(a: Attempt, scan: VerseScan, checks: Checks | None) -> bool:
     lines = [line.text for line in scan.lines]
     if a.lesson == "beat" and a.onsets_ms and a.bpm and not a.words:
         a.facts["onset_offset_ms"] = onset_offset(a.onsets_ms, a.bpm)
-        a.facts["onset_hits"] = onset_hits(a.onsets_ms, a.bpm, len(scan.lines), a.bars_per_line)
     if a.lesson == "turn":
         weights = await checks.emotions(lines[:4]) if checks else [None] * len(lines[:4])
         weights = [w or emotion.lexicon_weights(text) for w, text in zip(weights, lines[:4])]
@@ -452,19 +446,31 @@ async def _feedback(a: Attempt, craft: CraftCheck | None, checks: Checks | None)
     if not await _facts(a, scan, checks):
         return Feedback(False, "", SILENT, scan)
 
-    for (miss, line), detect in zip(lesson.misses, detectors):
+    note = ""  # the first soft row that applies: said after the success line, never a miss
+    for k, ((miss, line), detect) in enumerate(zip(lesson.misses, detectors)):
         if detect is None:
             if craft is not None and await craft(a) < GOOD_CRAFT:
                 return Feedback(False, line, miss, scan)
             continue
         fills = detect(scan, a)
-        if fills is not None:
-            return Feedback(False, _fill(line, fills), miss, scan)
+        if fills is None:
+            continue
+        if k in SOFT.get(a.lesson, set()):
+            note = note or _fill(line, fills)
+            continue
+        return Feedback(False, _fill(line, fills), miss, scan)
 
     if len(scan.lines) < expected:
         return Feedback(False, _fill(common()[short], {"lines": spell(expected).lower()}), short, scan)
+    if a.lesson in CONTENT_LESSONS and checks is not None:
+        scores = await checks.content(a, lesson.exercise)
+        if scores is not None and sum(int(scores.get(k, 0) or 0) * w for k, w in CONTENT_WEIGHTS.items()) < CONTENT_BAR:
+            thin = dict(lesson.misses).get(THIN) or str(scores.get("verdict") or "")
+            if thin:  # no line to say is no verdict: let the try stand
+                return Feedback(False, thin, THIN, scan)
     title = title_of(a, scan) if a.lesson == "epithet" else ""
-    return Feedback(True, _fill(lesson.success, {"title": title}), None, scan, title=title)
+    success = _fill(lesson.success, {"title": title})
+    return Feedback(True, f"{success} {note}" if note else success, None, scan, title=title)
 
 
 # P10: the demo verse line that shows each lesson's move, 0-based.

@@ -304,7 +304,7 @@ struct DiscusPhoneView<Pad: View>: View {
                 .foregroundStyle(Palette.ink2)
                 .fixedSize(horizontal: false, vertical: true)
             if let onSafetyAck {
-                Button(action: onSafetyAck) { ArrowLabel(title: "Got it") }.buttonStyle(.homer).padding(.top, Metrics.s2)
+                Button(action: onSafetyAck) { ArrowLabel(title: "I'll hold on") }.buttonStyle(.homer).padding(.top, Metrics.s2)
             }
         }
         .padding(Metrics.s5)

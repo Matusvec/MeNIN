@@ -112,7 +112,7 @@ struct BowView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Metrics.s6)
                 Spacer(minLength: 0)
-                readyButton("Ready")
+                readyButton("Take aim")
             }
         case .aiming, .zeroing:
             let zeroing = model.phase == .zeroing
@@ -340,6 +340,8 @@ struct ArrowView: View {
                 .frame(width: 170, height: 44)
                 .rotationEffect(.degrees(nocked ? 90 : 0))
                 .offset(y: nocked ? CGFloat(model.draw) * 40 : 0)
+                // Rotated, the 170 pt glyph stands 170 tall (plus the 40 pt pull): its own box.
+                .frame(height: nocked ? 210 : 44)
             Text(nocked ? (model.draw >= 0.85 ? "Full draw. Let go!" : "Nocked ✓") : "Hold to nock")
                 .font(Typeface.display(30, weight: 800))
                 .foregroundStyle(nocked ? StadionPalette.slip : StadionPalette.figure)

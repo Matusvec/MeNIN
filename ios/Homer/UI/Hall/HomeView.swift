@@ -179,7 +179,7 @@ private struct LessonCard: View {
                         }
                 }
                 Spacer()
-                Button { onResume?() } label: { ArrowLabel(title: "Resume") }
+                Button { onResume?() } label: { ArrowLabel(title: "Back to it") }
                     .buttonStyle(HomerButtonStyle(kind: .cream))
                     .font(Typeface.text(13, weight: 600))
             }

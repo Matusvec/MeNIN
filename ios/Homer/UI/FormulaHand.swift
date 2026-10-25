@@ -35,7 +35,10 @@ struct FormulaHandView: View {
                 VStack(alignment: .leading, spacing: 2 * k) {
                     if raised { Text("\(whisperer) whispers").tracked(8 * k, color: Palette.onHero2) }
                     Text(card.text)
-                        .font(card.kind == .move ? Typeface.text(14 * k, weight: 600) : Typeface.display((raised ? 21 : 16), on: stage))
+                        // On an SE-height phone the whisper is set smaller, so it stays one line and "I'm done" stays on screen.
+                        .font(card.kind == .move ? Typeface.text(14 * k, weight: 600) : Typeface.display((raised ? (UIScreen.main.bounds.height < 700 && !stage.isArena ? 17 : 21) : 16), on: stage))
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
                         .strikethrough(card.used, color: Palette.ink3)
                         .foregroundStyle(raised ? Palette.onHero : (card.used ? Palette.ink3 : Palette.ink))
                 }

@@ -714,7 +714,7 @@ struct BattleEntryView: View {
                 Spacer(minLength: 0)
             }
         } action: {
-            Button(action: join) { ArrowLabel(title: "Join") }
+            Button(action: join) { ArrowLabel(title: "Enter the hall") }
                 .buttonStyle(.homer(wide: true))
                 .disabled(code.count != 4 || actions.join == nil)
         }
@@ -779,7 +779,7 @@ struct PhoneHomeView: View {
                 Spacer(minLength: 0)
             }
         } action: {
-            Button(action: join) { ArrowLabel(title: "Join") }
+            Button(action: join) { ArrowLabel(title: "Enter the hall") }
                 .buttonStyle(.homer(wide: true))
                 .disabled(code.count != 4 || actions.join == nil || wait != nil)
         }
@@ -812,16 +812,22 @@ struct PhoneHomeView: View {
                 .focused($typing)
                 .onChange(of: code) { code = String(code.uppercased().filter(\.isLetter).prefix(4)) }
                 .onSubmit(join)
+                .tint(Palette.action)  // the caret
                 .padding(.horizontal, Metrics.s4)
                 .padding(.vertical, Metrics.s2)
                 .background(Palette.paper, in: RoundedRectangle(cornerRadius: Metrics.radiusM, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: Metrics.radiusM, style: .continuous)
+                        .strokeBorder(Palette.action, lineWidth: typing ? 3 : 0)
+                }
+                .animation(.easeOut(duration: 0.12), value: typing)
                 .accessibilityLabel("Room code")
             if let joinError {
                 Text(joinError).font(Typeface.text(13, weight: 600)).foregroundStyle(Palette.cream)
                     .padding(.horizontal, Metrics.s3).padding(.vertical, Metrics.s1)
                     .background(Palette.vermilion, in: Capsule(style: .continuous))
             }
-            Text("Or point your camera at the QR code on the screen.")
+            Text("Or scan the QR code on the big screen.")
                 .font(Typeface.text(13))
                 .foregroundStyle(Palette.onHero2)
         }

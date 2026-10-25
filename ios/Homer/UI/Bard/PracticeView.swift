@@ -215,11 +215,11 @@ struct PracticeView: View {
         switch model.phase {
         case .idle:
             if let roll = actions.randomTheme {
-                Button(action: roll) { ArrowLabel(title: "Roll a theme") }.buttonStyle(.homer(.secondary, wide: true))
+                Button(action: roll) { ArrowLabel(title: "Deal a theme") }.buttonStyle(.homer(.secondary, wide: true))
             }
         case .ready:
             if let start = actions.start {
-                Button(action: start) { ArrowLabel(title: "Take the turn") }.buttonStyle(.homer(wide: true))
+                Button(action: start) { ArrowLabel(title: "Take the floor") }.buttonStyle(.homer(wide: true))
             }
         case .live:
             VStack(spacing: Metrics.s2) {
@@ -244,11 +244,11 @@ struct PracticeView: View {
             }
         case .verdict:
             if let again = actions.again {
-                Button(action: again) { ArrowLabel(title: "Again") }.buttonStyle(.homer(wide: true))
+                Button(action: again) { ArrowLabel(title: "Another round") }.buttonStyle(.homer(wide: true))
             }
         case .failed:
             if let retry = actions.retry {
-                Button(action: retry) { ArrowLabel(title: "Try again") }.buttonStyle(.homer(wide: true))
+                Button(action: retry) { ArrowLabel(title: "Call Homer back") }.buttonStyle(.homer(wide: true))
             }
         case .dealing, .announcing, .judging:
             EmptyView()

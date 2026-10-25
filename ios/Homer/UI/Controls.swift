@@ -3,17 +3,72 @@ import SwiftUI
 /// Buttons, after the concept's "Resume": a 12-radius slab, Inter semibold,
 /// an optional arrow. Primary is wine on the page; `.cream` sits on wine
 /// cards; secondary is paper with a hairline. They press down, never glow.
+///
+/// Hall (the default) has its own system, from the website's pressable keys (artist's Figma
+/// component set "Hall/Button system"): one face, Helvetica Neue Bold 17; a capsule key on a
+/// hard ledge that the face presses down into; primary, secondary, tertiary (a link) and
+/// destructive. No system button styling anywhere.
 struct HomerButtonStyle: ButtonStyle {
-    enum Kind { case primary, cream, secondary, quiet }
+    enum Kind { case primary, cream, secondary, quiet, destructive }
 
     var kind: Kind = .primary
     /// Full width: the one primary action in a phone's thumb zone.
     var wide: Bool = false
     @Environment(\.stage) private var stage
+    @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
+        if Direction.current == .hall {
+            hallKey(configuration)
+        } else {
+            slab(configuration)
+        }
+    }
+
+    // MARK: Hall: the website's pressable key
+
+    /// An SE-height phone gets a shorter key, so a turn's "I'm done" stays on screen.
+    private var keyHeight: CGFloat { UIScreen.main.bounds.height < 700 && !stage.isArena ? 48 : 56 }
+
+    @ViewBuilder
+    private func hallKey(_ configuration: Configuration) -> some View {
         let k = stage.scale
+        let pressed = configuration.isPressed
+        let tertiary = kind == .quiet
+        let look = HallKey(kind: kind, enabled: isEnabled, pressed: pressed)
         configuration.label
+            .font(.custom("HelveticaNeue-Bold", size: 17 * k, relativeTo: .body))
+            .tracking(0.17 * k)
+            .underline(tertiary && isEnabled, color: look.label)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+            .frame(maxWidth: wide ? .infinity : nil)
+            .foregroundStyle(look.label)
+            .padding(.horizontal, (tertiary ? 14 : 26) * k)
+            .frame(minHeight: (tertiary ? 44 : keyHeight) * k)
+            .background {
+                if tertiary {
+                    Capsule().fill(pressed ? Palette.buttonTrack : .clear)
+                } else {
+                    Capsule().fill(look.face).overlay(Capsule().strokeBorder(look.rim, lineWidth: 2))
+                }
+            }
+            .offset(y: tertiary || !look.hasLedge ? 0 : (pressed ? 3.5 : 0))
+            .background {
+                // The hard ledge: the key's edge, not a blur. Pressed, the face sinks into it.
+                if !tertiary, look.hasLedge {
+                    Capsule().fill(look.ledge).offset(y: 4.5)
+                }
+            }
+            .padding(.bottom, tertiary ? 0 : 4.5)
+            .animation(.easeOut(duration: 0.08), value: pressed)
+    }
+
+    // MARK: Atelier and Cut paper: the slab
+
+    private func slab(_ configuration: Configuration) -> some View {
+        let k = stage.scale
+        return configuration.label
             .font(Typeface.text(15 * k, weight: 600))
             .lineLimit(1)
             .fixedSize(horizontal: true, vertical: false)
@@ -22,12 +77,7 @@ struct HomerButtonStyle: ButtonStyle {
             .padding(.horizontal, 18 * k)
             .frame(minHeight: 44 * k)
             .background {
-                if kind == .primary && Direction.current == .hall {
-                    // The website's pressable key: a sea gradient on a hard ledge (docs/hall-tokens.md).
-                    RoundedRectangle(cornerRadius: Metrics.radiusS * k, style: .continuous)
-                        .fill(LinearGradient(colors: [Color(hex: 0x65B9D8), Palette.action], startPoint: .top, endPoint: .bottom))
-                        .shadow(color: Color(hex: 0x287794), radius: 0, x: 0, y: configuration.isPressed ? 1 : 4 * k)
-                } else if kind != .quiet {
+                if kind != .quiet {
                     RoundedRectangle(cornerRadius: Metrics.radiusS * k, style: .continuous)
                         .fill(fill)
                         .overlay {
@@ -48,15 +98,55 @@ struct HomerButtonStyle: ButtonStyle {
         case .primary: Palette.action
         case .cream: Palette.onHero
         case .secondary: Palette.paper
+        case .destructive: Palette.vermilion
         case .quiet: .clear
         }
     }
 
     private var foreground: Color {
         switch kind {
-        case .primary: Palette.onHero
+        case .primary, .destructive: Palette.onHero
         case .cream, .quiet: Palette.hero
         case .secondary: Palette.ink
+        }
+    }
+}
+
+/// One Hall key's colours (artist's spec, the Figma variables color/button/*).
+private struct HallKey {
+    var face: LinearGradient
+    var rim: Color
+    var ledge: Color
+    var label: Color
+    var hasLedge = true
+
+    init(kind: HomerButtonStyle.Kind, enabled: Bool, pressed: Bool) {
+        func ramp(_ top: UInt32, _ bottom: UInt32) -> LinearGradient {
+            LinearGradient(colors: [Color(hex: top), Color(hex: bottom)], startPoint: .top, endPoint: .bottom)
+        }
+        switch kind {
+        case .primary:
+            face = pressed ? ramp(0x4FA9CC, 0x2C82A2) : ramp(0x65B9D8, 0x328EAF)
+            rim = .white; ledge = Color(hex: 0x287794); label = .white
+        case .destructive:
+            face = pressed ? ramp(0xC8452C, 0xB23B24) : ramp(0xDD6A50, 0xC8452C)
+            rim = .white; ledge = Color(hex: 0x943120); label = .white
+        case .secondary, .cream:
+            face = pressed ? ramp(0xEDF6F8, 0xD4E8EE) : ramp(0xFFFFFF, 0xEDF6F8)
+            rim = Color(hex: 0x9FCFE0); ledge = Color(hex: 0xB3CED9); label = Color(hex: 0x2A7A9A)
+        case .quiet:
+            face = ramp(0xFFFFFF, 0xFFFFFF); rim = .clear; ledge = .clear; label = Color(hex: 0x2A7A9A); hasLedge = false
+        }
+        guard !enabled else { return }
+        hasLedge = false
+        switch kind {
+        case .primary, .destructive:
+            // Quieter, not invisible: ink-muted on pale sea-track is about 4.9:1.
+            face = ramp(0xEDF6F8, 0xE3ECEF); rim = Color(hex: 0xC9D8DE); label = Color(hex: 0x4C6B7A)
+        case .secondary, .cream:
+            face = ramp(0xEDF6F8, 0xEDF6F8); rim = Color(hex: 0xD4E8EE); label = Color(hex: 0xA3B6BF)
+        case .quiet:
+            label = Color(hex: 0xA3B6BF)
         }
     }
 }
@@ -132,8 +222,17 @@ struct PhoneScaffold<Trailing: View, Middle: View, Action: View>: View {
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
-            middle()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // On an SE the middle can be taller than the room left: it scrolls, so the top band
+            // stays under the status bar and the action stays in the thumb zone. Always the same
+            // ScrollView (never a ViewThatFits swap): the keyboard shrinking the room must not
+            // rebuild a focused text field, or the keyboard drops the moment it rises (build 34).
+            GeometryReader { geo in
+                ScrollView(showsIndicators: false) {
+                    middle()
+                        .frame(maxWidth: .infinity, minHeight: geo.size.height)
+                }
+                .scrollBounceBehavior(.basedOnSize)
+            }
             action()
                 .frame(maxWidth: .infinity)
         }
