@@ -31,8 +31,9 @@ final class ToxeiaSession {
     /// "archer-arrow" of the arrow up, nil between arrows.
     @ObservationIgnored private var arrowKey: String?
     @ObservationIgnored private var arrowSince = Date.distantPast
-    /// A loose not yet answered by an arrow_shot: resent until it lands (the module ignores a second).
-    @ObservationIgnored private var pendingLoose: (key: String, draw: Float, at: Date)?
+    /// A loose not yet answered: resent while the same arrow is up, for at most 2 s (loose carries
+    /// no arrow id, so a resend must never outlive its arrow and loose the next one).
+    @ObservationIgnored private var pendingLoose: (key: String, draw: Float, first: Date, at: Date)?
     @ObservationIgnored private var lastTick: Date?
 
     init(battle: BattleClient) {
@@ -112,8 +113,12 @@ final class ToxeiaSession {
             draw = 0
             Self.log.info("loose \(self.arrowKey ?? "-", privacy: .public) draw \(shot)")
             if arrowUp, let room = battle.room, let key = arrowKey {
+                // The module counts a loose only once this arrow's draw is above 0, so the lift
+                // sends its draw first (in order, one socket) even if no stream got through. The
+                // resends below are loose alone: a late pair must never arm the next arrow.
+                battle.call(Reducer.SetDraw.name, Reducer.SetDraw(roomId: room.id, draw: Float(max(shot, 0.01))))
                 battle.call(Reducer.Loose.name, Reducer.Loose(roomId: room.id, draw: Float(shot)))
-                pendingLoose = (key, Float(shot), Date())
+                pendingLoose = (key, Float(shot), Date(), Date())
                 haptics.hit()  // the string snaps
             }
         }
@@ -155,9 +160,10 @@ final class ToxeiaSession {
             if bow.zeroed { steadying = false }
             else if now.timeIntervalSince(arrowSince) > 3 { bow.zero(); steadying = false }
         }
+        if let p = pendingLoose, now.timeIntervalSince(p.first) > 2 { pendingLoose = nil }
         if let p = pendingLoose, p.key == arrowKey, now.timeIntervalSince(p.at) >= 0.5, let room = battle.room {
             battle.call(Reducer.Loose.name, Reducer.Loose(roomId: room.id, draw: p.draw))
-            pendingLoose = (p.key, p.draw, now)
+            pendingLoose = (p.key, p.draw, p.first, now)
             Self.log.info("loose resent \(p.key, privacy: .public)")
         }
         // Everyone has shot: the range closes by itself (no "That's everyone" to tap).

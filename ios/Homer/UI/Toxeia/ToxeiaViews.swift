@@ -36,6 +36,9 @@ struct BowModel: Equatable {
         case role
         /// Your arrows: aim.
         case aiming
+        /// At each arrow, while the bow zeroes (under a second): the aiming screen
+        /// stays, the circle held in the gold, and "hold still". No flash to another screen.
+        case zeroing
         /// Someone else is shooting, or the room isn't ready; an optional line.
         case waiting(String?)
     }
@@ -78,7 +81,7 @@ struct BowView: View {
                     if let back = actions.back { BackButton(action: back).tint(StadionPalette.slip) }
                     Text("Toxeia · Archery").tracked(10, color: StadionPalette.slip.opacity(0.7))
                     Spacer()
-                    if model.phase == .aiming, let total = model.total {
+                    if model.phase == .aiming || model.phase == .zeroing, let total = model.total {
                         Text("\(total)").font(Typeface.display(26, weight: 800)).foregroundStyle(StadionPalette.gold)
                     }
                 }
@@ -111,7 +114,8 @@ struct BowView: View {
                 Spacer(minLength: 0)
                 readyButton("Ready")
             }
-        case .aiming:
+        case .aiming, .zeroing:
+            let zeroing = model.phase == .zeroing
             VStack(spacing: Metrics.s4) {
                 HStack(alignment: .firstTextBaseline) {
                     Text(model.archer?.name ?? "Your arrows")
@@ -121,7 +125,7 @@ struct BowView: View {
                     ArrowCount(shot: model.shot, of: model.arrows, ink: StadionPalette.gold)
                 }
                 .padding(.horizontal, Metrics.s5)
-                TargetFace(lastShot: model.lastShot, aim: CGPoint(x: model.yaw, y: model.pitch))
+                TargetFace(lastShot: model.lastShot, aim: zeroing ? .zero : CGPoint(x: model.yaw, y: model.pitch))
                     .padding(.horizontal, Metrics.s5)
                 HStack {
                     if let wind = model.wind { WindChip(wind: wind, ink: StadionPalette.slip) }
@@ -133,11 +137,19 @@ struct BowView: View {
                     }
                 }
                 .padding(.horizontal, Metrics.s5)
-                Text("Keep the circle on the gold. Your other hand draws the arrow.")
-                    .font(Typeface.text(15, weight: 600))
-                    .foregroundStyle(StadionPalette.slip.opacity(0.75))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, Metrics.s6)
+                Group {
+                    if zeroing {
+                        Text("Point at the target and hold still")
+                            .font(Typeface.display(20, weight: 800))
+                            .foregroundStyle(StadionPalette.gold)
+                    } else {
+                        Text("Keep the circle on the gold. Your other hand draws the arrow.")
+                            .font(Typeface.text(15, weight: 600))
+                            .foregroundStyle(StadionPalette.slip.opacity(0.75))
+                    }
+                }
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, Metrics.s6)
             }
         case .waiting(let line):
             VStack(spacing: Metrics.s4) {
