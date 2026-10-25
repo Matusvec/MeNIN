@@ -38,6 +38,7 @@ For our web designer, from Matus. As of Sun Oct 25, ~12:55 AM. Every line below 
 | App icon page | https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=51-102 | Three Hall icon options, judged at real home-screen sizes | Optional slide |
 | App icon, real-size mock | https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=51-114 | The icons at 180, 120, 60 and 40 pt in the iOS mask | Optional slide |
 | App icon, μ | https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=54-142 | The shipped icon: the Greek letter μ (from μῆνιν) on the button system's key. The font comparison is node 53-142 | Optional slide |
+| **How it works** (FigJam board) | https://www.figma.com/board/c8DkYceOjp3OJ7PPLeYUcn | The diagram: iPhone mic → Cartesia → SpacetimeDB → the website arena + Claude → Cartesia voice | The video's diagram card; the deck's workflow slide. **Sharing: Matus sets "Anyone with the link → can view"** |
 | Prototype flow 1 | https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102 | Clickable: first open → event menu → Poetry → practice turn → verdict | Deck slide 8 (embed) |
 | Prototype flow 2 | https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364 | Clickable: join → arena turn → carved line → champion | Deck slide 8 (embed) |
 | **MeNIN · Discus (Make)** | https://www.figma.com/make/MexcUVEohKsNVAw5pHh596 | Figma Make seeded with the discus screens on our tokens (Sat 9:00 AM) | It counts as an embed; optional slide |

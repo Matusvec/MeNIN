@@ -161,10 +161,10 @@ builder renders these through Cartesia, which doubles as the Cartesia showcase. 
 | C3 | 1:31–1:34 | Number card | Word errors, with a drum at full volume: **20% → 3%** with keyterms / *Synthetic test clips · method in docs/voice-wer* |
 | C5 | 1:55–2:00 | Responsible card | Built responsibly / Captions on everything Homer says · The mic opens only on your turn · No audio passes through our server · Homer never names your emotion · No account needed |
 | L13 | 2:00–2:30 | One per game, at that game's first clip | Stadion / Toxeia (archery): the webcam tracks your bow arm / Pygmachia (boxing) / Discus, each with "· beta" if it hasn't passed its runs on 31+ |
-| L14 | 2:30–2:50 | One stat, over the Figma footage | One variable mode restyled 119 views without touching their code. |
+| L14 | 2:30–2:50 | One stat, over the Figma footage | 128 hard-coded colors → 37 tokens |
 | C6 | 2:50–3:00 | End card; **hold "Play it now" and the URL for 5 s** | **Play it now** / play.206.189.237.157.sslip.io/homer / github.com/sunya-afrasiabi/MeNIN / Original score by Paul / Built with SpacetimeDB · Cartesia · Claude · Figma · Apify · Moss / Matus · Sunya · Paul · Cal Hacks 13.0 |
 
-*L14 is exact: swift's numbers are 119 views in 32 files restyled with no edits, plus 5 other view files with 1–9-line edits, so the card doesn't say "no edits" overall. The alternative stat: "128 hard-coded colors → 37 tokens".*
+*L14 uses the stat nobody can dispute (leader, Sun ~2:25 AM): builder's count of the website's CSS, `docs/hall-tokens.md`.*
 
 ### The timeline
 
@@ -240,7 +240,8 @@ builder renders these through Cartesia, which doubles as the Cartesia showcase. 
 2. Tell builder any fixes, in one message, by 7:20.
 3. Upload the final cut to **YouTube as Unlisted**, with the title and description below.
 4. Open the link in a logged-out window to check it plays, then paste it into Devpost's video field.
-5. Done by **8:00**, before everyone checks in.
+5. **Share the FigJam board** (the how-it-works diagram, C2): https://www.figma.com/board/c8DkYceOjp3OJ7PPLeYUcn → Share → **Anyone with the link → can view**.
+6. Done by **8:00**, before everyone checks in.
 
 ### (e) YouTube
 
