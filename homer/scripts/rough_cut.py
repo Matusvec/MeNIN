@@ -38,7 +38,7 @@ SCRIPT = REPO / "docs/gtm/video.md"
 TAKE_LOG = DOCS / "timeline-take.log"
 THEME = REPO / "homer/web/public/audio/menin-theme.m4a"
 THEME_HIT = 0.03  # the theme's first hit, in the trimmed master (v3; it was 59.83 s before the trim)
-THEME_AT = 16.0  # where the hit lands in the video (C1)
+THEME_AT = 13.5  # where the hit lands in the video (C1, on a bar: every bar is counted from here)
 SQL = "https://maincloud.spacetimedb.com/v1/database/homer-calhacks/sql"
 
 W, H, FPS = 1920, 1080, 30
@@ -105,6 +105,12 @@ def ingest(since: str) -> None:
     cutoff = datetime.strptime(f"{today} {since}", "%Y-%m-%d %H:%M").timestamp()
     RAW.mkdir(parents=True, exist_ok=True)
     # The Mac's own ⌘⇧5 recording saves to the Desktop: linked, not moved (Matus finds it where he left it).
+    # Matus's answers to camera from Photo Booth: dragged to the Desktop ("Movie on …") or left in its library.
+    booth = sorted((Path.home() / "Desktop").glob("Movie on*")) + sorted((Path.home() / "Pictures/Photo Booth Library/Pictures").glob("*.mov"))
+    for f in booth:
+        if f.suffix.lower() in MEDIA and f.stat().st_mtime >= cutoff and not (RAW / f.name).exists():
+            (RAW / f.name).symlink_to(f)
+            print(f"linked {f.parent.name}/{f.name} -> raw/{f.name}")
     for f in sorted((Path.home() / "Desktop").glob("Screen Recording*")):
         if f.suffix.lower() in MEDIA and f.stat().st_mtime >= cutoff and not (RAW / f.name).exists():
             (RAW / f.name).symlink_to(f)
@@ -155,6 +161,8 @@ def classify(clips: list[dict]) -> None:
         n = c["name"].lower()
         if not c["video"]:
             c["kind"] = "memo"
+        elif n.startswith("movie on") or "photo booth" in c["path"].lower() or "photo booth" in str(Path(c["path"]).resolve()).lower():
+            c["kind"], c["mirrored"] = "answer", False  # this Mac's Photo Booth saves un-mirrored (the banners read right)
         elif "battle-mac" in n:
             c["kind"] = "mac"
         elif "battle-phone" in n:
@@ -476,6 +484,18 @@ def beats() -> list[float]:
     return grid
 
 
+def bars() -> list[float]:
+    """The theme's bar starts on the video's clock (work/theme-beats.json: the leader's beat track of the trimmed
+    master, 107.7 BPM; a bar is every 4th beat from its first), else none."""
+    return [round(THEME_AT + b - THEME_HIT, 3) for b in load(WORK / "theme-beats.json", {}).get("beats", [])[::4]]
+
+
+def on_bar(t: float, bars_: list[float], reach: float = 1.12) -> float:
+    """A card's cut moved onto the nearest bar start (within half a bar), else left where it is."""
+    near = min(bars_, key=lambda b: abs(b - t), default=t)
+    return near if abs(near - t) <= reach else t
+
+
 def snap(t: float, grid: list[float], reach: float = 0.4) -> float:
     """A video time moved onto the nearest beat of the theme as it plays in the video (from THEME_AT)."""
     if not grid:
@@ -563,7 +583,7 @@ def plan() -> dict:
     # 0:00-0:02.5 the painted scene at rest, Homer's Greek (G) under C0
     shot(0, 2.5, f"{BROLL}/scene-at-rest-ui-hidden.mp4", 0.5, "file", "G: the painted scene at rest", room=False)
     lts.append({"id": "C0", "t0": 0, "dur": 2.5, "file": card("C0"), "over": True})
-    # 0:02.5-0:04 the poet's phone: three phrases dealt (hard cut mid-word)
+    # 0:02.5-0:04 the poet's phone: three phrases dealt (hard cut mid-word); L2 carries Moss
     if deal and phones:
         # The phone shows Homer's three phrases on its SPEAK screen; the recording we have is the second poet's.
         hand_phone = phone_of(turns[0]["who"] if turns else None)  # the first poet's phrases, on their own phone
@@ -571,37 +591,94 @@ def plan() -> dict:
         shot(2.5, 1.5, wide, at(wide, deal + 2.0), "full", "three phrases dealt", deal + 2.0,
              inset={"src": hand_phone["name"], "src_t": round(at(hand_phone, hand), 3)})
     lower("L2", 2.5, 1.5)
-    # 0:04-0:11 the poet speaks: the wide, the arena's live words, a phone inset; room sound, no music
+    # 0:04-0:13.5 the poet speaks (the wide, then the arena's live words; room sound, no music) under L0, the one
+    # lower third (what this is, for a judge with the sound off); a second of silence; Homer's real verdict, 3 s, L4
+    # at the top of the frame (lower, it sat on the arena's own verse and caption bar)
+    v = None
     if first:
         s = first["speak"] + 0.2
         battle(4.0, 2.5, s, "verse 1: the wide", prefer="wide")
-        battle(6.5, 2.5, s + 2.5, "verse 1: the live words")
-        battle(9.0, 2.0, s + 5.0, "verse 1: phone inset", prefer="wide", inset=phone_of(first["who"]))
-        lower("L3", 4.0, 7.0)
-        # 0:11-0:11.5 silence (the picture holds on the arena), then Homer's real verdict and the score
-        shot(11.0, 0.5, mac or wide, at(mac or wide, s + 7.0), "crop" if mac else "full", "0.5 s of silence", s + 7.0,
+        battle(6.5, 3.0, s + 2.5, "verse 1: the live words")
+        shot(9.5, 1.0, mac or wide, at(mac or wide, s + 7.0), "crop" if mac else "full", "a second of silence", s + 7.0,
              room=False)
         v = (first["score"] or (first["end"] or s + 18) + 3) - 0.3
-        battle(11.5, 4.5, v, "verdict 1 lands")
-        lower("L4", 11.5, 4.5)
-        faces = v + 4.5
+        battle(10.5, THEME_AT - 10.5, v, "verdict 1 lands")
+        lts.append({"id": "L4", "t0": 10.5, "dur": THEME_AT - 10.5, "file": card("L4"), "dy": -730})  # top: clear of the card
+        faces = v + (THEME_AT - 10.5)
     else:
         faces = None
-    # 0:16-0:17.5 C1 on the theme's hit; 0:17.5-0:20 the room reacting (L1)
-    shot(16.0, 1.5, "C1", 0, "card", "C1 title on the theme's hit", room=False)
+    l0 = card("L0") or (brand_badges()["L0"] if BRAND.exists() else None)
+    if l0:
+        lts.append({"id": "L0", "t0": 4.0, "dur": 6.5, "file": l0, "over": True})
+    # C1 on the theme's hit; the room reacting (L1)
+    shot(THEME_AT, 1.5, "C1", 0, "card", "C1 title on the theme's hit", room=False)
     if faces:
-        shot(17.5, 2.5, wide, at(wide, faces), "full", "the room reacting", faces)
-        lower("L1", 17.5, 2.5)
-    # 0:20-0:33 Matus to camera: M1 (what it is, LM on it), then M2 (the value)
+        shot(THEME_AT + 1.5, 2.5, wide, at(wide, faces), "full", "the room reacting", faces)
+        lower("L1", THEME_AT + 1.5, 2.5)
+    # Matus to camera: M1 (what it is, LM on it, three one-bar cut-ins under his voice), then M2 (the value)
+    bar_ = bars()
+    bar_len = (bar_[-1] - bar_[0]) / (len(bar_) - 1) if len(bar_) > 1 else 4 * 60 / 107.666
     answers = answer_clips(clips, take)
-    m1_end = answer(segs, "M1", answers.get("M1"), 20.0, 5.0, own=True)  # M1 runs its own length (~12 s)
-    lower("LM", 20.0, 4.0)
+    a0 = THEME_AT + 4.0
+    m1_end = answer(segs, "M1", answers.get("M1"), a0, 5.0, own=True)
+    lower("LM", a0, 4.0)
+    cut_end = 0.0
+
+    def under(mid: str, cue: str, make, length: float = bar_len) -> None:
+        """A cut-in under an answer's voice from its word `cue` (make(t0, dur) adds the shot): never before the last
+        cut-in ends, never in the answer's last half second. The answer's picture splits around it; its sound runs on."""
+        nonlocal cut_end
+        seg = next((x for x in segs if x.get("answer") == mid), None)
+        if not seg:
+            return
+        src0, n = seg.get("audio_src", seg["src_t"]), seg.get("audio_dur", seg["dur"])
+        said = [w for w in heard(WORK / "answers" / f"{Path(seg['src']).stem}.wav") if src0 < w["end"] <= src0 + n]
+        want = [norm(x) for x in cue.split()]
+        k = next((i for i in range(len(said)) if [norm(x["w"]) for x in said[i:i + len(want)]] == want), None)
+        if k is None:
+            print(f"note: {mid} never says \"{cue}\"; no cut-in there")
+            return
+        w = said[k]
+        a_ = max(cut_end, seg.get("audio_t0", seg["t0"]) + max(w["start"], w["end"] - 0.5) - src0 - 0.1)
+        host = next((x for x in segs if x["src"] == seg["src"] and x["t0"] <= a_ < x["t0"] + x["dur"]), None)
+        if not host:
+            return
+        b_ = min(a_ + length, host["t0"] + host["dur"] - 0.5)
+        if b_ - a_ < 1.0:
+            return
+        segs.append({**host, "t0": round(b_, 3), "dur": round(host["t0"] + host["dur"] - b_, 3),
+                     "src_t": round(host["src_t"] + b_ - host["t0"], 3), "own_audio": False, "answer": None,
+                     "note": f"{mid}: Matus to camera (after a cut-in)"})
+        host["dur"] = round(a_ - host["t0"], 3)
+        make(a_, b_ - a_)
+        cut_end = b_
+
+    def game_of(c: dict) -> str:
+        open_hall = [h for h in take.get("halls", []) if c.get("start") and h["created"] <= c["start"]]
+        return open_hall[-1]["event"] if open_hall else ""
+
+    if first and v is not None:
+        speak_phone = phone_of(first["who"])
+        under("M1", "speak a verse", lambda t, d: shot(
+            t, d, wide, at(wide, first["speak"] + 1.0), "full", "cut-in: the SPEAK screen", room=False,
+            inset={"src": speak_phone["name"], "src_t": round(at(speak_phone, first["speak"] + 0.3), 3)} if speak_phone else None))
+        under("M1", "judges", lambda t, d: shot(t, d, mac or wide, at(mac or wide, v + 0.6), "crop" if mac else "full",
+                                                "cut-in: the verdict", room=False))
+    boxing = next((c for c in clips if c["kind"] in ("montage", "slomo") and game_of(c) == "Pygmachia"), None)
+    if boxing:
+        under("M1", "battle your friends", lambda t, d: shot(t, d, boxing, boxing["dur"] * 0.4, "full",
+                                                             "cut-in: boxing (Pygmachia)", room=False))
+    for sg in sorted((x for x in segs if x.get("note", "").endswith("(after a cut-in)")), key=lambda x: x["t0"]):
+        if sg["dur"] < 0.4:  # a sliver of his face between two cut-ins: the cut-in before it runs on instead
+            prev = max((x for x in segs if x["t0"] < sg["t0"]), key=lambda x: x["t0"])
+            prev["dur"] = round(prev["dur"] + sg["dur"], 3)
+            segs.remove(sg)
     m2_end = answer(segs, "M2", answers.get("M2"), m1_end, 8.0, own=True)
     # 0:33-1:12 the rest of the battle, in order: the next poet stepping up, each answer (laptop, wide, the poet's own
     # phone), its verdict (Homer heard whole, to the arena's next step), faces; the freeze rescue uncut at 1x inside
     # its verse; the round's call and the gold line last. Never into the finale (the song has its own place).
     # Short of time, the reactions grow; past it, the verses give way first.
-    B0, B1 = m2_end, 72.0  # the battle takes what the answers leave
+    B0, B1 = m2_end, m2_end + 24.0  # the battle keeps 24 s after the answers
     carved = moment(take, "post_verdict", "carved")
     round_end = moment(take, "advance", "round 1 ends") or (carved - 0.3 if carved else None)
     finale_at = moment(take, "advance", "finale")
@@ -619,12 +696,13 @@ def plan() -> dict:
             beats_.append([rescue - 4.0, 8.0, "rescue", f"verse {i}: the freeze rescue, uncut", {}])
         else:
             beats_.append([s_, close - s_, "verse", f"verse {i}: {tr['who']}", {"inset": phone_of(tr["who"])}])
-        if tr["score"]:
-            beats_.append([tr["score"] - 0.3, min(8.0, after(tr["score"]) - tr["score"] + 0.3), "verdict", f"verdict {i}", {}])
-            beats_.append([tr["score"] + 0.3 + min(8.0, after(tr["score"]) - tr["score"]), 1.5, "faces", "faces after the score", {}])
+        if tr["score"]:  # the verdict's reveal, 4.5 s, then faces as Homer goes on (the sound runs straight through)
+            vd = min(4.5, after(tr["score"]) - tr["score"] + 0.3)
+            beats_.append([tr["score"] - 0.3, vd, "verdict", f"verdict {i}", {}])
+            beats_.append([tr["score"] - 0.3 + vd, 1.5, "faces", "faces after the score", {}])
     total = lambda: sum(x[1] for x in beats_)
     seen = lambda: max((b[0] + b[1] for b in beats_), default=round_end or 0.0)
-    gold_len = min(10.0, (finale_at or (round_end or 0) + 8.0) - max(round_end, seen())) if round_end else 0.0
+    gold_len = min(3.5, (finale_at or (round_end or 0) + 8.0) - max(round_end, seen())) if round_end else 0.0
     room_for = (B1 - B0) - max(0.0, gold_len)
     if first and total() < room_for:  # short: the part of the first verse the intro didn't show
         rest_from = first["speak"] + 0.2 + 7.0
@@ -636,7 +714,7 @@ def plan() -> dict:
             bt[1] += min(2.5, room_for - total())
     while total() > room_for and any(x[2] == "verse" and x[1] > 6.0 for x in beats_):
         bt = max((x for x in beats_ if x[2] == "verse"), key=lambda x: x[1])
-        bt[1] = max(6.0, bt[1] - 1.0)
+        bt[1] = max(6.0, bt[1] - (total() - room_for))
     while total() > room_for and beats_:
         beats_.pop(0 if beats_[0][2] == "up" else len(beats_) - 1)
     t = B0
@@ -657,91 +735,132 @@ def plan() -> dict:
         t += dur
     if round_end:
         call_from = max(round_end, max((b[0] + b[1] for b in beats_), default=round_end))  # never back over a moment
-        battle(t, B1 - t, call_from, "the round's call and the gold line, carved")
-        lower("L8", t + max(0.5, (carved or call_from) - call_from), 4.0)
+        battle(t, B1 - t, call_from + 0.3, "the round's call and the gold line, carved")  # past the screen change
+        l8 = t + max(0.5, (carved or call_from) - call_from)
+        lower("L8", l8, min(4.0, B1 - l8))
     elif t < B1 and wide and faces:
         shot(t, B1 - t, wide, at(wide, faces + 8.0), "full", "the room (fill)", faces + 8.0)
     lower("L5", B0 + 1.0, 4.0)
-    verdict_at = B0
+    verdict_at, stab = B0, None
     for bt in beats_:
         if bt[2] == "verdict":
             lower("L7", verdict_at + 0.3, 4.0)
+            stab = verdict_at  # the theme stabs for two bars on the reveal
             break
         verdict_at += bt[1]
-    if not rescue:
-        lower("L6", B0 + 14.0, 4.0)
     # 1:12-1:21 Matus to camera: M3 (what we built), with 2.5 s of real website footage cut in under his voice: the
     # arena in the browser, address bar in frame (the take's minigame recording, the archery range). L9 over it.
     games_mac = max((c for c in clip_by_kind(clips, "mac") if c is not mac and (c.get("start") or 0) > take["created"]),
                     key=lambda c: c["dur"], default=None)
     toxeia = next((h for h in take.get("halls", []) if h["event"] == "Toxeia"), None)
-    cut_in = snap(75.5, grid) if games_mac and toxeia else None
-    answer(segs, "M3", answers.get("M3"), 72.0, 9.0, cutaway=(cut_in, 2.5) if cut_in else None)
+    cut_in = snap(B1 + 3.5, grid) if games_mac and toxeia else None
+    m3_end = answer(segs, "M3", answers.get("M3"), B1, 9.0, cutaway=(cut_in, 2.5) if cut_in else None,
+                    covers=(2.5, 4.0) if cut_in else ())
+    joins = CUTAWAY_AT.get("M3") or []
+    cut_in = joins[0] if joins else cut_in  # M3 joined at sentence ends: the website hides its first join
     if cut_in:
         src_t = min(games_mac["dur"] - 4.0, max(0.0, toxeia["created"] + 40.0 - games_mac["start"]))
         shot(cut_in, 2.5, games_mac, src_t, "browser", "website: the arena in the browser (archery), under M3", room=False)
         lower("L9", cut_in, 2.5)
-    # 1:21-1:27 the SpacetimeDB moment: multiplayer's timeline rows (broll/timeline.mp4, frame 0 on this Mac's clock in
+    # The SpacetimeDB moment: multiplayer's timeline rows (broll/timeline.mp4, frame 0 on this Mac's clock in
     # timeline.json) beside the wide at the same instant, around the verdict it anchors on; else the turn that ran out.
+    # It hides M3's second join (his "the SpacetimeDB team told us…") when M3 has one; else it follows M3 to C2.
     tl = BROLL / "timeline.json"
+    stdb_at = joins[1] if len(joins) > 1 and tl.exists() and wide else None
+    c2 = on_bar(m3_end if stdb_at is not None else 87.0, bar_)
+    stdb_t, stdb_d = (stdb_at, 4.0) if stdb_at is not None else (m3_end, c2 - m3_end)
     if tl.exists() and wide:
         meta = json.loads(tl.read_text())
         from_s = max(0.0, meta["anchor"]["atSecond"] - 3.0)
         epoch = meta["frame0"]["epochMs"] / 1000 + from_s
-        shot(81.0, 6.0, wide, at(wide, epoch), "full", "SpacetimeDB: the verdict lands, every screen at once", epoch,
-             beside=str(BROLL / "timeline.mp4"), beside_t=from_s)
+        shot(stdb_t, stdb_d, wide, at(wide, epoch), "full", "SpacetimeDB: the verdict lands, every screen at once",
+             epoch, beside=str(BROLL / "timeline.mp4"), beside_t=from_s, beside_crop="1240:420:60:640")  # the last rows, big
+        if BRAND.exists():
+            lts.append({"id": "N-LOG", "t0": stdb_t, "dur": stdb_d, "file": brand_badges()["N-LOG"], "over": True})
     else:
         timeout = next((tr for tr in turns if tr["timeout"]), None)
         if timeout:
-            shot(81.0, 6.0, wide, at(wide, timeout["end"] - 3.0), "full", "SpacetimeDB: the timer ends the turn",
+            shot(stdb_t, stdb_d, wide, at(wide, timeout["end"] - 3.0), "full", "SpacetimeDB: the timer ends the turn",
                  timeout["end"] - 3.0)
-    lower("L10", 81.0, 6.0)
-    # 1:27-1:38 the diagram and the number card (lines 6 and 7 are 6.5 s and 4.5 s: the cards hold them whole);
-    # 1:38-1:55 the stitched song; 1:55-2:00 C5 over its last line
-    shot(87.0, 6.6, "C2", 0, "card", "C2 the diagram (line 6)", room=False)
-    shot(93.6, 4.6, "C3", 0, "card", "C3 20% -> 3% (line 7)", room=False)
+    lower("L10", stdb_t, stdb_d)
+    if stdb_at is not None:  # M3's last picture ends where C2 lands on its bar (his last word may run under C2)
+        last = max((x for x in segs if x.get("answer") == "M3"), key=lambda x: x["t0"])
+        last["dur"] = round(c2 - last["t0"], 3)
+    # The diagram and the number card on the bars (lines 6 and 7 are 6.5 s and 4.5 s: the cards hold them whole),
+    # then the stitched song to C5 (the song gives back whatever M3 took past 1:27), C5 over its tail
+    c3 = on_bar(c2 + 6.7, bar_)
+    song0 = on_bar(c3 + 4.6, bar_)
+    c5 = on_bar(song0 + 7 * bar_len, bar_)  # the song: seven bars
+    mont0 = on_bar(c5 + 2 * bar_len, bar_)  # C5: two
+    shot(c2, c3 - c2, "C2", 0, "card", "C2 the diagram (line 6)", room=False)
+    shot(c3, song0 - c3, "C3", 0, "card", "C3 20% -> 3% (line 7)", room=False)
     finale = moment(take, "advance", "finale")
     if finale:  # the song, cut between the laptop, faces on the wide and a poet's phone; the room sound runs on
         f0 = finale + 1.0
-        battle(98.2, 3.8, f0, "the stitched song")
-        shot(102.0, 3.6, wide, at(wide, f0 + 3.8), "full", "the song: faces", f0 + 3.8)
-        battle(105.6, 3.4, f0 + 7.4, "the song: the phone", prefer="wide", inset=phone_of(first["who"] if first else None))
-        battle(109.0, 3.2, f0 + 10.8, "the song, line by line")
-        shot(112.2, 2.8, wide, at(wide, f0 + 14.0), "full", "the song: faces", f0 + 14.0)
-        shot(115.0, 5.0, "C5", 0, "card", "C5 responsible card (the song's tail under it)", finale + 17.8)
+        song = [(0.0, 3.8, "the stitched song", {}), (3.8, 3.6, "the song: faces", None),
+                (7.4, 3.4, "the song: the phone", {"prefer": "wide", "inset": phone_of(first["who"] if first else None)}),
+                (10.8, 3.2, "the song, line by line", {}), (14.0, 99.0, "the song: faces", None)]
+        for off, d, note, kw in song:
+            a_, b_ = song0 + off, min(song0 + off + d, c5)
+            if b_ - a_ < 0.6:  # out of room: the shot before runs on to C5
+                segs[-1]["dur"] = round(c5 - segs[-1]["t0"], 3)
+                break
+            if kw is None:
+                shot(a_, b_ - a_, wide, at(wide, f0 + off), "full", note, f0 + off)
+            else:
+                battle(a_, b_ - a_, f0 + off, note, **kw)
+        shot(c5, mont0 - c5, "C5", 0, "card", "C5 responsible card (the song's tail under it)", f0 + (c5 - song0))
     else:
-        shot(98.2, 21.8, "C5", 0, "card", "C5 (no song in the take)", room=False)
-    # 2:00-2:14 the training montage: 2-4x with 1x hero beats, cuts on the theme's beats, ends on a miss and a laugh
-    montage(segs, lts, clips, take, grid, end=134.0)
-    # 2:14-2:29 the Figma workflow (artist's renders, graded already), one stat (L14)
-    figma = sorted(CARDS.glob("F*.mp4")) if CARDS.exists() else []
-    figma = [str(f) for f in figma] + [c["src"] for c in clip_by_kind(clips, "figma")]
-    t = 134.0
-    for f in figma:
-        try:  # artist may still be writing it
-            d = min(15.0 / max(1, len(figma)), float(probe(Path(f))["format"]["duration"]))
-        except (RuntimeError, KeyError, ValueError):
-            print(f"note: {Path(f).name} isn't readable yet; its slot keeps the placeholder")
-            continue
-        shot(t, d, f, 0, "file", f"Figma: {Path(f).name}", room=False, graded=True)
-        t += d
-    if t < 149.0 and segs and segs[-1]["note"].startswith("Figma: "):  # the last render holds to the slot's end
-        segs[-1]["dur"] = round(149.0 - segs[-1]["t0"], 3)
-        segs[-1]["hold"] = True
-    elif t < 149.0:
-        shot(t, 149.0 - t, "FIGMA", 0, "card", "(the Figma workflow: artist's render goes here)", room=False)
-    lower("L14", 135.0, 5.0)
-    # 2:29-2:50 Matus to camera: M4 (what's next, ~18 s); the end card takes any time it leaves
-    m4_end = answer(segs, "M4", answers.get("M4"), 149.0, 21.0)  # its own length, at most 21 s
-    # 2:50-3:00 C6, the end card ("Play it now" and the URL held), line 10
-    shot(m4_end, LENGTH - m4_end, "C6", 0, "card", "C6 the end card (Play it now, held)", room=False)
+        shot(song0, mont0 - song0, "C5", 0, "card", "C5 (no song in the take)", room=False)
+    # The training montage, cut on the bars at varied lengths (one label); then the Figma workflow, three bars centred
+    # on F1's Atelier -> Hall flip (at 10 s in artist's render), L14 held over it
+    fig0 = on_bar(mont0 + 6 * bar_len, bar_)
+    m4_0 = on_bar(fig0 + 3 * bar_len, bar_)
+    montage(segs, lts, clips, take, grid, start=mont0, end=fig0, bars_=bar_)
+    if BRAND.exists():
+        lts.append({"id": "N-MONTAGE", "t0": mont0, "dur": round(bar_len, 3), "file": brand_badges()["N-MONTAGE"], "over": True})
+    f1 = card("F1")
+    if f1 and f1.endswith(".mp4"):
+        shot(fig0, m4_0 - fig0, f1, max(0.0, 10.0 - (m4_0 - fig0) / 2), "file", "Figma: F1-flip.mp4, on the flip",
+             room=False, graded=True, hold=True)
+    else:
+        shot(fig0, m4_0 - fig0, "FIGMA", 0, "card", "(the Figma workflow: artist's render goes here)", room=False)
+    lower("L14", fig0, m4_0 - fig0)
+    # Matus to camera: M4 (what's next) from a bar; the end card lands on the first bar after his last word
+    m4_end = answer(segs, "M4", answers.get("M4"), m4_0, 21.0)
+    c6 = next((b for b in bar_ if m4_end - 0.2 <= b <= m4_end + 1.6), on_bar(m4_end, bar_))  # after his last word
+    m4s = sorted((x for x in segs if x.get("answer") == "M4"), key=lambda x: x["t0"])
+    if m4s:  # his picture ends at C6 (a held frame if C6 is later; his last word under C6 if it's earlier)
+        m4s[-1]["dur"] = round(c6 - m4s[-1]["t0"], 3)
+    # L15 v2, the exact claim (a public fork, fixes sent upstream): on his face after the SpacetimeDB beat, and from
+    # M4's SDK sentence to 2 s into the end card
+    sdk = card("L15") or (brand_badges()["L-SDK"] if BRAND.exists() else None)
+    if sdk and stdb_at is not None and c2 - (stdb_at + 4.0) > 1.0:
+        lts.append({"id": "L-SDK", "t0": round(stdb_at + 4.0, 3), "dur": round(c2 - stdb_at - 4.0, 3), "file": sdk, "over": True})
+    if sdk and len(m4s) > 1:
+        lts.append({"id": "L-SDK", "t0": m4s[-1]["t0"], "dur": round(c6 + 2.0 - m4s[-1]["t0"], 3), "file": sdk, "over": True})
+    # The end: at C6 the theme jumps (bar to bar) to its last bars, so its final chord lands on the end card; the video
+    # ends 0.8 s after it
+    theme_bars = load(WORK / "theme-beats.json", {}).get("beats", [])[::4]
+    theme_len = seconds(THEME)
+    natural = THEME_AT + theme_len - THEME_HIT
+    near_end = [b for b in theme_bars if 6.0 <= theme_len - b <= 7.7]
+    tail_from = min(near_end, key=lambda b: abs(theme_len - b - 6.7)) if near_end else None
+    if tail_from is not None and c6 + theme_len - tail_from < natural - 0.5:
+        tail = theme_len - tail_from
+    else:
+        tail_from, tail = None, natural - c6
+    global LENGTH
+    LENGTH = round(min(179.0, c6 + tail + 0.8), 3)
+    shot(c6, LENGTH - c6, "C6", 0, "card", "C6 the end card (Play it now, held)", room=False)
     if BRAND.exists():  # the sponsors' badges ride with their lower thirds and cards
         badges = brand_badges()
         for lt in list(lts):
             if f"B-{lt['id']}" in badges:
-                lts.append({"id": f"B-{lt['id']}", "t0": lt["t0"], "dur": lt["dur"], "file": badges[f"B-{lt['id']}"], "over": True})
+                lts.append({"id": f"B-{lt['id']}", "t0": lt["t0"], "dur": lt["dur"], "file": badges[f"B-{lt['id']}"], "over": True,
+                            "dy": lt.get("dy", 0)})
         for sg in segs:
-            bid = {"C2": "B-C2", "C6": "B-C6"}.get(sg["src"]) or ("B-FIG" if sg["note"].startswith("Figma") else None)
+            bid = {"C5": "B-C5"}.get(sg["src"])  # C2 and C6 carry their own logos (artist, v5) or ("B-FIG" if sg["note"].startswith("Figma") else None)
             if bid and bid in badges:
                 lts.append({"id": bid, "t0": sg["t0"], "dur": sg["dur"], "file": badges[bid], "over": True})
     for s in o.get("cuts", []):  # hand fixes: {"t0": 4.0, "src": "...", "src_t": 12.3, ...}
@@ -754,8 +873,13 @@ def plan() -> dict:
             if c:
                 seg["masks"] = masks(c, seg["src_t"], seg["dur"])
     segs.sort(key=lambda s: s["t0"])
-    cuts = {"segments": segs, "lowers": lts, "take": take["code"], "theme_at": THEME_AT,
-            "music": music_plan(segs, turns, B0)}
+    narr = [("vo-00-greek.wav", 0.0, 2.5), ("vo-06.wav", round(c2 + 0.1, 3), None), ("vo-07.wav", round(c3 + 0.1, 3), None),
+            ("vo-08.wav", round(mont0 + 0.6, 3), None), ("vo-09.wav", round(fig0 + 0.6, 3), None),
+            ("vo-10.wav", round(c6 + 1.0, 3), None)]
+    marks = {"stdb": stdb_t, "song": song0, "montage": mont0, "figma": fig0, "m4": m4_0, "c6": c6, "bar": round(bar_len, 4),
+             "stab": stab, "tail_from": tail_from, "b1": B1}
+    cuts = {"segments": segs, "lowers": lts, "take": take["code"], "theme_at": THEME_AT, "length": LENGTH,
+            "music": music_plan(segs, turns, B0, marks), "narration": narr, "marks": marks}
     save(WORK / "cuts.json", cuts)
     write_lists(cuts)
     return cuts
@@ -771,6 +895,130 @@ def answer_texts() -> dict[str, str]:
     return out
 
 
+# What each answer is about (leader, 04:15): Matus speaks loose versions and may ad-lib, so a piece of the take is
+# matched to its answer by these anchors, not by the script's exact words.
+ANSWER_KEYS = {
+    "M1": ["iliad", "homer", "out loud", "coaches", "practise", "practice", "battle", "socrates", "games"],
+    "M2": ["scared", "speaking", "greeks", "sport", "gym"],
+    "M3": ["weekend", "shipped", "battle", "talk to homer", "lessons", "motion games", "website", "server", "faked", "mocked"],
+    "M4": ["weekend project", "testflight", "test flight", "app store", "open mic", "classroom", "party", "rooms",
+           "spacetimedb", "spacetime db", "swift sdk", "fixes"],
+}
+
+
+def anchors(said: str) -> dict[str, set[str]]:
+    """The anchors each answer finds in a piece of speech (a phrase counts as its number of words)."""
+    t = " " + re.sub(r"\s+", " ", re.sub(r"[^a-z0-9 ]", " ", said.lower())) + " "
+    return {m: {k for k in ks if f" {k} " in t} for m, ks in ANSWER_KEYS.items()}
+
+
+def weight(keys: set[str]) -> int:
+    return sum(len(k.split()) for k in keys)
+
+
+RETAKE_CUES = ("again", "let me", "sorry", "hold on", "wait", "redo", "one more", "start over", "scratch that")
+
+
+# How Matus opens each answer (both takes, 04:15 and 04:22): the cue that starts it.
+ANSWER_CUES = {
+    "M1": ["what is"],
+    "M2": ["why would", "why should", "why do"],
+    "M3": ["this weekend", "this entire weekend", "ended up building", "what we built", "this whole weekend"],
+    "M4": ["whats next", "what is next", "not stopping", "not really stopping"],
+}
+
+
+def answer_runs(clip: dict) -> list[dict]:
+    """One Photo Booth take, cut into its four answers by how he opens each (ANSWER_CUES, in order: "So what is
+    MeNIN?", "So why would…", "…this weekend…", "What's next…"): an answer runs from its cue's sentence to the next
+    answer's. A cue said twice before the next answer's (a retake) starts the answer at the later one. Anchors
+    (ANSWER_KEYS) are kept for the record. Empty when the cues aren't there."""
+    wav = WORK / "answers" / f"{Path(clip['name']).stem}.wav"
+    if not wav.exists():
+        wav.parent.mkdir(parents=True, exist_ok=True)
+        ff("-i", clip["path"], "-vn", "-ac", "1", "-ar", "16000", str(wav))
+    words = heard(wav)
+    if not words:
+        return []
+    toks = [norm(w["w"]) for w in words]  # "what's" -> "whats": one token a word
+
+    def hits(cue: str) -> list[int]:
+        parts = cue.split()
+        return [i for i in range(len(toks)) if toks[i:i + len(parts)] == parts]
+
+    def sentence_start(i: int) -> int:  # back to the start of the sentence the cue is in ("So what's next?")
+        while i > 0 and not words[i - 1]["w"].rstrip().endswith((".", "?", "!")) and words[i]["start"] - words[i - 1]["end"] < 1.0:
+            i -= 1
+        return i
+
+    starts: dict[str, int] = {}
+    floor = 0
+    for m in ANSWER_CUES:
+        found = sorted(i for c in ANSWER_CUES[m] for i in hits(c) if i >= floor)
+        if not found:
+            if m == "M1":
+                found = [0]
+            else:
+                continue
+        nxt = [i for c in ANSWER_CUES.get(f"M{int(m[1]) + 1}", []) for i in hits(c) if i > found[0]] if m != "M4" else []
+        before = [i for i in found if not nxt or i < min(nxt)] or found[:1]
+        # cues within 5 s of each other are one opening ("So what's next? So we're not stopping…"); a later
+        # opening is a retake: the answer starts at the first cue of the last opening
+        opening = before[0]
+        for prev_i, i in zip(before, before[1:]):
+            if words[i]["start"] - words[prev_i]["start"] > 5.0:
+                opening = i
+        starts[m] = sentence_start(opening)
+        floor = starts[m] + 3
+    order = [m for m in ANSWER_CUES if m in starts]
+    runs = []
+    for k, m in enumerate(order):
+        i0 = starts[m]
+        i1 = starts[order[k + 1]] if k + 1 < len(order) else len(words)
+        seg = words[i0:i1]
+        if not seg:
+            continue
+        said = " ".join(w["w"] for w in seg)
+        runs.append({"clip": clip["name"], "a": max(0.0, seg[0]["start"] - 0.15), "b": min(clip["dur"], seg[-1]["end"] + 0.3),
+                     "m": m, "said": said, "keys": anchors(said)[m]})
+    return runs
+
+
+def answer_takes(clip: dict) -> dict[str, tuple[float, float]]:
+    """The best take of each answer in one Photo Booth take (see answer_runs), as (from, to) in seconds."""
+    return {m: (r_["a"], r_["b"]) for m, r_ in best_runs(answer_runs(clip)).items()}
+
+
+def best_runs(runs: list[dict]) -> dict[str, dict]:
+    """Of several takes of a line (in one file or across files, in recording order), the one carrying most of its
+    anchors wins, the later on a tie."""
+    picked: dict[str, dict] = {}
+    for r_ in runs:
+        if r_["m"] not in picked or weight(r_["keys"]) >= weight(picked[r_["m"]]["keys"]):
+            picked[r_["m"]] = r_
+    for m, r_ in sorted(picked.items()):
+        print(f"{m}: {r_['a']:.1f}-{r_['b']:.1f} s of {r_['clip']} (anchors: {', '.join(sorted(r_['keys']))})")
+    return picked
+
+
+# What Cartesia hears for names it doesn't know, set right in his captions.
+SPELLED = {"menon": "MeNIN", "meenan": "MeNIN", "menin": "MeNIN", "meenin": "MeNIN", "mennin": "MeNIN",
+           "manning": "MeNIN", "maning": "MeNIN", "menning": "MeNIN", "testlight": "TestFlight",
+           "meanin": "MeNIN", "menan": "MeNIN", "testflight": "TestFlight", "spacetimedb": "SpacetimeDB",
+           "socrates": "Socrates", "iliad": "Iliad", "homer": "Homer", "cartesia": "Cartesia", "manny": "MeNIN",
+           "testfight": "TestFlight"}
+# Whole-phrase fixes in his captions (what Cartesia heard, as he said it)
+CAPTION_FIXES = {"AI is just talks": "AI just talks"}
+
+
+def spelled(w: str) -> str:
+    key = norm(w)
+    if key in SPELLED:
+        tail = re.search(r"[^\w]*$", w).group(0)
+        return SPELLED[key] + tail
+    return w
+
+
 def answer_clips(clips: list[dict], take: dict) -> dict[str, dict]:
     """Matus's four answers to camera: the clips (with sound) filmed after the last hall closed, in order, the longest
     taking M4 (~18 s). overrides.json "answers": {"M1": clip name, ...} wins."""
@@ -778,6 +1026,15 @@ def answer_clips(clips: list[dict], take: dict) -> dict[str, dict]:
     o = overrides().get("answers", {})
     if o:
         return {k: by_name[v] for k, v in o.items() if v in by_name}
+    booth = sorted((c for c in clips if c["kind"] == "answer"), key=lambda c: c.get("start") or 0)
+    if booth:  # Photo Booth takes: each cut into its answers; one take is used for all four (his voice and light match)
+        want = overrides().get("answer_take", "")
+        takes = [(c, answer_runs(c)) for c in booth]
+        full = [(c, rs) for c, rs in takes if len(rs) == 4 and (not want or want in c["name"])]
+        c, rs = (full or [max(takes, key=lambda t: len(t[1]))])[-1]
+        for r_ in rs:
+            print(f"{r_['m']}: {r_['a']:.1f}-{r_['b']:.1f} s of {c['name']} ({r_['b'] - r_['a']:.1f} s): {r_['said'][:70]}")
+        return {r_["m"]: {**c, "span": (r_["a"], r_["b"])} for r_ in rs}
     last = max((int(line.split("\t")[1]) / 1000 for line in TAKE_LOG.read_text().splitlines()
                 if line.count("\t") >= 4 and line.split("\t")[1].isdigit()), default=take["created"])
     pool = sorted((c for c in clips if c["kind"] in ("montage", "phone", "camera") and c["audio"]
@@ -800,14 +1057,122 @@ def speech_span(clip: dict) -> tuple[float, float]:
     return max(0.0, a - 0.25), min(clip["dur"], b + 0.35)
 
 
+def sentence_end(clip: dict, a: float, slot: float) -> float | None:
+    """How long an answer runs if it stops at the end of the sentence nearest `slot` seconds in (within -2..+2.5 s)."""
+    wav = WORK / "answers" / f"{Path(clip['name']).stem}.wav"
+    if not wav.exists():
+        return None
+    ends = [w["end"] - a + 0.25 for w in heard(wav) if w["start"] >= a and w["w"].rstrip().endswith((".", "?", "!"))]
+    near = [e for e in ends if slot - 2.0 <= e <= slot + 2.5]
+    return min(near, key=lambda e: abs(e - slot)) if near else None
+
+
+MUST_KEEP = {"M3": ["swift sdk"]}  # the line a sponsor asked for (leader, 04:25): never trimmed out
+CUTAWAY_AT: dict[str, list[float]] = {}  # where an answer's joins landed (its cut-ins hide them)
+
+
+def sentences(clip: dict, a: float, b: float) -> list[tuple[float, float, str]]:
+    """An answer's sentences as heard: (start, end, text), split at . ? !"""
+    wav = WORK / "answers" / f"{Path(clip['name']).stem}.wav"
+    out, cur = [], []
+    for w in (x for x in heard(wav) if a <= x["start"] < b) if wav.exists() else []:
+        cur.append(w)
+        if w["w"].rstrip().endswith((".", "?", "!")):
+            out.append((cur[0]["start"], cur[-1]["end"], " ".join(x["w"] for x in cur)))
+            cur = []
+    if cur:
+        out.append((cur[0]["start"], cur[-1]["end"], " ".join(x["w"] for x in cur)))
+    return out
+
+
+def must_parts(clip: dict, mid: str, a: float, b: float, slot: float) -> list[tuple[float, float]] | None:
+    """An answer too long for its slot but holding a must-keep line: its opening sentence, then a cut to the
+    sentences holding the line (the middle goes). None when nothing must be kept."""
+    keep = MUST_KEEP.get(mid)
+    if not keep:
+        return None
+    sents = sentences(clip, a, b)
+    musts = [k for k, st in enumerate(sents) if any(m in norm_text(st[2]) for m in keep)]
+    if not sents or not musts:
+        return None
+    picks = sorted({0, *musts})
+    parts: list[list[float]] = []
+    for k in picks:
+        s0, s1 = sents[k][0] - 0.15, sents[k][1] + 0.3
+        if parts and k - 1 in picks:
+            parts[-1][1] = s1
+        else:
+            parts.append([s0, s1])
+    return [(max(0.0, x), y) for x, y in parts]
+
+
+def keep_parts(clip: dict, mid: str, a: float, b: float) -> list[tuple[float, float]] | None:
+    """An answer cut by hand at sentence ends (overrides.json "answer_keep": {"M3": [["so what we actually",
+    "end to end"], …]}): each pair names the first and last words of a stretch to keep, in order; stretches that
+    touch are joined. None when the answer has none."""
+    spans = overrides().get("answer_keep", {}).get(mid)
+    if not spans:
+        return None
+    words = [w for w in heard(WORK / "answers" / f"{Path(clip['name']).stem}.wav") if a - 1.0 <= w["start"] < b + 1.0]
+    toks = [norm(w["w"]) for w in words]
+
+    def find(phrase: str, after: int) -> int:
+        want = [norm(x) for x in phrase.split()]
+        for i in range(after, len(toks) - len(want) + 1):
+            if toks[i:i + len(want)] == want:
+                return i
+        sys.exit(f"{mid}: \"{phrase}\" isn't in {clip['name']} between {a:.1f} and {b:.1f} s")
+
+    parts: list[list[float]] = []
+    i = 0
+    for first, last in spans:
+        i0 = find(first, i)
+        i1 = find(last, i0) + len(last.split()) - 1
+        start = max(words[i0]["start"], words[i0]["end"] - 0.5) - 0.05  # a first word's start is often its gap's
+        if parts and start - parts[-1][1] < 0.4:
+            parts[-1][1] = words[i1]["end"] + 0.2
+        else:
+            parts.append([start, words[i1]["end"] + 0.2])
+        i = i1 + 1
+    return [(max(0.0, x), y) for x, y in parts]
+
+
+def norm_text(t: str) -> str:
+    return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9 ]", " ", t.lower()))
+
+
 def answer(segs: list[dict], mid: str, clip: dict | None, t0: float, slot: float,
-           cutaway: tuple[float, float] | None = None, own: bool = False) -> float:
+           cutaway: tuple[float, float] | None = None, own: bool = False, covers: tuple[float, ...] = ()) -> float:
     """Matus to camera: the answer from its start with its own sound, landscape filled or portrait cropped to 16:9,
     graded; held on its last frame if it runs short of its slot (M4 runs its own length, the end card takes the
     rest). A labelled card until the clip lands. Returns where it ends."""
-    a, b = speech_span(clip) if clip else (0.0, slot)
-    # M1, M2 and M4 run their own length (M4 at most its slot); M3 keeps its slot (the cut-in sits inside it).
+    a, b = clip["span"] if clip and clip.get("span") else speech_span(clip) if clip else (0.0, slot)
+    # M1, M2 and M4 run their own length (M4 at most its slot); M3 keeps its slot (the cut-in sits inside it). An
+    # answer longer than its slot ends at the sentence end nearest the slot's end, never mid-sentence.
     dur = (b - a) if clip and own else min(slot, b - a) if clip and mid == "M4" else slot
+    parts = (keep_parts(clip, mid, a, b) if clip else None) or (
+        must_parts(clip, mid, a, b, slot) if clip and not own and b - a > slot + 0.3 else None)
+    if parts and len(parts) > 1:  # stretches joined at sentence ends: a cut-in (covers) hides a join, else he punches in
+        base = {"src": clip["name"], "mode": "portrait" if clip["h"] > clip["w"] else "full", "epoch": None,
+                "room": False, "hold": True, "hflip": bool(clip.get("mirrored")), "own_audio": True, "answer": mid}
+        t, joins = t0, []
+        for k, (pa, pb) in enumerate(parts):
+            n = pb - pa
+            # his sound for this stretch runs from t (under a cut-in too); the picture resumes after the cut-in
+            hide = min(covers[k - 1], n - 1.0) if 0 < k <= len(covers) else 0.0
+            seg = {**base, "t0": round(t + hide, 3), "dur": round(n - hide, 3), "src_t": round(pa + hide, 3),
+                   "note": f"{mid}: Matus to camera (part {k + 1})", "audio_t0": round(t, 3), "audio_src": round(pa, 3),
+                   "audio_dur": round(n, 3)}
+            if k % 2 and not hide:
+                seg["zoom"] = 1.12  # a punch-in hides the jump (the next stretch punches back out)
+            segs.append(seg)
+            if k:
+                joins.append(round(t, 3))
+            t += n
+        CUTAWAY_AT[mid] = joins
+        return t
+    if clip and not own and b - a > slot + 0.3:
+        dur = sentence_end(clip, a, slot) or slot
     # With a cutaway (website footage under his voice), his picture runs before and after it; his sound runs through.
     pieces = [(t0, dur)] if not cutaway else [(t0, cutaway[0] - t0), (cutaway[0] + cutaway[1], t0 + dur - cutaway[0] - cutaway[1])]
     for k, (a_seg, d) in enumerate(pieces):
@@ -819,21 +1184,23 @@ def answer(segs: list[dict], mid: str, clip: dict | None, t0: float, slot: float
             continue
         seg = {"t0": round(a_seg, 3), "dur": round(d, 3), "src": clip["name"], "src_t": round(a + (a_seg - t0), 3),
                "mode": "portrait" if clip["h"] > clip["w"] else "full", "note": f"{mid}: Matus to camera",
-               "epoch": None, "room": False, "hold": True}
+               "epoch": None, "room": False, "hold": True, "hflip": bool(clip.get("mirrored"))}
         if k == 0:
             seg.update(own_audio=True, answer=mid, audio_dur=round(dur, 3))
         segs.append(seg)
     return t0 + dur
 
 
-def montage(segs, lts, clips, take, grid, end: float = 150.0) -> None:
-    """2:00-2:30: two clips a game at most (eight in all), in shoot order; each runs up at 2-4x and lands on its last
-    1.5 s at 1x (slo-mo at 0.25x), its cuts on the theme's beats; L13 at each game's first clip. A clip's game is the
-    hall open when it started rolling (the take log names each hall's event). The last clip ends it (a miss, a laugh)."""
+def montage(segs, lts, clips, take, grid, start: float = 120.0, end: float = 134.0,
+            bars_: list[float] | None = None) -> None:
+    """The training montage, start to end: the games' longest takes (two a game at most), in shoot order, cut on the
+    theme's bars at varied lengths (1 bar, half, half, 2 bars, 1, half, half, 1.5; never one length throughout). A
+    shot of a bar or more runs up at 2-4x and lands on its last 3 beats at 1x (0.25x for slo-mo); a half-bar shot is
+    its landing alone. L13 at each game's first shot. The last shot is the last take's end (a miss, a laugh)."""
     pool = sorted([c for c in clips if c["kind"] in ("montage", "slomo")], key=lambda c: c.get("start") or 0)
     if not pool:
-        segs.append({"t0": 120.0, "dur": end - 120.0, "src": "C5", "src_t": 0, "mode": "card", "note": "(no montage footage)",
-                     "epoch": None, "room": False})
+        segs.append({"t0": start, "dur": end - start, "src": "C5", "src_t": 0, "mode": "card",
+                     "note": "(no montage footage)", "epoch": None, "room": False})
         return
     halls = take.get("halls", [])
     games = {"Stadion": "stadion", "Toxeia": "toxeia", "Pygmachia": "pygmachia", "Discus": "discus"}
@@ -846,48 +1213,66 @@ def montage(segs, lts, clips, take, grid, end: float = 150.0) -> None:
             per_game[c["game"]] = per_game.get(c["game"], 0) + 1
             picked.append(c)
     picked.sort(key=lambda c: c.get("start") or 0)
-    t, seen = 120.0, set()
-    slot = (end - 120.0) / len(picked)
-    for n, c in enumerate(picked):
-        slow = c["kind"] == "slomo"
-        hero_rate = 0.25 if slow else 1.0
-        stop = end if n == len(picked) - 1 else snap(t + slot, grid)
-        out = stop - t
-        hero = min(1.5, out / 2)
-        run = out - hero
-        source_run = c["dur"] - hero * hero_rate
-        speed = min(4.0, max(2.0, source_run / max(run, 0.1)))
-        if source_run < run * 2.0:  # too short to fill its slot at 2x: it plays what it has
-            run = max(0.5, source_run / 2.0)
-        start = max(0.0, c["dur"] - hero * hero_rate - run * speed)
-        segs.append({"t0": round(t, 3), "dur": round(run, 3), "src": c["name"], "src_t": round(start, 3),
-                     "speed": round(speed, 2), "mode": "full", "note": f"montage {c['game']}: the run-up at {speed:.1f}x",
+    bar = (bars_[-1] - bars_[0]) / (len(bars_) - 1) if bars_ and len(bars_) > 1 else 4 * 60 / 107.666
+    beat = bar / 4
+    pattern = [1.0, 0.5, 1.0, 2.0, 1.5, 0.5, 1.0]  # boxing (the 4th take) gets the two bars; Stadion a whole one
+    lens: list[float] = []
+    while sum(lens) < end - start - 0.01:
+        rest = end - start - sum(lens)
+        want = pattern[len(lens) % len(pattern)] * bar
+        lens.append(rest if rest - want < 0.45 * bar else want)  # the last shot takes what's left
+    order = list(picked)
+    uses = {c["name"]: 1 for c in picked}
+    while len(order) < len(lens):  # more shots than takes: the longest takes come back (an earlier stretch of each)
+        c = max(picked, key=lambda c: c["dur"] / (uses[c["name"]] + 1))
+        uses[c["name"]] += 1
+        order.insert(max(i for i, x in enumerate(order) if x is c) + 1, c)
+    if len(order) > len(lens):  # fewer shots than takes: the last take still ends it
+        order = order[:len(lens) - 1] + order[-1:]
+    t, seen, used, plate = start, set(), {}, None
+    for c, length in zip(order, lens):
+        k = used.get(c["name"], 0)
+        used[c["name"]] = k + 1
+        rate = 0.25 if c["kind"] == "slomo" else 1.0
+        hero = length if length <= 0.6 * bar else 3 * beat
+        run = length - hero
+        # the landing: the take's end (its second shot lands a third of the way back)
+        land = max(0.0, c["dur"] * (1 - k / 3) - hero * rate - (0.3 if k == 0 else 0.0))
+        if run > 0.05:
+            speed = max(1.0, min(4.0, land / run))
+            src0 = max(0.0, land - run * speed)
+            segs.append({"t0": round(t, 3), "dur": round(run, 3), "src": c["name"], "src_t": round(src0, 3),
+                         "speed": round(speed, 2), "mode": "full", "note": f"montage {c['game']}: the run-up at {speed:.1f}x",
+                         "epoch": None, "room": False})
+        segs.append({"t0": round(t + run, 3), "dur": round(hero, 3), "src": c["name"], "src_t": round(land, 3),
+                     "speed": rate, "mode": "full", "note": f"montage {c['game']}: the landing at {rate:g}x ({length / bar:g} bar)",
                      "epoch": None, "room": False})
-        segs.append({"t0": round(t + run, 3), "dur": round(hero, 3), "src": c["name"],
-                     "src_t": round(start + run * speed, 3), "speed": hero_rate, "mode": "full",
-                     "note": f"montage {c['game']}: the hero beat at {hero_rate:g}x", "epoch": None, "room": False})
-        if c["game"] and c["game"] not in seen:
-            seen.add(c["game"])
-            lts.append({"id": f"L13-{c['game']}", "t0": round(t, 3), "dur": 3.0, "file": card(f"L13-{c['game']}")})
-        t += run + hero
-    for c in sorted(pool, key=lambda c: -c["dur"]):  # short of 30 s: the longest clips again, from their start at 2x
-        if t >= end - 0.05:
-            break
-        d = min(end - t, c["dur"] / 2.0)
-        segs.append({"t0": round(t, 3), "dur": round(d, 3), "src": c["name"], "src_t": 0.0, "speed": 2.0, "mode": "full",
-                     "note": f"montage {c['game']}: more of the take at 2x", "epoch": None, "room": False})
-        t += d
+        t += length  # no per-game stamps: plan() puts one label over the montage's first bar
 
 
-def music_plan(segs: list[dict], turns: list[dict], b0: float = 33.0) -> list[tuple[float, float]]:
-    """The theme's level (dB) as keyframes on the video's clock (video.md A2): silent until the hit at 0:16, a bed
-    under the battle that is hard-muted on every shot inside a verse (its 3-2-1 to its score) and slams back after,
-    off under the song, up to -6 dB for the montage, out with the end card. Narration ducks are added in mix()."""
-    sections = [(0.0, -90), (THEME_AT, -12), (17.5, -18), (20.0, -28), (b0, -24), (72.0, -28), (81.0, -24),
-                (87.0, -28), (98.2, -90), (120.0, -6), (134.0, -18), (149.0, -28), (170.0, -14), (LENGTH, -90)]
+def narration(cuts: dict) -> list[tuple[str, float, float | None]]:
+    """NARRATION as this cut places it (plan() moves lines 6-9 with their cards and sections)."""
+    return [tuple(x) for x in cuts.get("narration", NARRATION)]
+
+
+def music_plan(segs: list[dict], turns: list[dict], b0: float = 33.0, marks: dict | None = None) -> list[tuple[float, float]]:
+    """The theme's level (dB) as keyframes on the video's clock: silent under C0 and the first verse; the hit at C1;
+    a -18 bed under the room's reaction and M1/M2; out (hard) from the battle's first step so the live room stands
+    alone (and hard-muted inside every verse, its 3-2-1 to its score); back at -20 from the SpacetimeDB moment through
+    C2 and C3; out under the stitched song (it's sung) and C5; full (-6) under the montage; -18 under Figma, -16 under
+    M4; up into C6 and its final chord; silence for the last 2 s. Ducks under the narration and Matus's words are
+    added in mix(). `marks` are the sections' starts as plan() placed them on the bars."""
+    m = {"stdb": 81.0, "song": 98.2, "montage": 120.0, "figma": 134.0, "m4": 149.0, "c6": 170.0, "bar": 2.229,
+         **{k: v for k, v in (marks or {}).items() if v is not None}}
+    sections = [(0.0, -90), (THEME_AT, -4), (THEME_AT + 1.5, -18), (b0, -90), (m["stdb"], -20), (m["song"], -90),
+                (m["montage"], -6), (m["figma"], -18), (m["m4"], -16), (m["c6"], -8)]
+    if "stab" in m:  # two bars of the theme on verdict 2's reveal, then out again
+        sections += [(m["stab"], -10), (round(m["stab"] + 2 * m["bar"], 3), -90)]
+    sections.sort()
     verses = [(tr["start"], tr["score"] or (tr["end"] or tr["start"] + 22) + 4) for tr in turns]
-    muted = [(s["t0"], s["t0"] + s["dur"]) for s in segs
-             if b0 <= s["t0"] < 72.0 and s.get("epoch") and any(a <= s["epoch"] <= b for a, b in verses)]
+    muted = [(s["t0"], s["t0"] + s["dur"]) for s in segs  # hard-muted inside a verse (its 3-2-1 and the words)
+             if b0 <= s["t0"] < m.get("b1", 72.0) and s["note"].startswith("verse") and s.get("epoch")
+             and any(a <= s["epoch"] <= b for a, b in verses)]
 
     def level(t: float) -> float:
         if any(a <= t < b for a, b in muted):
@@ -899,6 +1284,10 @@ def music_plan(segs: list[dict], turns: list[dict], b0: float = 33.0) -> list[tu
         before, after = level(m - 0.001), level(m)
         if before != after:
             keys += [(round(max(0.0, m - 0.02), 3), before), (round(m, 3), after)]
+    if marks and marks.get("figma") is not None:  # out of the montage over one bar, not a 12 dB step in a frame
+        f, bar = marks["figma"], marks.get("bar") or 2.229
+        keys = [k for k in keys if not (f - 0.03 <= k[0] < f + bar)]
+        keys = sorted(keys + [(round(f, 3), -6), (round(f + bar, 3), -18)])
     return keys
 
 
@@ -922,7 +1311,7 @@ def write_lists(cuts: dict) -> None:
     for lt in cuts["lowers"]:
         rows.append(f"V3,{clock(lt['t0'])},{clock(lt['t0'] + lt['dur'])},{Path(lt['file']).name if lt['file'] else lt['id'] + ' (placeholder)'},0,"
                     f"{lt['dur']:.2f},1,{'card over' if lt.get('over') else 'lower third'},\"{lt['id']}\"")
-    for f, start, dur in NARRATION:
+    for f, start, dur in narration(cuts):
         rows.append(f"A1,{clock(start)},{clock(start + (dur or seconds(VO / f)))},{f},0,{dur or seconds(VO / f):.2f},1,narration,\"\"")
     rows.append(f"A2,{clock(THEME_AT)},{clock(LENGTH)},menin-theme.m4a,{THEME_HIT},{THEME_HIT + LENGTH - THEME_AT:.2f},1,"
                 "theme,\"levels: " + "; ".join(f"{clock(t)} {db} dB" for t, db in cuts["music"]) + "\"")
@@ -1004,7 +1393,7 @@ def caption_words(cuts: dict) -> list[dict]:
     texts = narration_text()
     out: list[dict] = []
     busy: list[tuple[float, float]] = []
-    for f, start, dur in NARRATION:
+    for f, start, dur in narration(cuts):
         key = re.sub(r"^vo-0?|\.wav$", "", f).upper()
         if dur or key not in texts or not (VO / f).exists():
             continue  # the Greek is C0's (a card); a cut line has no row
@@ -1015,17 +1404,30 @@ def caption_words(cuts: dict) -> list[dict]:
     said = answer_texts()
     for seg in cuts["segments"]:  # Matus's answers, heard in their own sound, spelled as video.md has them
         clip = clips.get(seg["src"]) if seg.get("answer") else None
-        if not clip or seg["answer"] not in said:
+        if not clip:
             continue
         wav = WORK / "answers" / f"{Path(clip['name']).stem}.wav"
         if not wav.exists():
             wav.parent.mkdir(parents=True, exist_ok=True)
             ff("-i", clip["path"], "-vn", "-ac", "1", "-ar", "16000", str(wav))
-        words = [w for w in heard(wav) if seg["src_t"] <= w["start"] < seg["src_t"] + seg.get("audio_dur", seg["dur"])]
-        shift = seg["t0"] - seg["src_t"]
-        out += [{**w, "start": w["start"] + shift, "end": w["end"] + shift, "who": "matus"}
-                for w in align(words, said[seg["answer"]])]
-        busy.append((seg["t0"], seg["t0"] + seg.get("audio_dur", seg["dur"])))
+        src0, n = seg.get("audio_src", seg["src_t"]), seg.get("audio_dur", seg["dur"])
+        # A heard word's start includes the gap before it; its end doesn't: a word is this stretch's if it ends inside
+        # it (by start, the next sentence's first word leaked in and the stretch's own first word fell out).
+        words = [w for w in heard(wav) if src0 + 0.1 < w["end"] <= src0 + n - 0.15]
+        shift = seg.get("audio_t0", seg["t0"]) - src0
+        own: list[dict] = []
+        for w in words:  # his own words (he speaks loose versions), names spelled right
+            w = {**w, "w": spelled(w["w"]), "start": max(w["start"], src0) + shift, "end": w["end"] + shift, "who": "matus"}
+            if own and w["w"].startswith("-"):  # "end -to -end" is one word
+                own[-1] = {**own[-1], "w": own[-1]["w"] + w["w"], "end": w["end"]}
+            else:
+                own.append(w)
+        if own and seg.get("audio_src") is not None:  # a stretch cut at sentence ends reads as sentences
+            own[0]["w"] = own[0]["w"][:1].upper() + own[0]["w"][1:]
+            if not re.search(r"[.?!]$", own[-1]["w"]):
+                own[-1]["w"] = own[-1]["w"].rstrip(",;:") + "."
+        out += own
+        busy.append((seg.get("audio_t0", seg["t0"]), seg.get("audio_t0", seg["t0"]) + seg.get("audio_dur", seg["dur"])))
     room = WORK / "room.wav"
     laptop = [(s["t0"], s["t0"] + s["dur"]) for s in cuts["segments"] if s["mode"] in ("crop", "card")]  # no room words
     # over a laptop shot (the arena's live words caption it) or a card (C0-C6: the title owns the frame)
@@ -1090,11 +1492,24 @@ def caption_lines(words: list[dict]) -> list[dict]:
     lines: list[list[dict]] = []
     for w in words:
         cur = lines[-1] if lines else None
-        if (cur and w["start"] - cur[-1]["end"] < 0.7 and len(cur) < 7 and len(" ".join(x["w"] for x in cur + [w])) <= 40
-                and not re.search(r"[.?!]$", cur[-1]["w"]) and cur[-1]["who"] == w["who"]):
+        if (cur and w["start"] - cur[-1]["end"] < 0.7 and not re.search(r"[.?!]$", cur[-1]["w"]) and cur[-1]["who"] == w["who"]
+                and (w["who"] == "matus" and not cur[-1]["w"].endswith(",")  # his: a clause at a time, then balanced
+                     or w["who"] != "matus" and len(cur) < 7 and len(" ".join(x["w"] for x in cur + [w])) <= 40)):
             cur.append(w)
         else:
             lines.append([w])
+    balanced: list[list[dict]] = []
+    for ln in lines:  # his clauses: split into even chunks of 44 characters at most (two lines in the band)
+        ends, acc = [], 0
+        for x in ln:
+            acc += len(x["w"]) + 1
+            ends.append(acc)
+        n = -(-acc // 45) if ln[0]["who"] == "matus" else 1
+        cuts = sorted({min(range(len(ln) - 1), key=lambda i: abs(ends[i] - k * acc / n)) + 1 for k in range(1, n)}) if n > 1 else []
+        for a, b in zip([0] + cuts, cuts + [len(ln)]):
+            if b > a:
+                balanced.append(ln[a:b])
+    lines = balanced
     out = []
     for i, ln in enumerate(lines):
         end = ln[-1]["end"] + 0.35
@@ -1117,7 +1532,22 @@ def captions(cuts: dict) -> Path | None:
                 ln["words"], ln["starts"] = [ln["words"][k] for k in keep], [ln["starts"][k] for k in keep]
     lines = [ln for ln in lines if ln["words"]]
     states = []
+    plates = [lt for lt in cuts["lowers"] if lt["id"] == "L0" or not lt.get("over") and lt["id"].startswith("L")]
+    full = [lt for lt in cuts["lowers"] if lt["id"] == "L-SDK"]
+    on = lambda group, a, b: any(lt["t0"] < b and a < lt["t0"] + lt["dur"] for lt in group)
     for i, ln in enumerate(lines):
+        t0, t1 = ln["starts"][0], ln["end"]
+        text = re.sub(r" -(?=\w)", "-", " ".join(ln["words"]))  # "end -to -end"
+        if ln["who"] == "matus":  # his words: each phrase whole, beside his face (not his mouth), never on a plate:
+            for a, b in CAPTION_FIXES.items():  # left; right while a lower third is up; at the foot under L15
+                text = text.replace(a, b)
+            pos = "foot" if on(full, t0, t1) else "right" if on(plates, t0, t1) else "left"
+            states.append({"id": f"{i:03d}-00", "words": [text], "k": 1, "t0": t0, "t1": t1, "side": True, "pos": pos})
+            continue
+        if ln["who"] == "homer":  # the narration: whole phrases on a band, at the foot over a card or a lower third
+            low = any(sg["mode"] == "card" and sg["t0"] <= t0 < sg["t0"] + sg["dur"] for sg in cuts["segments"]) or on(plates, t0, t1)
+            states.append({"id": f"{i:03d}-00", "words": [text], "k": 1, "t0": t0, "t1": t1, "whole": True, "low": low})
+            continue
         for k, start in enumerate(ln["starts"]):
             until = ln["starts"][k + 1] if k + 1 < len(ln["starts"]) else ln["end"]
             low = any(sg["mode"] == "card" and sg["t0"] <= start < sg["t0"] + sg["dur"] for sg in cuts["segments"])
@@ -1251,7 +1681,7 @@ def masks(clip: dict, src_t: float, dur: float) -> list[list[int]]:
 
 
 BRAND = HOME / "brand"  # the sponsors' official logo files and sources.txt (not in the repo)
-PLATE_RIGHT = {"L3": 1332, "L4": 1096, "L10": 1452}  # where artist's lower-third plates end (1920×1080; all span y 804-908)
+PLATE_RIGHT = {"L3": 1332, "L4": 1096, "L10": 1452, "L2": 792, "L7": 944, "L9": 1250}  # where artist's lower-third plates end (1920×1080; all span y 804-908)
 BADGES = {  # badge id -> where it sits and which logos, in order
     "B-L3": ("plate", "L3", ["cartesia"]),
     "B-L4": ("plate", "L4", ["anthropic", "cartesia"]),
@@ -1259,18 +1689,27 @@ BADGES = {  # badge id -> where it sits and which logos, in order
     "B-C2": ("corner", None, ["cartesia", "spacetimedb", "anthropic"]),
     "B-FIG": ("corner", None, ["figma"]),
     "B-C6": ("corner", None, ["apify", "moss"]),
+    "B-C5": ("corner", None, ["digitalocean"]),
+    "L0": ("lower", None, ["cartesia"]),  # the open's one lower third: what this is, for a judge with the sound off
+    "L-SDK": ("sdk", None, ["spacetimedb"]),  # L15 v2: the Swift SDK fork, the exact claim
+    "N-LOG": ("label", None, []),  # over the timeline rows
+    "N-MONTAGE": ("top", None, []),  # the montage's one label
 }
+LABELS = {"N-LOG": "The hall's event log, live from SpacetimeDB", "N-MONTAGE": "Four motion games · in beta"}
+SDK_URL = "github.com/Matusvec/spacetimedb-swift"
 
 
-def brand_logo(name: str) -> str:
+def brand_logo(name: str, scale: float = 1.0) -> str:
     """One sponsor's logo as inline markup: its official SVG unaltered (scaled by CSS height), or for Moss, whose
     site offers no wordmark file, its name in Inter Bold (brand/sources.txt says where each came from)."""
     files = {"cartesia": ("cartesia-wordmark.svg", 30), "anthropic": ("anthropic-wordmark.svg", 22),
              "spacetimedb": ("spacetimedb-light-logo-text.svg", 38), "apify": ("apify-logo-dark.svg", 40),
-             "figma": ("figma-kit/Figma Brand Assets/Figma Lockup/Figma Lockup.svg", 190)}
+             "figma": ("figma-kit/Figma Brand Assets/Figma Lockup/Figma Lockup.svg", 190),
+             "digitalocean": ("digitalocean-logo-horizontal-black-RGB.svg", 30)}
     if name == "moss":
         return '<span style="font:700 34px/1 Inter,\'Helvetica Neue\',Arial,sans-serif;color:#141413;letter-spacing:-.01em">Moss</span>'
     f, h = files[name]
+    h = round(h * scale)
     # Figma's lockup file carries wide padding of its own: scaled up, with that padding trimmed by negative margins
     # (the file itself untouched).
     extra = "margin:-48px -64px" if name == "figma" else ""
@@ -1292,11 +1731,32 @@ def brand_badges() -> dict[str, str]:
     states = []
     for bid, (where, lt, logos) in BADGES.items():
         inner = "".join(brand_logo(n) for n in logos)
-        if where == "plate":
+        band = ("background:rgba(16,24,30,.55);padding:10px 22px 12px;border-radius:12px;color:#efe6d2;"
+                "font:500 34px/1.2 Inter,Helvetica,Arial,sans-serif;text-shadow:0 1px 3px rgba(0,0,0,.5);white-space:nowrap")
+        text = 'font:400 34px/1.15 Inter,Helvetica,Arial,sans-serif;color:#2c4757;white-space:nowrap'
+        bar = '<span style="width:6px;height:46px;border-radius:3px;background:#3a8fb0;flex:none"></span>'
+        if where == "lower":  # L0, in artist's plate style (white, a teal bar, Inter)
+            box = f"position:absolute;left:96px;top:808px;height:96px;{pill};padding:0 34px 0 30px"
+            inner = (bar + f'<span style="{text}"><b style="font-weight:600">MeNIN</b> · Homer judges your verse out loud. '
+                     'Live.</span>' + inner)
+        elif where == "sdk":  # L15 v2: full width, two lines, the exact claim and a larger logo
+            box = (f"position:absolute;left:64px;right:64px;top:790px;height:132px;{pill};padding:0 40px 0 30px;"
+                   "justify-content:space-between")
+            inner = ('<span style="display:flex;align-items:center;gap:26px">' + bar.replace("46px", "84px") +
+                     f'<span style="{text};font-size:32px;line-height:1.3">A public fork of the community Swift SDK, fixes sent '
+                     f'upstream (BSL 1.1)<br><b style="font-weight:600">{SDK_URL}</b></span></span>'
+                     + "".join(brand_logo(n, 1.6) for n in logos))
+        elif where == "label":  # over the right half (the timeline rows)
+            box = f"position:absolute;left:1000px;top:286px;{band}"
+            inner = LABELS[bid]
+        elif where == "top":  # one label, top centre
+            box = f"position:absolute;left:50%;transform:translateX(-50%);top:56px;{band};font-size:40px"
+            inner = LABELS[bid]
+        elif where == "plate":
             box = f"position:absolute;left:{PLATE_RIGHT[lt] + 14}px;top:808px;height:96px;{pill}"
         else:
             box = f"position:absolute;right:64px;top:56px;height:{110 if bid == 'B-FIG' else 84}px;{pill}"
-        html = ('<style>@import url("https://fonts.googleapis.com/css2?family=Inter:wght@700&display=block");</style>'
+        html = ('<style>@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=block");</style>'
                 f'<div style="{box}">{inner}</div>')
         states.append({"id": bid, "html": html})
     save(d / "states.json", states)
@@ -1416,7 +1876,11 @@ def render_segment(i: int, s: dict, clips: dict) -> Path:
         path = s["src"] if s["mode"] == "file" else picture(clips[s["src"]])
         inp = ["-ss", f"{max(0.0, s['src_t']):.3f}", "-i", path]
         hide = "".join(f"delogo=x={x}:y={y}:w={w}:h={h}," for x, y, w, h in s.get("masks", []))
-        chain = f"setpts=(PTS-STARTPTS)/{speed}," + hide + fit(s["mode"], clips.get(s["src"]), s.get("crop"))
+        flip = "hflip," if s.get("hflip") else ""  # Photo Booth's mirror, undone (his shirt reads the right way)
+        chain = f"setpts=(PTS-STARTPTS)/{speed}," + flip + hide + fit(s["mode"], clips.get(s["src"]), s.get("crop"))
+        if s.get("zoom"):  # a punch-in (an answer's jump cut): centred, a little above the middle (his face)
+            z = s["zoom"]
+            chain += f",crop=iw/{z}:ih/{z}:(iw-iw/{z})/2:(ih-ih/{z})*0.4,scale={W}:{H}:flags=lanczos,setsar=1"
         if s.get("desat"):
             chain += "," + DESAT
         if not s.get("graded"):
@@ -1432,7 +1896,8 @@ def render_segment(i: int, s: dict, clips: dict) -> Path:
                  f"[bg][ph]overlay=W-w-{int(W * 0.06)}:(H-h)/2,format=yuv420p[v]")
     if s.get("beside"):
         extra = ["-ss", f"{s.get('beside_t', 0.0):.3f}", "-i", s["beside"]]
-        graph = (f"[0:v]{chain},crop={W // 2}:{H}:{W // 4}:0,fps={FPS}[l];[1:v]scale={W // 2}:-2,"
+        rows = f"crop={s['beside_crop']}," if s.get("beside_crop") else ""
+        graph = (f"[0:v]{chain},crop={W // 2}:{H}:{W // 4}:0,fps={FPS}[l];[1:v]{rows}scale={W // 2}:-2,"
                  f"pad={W // 2}:{H}:0:(oh-ih)/2:color=#101418,fps={FPS}[r];[l][r]hstack,format=yuv420p[v]")
     files = [x for x in inp + extra if Path(x).is_file()]
     key = json.dumps({"seg": s, "graph": graph, "inputs": inp + extra,
@@ -1473,12 +1938,10 @@ def mix(cuts: dict, clips: dict) -> Path:
             parts.append(f"[r{i}]atrim=start={max(0, a):.3f}:duration={s['dur']:.3f},asetpts=PTS-STARTPTS,"
                          f"afade=t=in:d=0.02,afade=t=out:st={max(0, s['dur'] - 0.02):.3f}:d=0.02,adelay={ms}|{ms}[ra{i}]")
             labels.append(f"[ra{i}]")
+    lines = [(start, start + (dur or seconds(VO / f))) for f, start, dur in narration(cuts) if (VO / f).exists()]
     if labels:  # the room ducks ~14 dB under each narration line
-        under = [(start, start + (dur or seconds(VO / f))) for f, start, dur in NARRATION if (VO / f).exists()]
-        duck = [(0.0, 0.0)]
-        for a, b in under:
-            duck += [(a - 0.25, 0.0), (a, -14.0), (b, -14.0), (b + 0.3, 0.0)]
-        parts.append("".join(labels) + f"amix=inputs={len(labels)}:normalize=0,{envelope(sorted(duck) + [(LENGTH, 0.0)])}[room]")
+        duck = ducked([(0.0, 0.0), (LENGTH, 0.0)], lines, -14.0, pre=0.25)
+        parts.append("".join(labels) + f"amix=inputs={len(labels)}:normalize=0,asetpts=N/SR/TB,{envelope(duck)}[room]")
         labels = ["[room]"]
     for s in cuts["segments"]:  # Matus's answers to camera: their own sound
         clip = clips.get(s["src"]) if s.get("own_audio") else None
@@ -1486,13 +1949,14 @@ def mix(cuts: dict, clips: dict) -> Path:
             continue
         n = len(inputs) // 2
         inputs += ["-i", clip["path"]]
-        ms = int(s["t0"] * 1000)
+        ms = int(s.get("audio_t0", s["t0"]) * 1000)
         d = s.get("audio_dur", s["dur"])
-        parts.append(f"[{n}:a]aresample=48000,aformat=channel_layouts=stereo,atrim=start={s['src_t']:.3f}:duration={d:.3f},"
+        parts.append(f"[{n}:a]aresample=48000,aformat=channel_layouts=stereo,atrim=start={s.get('audio_src', s['src_t']):.3f}:duration={d:.3f},"
                      f"asetpts=PTS-STARTPTS,afade=t=out:st={max(0.0, d - 0.12):.3f}:d=0.12,adelay={ms}|{ms}[m{n}]")
         labels.append(f"[m{n}]")
-    keys = [tuple(k) for k in cuts["music"]]  # JSON gives lists; the narration ducks below are tuples
-    for f, start, dur in NARRATION:
+    words = [(s.get("audio_t0", s["t0"]), s.get("audio_t0", s["t0"]) + s.get("audio_dur", s["dur"]))
+             for s in cuts["segments"] if s.get("own_audio")]
+    for f, start, dur in narration(cuts):
         path = VO / f
         if not path.exists():
             continue
@@ -1503,19 +1967,91 @@ def mix(cuts: dict, clips: dict) -> Path:
         trim = f"atrim=duration={dur},afade=t=out:st={dur - 0.08:.3f}:d=0.08," if dur else ""
         parts.append(f"[{n}:a]aresample=48000,{trim}pan=stereo|c0=c0|c1=c0,adelay={ms}|{ms}[n{n}]")
         labels.append(f"[n{n}]")
-        base = next((db for t, db in reversed(cuts["music"]) if t <= start), -90)
-        if base > -60:  # the theme ducks ~10 dB under the line
-            keys += [(start - 0.2, base), (start, base - 10), (start + length, base - 10), (start + length + 0.3, base)]
-    keys.sort()
+    # the theme ducks ~10 dB under each narration line and under Matus's words (spans merged: no zigzag where they meet)
+    keys = ducked([tuple(k) for k in cuts["music"]], lines + words, -10.0)
     n = len(inputs) // 2
     inputs += ["-i", str(THEME)]
-    parts.append(f"[{n}:a]atrim=start={THEME_HIT},asetpts=PTS-STARTPTS,aresample=48000,"
-                 f"adelay={int(THEME_AT * 1000)}|{int(THEME_AT * 1000)},{envelope(keys)}[theme]")
+    marks = cuts.get("marks", {})
+    if marks.get("tail_from") is not None:  # at C6 the theme jumps, bar to bar, to its last bars (its final chord)
+        c6, x = marks["c6"], 0.25
+        main = c6 - THEME_AT + x
+        inputs += ["-i", str(THEME)]
+        parts.append(f"[{n}:a]atrim=start={THEME_HIT}:duration={main:.3f},asetpts=PTS-STARTPTS,aresample=48000,"
+                     f"afade=t=out:st={main - 2 * x:.3f}:d={2 * x},adelay={int(THEME_AT * 1000)}|{int(THEME_AT * 1000)}[th0]")
+        parts.append(f"[{n + 1}:a]atrim=start={marks['tail_from'] - x:.3f},asetpts=PTS-STARTPTS,aresample=48000,"
+                     f"afade=t=in:d={2 * x},adelay={int((c6 - x) * 1000)}|{int((c6 - x) * 1000)}[th1]")
+        parts.append(f"[th0][th1]amix=inputs=2:normalize=0,asetpts=N/SR/TB,{envelope(keys)}[theme]")
+    else:
+        parts.append(f"[{n}:a]atrim=start={THEME_HIT},asetpts=PTS-STARTPTS,aresample=48000,"
+                     f"adelay={int(THEME_AT * 1000)}|{int(THEME_AT * 1000)},{envelope(keys)}[theme]")
     labels.append("[theme]")
-    parts.append(f"{''.join(labels)}amix=inputs={len(labels)}:normalize=0,atrim=duration={LENGTH},"
-                 f"loudnorm=I=-14:TP=-1.5:LRA=11,aresample=48000[mix]")
-    ff(*inputs, "-filter_complex", ";".join(parts), "-map", "[mix]", "-c:a", "pcm_s16le", str(out))
+    # amix's output timestamps don't start at 0 (ffmpeg 9) when its inputs start late (adelay), and atrim trims by
+    # timestamp: v1-v3's atrim=duration=179 left 2.5 s of silence. Re-stamp by sample count, pad, then cut by samples.
+    parts.append(f"{''.join(labels)}amix=inputs={len(labels)}:normalize=0,asetpts=N/SR/TB,apad=whole_dur={LENGTH},"
+                 f"atrim=end_sample={int(LENGTH * 48000)},loudnorm=I=-14:TP=-1.5:LRA=11,aresample=48000[mix]")
+    ff(*inputs, "-filter_complex", ";".join(parts), "-map", "[mix]", "-t", str(LENGTH), "-c:a", "pcm_s16le", str(out))
+    sound_check(out, LENGTH)
     return out
+
+
+def ducked(keys: list[tuple[float, float]], spans: list[tuple[float, float]], depth: float, pre: float = 0.2,
+           post: float = 0.3, floor: float = -60.0) -> list[tuple[float, float]]:
+    """A level plan (dB keyframes, linear between) with `depth` dB off inside each span (overlapping spans merged,
+    ramps of `pre` and `post` s); left alone where the plan is under `floor` (the music is out there anyway)."""
+    merged: list[list[float]] = []
+    for a, b in sorted(spans):
+        if merged and a - pre <= merged[-1][1] + post:
+            merged[-1][1] = max(merged[-1][1], b)
+        else:
+            merged.append([a, b])
+
+    def base(t: float) -> float:
+        if t <= keys[0][0]:
+            return keys[0][1]
+        for (t0, d0), (t1, d1) in zip(keys, keys[1:]):
+            if t0 <= t < t1:
+                return d0 + (d1 - d0) * (t - t0) / (t1 - t0)
+        return keys[-1][1]
+
+    def duck(t: float) -> float:
+        for a, b in merged:
+            if a - pre <= t <= b + post:
+                return depth * min(1.0, (t - a + pre) / pre, (b + post - t) / post)
+        return 0.0
+
+    points = sorted({t for t, _ in keys} | {x for a, b in merged for x in (a - pre, a, b, b + post)} | {0.0})
+    out = []
+    for t in (x for x in points if x >= 0):
+        lv = base(t)
+        out.append((round(t, 3), round(lv + (duck(t) if lv > floor else 0.0), 2)))
+    # a step in the plan (two keys 20 ms apart) survives: base() reads its two sides
+    return out
+
+
+def sound_check(path: Path, length: float, video: bool = False) -> None:
+    """Fails the build, loudly, unless the sound runs the whole length and isn't silent (v1-v3 went out with 2.5 s
+    of silence). A video must hold exactly one picture and one sound, the same length."""
+    info = probe(path)
+    kinds = [s["codec_type"] for s in info["streams"]]
+    a = next((s for s in info["streams"] if s["codec_type"] == "audio"), None)
+    dur = float((a or {}).get("duration") or info["format"].get("duration") or 0)
+    peak = re.search(r"max_volume: (-?[\d.]+) dB", run(["ffmpeg", "-hide_banner", "-i", str(path), "-map", "0:a:0",
+                                                          "-af", "volumedetect", "-f", "null", "-"], quiet=False))
+    peak_db = float(peak[1]) if peak else -99.0
+    problems = []
+    if dur < length - 0.5:
+        problems.append(f"sound is {dur:.2f} s, wants {length:.2f}")
+    if peak_db < -6.0:
+        problems.append(f"sound peaks at {peak_db} dB (silent?)")
+    if video:
+        v = next((s for s in info["streams"] if s["codec_type"] == "video"), None)
+        if kinds.count("video") != 1 or kinds.count("audio") != 1:
+            problems.append(f"streams are {kinds}, want one video and one audio")
+        if v and abs(float(v.get("duration") or 0) - dur) > 0.2:
+            problems.append(f"sound {dur:.2f} s vs picture {float(v.get('duration') or 0):.2f} s")
+    if problems:
+        raise SystemExit(f"SOUND CHECK FAILED for {path.name}: " + "; ".join(problems))
+    print(f"sound check ok: {path.name} {dur:.2f} s, peak {peak_db} dB")
 
 
 def room_stem(cuts: dict, clips: dict) -> Path | None:
@@ -1598,7 +2134,9 @@ def backup() -> Path:
 
 
 def build() -> None:
+    global LENGTH
     cuts = load(WORK / "cuts.json", None) or plan()
+    LENGTH = cuts.get("length", LENGTH)  # the cut ends where its theme does (plan())
     clips = {c["name"]: c for c in load(WORK / "clips.json", [])}
     segs = cuts["segments"]
     # Gaps (a slot the take couldn't fill) hold the end card's ink, so the timing never slips.
@@ -1629,7 +2167,7 @@ def build() -> None:
         f = lt["file"] or placeholder(lt["id"], lower=not lt.get("over"))
         inputs += ["-loop", "1", "-i", f]
         n = k + 2
-        y = "0" if lt["file"] or lt.get("over") else f"{H - 250}"
+        y = str(lt.get("dy", 0)) if lt["file"] or lt.get("over") else f"{H - 250}"
         graph.append(f"[{n}:v]format=rgba,fade=t=in:st=0:d=0.15:alpha=1,setpts=PTS-STARTPTS+{lt['t0']}/TB[o{k}];"
                      f"{last}[o{k}]overlay=0:{y}:enable='between(t,{lt['t0']:.3f},{lt['t0'] + lt['dur']:.3f})':eof_action=pass[v{k}]")
         last = f"[v{k}]"
@@ -1647,9 +2185,11 @@ def build() -> None:
     ff(*inputs, "-filter_complex", ";".join(graph), "-map", "[vout]", "-map", "1:a", "-t", str(LENGTH),
        "-c:v", "libx264", "-preset", "medium", "-crf", "19", "-r", str(FPS), "-force_key_frames", str(CARTESIA),
        "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", str(part))
+    sound_check(part, LENGTH, video=True)
     part.rename(final)
     ff("-i", str(final), "-t", str(CARTESIA), "-c:v", "copy", "-af", f"afade=t=out:st={CARTESIA - 0.6}:d=0.6",
        "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", str(part))
+    sound_check(part, CARTESIA, video=True)
     part.rename(two)
     for src, name in ((final, "rough-cut-latest.mp4"), (two, "rough-cut-latest-2min.mp4")):
         shutil.copy(src, part)

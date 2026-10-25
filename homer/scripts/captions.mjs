@@ -24,11 +24,15 @@ const js = (expr) => cdp('Runtime.evaluate', { expression: expr, returnByValue: 
 const page = `<!doctype html><html><head><meta charset="utf-8"><style>
 html, body { margin: 0; width: 1920px; height: 1080px; background: transparent; }
 .cap { position: absolute; left: 50%; bottom: 290px; transform: translateX(-50%); width: max-content; max-width: 1560px;
-  text-align: center; font: 500 46px/1.25 "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif; color: #efe6d2;
+  text-align: center; font: 500 48px/1.25 "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif; color: #efe6d2;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55), 0 0 2px rgba(0, 0, 0, 0.75); }
 .cap .said { opacity: 0.86; }
 .cap .now { color: #ffffff; opacity: 1; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55), 0 0 2px rgba(0, 0, 0, 0.75), 0 0 20px rgba(255, 246, 225, 0.35); }
 .cap .later { visibility: hidden; }
+.cap.side, .cap.whole { background: rgba(16, 24, 30, 0.48); padding: 8px 20px 10px; border-radius: 12px; }
+.cap.side { left: 104px; transform: none; text-align: left; max-width: 620px; font-size: 46px; }
+.cap.side.right { left: auto; right: 104px; text-align: right; }
+.cap.whole { max-width: 1400px; }
 </style></head><body><div class="cap" id="cap"></div></body></html>`
 await cdp('Page.enable')
 await cdp('Emulation.setDeviceMetricsOverride', { width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false })
@@ -51,9 +55,15 @@ for (const s of states) {
     await shoot(s.id)
     continue
   }
-  const html = s.words.map((w, i) => `<span class="${i < s.k ? 'said' : i === s.k ? 'now' : 'later'}">${esc(w)}</span>`).join(' ')
-  // Over a card (its own type sits where captions do), the line drops to the foot of the frame.
-  await js(`(() => { const c = document.getElementById('cap'); c.style.bottom = ${s.low ? "'56px'" : "'290px'"}; c.innerHTML = ${JSON.stringify(html)}; return true })()`)
+  // Matus to camera (s.side): his phrase whole, left of his face and above the lower thirds, never over his mouth.
+  // Matus (s.side) and Homer's narration (s.whole) show whole phrases on a band; the room's words come one by one.
+  const html = s.side || s.whole ? esc(s.words.join(' '))
+    : s.words.map((w, i) => `<span class="${i < s.k ? 'said' : i === s.k ? 'now' : 'later'}">${esc(w)}</span>`).join(' ')
+  // Over a card (its own type sits where captions do), the line drops to the foot of the frame; so does Matus's
+  // under the full-width L15 (s.pos 'foot'); beside a lower third his moves right.
+  const bottom = s.side ? (s.pos === 'foot' ? "'40px'" : "'280px'") : s.low ? "'56px'" : "'290px'"
+  const cls = s.side ? `cap side ${s.pos || 'left'}` : s.whole ? 'cap whole' : 'cap'
+  await js(`(() => { const c = document.getElementById('cap'); c.className = ${JSON.stringify(cls)}; c.style.bottom = ${bottom}; c.innerHTML = ${JSON.stringify(html)}; return true })()`)
   await shoot(s.id)
 }
 console.log(`${states.length} caption states`)
