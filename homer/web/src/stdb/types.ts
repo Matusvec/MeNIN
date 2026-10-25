@@ -79,6 +79,8 @@ export const Fighter = __t.object("Fighter", {
   aimPitch: __t.f32(),
   counterUntil: __t.timestamp(),
   updatedAt: __t.timestamp(),
+  stamina: __t.f32(),
+  combo: __t.u32(),
 });
 export type Fighter = __Infer<typeof Fighter>;
 
@@ -152,6 +154,7 @@ export const Punch = __t.object("Punch", {
   at: __t.timestamp(),
   t: __t.f32(),
   kind: __t.string(),
+  combo: __t.u32(),
 });
 export type Punch = __Infer<typeof Punch>;
 

@@ -10,6 +10,7 @@
 //   HOST=<identity hex> NAMES=Bo STAY=1 ...        # a companion: every battle, until left alone
 //   CODE=ABCD LAZY=Bo npm run phones               # Stadion: Bo jogs at 4 m/s (hits the cap)
 //   CODE=ABCD POETS=4 PACIFIST=Ada,Bo npm run phones  # boxing: Ada and Bo only guard (goes to the bell)
+//   CODE=ABCD STYLE=Ada:spam,Bo:counter npm run phones # boxing styles: spam, paced (default), counter
 //
 // With HOST, it waits for that arena's newest lobby and follows it if the arena opens a
 // new room before the battle begins. It leaves the room after the last battle.
@@ -179,37 +180,60 @@ class Phone {
     }
   }
 
-  // A bout from the bell: the fists wander (20 Hz), the guard goes up now and then, and a
-  // punch of any kind lands every 0.5–1.1 s until a knockout or the final bell. PACIFIST
-  // fighters only aim and guard, so a bout of two of them goes to the bell.
+  // A bout from the bell, in a STYLE (per name, e.g. STYLE=Ada:spam,Bo:counter; default paced):
+  //   spam     a punch every 260 ms, never a guard
+  //   paced    combos of 2–3 at 0.4 s, then the guard up for 1–1.6 s; counters when it can
+  //   counter  the guard up; punches inside the counter window, and a jab now and then
+  // The fists wander and the aim streams at 20 Hz with the guard. PACIFIST fighters only aim
+  // and guard, so a bout of two of them goes to the bell.
   async box(f: any) {
     await sleep(Math.max(0, ms(f.goAt) - Date.now()));
     const pacifist = (process.env.PACIFIST ?? '').split(',').includes(this.name);
+    const styles = Object.fromEntries((process.env.STYLE ?? '').split(',').filter(Boolean).map(x => x.split(':')));
+    const style = styles[this.name] ?? 'paced';
     const kinds = ['jab', 'hook', 'uppercut'];
     const seed = Math.random() * 6;
     const t0 = Date.now();
-    let nextPunch = t0 + 500 + Math.random() * 600;
+    let next = t0 + 400 + Math.random() * 600;
+    let left = 0;
+    let guard = style !== 'spam';
+    let raiseAt = 0;
     let punches = 0;
+    const throwOne = async (pitch: number) => {
+      const kind = kinds[Math.floor(Math.random() * kinds.length)];
+      const power = style === 'spam' ? 0.6 + Math.random() * 0.3 : 0.6 + Math.random() * 0.4;
+      await this.conn.reducers.throwPunch({ roomId: RID, kind, power, aimYaw: 0, aimPitch: pitch }).catch(() => {});
+      punches++;
+      guard = false;
+    };
     for (;;) {
       const fight = [...this.conn.db.fight.iter()][0];
       if (this.room()?.phase !== 'speaking' || !fight || ms(fight.endedAt) > 0) break;
-      const t = (Date.now() - t0) / 1000;
-      const yaw = 0.25 * Math.sin(t * 1.3 + seed);
-      const pitch = 0.5 * Math.sin(t * 0.7 + seed);
-      const guard = (t + seed) % 3 < 0.8;
-      await this.conn.reducers.setFistAim({ roomId: RID, yaw, pitch, guard }).catch(() => {});
-      if (!pacifist && Date.now() >= nextPunch) {
-        const kind = kinds[Math.floor(Math.random() * kinds.length)];
-        await this.conn.reducers.throwPunch({ roomId: RID, kind, power: 0.4 + Math.random() * 0.6, aimYaw: yaw, aimPitch: Math.random() * 1.4 - 0.7 }).catch(() => {});
-        punches++;
-        nextPunch = Date.now() + 500 + Math.random() * 600;
+      const now = Date.now();
+      const t = (now - t0) / 1000;
+      const me = [...this.conn.db.fighter.iter()].find(x => x.playerId === this.me);
+      const window = me ? ms(me.counterUntil) > now : false;
+      const pitch = Math.random() < 0.55 ? 0.3 + Math.random() * 0.5 : -0.3 - Math.random() * 0.5;
+      if (!pacifist) {
+        if (style === 'spam' && now >= next) { await throwOne(pitch); next = now + 260; }
+        else if (style !== 'spam' && window) { await throwOne(0.5); raiseAt = now + 300; next = Math.max(next, now + 900); }
+        else if (style === 'paced' && now >= next) {
+          await throwOne(pitch);
+          left = left > 0 ? left - 1 : 1 + Math.floor(Math.random() * 2);
+          if (left > 0) next = now + 400;
+          else { next = now + 1000 + Math.random() * 600; raiseAt = now + 350; }
+        } else if (style === 'counter' && now >= next) { await throwOne(0.5); raiseAt = now + 300; next = now + 2500 + Math.random() * 1500; }
       }
+      if (raiseAt && now >= raiseAt) { guard = true; raiseAt = 0; }
+      if (pacifist) guard = (t + seed) % 3 < 0.8 || style === 'counter';
+      await this.conn.reducers.setFistAim({ roomId: RID, yaw: 0.25 * Math.sin(t * 1.3 + seed), pitch: 0.5 * Math.sin(t * 0.7 + seed), guard }).catch(() => {});
       await sleep(50);
     }
     const me = [...this.conn.db.fighter.iter()].find(x => x.playerId === this.me);
     const fight = [...this.conn.db.fight.iter()][0];
     const won = fight && fight.winnerId === this.me;
-    console.log(`${clock()} ${this.name} ${won ? 'won' : fight?.winnerId ? 'lost' : 'drew'}${fight?.ko ? ' by KO' : ''}: ${punches} punches, health ${Math.round(me?.health ?? 0)}`);
+    const secs = fight ? ((ms(fight.endedAt) - ms(fight.goAt)) / 1000).toFixed(1) : '?';
+    console.log(`${clock()} ${this.name} (${pacifist ? 'pacifist' : style}) ${won ? 'won' : fight?.winnerId ? 'lost' : 'drew'}${fight?.ko ? ' by KO' : ' at the bell'} after ${secs} s: ${punches} punches, health ${Math.round(me?.health ?? 0)}, stamina ${Math.round(me?.stamina ?? 0)}`);
   }
 
   async throw(turnId: bigint) {

@@ -315,6 +315,8 @@ const fighter = table(
     aimPitch: t.f32(),
     counterUntil: t.timestamp(),
     updatedAt: t.timestamp(),
+    stamina: t.f32().default(100), // 0..100: punches cost it, rest refills it (v2)
+    combo: t.u32().default(0), // the chain running now: 0 idle, then 1, 2, 3…
   }
 );
 
@@ -336,6 +338,7 @@ const punches = table(
     at: t.timestamp(),
     t: t.f32(), // unused (0): the module times punches by `at`
     kind: t.string().default(''), // 'jab' | 'hook' | 'uppercut', from the phone: flavour, for the animation
+    combo: t.u32().default(0), // this punch's place in its chain: 1, 2, 3… (v2)
   }
 );
 
@@ -400,6 +403,7 @@ type Player = Infer<typeof player.rowType>;
 type Turn = Infer<typeof turn.rowType>;
 type Fight = Infer<typeof fight.rowType>;
 type Fighter = Infer<typeof fighter.rowType>;
+type Punch = Infer<typeof punches.rowType>;
 
 const HAND_SIZE = 5;
 const MIN_PLAYERS = 2;
@@ -421,9 +425,22 @@ const STADION_MAX_SPEED = 25; // m/s of game speed; a hard arm pump is about 14
 const FIGHT_COUNT_IN_MICROS = 3_000_000n; // 3-2-1, then the bell
 const FIGHT_SECONDS = 60;
 const FIGHT_HEALTH = 100;
-const COUNTER_MICROS = 500_000n; // a block opens a counter window this long
+const COUNTER_MICROS = 600_000n; // blocking a head shot opens a counter window this long
 const PUNCH_GAP_MICROS = 250_000n; // at most four punches a second
-const AIM_WIDTH = 0.5; // a punch aimed further off-center than this misses
+// Boxing v2 (SPEC), tuned offline so spam loses to paced or counter fighters and a fight runs
+// about 30–50 s: damage = base × power × stamina × combo × counter × guard.
+const HEAD_BASE = 3.5;
+const BODY_BASE = 2;
+const BODY_DRAIN = 15; // a body shot takes this much of the target's stamina
+const PUNCH_COST = 12; // stamina per punch
+const RAPID_COST = 8; // more for a punch under RAPID_MICROS after your last
+const RAPID_MICROS = 300_000n;
+const BLOCKED_COST = 10; // more for a punch into a raised guard
+const STAMINA_REGEN = 20; // per second, always
+const LOW_STAMINA = 30; // below this: half damage and no combo bonus
+const COMBO_MICROS = 1_200_000n; // the next punch within this keeps the chain
+const GUARD_HEAD = 0.25; // a raised guard lets this much of a head shot through
+const GUARD_BODY = 0.5; // and this much of a body shot
 const THROW_SECONDS = 30; // a discus thrower's time in the circle
 const MAX_SPEED = 60; // rad/s; a phone gyro tops out near 35
 const MAX_DISTANCE = 100; // metres
@@ -616,7 +633,7 @@ function startBout(ctx: Ctx, r: Room, boutNo: number): void {
   pair.forEach((p, seat) =>
     ctx.db.fighter.insert({
       playerId: p.id, roomId: r.id, seat, health: FIGHT_HEALTH, guard: false,
-      aimYaw: 0, aimPitch: 0, counterUntil: EPOCH, updatedAt: ctx.timestamp,
+      aimYaw: 0, aimPitch: 0, counterUntil: EPOCH, updatedAt: ctx.timestamp, stamina: 100, combo: 0,
     })
   );
   ctx.db.room.id.update({ ...getRoom(ctx, r.id), phase: 'ready', roundNo: boutNo, nextTheme: '', currentTurnId: 0n });
@@ -646,6 +663,12 @@ function inFight(ctx: Ctx, roomId: bigint): { f: Fight; me: Fighter; foe: Fighte
 }
 
 const unit = (x: number) => (Number.isFinite(x) ? Math.min(1, Math.max(-1, x)) : 0);
+
+// A fighter's stamina, refilled for the time since their row last changed.
+function rested(ctx: Ctx, f: Fighter): Fighter {
+  const dt = Number(ctx.timestamp.microsSinceUnixEpoch - f.updatedAt.microsSinceUnixEpoch) / 1e6;
+  return { ...f, stamina: Math.min(100, f.stamina + STAMINA_REGEN * Math.max(0, dt)), updatedAt: ctx.timestamp };
+}
 
 function getRoom(ctx: Ctx, roomId: bigint): Room {
   const r = ctx.db.room.id.find(roomId);
@@ -1288,46 +1311,66 @@ export const setFistAim = spacetimedb.reducer(
   { roomId: t.u64(), yaw: t.f32(), pitch: t.f32(), guard: t.bool() },
   (ctx, { roomId, yaw, pitch, guard }) => {
     const live = inFight(ctx, roomId);
-    if (live) ctx.db.fighter.playerId.update({ ...live.me, aimYaw: unit(yaw), aimPitch: unit(pitch), guard, updatedAt: ctx.timestamp });
+    if (live) ctx.db.fighter.playerId.update({ ...rested(ctx, live.me), aimYaw: unit(yaw), aimPitch: unit(pitch), guard });
   }
 );
 
-// A punch. Aimed high it goes for the head, low for the body; too far off-center misses.
-// A head punch into a raised guard is blocked and opens the blocker's counter window; a
-// landed punch costs health with its power, half again inside your own counter window.
-// Punching drops your guard. Silent before the bell, after it, or faster than 4 a second.
+// A punch (boxing v2). Aimed high it goes for the head, low for the body; there are no misses
+// on aim (phone yaw drifts). Damage = base × power × stamina × combo × counter × guard:
+// - stamina: each punch costs 12 (8 more when thrown under 0.3 s after your last, 10 more
+//   into a guard); it refills 20 a second; below 30 a punch does half and can't combo.
+// - combo: the 2nd punch within 1.2 s of your last does ×1.25, the 3rd and on ×1.5, unless
+//   your last was blocked or you've been hit since.
+// - counter: blocking a head shot opens a 0.6 s window; a punch in it does ×2 (`counter`).
+// - guard: a raised guard lets 25% of a head shot through ('blocked') and 50% of a body shot.
+// Body shots that land also drain the target's stamina. Punching drops your guard. Silent
+// before the bell, after it, for a poet not in the bout, or faster than 4 a second.
 export const throwPunch = spacetimedb.reducer(
   { roomId: t.u64(), kind: t.string(), power: t.f32(), aimYaw: t.f32(), aimPitch: t.f32() },
   (ctx, args) => {
     const live = inFight(ctx, args.roomId);
     if (!live || ctx.timestamp.microsSinceUnixEpoch < live.f.goAt.microsSinceUnixEpoch) return;
-    const { me, foe } = live;
     const now = ctx.timestamp.microsSinceUnixEpoch;
-    const mine = [...ctx.db.punch.roomId.filter(args.roomId)].filter(x => x.playerId === me.playerId);
-    if (mine.some(x => now - x.at.microsSinceUnixEpoch < PUNCH_GAP_MICROS)) return;
+    const log = [...ctx.db.punch.roomId.filter(args.roomId)];
+    let last: Punch | undefined;
+    for (const x of log) if (x.playerId === live.me.playerId && (!last || x.id > last.id)) last = x;
+    if (last && now - last.at.microsSinceUnixEpoch < PUNCH_GAP_MICROS) return;
+    const me = rested(ctx, live.me);
+    const foe = rested(ctx, live.foe);
     const power = Math.max(0, Math.min(1, Number.isFinite(args.power) ? args.power : 0));
     const yaw = unit(args.aimYaw);
     const pitch = unit(args.aimPitch);
     const zone = pitch >= 0 ? 'head' : 'body';
     const counter = me.counterUntil.microsSinceUnixEpoch > now;
-    let result = 'landed';
-    let damage = 0;
-    if (Math.abs(yaw) > AIM_WIDTH) result = 'missed';
-    else if (zone === 'head' && foe.guard) result = 'blocked';
-    else damage = Math.round((4 + 12 * power) * (counter ? 1.5 : 1) * 10) / 10;
+    const since = last ? now - last.at.microsSinceUnixEpoch : -1n;
+    const hitSince = last !== undefined && log.some(x => x.playerId === foe.playerId && x.result === 'landed' && x.id > last!.id);
+    const chained = last !== undefined && since <= COMBO_MICROS && last.result !== 'blocked' && !hitSince;
+    const combo = chained ? last!.combo + 1 : 1;
+    const tired = me.stamina < LOW_STAMINA;
+    const comboBonus = tired ? 1 : combo >= 3 ? 1.5 : combo === 2 ? 1.25 : 1;
+    const blocked = foe.guard && zone === 'head';
+    const guardLet = !foe.guard ? 1 : zone === 'head' ? GUARD_HEAD : GUARD_BODY;
+    const base = zone === 'head' ? HEAD_BASE : BODY_BASE;
+    const damage = Math.round(base * power * (tired ? 0.5 : 1) * comboBonus * (counter ? 2 : 1) * guardLet * 10) / 10;
+    const cost = PUNCH_COST + (last && since < RAPID_MICROS ? RAPID_COST : 0) + (blocked ? BLOCKED_COST : 0);
     ctx.db.punch.insert({
       id: 0n, roomId: args.roomId, playerId: me.playerId, targetId: foe.playerId, zone, power, aimYaw: yaw, aimPitch: pitch,
-      result, damage, counter: counter && result === 'landed', at: ctx.timestamp, t: 0,
-      kind: ['jab', 'hook', 'uppercut'].includes(args.kind) ? args.kind : 'jab',
+      result: blocked ? 'blocked' : 'landed', damage, counter, at: ctx.timestamp, t: 0,
+      kind: ['jab', 'hook', 'uppercut'].includes(args.kind) ? args.kind : 'jab', combo,
     });
-    ctx.db.fighter.playerId.update({ ...me, guard: false, counterUntil: counter && result === 'landed' ? EPOCH : me.counterUntil, updatedAt: ctx.timestamp });
-    if (result === 'blocked') {
-      ctx.db.fighter.playerId.update({ ...foe, counterUntil: after(ctx.timestamp, COUNTER_MICROS), updatedAt: ctx.timestamp });
-    } else if (result === 'landed') {
-      const health = Math.max(0, foe.health - damage);
-      ctx.db.fighter.playerId.update({ ...foe, health, updatedAt: ctx.timestamp });
-      if (health <= 0) endFight(ctx, args.roomId, me.playerId, true);
-    }
+    ctx.db.fighter.playerId.update({
+      ...me, guard: false, stamina: Math.max(0, me.stamina - cost), combo: blocked ? 0 : combo,
+      counterUntil: counter ? EPOCH : me.counterUntil,
+    });
+    const health = Math.max(0, foe.health - damage);
+    ctx.db.fighter.playerId.update({
+      ...foe,
+      health,
+      stamina: zone === 'body' ? Math.max(0, foe.stamina - BODY_DRAIN) : foe.stamina,
+      combo: blocked ? foe.combo : 0, // a landed punch breaks the target's chain
+      counterUntil: blocked ? after(ctx.timestamp, COUNTER_MICROS) : foe.counterUntil,
+    });
+    if (health <= 0) endFight(ctx, args.roomId, me.playerId, true);
   }
 );
 

@@ -12,7 +12,7 @@ import { DbConnection } from './bindings/index';
 
 const URI = (process.env.STDB_URL ?? 'http://127.0.0.1:3000').replace(/^http/, 'ws');
 const DBN = process.env.STDB_DB ?? 'homer';
-const TABLES = ['room', 'player', 'turn', 'round', 'score', 'discus_throw', 'song_line'];
+const TABLES = ['room', 'player', 'turn', 'round', 'score', 'discus_throw', 'song_line', 'fight', 'fighter', 'punch', 'heat', 'runner'];
 
 const clock = () => new Date().toLocaleTimeString('en-US', { hour12: false }) + '.' + String(Date.now() % 1000).padStart(3, '0');
 const say = (line: string) => console.log(`${clock()} ${line}`);
@@ -34,6 +34,10 @@ const upAt = new Map<bigint, number>();
 const judgingAt = new Map<bigint, number>();
 // Turns deleted in the transaction being applied, per room (a reset clears them).
 const cleared = new Map<bigint, number>();
+// The live bout per room (aim update times per fighter, the punches) and the heat's strides.
+type Bout = { go: number; aims: Map<bigint, number[]>; punches: { playerId: bigint; result: string; damage: number; counter: boolean; lat: number }[] };
+const bouts = new Map<bigint, Bout>();
+const strides = new Map<bigint, Map<bigint, number[]>>();
 
 function milestone(roomId: bigint, step: 'ready' | 'started' | 'words') {
   const r = resets.get(roomId);
@@ -128,6 +132,73 @@ function wire() {
   conn.db.discusThrow.onInsert((_c, d) => {
     if (live) say(`${code(d.roomId)} ${poet(d.playerId)} threw ${d.foul ? 'a foul' : `${d.distance.toFixed(1)} m`} (speed ${d.speed.toFixed(1)}, angle ${d.angle.toFixed(0)}, timing ${d.timing.toFixed(2)})`);
   });
+  // Pygmachia: every punch with its push latency (server `at` to this screen), the bell, and
+  // a per-fighter summary when the bout ends: the aim stream's rate and longest gap, punches
+  // a minute, and what they did. Aim rows update at ~20 Hz, so they're counted, not logged.
+  conn.db.fight.onUpdate((_c, a, b) => {
+    const c = code(b.roomId);
+    if (micros(b.goAt) && !micros(a.goAt)) {
+      bouts.set(b.roomId, { go: micros(b.goAt), aims: new Map(), punches: [] });
+      say(`${c} the bell: bout ${roomOf(b.roomId)?.roundNo ?? '?'}, ${secs(micros(b.endsAt) - micros(b.goAt))} from go`);
+    }
+    // The knockout punch arrives in the same transaction as the end: summarize once it's in.
+    if (micros(b.endedAt) && !micros(a.endedAt)) setTimeout(() => {
+      const how = b.ko ? 'by knockout' : b.winnerId ? 'on health at the bell' : 'a draw at the bell';
+      say(`${c} bout over ${secs(micros(b.endedAt) - micros(b.goAt))} after the bell: ${b.winnerId ? poet(b.winnerId) + ' wins ' : ''}${how}`);
+      const bout = bouts.get(b.roomId);
+      if (bout) for (const f of all('fighter').filter(x => x.roomId === b.roomId)) {
+        const aims = bout.aims.get(f.playerId) ?? [];
+        const span = aims.length > 1 ? (aims[aims.length - 1] - aims[0]) / 1000 : 0;
+        let gap = 0;
+        for (let i = 1; i < aims.length; i++) gap = Math.max(gap, aims[i] - aims[i - 1]);
+        const mine = bout.punches.filter(x => x.playerId === f.playerId);
+        const n = (r: string) => mine.filter(x => x.result === r).length;
+        const minutes = (micros(b.endedAt) - micros(b.goAt)) / 60000;
+        const lat = mine.map(x => x.lat).sort((x, y) => x - y);
+        say(`${c}   ${poet(f.playerId)}: aim ${span ? (aims.length / span).toFixed(1) : '0'} Hz (longest gap ${gap} ms), ` +
+          `${mine.length} punches (${minutes > 0 ? Math.round(mine.length / minutes) : 0}/min): ${n('landed')} landed, ${n('blocked')} blocked, ${n('missed')} missed, ` +
+          `${mine.filter(x => x.counter).length} counters, ${Math.round(mine.reduce((t, x) => t + x.damage, 0))} damage; health ${Math.round(f.health)}, stamina ${Math.round(f.stamina)}` +
+          `${lat.length ? `; push ${lat[Math.floor(lat.length / 2)]} ms median, ${lat[lat.length - 1]} max` : ''}`);
+      }
+    }, 0);
+  });
+  conn.db.fighter.onUpdate((_c, a, b) => {
+    const bout = bouts.get(b.roomId);
+    if (!bout || (a.aimYaw === b.aimYaw && a.aimPitch === b.aimPitch && a.guard === b.guard)) return;
+    const list = bout.aims.get(b.playerId) ?? [];
+    list.push(Date.now());
+    bout.aims.set(b.playerId, list);
+    if (a.guard !== b.guard) say(`${code(b.roomId)} ${poet(b.playerId)} guard ${b.guard ? 'up' : 'down'}`);
+  });
+  conn.db.punch.onInsert((_c, p) => {
+    if (!live) return;
+    const lat = Date.now() - micros(p.at);
+    bouts.get(p.roomId)?.punches.push({ playerId: p.playerId, result: p.result, damage: p.damage, counter: p.counter, lat });
+    say(`${code(p.roomId)} ${poet(p.playerId)} ${p.kind || 'punch'} at the ${p.zone} (power ${p.power.toFixed(2)}): ${p.result}` +
+      `${p.damage ? `, ${p.damage.toFixed(1)} damage` : ''}${p.combo > 1 ? `, combo ${p.combo}` : ''}${p.counter ? ', a COUNTER' : ''}; pushed in ${lat} ms`);
+  });
+
+  // The Stadion: the gun, each runner over the line, and the stride stream's rate per runner.
+  conn.db.heat.onUpdate((_c, a, b) => {
+    const c = code(b.roomId);
+    if (micros(b.goAt) && !micros(a.goAt)) {
+      strides.set(b.roomId, new Map());
+      say(`${c} the gun: heat ${b.heatNo}, go in ${secs(micros(b.goAt) - Date.now())}`);
+    }
+    if (micros(b.endedAt) && !micros(a.endedAt)) {
+      say(`${c} heat ${b.heatNo} over ${secs(micros(b.endedAt) - micros(b.goAt))} after the gun`);
+      for (const [id, ts] of strides.get(b.roomId) ?? []) {
+        const span = ts.length > 1 ? (ts[ts.length - 1] - ts[0]) / 1000 : 0;
+        say(`${c}   ${poet(id)}: strides ${span ? (ts.length / span).toFixed(1) : '0'} Hz over ${span.toFixed(1)} s`);
+      }
+    }
+  });
+  conn.db.runner.onUpdate((_c, a, b) => {
+    const m = strides.get(b.roomId);
+    if (m && a.distance !== b.distance) m.set(b.playerId, [...(m.get(b.playerId) ?? []), Date.now()]);
+    if (!a.place && b.place) say(`${code(b.roomId)} ${poet(b.playerId)} ${b.time > 0 ? `crosses in ${b.time.toFixed(2)} s` : `stops at ${Math.round(b.distance)} m`}: place ${b.place}`);
+  });
+
   let songTimer: ReturnType<typeof setTimeout> | undefined;
   let songLines = 0;
   conn.db.songLine.onInsert((_c, l) => {

@@ -20,4 +20,6 @@ export default __t.row({
   aimPitch: __t.f32().name("aim_pitch"),
   counterUntil: __t.timestamp().name("counter_until"),
   updatedAt: __t.timestamp().name("updated_at"),
+  stamina: __t.f32(),
+  combo: __t.u32(),
 });

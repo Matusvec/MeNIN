@@ -40,15 +40,11 @@ export default function BoxingPanel({ bout, live }: { bout: Bout; live: boolean 
 
   return (
     <section className="bout" data-phase={phase}>
+      {/* artist's order (boxing.css): A's bar, the clock, B's bar. */}
       <div className="bout-top">
-        {[a, b].map((f, i) => (
-          <div key={i} className={`hp ${i ? 'b' : 'a'}${f.hp < 30 ? ' low' : ''}`}
-            style={{ '--hp': Math.max(0, Math.min(1, f.hp / 100)), '--seat': SEAT_INKS[f.seat % SEAT_INKS.length] } as CSSProperties}>
-            <b>{f.name}</b>
-            <i />
-          </div>
-        ))}
+        <HealthBar f={a} side="a" />
         <div className={`clock${left !== null && left <= 10 ? ' last' : ''}`}>{left ?? ''}</div>
+        <HealthBar f={b} side="b" />
       </div>
       <div className="ring">
         {[a, b].map((f, i) => {
@@ -81,5 +77,17 @@ export default function BoxingPanel({ bout, live }: { bout: Bout; live: boolean 
         <div className="ko-banner">{bout.ko && winner ? `KO · ${winner.name}` : winner ? `${winner.name} wins` : 'Draw'}</div>
       )}
     </section>
+  )
+}
+
+function HealthBar({ f, side }: { f: { name: string; hp: number; seat: number }; side: 'a' | 'b' }) {
+  return (
+    <div
+      className={`hp ${side}${f.hp < 30 ? ' low' : ''}`}
+      style={{ '--hp': Math.max(0, Math.min(1, f.hp / 100)), '--seat': SEAT_INKS[f.seat % SEAT_INKS.length] } as CSSProperties}
+    >
+      <b>{f.name}</b>
+      <i />
+    </div>
   )
 }

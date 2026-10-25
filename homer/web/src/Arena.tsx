@@ -337,7 +337,7 @@ export default function ArenaPanel({
           </div>
         )}
 
-        {(!coach || !begun) && <div className="scoreboard">
+        {((!coach && !boxing) || !begun) && <div className="scoreboard">
           {board.map((poet, i) => (
             <div
               key={poet.id.toString()}

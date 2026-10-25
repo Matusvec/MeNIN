@@ -529,38 +529,48 @@ check((await fighterOf(BA.id)).aim_yaw > 0.19 && (await fighterOf(BA.id)).aim_pi
 await sleep(3200);
 await call(ada, 'throw_punch', Bx.id, 'jab', 1, 0.1, 0.5);
 let hit = (await punchesIn()).at(-1);
-check(hit.result === 'landed' && hit.zone === 'head' && hit.damage === 16 && (await fighterOf(BB.id)).health === 84, 'a full-power jab to the head lands for 16');
+check(hit.result === 'landed' && hit.zone === 'head' && hit.damage === 3.5 && hit.combo === 1 && (await fighterOf(BB.id)).health === 96.5, 'v2: a full-power head shot lands for 3.5');
+check(Math.round((await fighterOf(BA.id)).stamina) === 88, 'a punch costs 12 stamina');
 await call(ada, 'throw_punch', Bx.id, 'jab', 1, 0.1, 0.5);
 check((await punchesIn()).length === 1, 'no more than four punches a second');
 await sleep(300);
 await call(bo, 'set_fist_aim', Bx.id, 0, 0.5, true);
-await call(ada, 'throw_punch', Bx.id, 'jab', 0.5, 0, 0.6);
+await call(ada, 'throw_punch', Bx.id, 'hook', 1, 0, 0.6);
 hit = (await punchesIn()).at(-1);
-const bb = await fighterOf(BB.id);
-check(hit.result === 'blocked' && hit.damage === 0 && bb.health === 84 && bb.counter_until[0] > 0, "a head punch into Bo's guard is blocked, opening his counter window");
-await call(bo, 'throw_punch', Bx.id, 'jab', 1, 0, 0.2);
+let bb = await fighterOf(BB.id);
+check(hit.result === 'blocked' && hit.combo === 2 && Math.abs(hit.damage - 1.1) < 1e-6 && bb.counter_until[0] > 0, "Bo's guard lets a quarter of Ada's second punch through (3.5 x 1.25 x 0.25 = 1.1) and opens his counter window");
+check((await fighterOf(BA.id)).stamina < 80, 'a punch into a guard costs Ada 10 more stamina (22 in all)');
+await call(bo, 'throw_punch', Bx.id, 'uppercut', 1, 0, 0.2);
 hit = (await punchesIn()).at(-1);
-check(hit.result === 'landed' && hit.counter && hit.damage === 24 && (await fighterOf(BA.id)).health === 76 && !(await fighterOf(BB.id)).guard, 'his counter lands half again (24), and punching dropped his guard');
+check(hit.result === 'landed' && hit.counter && hit.damage === 7 && !(await fighterOf(BB.id)).guard, "Bo's counter inside the window does double (7), and punching dropped his guard");
+await sleep(400);
+await call(bo, 'throw_punch', Bx.id, 'jab', 1, 0, 0.3);
+hit = (await punchesIn()).at(-1);
+check(hit.combo === 2 && hit.damage === 4.4 && (await fighterOf(BB.id)).combo === 2, "his next punch within 1.2 s is a combo: x1.25 (4.4)");
 await call(bo, 'set_fist_aim', Bx.id, 0, 0.5, true);
-await sleep(300);
-await call(ada, 'throw_punch', Bx.id, 'jab', 0, 0, -0.5);
+await sleep(400);
+const before = (await fighterOf(BB.id)).stamina;
+await call(ada, 'throw_punch', Bx.id, 'hook', 1, 0, -0.5);
 hit = (await punchesIn()).at(-1);
-check(hit.result === 'landed' && hit.zone === 'body' && hit.damage === 4, 'the guard covers the head only: a body shot gets through');
-await sleep(300);
-await call(ada, 'throw_punch', Bx.id, 'jab', 1, 0.9, 0.5);
+check(hit.result === 'landed' && hit.zone === 'body' && hit.combo === 1 && hit.damage === 1 && (await fighterOf(BB.id)).stamina < before - 5, 'a body shot gets half through a guard (1), drains 15 stamina, and starts a new chain after a block');
+for (let i = 0; i < 6; i++) {
+  await sleep(260);
+  await call(ada, 'throw_punch', Bx.id, 'jab', 1, 0, -0.5);
+}
 hit = (await punchesIn()).at(-1);
-check(hit.result === 'missed' && hit.damage === 0, 'a punch aimed wide misses');
+check((await fighterOf(BA.id)).stamina < 30 && hit.damage <= 1, `spamming wears Ada out: tired punches do half, with no combo bonus (${hit.damage})`);
 await call(bo, 'set_fist_aim', Bx.id, 0, 0.5, false);
-for (let i = 0; i < 8 && (await room(Bx.id)).phase === 'speaking'; i++) {
-  await sleep(270);
-  await call(ada, 'throw_punch', Bx.id, 'jab', 1, 0, 0.5);
+console.log('     paced combos to a knockout...');
+for (let i = 0; i < 60 && (await room(Bx.id)).phase === 'speaking'; i++) {
+  await sleep(600);
+  await call(bo, 'throw_punch', Bx.id, 'jab', 1, 0, 0.5);
 }
 const ko = await fightOf();
-check((await room(Bx.id)).phase === 'scored' && ko.ko && ko.winner_id === BA.id && (await fighterOf(BB.id)).health === 0, 'Bo goes down: a knockout, Ada wins');
-check((await sql(null, `SELECT * FROM player WHERE id = ${BA.id}`))[0].total === 1, "the winner's total goes up by one");
+check((await room(Bx.id)).phase === 'scored' && ko.ko && ko.winner_id === BB.id && (await fighterOf(BA.id)).health === 0, 'paced combos win: Ada goes down, a knockout for Bo');
+check((await sql(null, `SELECT * FROM player WHERE id = ${BB.id}`))[0].total === 1, "the winner's total goes up by one");
 const afterKo = (await punchesIn()).length;
 await sleep(300);
-await call(ada, 'throw_punch', Bx.id, 'jab', 1, 0, 0.5);
+await call(bo, 'throw_punch', Bx.id, 'jab', 1, 0, 0.5);
 check((await punchesIn()).length === afterKo, 'no punches after the knockout');
 await call(arena, 'advance', Bx.id);
 check((await room(Bx.id)).phase === 'finale', 'one bout: the finale');
@@ -585,9 +595,9 @@ let fighters = await sql(null, `SELECT * FROM fighter WHERE room_id = ${Bq.id}`)
 check((await room(Bq.id)).rounds === 3 && fighters.length === 2 && fighters.every(f => [id('Ada'), id('Bo')].includes(f.player_id)), 'four fighters: three bouts, Ada and Bo first');
 await call(arena, 'start_fight', Bq.id);
 await sleep(3200);
-for (let i = 0; i < 8 && (await room(Bq.id)).phase === 'speaking'; i++) {
+for (let i = 0; i < 60 && (await room(Bq.id)).phase === 'speaking'; i++) {
   await call(bo, 'throw_punch', Bq.id, 'hook', 1, 0, 0.5);
-  await sleep(270);
+  await sleep(600);
 }
 check((await sql(null, `SELECT * FROM fight WHERE room_id = ${Bq.id}`))[0].winner_id === id('Bo'), 'Bo knocks Ada out');
 await call(arena, 'advance', Bq.id);

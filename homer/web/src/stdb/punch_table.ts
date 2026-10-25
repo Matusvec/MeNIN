@@ -25,4 +25,5 @@ export default __t.row({
   at: __t.timestamp(),
   t: __t.f32(),
   kind: __t.string(),
+  combo: __t.u32(),
 });

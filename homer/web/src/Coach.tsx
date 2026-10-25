@@ -26,12 +26,20 @@ export default function CoachPanel({ view, onWord }: { view: ArenaView; onWord: 
   // Every exchange so far, newest last: the poet's words, then Homer's answer once it's in.
   const exchanges = view.turns.filter((t) => t.transcript.trim() && replies.has(t.id))
   const latest = exchanges.length ? replies.get(exchanges[exchanges.length - 1].id) : ''
-  const lastAttempt = [...exchanges].reverse().find((t) => scored.has(t.id))
-  const lastScore = lastAttempt ? scored.get(lastAttempt.id) : undefined
-  // Each poet's attempts in order: the trend ("36 → 78 ↑") and the best so far.
-  const trends = view.poets
-    .map((p) => ({ poet: p, totals: exchanges.filter((t) => t.playerId === p.id && scored.has(t.id)).map((t) => scored.get(t.id)!.total) }))
-    .filter((x) => x.totals.length > 0)
+  const latestAttempt = [...exchanges].reverse().find((t) => scored.has(t.id))?.id
+  // A neutral score (the judge timed out: 4/4/4) is shown greyed but never counts as progress or as the best.
+  const judged = (id: bigint) => scored.has(id) && replies.get(id) !== SILENT_VERDICT
+  // Each attempt's trend is against the same poet's previous judged attempt; the best is per poet, ties to the newest.
+  const prevTotal = new Map<bigint, number>()
+  const bestOf = new Map<bigint, { id: bigint; total: number }>()
+  for (const t of exchanges) {
+    if (!judged(t.id)) continue
+    const total = scored.get(t.id)!.total
+    const before = [...exchanges].filter((x) => x.playerId === t.playerId && x.id < t.id && judged(x.id)).pop()
+    if (before) prevTotal.set(t.id, scored.get(before.id)!.total)
+    const best = bestOf.get(t.playerId)
+    if (!best || total >= best.total) bestOf.set(t.playerId, { id: t.id, total })
+  }
 
   useEffect(() => {
     if (log.current) log.current.scrollTop = log.current.scrollHeight
@@ -62,32 +70,6 @@ export default function CoachPanel({ view, onWord }: { view: ArenaView; onWord: 
           <p>{latest}</p>
         </blockquote>
       )}
-      {lastScore && (
-        <div className="score-panel coach-axes">
-          {CONTENT.map(([label, i]) => {
-            const value = lastScore.axes[i] ?? 0
-            return (
-              <div key={label} className={value >= 8 ? 'high' : ''} style={{ '--v': value } as CSSProperties}>
-                <strong>{value}</strong>
-                <i className="bar" />
-                <span>{label}</span>
-              </div>
-            )
-          })}
-        </div>
-      )}
-      {trends.map(({ poet, totals }) => {
-        const shown = totals.slice(-5)
-        const [prev, now] = [totals[totals.length - 2], totals[totals.length - 1]]
-        const arrow = prev === undefined ? '' : now > prev ? ' ↑' : now < prev ? ' ↓' : ' →'
-        return (
-          <p key={poet.id.toString()} className="coach-trend">
-            {!solo && <b>{poet.name}</b>}
-            <span>{shown.join(' → ')}{arrow}</span>
-            <small>Best {Math.max(...totals)}</small>
-          </p>
-        )
-      })}
       <TailVerse turnKey={turn ? `${turn.id}-${turn.attempt}` : ''} text={live} className="live-words" lines={false} onWord={onWord} />
       <div className="mic-state">
         <i className="mic-mark" />
@@ -99,11 +81,16 @@ export default function CoachPanel({ view, onWord }: { view: ArenaView; onWord: 
           {exchanges.map((t) => {
             const poet = view.poets.find((p) => p.id === t.playerId)
             return [
-              <li key={`${t.id}-you`} className="turn you">
-                <b>{solo ? 'You' : poet?.name ?? 'Poet'}</b>
-                {scored.has(t.id) && <span className="attempt-score">{scored.get(t.id)!.total}</span>}
-                <p>{t.transcript}</p>
-              </li>,
+              <AttemptEntry
+                key={`${t.id}-you`}
+                who={solo ? 'You' : poet?.name ?? 'Poet'}
+                text={t.transcript}
+                score={scored.get(t.id)}
+                prev={prevTotal.get(t.id)}
+                latest={t.id === latestAttempt}
+                best={judged(t.id) && bestOf.get(t.playerId)?.id === t.id}
+                neutral={scored.has(t.id) && !judged(t.id)}
+              />,
               <li key={`${t.id}-homer`} className="turn homer">
                 <b>Homer</b>
                 <p>{replies.get(t.id)}</p>
@@ -113,5 +100,50 @@ export default function CoachPanel({ view, onWord }: { view: ArenaView; onWord: 
         </ol>
       )}
     </div>
+  )
+}
+
+/** A poet's line in the log; a verse attempt also shows its score, the trend and (newest only) the bars. */
+function AttemptEntry({ who, text, score, prev, latest, best, neutral }: {
+  who: string
+  text: string
+  score?: { total: number; axes: ArrayLike<number> }
+  prev?: number
+  latest: boolean
+  best: boolean
+  neutral: boolean
+}) {
+  const classes = ['turn', 'you', score && 'scored', best && 'best', score && latest && 'latest', neutral && 'neutral'].filter(Boolean).join(' ')
+  const trend = !score || prev === undefined ? null : score.total > prev ? 'up' : score.total < prev ? 'down' : 'same'
+  return (
+    <li className={classes}>
+      <b>{who}</b>
+      <p>{text}</p>
+      {score && (
+        <div className="attempt-score">
+          <strong>{score.total}</strong>
+          <small>/100</small>
+          {trend && !neutral && (
+            <em className={`trend ${trend}`}>
+              {prev} → {score.total} {trend === 'up' ? '↑' : trend === 'down' ? '↓' : '='}
+            </em>
+          )}
+        </div>
+      )}
+      {score && latest && (
+        <div className="attempt-bars">
+          {CONTENT.map(([label, i]) => {
+            const v = score.axes[i] ?? 0
+            return (
+              <div key={label} className={v >= 8 ? 'high' : ''} style={{ '--v': v } as CSSProperties}>
+                <strong>{v}</strong>
+                <i className="bar" />
+                <span>{label}</span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </li>
   )
 }
