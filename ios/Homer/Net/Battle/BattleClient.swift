@@ -35,6 +35,7 @@ final class BattleClient: SpacetimeClientDelegate {
         DiscusTables.registerAll()  // Events/Discus (multiplayer)
         StadionTables.registerAll()
         BoxingTables.registerAll()
+        ToxeiaTables.registerAll()
     }
 
     // MARK: connection
@@ -255,7 +256,9 @@ final class BattleClient: SpacetimeClientDelegate {
     /// The live-sport tables, in their own subscription and only inside that event's room, so a
     /// battle room (or a server without these tables) never subscribes to them.
     func watchEventTables(_ event: String) {
-        let tables: [String] = event == "stadion" ? ["heat", "runner"] : event == "pygmachia" ? ["fight", "fighter", "punch"] : []
+        let tables: [String] = event == "stadion" ? ["heat", "runner"]
+            : event == "pygmachia" ? ["fight", "fighter", "punch"]
+            : event == "toxeia" ? ["range", "archer", "arrow_shot"] : []
         guard !tables.isEmpty, roomId != 0 else { return }
         eventSubscription?.unsubscribe(sendDroppedRows: true)
         eventSubscription = client?.subscribe(queries: tables.map { "SELECT * FROM \($0) WHERE room_id = \(roomId)" })

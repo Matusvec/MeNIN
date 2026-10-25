@@ -22,6 +22,8 @@ struct PlayerScreen: View {
         Group {
             if battle.me != nil, battle.room?.event == "stadion" {
                 StadionPhoneRoot(battle: battle, onBack: { if midBattle { confirmLeave = true } else { leave() } })
+            } else if battle.me != nil, battle.room?.event == "toxeia" {
+                ToxeiaPhoneRoot(battle: battle, onBack: { if midBattle { confirmLeave = true } else { leave() } })
             } else if battle.me != nil, battle.room?.event == "pygmachia" {
                 BoxingPhoneRoot(battle: battle, onBack: { if midBattle { confirmLeave = true } else { leave() } })
             } else if battle.me != nil, battle.room?.event == "discus" {
