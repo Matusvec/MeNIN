@@ -907,10 +907,10 @@ Player slips aren't failures when the app handles them as designed: a freeze get
 
 ### Archery
 
-Archery has two modes (SPEC, Sat 7:20 PM). **Camera mode is the main one:** the Mac's webcam tracks the archer's bow arm and drawing hand, and each archer's own phone nocks and looses, so nobody passes phones. **Two-phone mode is the fallback:** if the camera is off, or loses the archer for more than 1 s, the two phones take that arrow, and the camera picks up again on the next. Like every event, archery runs on build 31 or later. The series runs in camera mode, 5 clean in a row. Two-phone mode is only the fallback, so it gets 2 clean runs with **Camera off** (leader).
+Archery has two modes (SPEC, Sat 7:20 PM). **Camera mode is the main one:** the Mac's webcam tracks the archer's bow arm and drawing hand, and each archer's own phone nocks and looses, so nobody passes phones. **Two-phone mode is the fallback:** the two phones take over only if the camera is switched off or fails ("Camera denied: phones", "No camera: phones"). If the camera only loses the archer, the arrow waits for them (builder, 8:18 PM). Like every event, archery runs on build 31 or later. The series runs in camera mode, 5 clean in a row. Two-phone mode is only the fallback, so it gets 2 clean runs with **Camera off** (leader).
 
 - **One run (camera):** two archers, each holding their own phone, shooting in join order, with three arrows each.
-  - **Start:** press New event, pick Toxeia (beta) and press Begin. Begin reads "Waiting for the bow and the arrow" until two phones are in. Then the operator presses **Camera on**, since the production hall starts with it off, and allows the browser's camera prompt the first time. A small camera view with the tracked skeleton sits in a corner of the range.
+  - **Start:** press New event, pick Toxeia (beta) and press Begin. Begin reads "Waiting for the bow and the arrow" until two phones are in. The operator presses **Camera on**, in the lobby or after Begin, since the production hall starts with it off, and allows the browser's camera prompt the first time. A small camera view with the tracked skeleton sits in a corner of the range.
   - **Homer:** he gives the camera rules ("Toxeia. Face the target and raise your bow arm. Phone in the other hand: thumb down, draw it back to your face, lift your thumb to loose."), then "{name}, step up to the line." and "{name} steps to the line."
   - **Each arrow:**
     1. The arena shows the wind.
@@ -920,10 +920,11 @@ Archery has two modes (SPEC, Sat 7:20 PM). **Camera mode is the main one:** the 
     5. The arrow scores and gets Homer's call.
   - **After three arrows:** "{name} finishes on {total}." Then "{next}, step up to the line." and the next archer steps in, with no pass.
   - **The end:** "The bow goes to {name}, with {total}.", and then **Rematch** for the next run.
-- **Who plays (camera):** two archers per run, with three in at least one run, and someone who has never shot in at least 2 of the 5. Run it at the table's spot and in its light, standing where the camera view shows the archer's whole upper body. In one run, the archer steps out of view for about 2 s in the middle of an arrow, to see the switch to the phones.
+- **Who plays (camera):** two archers per run, with three in at least one run, and someone who has never shot in at least 2 of the 5. Run it at the table's spot and in its light, standing where the camera view shows the archer's whole upper body. In every run, one archer steps out of view for about 2 s in the middle of an arrow, then steps back (the step-out).
 - **Also a failure (camera):**
-  - The camera view doesn't show the skeleton on the archer, or it says "Step into view: phones meanwhile" while the archer is in full view.
-  - The mode switches to the phones while the archer is in full view.
+  - The camera view doesn't show the skeleton on the archer, or it says "Step into view" while the archer is in full view.
+  - The step-out fails. The aim dot should freeze, the corner should say "Step into view", and the arrow should stay with the camera, then resume on the same aim when the archer steps back. A failure is any of those not happening, or the arrow going to the phones.
+  - The mode switches to the phones while the camera is on and working.
   - The aim dot doesn't follow the bow arm: it lags by more than about half a second, drifts while the arm is still, sticks at an edge, or follows the drawing hand instead.
   - The draw meter doesn't fill as the hand comes back to the jaw, or fills while the hands are still.
   - Lifting the thumb doesn't loose the arrow, an arrow looses with the thumb still down, or another archer's phone looses it.
@@ -932,7 +933,7 @@ Archery has two modes (SPEC, Sat 7:20 PM). **Camera mode is the main one:** the 
   - A weak draw doesn't drop the arrow low.
   - The ring scored doesn't match where the arrow sits on the target, or Homer's "finishes on {total}" doesn't match the board.
   - An archer gets more or fewer than three arrows, or the wrong archer is named the winner.
-- **Write down, but not a failure (camera):** any arrow the phones took, and why. Also write down what happened in the staged step-out: whether that arrow could still be shot, and with which phone. If the phones take an arrow without a step-out twice in the series, tell the leader.
+- **Write down, but not a failure (camera):** about how long the dot took to come back after the step-out. Also write down any arrow lost to its 45 s clock while the archer was out of view.
 
 **Two-phone mode,** 2 clean runs in a row with **Camera off**:
 
@@ -988,7 +989,7 @@ Archery has two modes (SPEC, Sat 7:20 PM). **Camera mode is the main one:** the 
 | Archery (two phones) | 1 | | | | |
 | Archery (two phones) | 2 | | | | |
 
-In Notes, write the verse scores in order for Talk to Homer, the winner's time for the Stadion, how each boxing bout ended and how long it lasted, and any arrow the phones took (or fumbled pass) in archery.
+In Notes, write the verse scores in order for Talk to Homer, the winner's time for the Stadion, how each boxing bout ended and how long it lasted, and the step-out's comeback time (or a fumbled pass) in archery.
 
 | Poetry run | Time | Theme | Epithets (Poet 1, Poet 2) | Pass or fail | What failed |
 | --- | --- | --- | --- | --- | --- |
