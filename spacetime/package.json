@@ -16,6 +16,7 @@
     "bindings": "spacetime generate -l typescript -p . -o scripts/bindings -y > /dev/null",
     "soak": "npm run -s bindings && STDB_DB=${STDB_DB:-homer-test} tsx scripts/hall-soak.ts",
     "phones": "npm run -s bindings && STDB_DB=${STDB_DB:-homer-test} tsx scripts/phones.ts",
+    "clear": "STDB_URL=${STDB_URL:-https://maincloud.spacetimedb.com} STDB_DB=${STDB_DB:-homer-calhacks} node scripts/clear.mjs",
     "watch": "npm run -s bindings && STDB_URL=${STDB_URL:-https://maincloud.spacetimedb.com} STDB_DB=${STDB_DB:-homer-calhacks} tsx scripts/watch.ts"
   },
   "dependencies": {
