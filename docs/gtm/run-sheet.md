@@ -129,7 +129,7 @@ Between judges, or after a judge stays for a rematch. The spec's target is under
 
 ## Switching events, and the motion games
 
-These are the only operator steps for the Stadion, boxing (Pygmachia) and archery. **The 8 PM runs fail any run where someone does a step that isn't on this sheet** (`docs/ux-flow.md`, "Sat 8 PM runs"), so do exactly these. Sources: `homer/web/src/Arena.tsx`, `lib/stadion.ts`, `lib/boxing.ts`, `lib/toxeia.ts` and the phone's archery screens (archery on the website since 0dd557e, Sat 6:35 PM).
+These are the only operator steps for Talk to Homer, the Stadion, boxing (Pygmachia) and archery. **The 8 PM runs fail any run where someone does a step that isn't on this sheet** (`docs/ux-flow.md`, "Sat 8 PM runs"), so do exactly these. Sources: `homer/web/src/Arena.tsx`, `lib/stadion.ts`, `lib/boxing.ts`, `lib/toxeia.ts` and the phone's archery screens (archery on the website since 0dd557e, Sat 6:35 PM).
 
 ### Every event
 
@@ -140,13 +140,26 @@ These are the only operator steps for the Stadion, boxing (Pygmachia) and archer
   3. Operator: **Begin.**
   - **Every phone on build 25 or later** (phones follow a switch live from build 24; archery needs 25). If a phone stays on the old game, it leaves and rejoins with the same code. That counts as a fallback.
   - Only pick a game that's unlocked for judges (see each event below). A locked one still shows in the picker.
-- **"Next" is the operator's button** if a phase between turns sticks. It's on screen except while someone is racing, fighting or shooting. **Pressing Next counts as a fallback:** use it so the run finishes, but that run isn't clean for the 8 PM count. (gtm's default; leader can overrule it.)
-- At the end of every event, the operator presses **Rematch** (the same game again) or **New event** (another game). Nothing else.
+- **"Next" is the operator's button** if a phase between turns sticks. It's on screen except while someone is racing, fighting or shooting, and never in Talk to Homer (which has End instead). **Pressing Next counts as a fallback:** use it so the run finishes, but that run isn't clean for the 8 PM count. (gtm's default; leader can overrule it.)
+- At the end of every event, the operator presses **Rematch** (the same game again; "New conversation" in Talk to Homer) or **New event** (another game). Nothing else.
 
 ### Grip rule, for every phone that's swung or pumped
 
 - A firm grip, with a grippy case or a wrist strap on **every** phone used in the discus, the Stadion, boxing or archery, not just iPhone C.
 - **If a phone leaves someone's hand, that event is stopped for the night.** No exceptions at the table.
+
+### Talk to Homer
+
+3 runs at 8 PM; the checklist is in `docs/ux-flow.md`, "Talk to Homer". Source: `homer/web/src/Arena.tsx`, `Coach.tsx`, `lib/arena.ts` (pm, Sat ~7 PM). **One poet is enough.** There's no score to win: Homer answers each verse.
+
+| Who | Step |
+| --- | --- |
+| Operator | **New event → Talk to Homer** (or Open the hall: Talk to Homer). Until a phone joins, Begin reads "Waiting for a poet". **Begin.** |
+| Homer, automatic | Opens on his own: "Give me a verse about {theme}." With two poets he adds "{name}, you first." |
+| Each turn, automatic | 3-2-1, SPEAK on the phone, a 20 s window ("I'm done" ends it early), then "Homer is answering…" and his reply out loud. The next turn follows by itself. |
+| Operator | **Press nothing while it runs.** Talk to Homer has no "Next"; the only operator button is **End**. |
+| To end | It never ends by itself. The operator presses **End**, and the arena reads "The conversation is over". |
+| Operator | On that screen: **New conversation** (Talk to Homer's Rematch: a fresh one with a new theme) or **New event** (another game). |
 
 ### The Stadion (running)
 
