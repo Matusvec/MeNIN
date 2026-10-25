@@ -785,7 +785,8 @@ The checkpoint (`docs/gtm/reality-check.md`): an extra event that can't run **5 
 - **When:** debate and poetry have to finish by 9 PM, when the hall noise test starts. The motion events (discus, the Stadion, boxing and archery) use no mic, so hall noise doesn't touch them. If there are enough people, run them at the same time on a second laptop in the hall. If not, run them after 9 PM and finish by the leader's cutoff (proposed: 10:30 PM, so the tiles are settled before the 11 PM freeze).
 - **Order:** debate, then poetry, about 40 minutes for both. The motion events go in this order: the Stadion, boxing, discus, then archery, about 45 minutes for all four. Boxing comes after the Stadion because SPEC opens boxing only once the Stadion passes. Archery goes last because it's still in build: it runs only once it's in the app build we'll demo and live on the website, and until then its tile stays locked.
 - **Motion events:** play only where there's arm room, away from laptops and other people, with a firm grip on the phone. If a phone leaves anyone's hand, that's a failure, and it stops that event for the night until the leader says otherwise.
-- **Between runs:** the hall stays open. Use Rematch or New event, the way we will at the table. Never relaunch the app or restart a server.
+- **Between runs:** the hall stays open. Use Rematch, the way we will at the table. Never relaunch the app or restart a server.
+- **Between events:** the website can't switch events inside an open hall yet (P16 is only in the app's arena). So after an event's last run, the operator reloads the tab and clicks "Open the hall: {next event}", and the players join the new code. That's expected, not a failure, once the run sheet lists it.
 - **Who records:** whoever isn't playing fills in the table at the end of this section and sends it to the leader. The leader decides which tiles are unlocked.
 
 **These are failures in every event:**
@@ -824,7 +825,7 @@ Player slips aren't failures when the app handles them as designed: a freeze get
 
 ### Debate
 
-- **One run:** a demo-length debate on the arena. The debate tile opens, Socrates asks the question, and both debaters take one 45-second turn, each tapping at least one move as they make it. Then come the verdicts, the round verdict, Socrates' last question and the crown, and then **New event** back to the menu.
+- **One run:** a demo-length debate on the arena. The debate tile opens, Socrates asks the question, and both debaters take one 45-second turn, each tapping at least one move as they make it. Then come the verdicts, the round verdict, Socrates' last question and the crown, and then **Rematch** for the next run.
 - **Who plays:** Matus is debater 1. Debater 2 is someone who hasn't played debate, in at least 2 of the 5 runs, since a judge will be in that seat. Debater 2 goes silent for about 3 s once in every run, to test the rescue.
 - **Also a failure:**
   - The side on the arena or the phone is missing or wrong.
@@ -836,7 +837,7 @@ Player slips aren't failures when the app handles them as designed: a freeze get
 
 ### Discus
 
-- **One run:** one discus event with two throwers and three throws each. The discus tile opens, each thrower goes through the safety card on their first throw, then the throws, the flight, the distances with Homer's call, the leaderboard and "The discus goes to {name}.", and then **New event** back to the menu.
+- **One run:** one discus event with two throwers and three throws each. The discus tile opens, each thrower goes through the safety card on their first throw, then the throws, the flight, the distances with Homer's call, the leaderboard and "The discus goes to {name}.", and then **Rematch** for the next run.
 - **Who plays:** the operator and one other person. The other thrower uses Matus's iPhone, as a judge will, and is someone who has never thrown, in at least 2 of the 5 runs.
 - **Also a failure:**
   - A full swing with the thumb lifted at the end gets read as a drop, or as no throw.
@@ -846,7 +847,7 @@ Player slips aren't failures when the app handles them as designed: a freeze get
 
 ### The Stadion
 
-- **One run:** one heat, the demo format. The Stadion tile opens. Homer says "One stadion. Phone in hand, pump your arms like a sprinter." and "Runners, to your marks.", then the 3-2-1 and GO show on the arena while the phones tick. Everyone races 192 m at once. Then come "{name} breaks the tape!", the winner's time, the places and "The stadion goes to {name}.", and then **New event** back to the menu.
+- **One run:** one heat, the demo format. The Stadion tile opens. Homer says "One stadion. Phone in hand, pump your arms like a sprinter." and "Runners, to your marks.", then the 3-2-1 and GO show on the arena while the phones tick. Everyone races 192 m at once. Then come "{name} breaks the tape!", the winner's time, the places and "The stadion goes to {name}.", and then **Rematch** for the next run.
 - **Who plays:** two or three runners on team iPhones, with three in at least 2 of the 5 runs, and someone who has never run it in at least 2. In one run, one runner only shakes the phone in place, without swinging their arms, to test the shake check.
 - **Also a failure:**
   - The 3-2-1 on the arena and the ticks on a phone are more than a beat apart, or a runner moves before GO.
@@ -861,7 +862,7 @@ Player slips aren't failures when the app handles them as designed: a freeze get
 
 ### Boxing
 
-- **One run:** one bout, the demo format, on the v2 rules. The boxing tile opens. Homer says "{A} and {B}. Fists up.", the phones tick 3-2-1 to the bell, and the fight runs 60 s or to a knockout while Homer calls the big hits. Then comes "{loser} is down! The fight goes to {winner}!" or "The bell! {winner} takes it on the cards.", then "{winner}. The ring is yours.", and then **New event** back to the menu.
+- **One run:** one bout, the demo format, on the v2 rules. The boxing tile opens. Homer says "{A} and {B}. Fists up.", the phones tick 3-2-1 to the bell, and the fight runs 60 s or to a knockout while Homer calls the big hits. Then comes "{loser} is down! The fight goes to {winner}!" or "The bell! {winner} takes it on the cards.", then "{winner}. The ring is yours.", and then **Rematch** for the next run.
 - **Who plays:** two fighters on team iPhones, standing more than an arm's length apart and punching the air, never at each other. Someone who has never boxed in MeNIN fights in at least 2 of the 5 runs. At least one run has three fighters, to check that the winner stays on and that the third phone shows "Up next".
 - **Stage the v2 moves in every run,** so each run checks them:
   - Fighter 1 throws two or three quick punches in a row while Fighter 2's guard is down (the combo).
@@ -885,7 +886,7 @@ Player slips aren't failures when the app handles them as designed: a freeze get
 
 Archery is still in build (SPEC, Sat 6:05 PM), so this list comes from SPEC and the phone code. Before run 1, check it against the build and tell the leader about anything that doesn't match.
 
-- **One run:** two archers, three arrows each. The archery tile opens and two phones join. Each phone says in big type what it is: the **bow** or the **arrow**. The bow phone asks for the first archer's name. Before each arrow, the arena shows the wind: an arrow for its direction, its speed in m/s, and pennants blowing. The archer points the bow phone at the screen, and its aim shows as a live circle on the target. They hold the arrow phone's button to nock, pull the phone back toward their face to draw while the draw meter fills, and lift their thumb to loose. The arrow flies, drifts with the wind and scores on the rings. After three arrows, the archer passes both phones to the next archer, and the bow phone asks for that archer's name. After the last arrow come the totals and the winner, and then **New event** back to the menu.
+- **One run:** two archers, three arrows each. The archery tile opens and two phones join. Each phone says in big type what it is: the **bow** or the **arrow**. The bow phone asks for the first archer's name. Before each arrow, the arena shows the wind: an arrow for its direction, its speed in m/s, and pennants blowing. The archer points the bow phone at the screen, and its aim shows as a live circle on the target. They hold the arrow phone's button to nock, pull the phone back toward their face to draw while the draw meter fills, and lift their thumb to loose. The arrow flies, drifts with the wind and scores on the rings. After three arrows, the archer passes both phones to the next archer, and the bow phone asks for that archer's name. After the last arrow come the totals and the winner, and then **Rematch** for the next run.
 - **Who plays:** two archers per run, with three in at least one run, and someone who has never shot in at least 2 of the 5. The pass happens in every run, hand to hand, as it will at the table.
 - **Also a failure:**
   - A phone doesn't say in big type which one it is, both phones say the same one, or they swap partway through.
