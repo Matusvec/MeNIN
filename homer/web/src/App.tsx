@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import GameStrip from './GameStrip'
 import ArenaPanel from './Arena'
 import Homer3D, { type HomerAction } from './Homer3D'
 import { resolveAction } from './poets/rig'
@@ -351,7 +350,6 @@ function HomerHall({ joinCode, onBack }: { joinCode: string | null; onBack: () =
         <World3D speaking={isSpeaking} homerAction={resolveAction(selectedMode)} fallback={<div className="scene-artboard"><AegeanScene /></div>} />
       </div>
 
-      <GameStrip />
       <MusicToggle className="floating" />
       <button className="back-to-poets" type="button" onClick={onBack}>‹ All poets</button>
 
