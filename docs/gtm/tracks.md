@@ -107,7 +107,7 @@ Criteria: Workflow Design, Adoptability ("a measurable before and after"), Outpu
 | 9b | One hall, two codebases (Sat night) | The Hall stage: the Make website and the SwiftUI app unified through a third variable mode. **The slide text is in [figma-stage-log.md](figma-stage-log.md), "Deck text for Matus".** Embed the Atelier → Hall side by side: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=36-128 |
 | 9c | The designer in the loop (Sat night) | The scene's four feedback rounds in 17 minutes, from renders of the real scene code, then the button system. **The slide text is in [figma-stage-log.md](figma-stage-log.md), "Deck text for Matus".** Embed Turn (34-179), Join (31-179) and the button sheet (48-216). |
 | 10 | Before and after (Adoptability) | Comparing directions went from two code branches plus a rebuild per screen to one mode switch in Figma or one launch flag in the app. Add minutes from frame to component, and rework rounds, from the log. |
-| 11 | The demo | Embed the 3:00 video (Figma's cap; its last minute is the Figma workflow) |
+| 11 | The demo | Embed the final 2:41 video (Figma's cap is 3:00; the Figma workflow is in its second half) |
 | 12 | Links | The repo (public from Sun 8 AM), Devpost, TestFlight |
 
 **Approved** (leader, Sat AM). **When:** a draft Sat afternoon, after asking Figma's team at the 11:45 booth visit what makes a stage log win. Final at Sat 11 PM, once the video is embedded. Share the deck as Anyone can view, and link it on Devpost.

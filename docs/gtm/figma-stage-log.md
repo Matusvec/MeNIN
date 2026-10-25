@@ -31,7 +31,7 @@ Receipts in the repo, so the work survives any file change: `docs/figma/` holds 
 - [ ] **Everyone on the team is Edu verified**: https://www.figma.com/education/apply
 - [ ] **Figma Slides** deck (required) showing the work and the workflow. Drafted by the artist session through the Figma MCP (Sat 17:40), ten slides on tracks.md's plan, for Matus to edit: https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm. Still to do: Matus sets sharing to Anyone with the link → can view.
   - [x] Stage log in the deck: which Figma product we used and why, **200 words max per stage** (slides 4–7, one per stage, each with its entries, minutes, rating, what made it in and the friction)
-  - [ ] Demo video, **3 min max** (our 3:00 cut; its last minute is the Figma workflow)
+  - [ ] Demo video, **3 min max** (our final 2:41 cut; the Figma workflow is in its second half)
   - [x] **A prototype exists to embed:** the "Prototype · Atelier" page in "MeNIN · Directions", with two flows (artist, Sat 08:40–09:10), both Anyone can view:
     - Flow 1, first open → event menu → Poetry → Practice turn → verdict: https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102
     - Flow 2, join → arena turn → carved line → champion: https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364

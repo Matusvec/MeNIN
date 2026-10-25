@@ -4,7 +4,7 @@ Two videos, both from real takes. Nothing is mocked, and nothing is shown as liv
 
 | | The Devpost video | The backup video |
 | --- | --- | --- |
-| Length | **3:00** (the first 2:00 stands alone) | **90 s** |
+| Length | **2:41**, final v7 (`menin-demo-3min-final.mp4`); plus a **1:56** cut on its own (`menin-demo-2min-final.mp4`, ending on the "Built responsibly" card) | **90 s** |
 | For | Devpost, plus Cartesia ("2-minute, demo-first") and Figma (3 minutes max) | The judging table, when the network is down ([run-sheet.md](run-sheet.md)) |
 | Narration | Homer in his Cartesia voice, plus Matus's four answers to camera | None |
 | Edit | Cut between camera, arena and phone footage | One battle take, trimmed only |
@@ -110,7 +110,9 @@ If OBS misbehaves, fall back to ⌘⇧5 for the picture and use iPhone C's audio
 
 **Syncing:** start every take with one clap in view of iPhone C. Line up the camera and OBS on the first "3" of the 3, 2, 1, and the phone recordings on the moment SPEAK fills the phone.
 
-## The Devpost video (3:00)
+## The Devpost video (final: 2:41)
+
+*Final (Sun 5:55 AM): v7 runs **2:41** (`menin-demo-3min-final.mp4`), and the Cartesia cut runs **1:56** (`menin-demo-2min-final.mp4`, ending on C5, the "Built responsibly" card). The timings below are the 3:00 plan it was cut from.*
 
 **Rewritten Sun ~2:15 AM** from three independent reviews (a hackathon judge, a trailer editor and a sponsor judge), merged by leader. The limit is 3 minutes, and the video is required (MLH, Sat 6:29 PM). **The first 2:00 stands alone** as Cartesia's "2-minute, demo-first" cut, ending on the song and the responsible card. The last minute is the training montage and the Figma workflow.
 
@@ -254,7 +256,7 @@ builder renders these through Cartesia, which doubles as the Cartesia showcase. 
 - **Phones:** bare portrait insets, with no device frames.
 - **One effect:** the scene's own color wash. Everything else is a hard cut.
 
-**Export:** 1080p, 30 or 60 fps, H.264, AAC 48 kHz, **2:59 at most**. Also export the first 2:00 on its own (it ends on the song and C5) for Cartesia.
+**Export:** 1080p, 30 or 60 fps, H.264, AAC 48 kHz, **2:59 at most**. Also export the first 2:00 on its own (it ends on the song and C5) for Cartesia. **Exported (Sun 5:55 AM):** `menin-demo-3min-final.mp4`, **2:41**, and `menin-demo-2min-final.mp4`, **1:56**, which ends on the "Built responsibly" card.
 
 ### Morning, 7:00 (Matus; done by 8:00)
 
@@ -292,15 +294,15 @@ builder renders these through Cartesia, which doubles as the Cartesia showcase. 
 
 Upload it as **Unlisted** or Public (Matus's call), and check it plays in a logged-out window before pasting the link into Devpost.
 
-## The Fetch.ai cut (3:00, only if Homer on Agentverse ships)
+## The Fetch.ai cut (about 3:41, only if Homer on Agentverse ships)
 
-Fetch.ai requires "a demo video (3–5 minutes)", longer than our 2:00 Devpost video. Make one extra cut. Its URL goes in Fetch's ASI:One submission form ([opportunities.md](opportunities.md)).
+Fetch.ai requires "a demo video (3–5 minutes)", longer than our 2:41 Devpost video. Make one extra cut. Its URL goes in Fetch's ASI:One submission form ([opportunities.md](opportunities.md)).
 
 | Time | Shot |
 | --- | --- |
-| 0:00–3:00 | The Devpost video as it is |
-| 3:00–3:50 | **A screen recording of ASI:One on the Mac:** find Homer, ask for a theme, get five formulas, type a verse with two of them, and get Homer's verdict: five scores, the best line, a one-line roast. Narration: "The same judge, as an agent on Agentverse, usable from ASI:One." |
-| 3:50–4:00 | End card: the agent's name and address, plus "Built with Fetch.ai Agentverse and the Agent Chat Protocol" |
+| 0:00–2:41 | The Devpost video as it is |
+| 2:41–3:31 | **A screen recording of ASI:One on the Mac:** find Homer, ask for a theme, get five formulas, type a verse with two of them, and get Homer's verdict: five scores, the best line, a one-line roast. Narration: "The same judge, as an agent on Agentverse, usable from ASI:One." |
+| 3:31–3:41 | End card: the agent's name and address, plus "Built with Fetch.ai Agentverse and the Agent Chat Protocol" |
 
 Export it the same way as the Devpost video. Upload it unlisted as its own YouTube video.
 
@@ -345,3 +347,4 @@ What changed in the cut because of it:
 - **Cut on the music.** The theme is 107.7 BPM (bar = 2.23 s); montage and card cuts snap to bar starts, with varied lengths (half a bar, one bar, two bars). The battle cuts on speech.
 - **Captions carry the message with sound off**, placed off the speaker's mouth.
 - **Don't speed up speech to fit**; trim at sentence ends instead (Matus's answers were trimmed, never sped).
+- Final: v7, 2:41 and 1:56, Sun 5:55 AM, after three independent reviews of v4 and a full frame pass of v6.
