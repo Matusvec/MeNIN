@@ -18,7 +18,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 
 **Project name / title:** MeNIN: Ancient Greek Party Games, Hosted by Homer *(fallback: "MeNIN: Party Games of Ancient Greece")*
 
-**Tagline** (200 chars; 180 used): A live voice poetry battle: speak a verse into your iPhone, Homer judges it out loud within seconds, and the sea on the big screen moves with your voice. Ancient Greek party games.
+**Tagline** (200 chars; 182 used): A live voice poetry battle: speak a verse into your iPhone and Homer judges it out loud within seconds. He teaches you to improvise like the Greeks; then you battle, debate and play.
 
 *Lead (leader, Sat ~8:45 PM): organizers shortlist each project "for the track we best believe your project fits" (#0-ask-directors, Sat 7:51 PM), so the tagline and the first paragraph lead with the live voice battle, name Cartesia, SpacetimeDB and Claude, and aim the main prizes at Most Creative. Camera archery gets one line, never the lead.*
 
@@ -28,7 +28,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 
 ---
 
-**MeNIN is a live voice poetry battle.** Poets battle on their iPhones in front of one big screen. You speak a verse into your phone. **Cartesia** hears it, with Homer's phrases as hints. **Claude**, as Homer, judges it out loud within seconds, on Image, Answer and Craft, out of 100 (his verdict is written in under a second: p50 0.9 s, measured from a laptop). [Once `[turn-to-voice p50]` is read off the shoot's latency HUD, tighten "within seconds" to "[turn-to-voice p50] seconds after your last word", here and in the tagline.] The sea on the arena moves with your voice. **SpacetimeDB** runs the battle itself: the turns, the timer, your private phrase cards and the scores, so every phone and the arena agree. At the end, the best lines from the room are stitched into one song. [If archery passes on 31: Tonight we added camera-tracked archery: the laptop's webcam follows your bow arm and your draw, and your own phone looses the arrow.]
+**MeNIN is a live voice poetry battle.** MeNIN trains your voice the way the Greeks did, like a sport: Homer teaches you to improvise poetry out loud, you spar with him, you battle other poets live, you debate the way Socrates did, and then you play Greek games with your friends. Most AI talks for you. MeNIN makes you talk. Poets battle on their iPhones in front of one big screen. You speak a verse into your phone. **Cartesia** hears it, with Homer's phrases as hints. **Claude**, as Homer, judges it out loud within seconds, on Image, Answer and Craft, out of 100 (his verdict is written in under a second: p50 0.9 s, measured from a laptop). [Once `[turn-to-voice p50]` is read off the shoot's latency HUD, tighten "within seconds" to "[turn-to-voice p50] seconds after your last word", here and in the tagline.] The sea on the arena moves with your voice. **SpacetimeDB** runs the battle itself: the turns, the timer, your private phrase cards and the scores, so every phone and the arena agree. At the end, the best lines from the room are stitched into one song. [If archery passes on 31: Tonight we added camera-tracked archery: the laptop's webcam follows your bow arm and your draw, and your own phone looses the arrow.]
 
 ## Inspiration
 

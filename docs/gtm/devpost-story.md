@@ -14,7 +14,7 @@ The name is μῆνιν (*mēnin*, "rage"), the first word of the Iliad.
 
 ## What it does
 
-**MeNIN is a live voice poetry battle, judged out loud by Homer.** It's ancient Greek party games: one big screen, with every player's iPhone as the controller.
+**MeNIN is a live voice poetry battle, judged out loud by Homer.** MeNIN trains your voice the way the Greeks did, like a sport: Homer teaches you to improvise poetry out loud, you spar with him, you battle other poets live, you debate the way Socrates did, and then you play Greek games with your friends. Most AI talks for you. MeNIN makes you talk. It all plays on one big screen, with every player's iPhone as the controller.
 
 - **The arena is a website.** Open it on a laptop (https://play.206.189.237.157.sslip.io/homer) and it hosts the room, runs the game and speaks as Homer, our host and judge. Players join by QR code or room code, with no account.
 - **Your iPhone is your controller.** It's your mic and your private hand of Homer's phrases.
