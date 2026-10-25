@@ -1,15 +1,14 @@
-/* Toxeia, the archery (artist). White-ground, like a lekythos: black figures and a
-   Greek target on cream, a terracotta ground band, meander borders. Matte: flat
-   fills, no glow. Multiplayer's Toxeia.tsx sets the hooks:
+/* Toxeia, the archery (artist). White-ground, like a lekythos: a Greek target on
+   cream, face on and filling the scene like GamePigeon's, a meander border. Matte:
+   flat fills, no glow. Multiplayer's Toxeia.tsx sets the hooks:
 
    <section class="toxeia" data-phase="aim | flight | pass | done">
      <header class="tox-top">
        <div class="tox-archer" style="--seat: …"><b>Ada</b><span>Arrow 2 of 3</span></div>
-       <WindVane wind={…} />                                  (src/toxeia/WindVane.tsx)
        <div class="tox-total"><strong>18</strong><small>points</small></div>
      </header>
      <div class="range">
-       <Range … />                                            (src/toxeia/Range.tsx: archer, target, pennants, aim, flight, draw)
+       <Range … />                                            (src/toxeia/Range.tsx: target, aim dot, arrows, flight, wind, draw)
        <div class="tox-stamp" key={shot.id}>10</div>          the score, stamped as the arrow lands (.bull for the gold)
        <div class="tox-pass">Pass both phones to Bo</div>     between archers
      </div>
@@ -46,11 +45,11 @@
   display: block;
 }
 
-/* ── The top: who's shooting, the wind, the score ─────────────────────────── */
+/* ── The top: who's shooting, and their score ─────────────────────────────── */
 
 .tox-top {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 1.2rem;
   align-items: center;
 }
@@ -97,59 +96,7 @@
   text-transform: uppercase;
 }
 
-/* The wind: a dial with a big arrow that turns to the wind, and the speed. */
-.toxeia .tox-wind {
-  display: grid;
-  grid-template-columns: auto auto auto;
-  grid-template-rows: auto auto;
-  column-gap: 0.6rem;
-  align-items: center;
-  justify-content: center;
-}
-
-.toxeia .tox-wind-label {
-  grid-column: 1 / -1;
-  justify-self: center;
-  font: 700 0.9rem/1 system-ui, sans-serif;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.toxeia .vane {
-  width: clamp(4.5rem, 7vw, 6rem);
-  height: auto;
-}
-
-.toxeia .vane-dial {
-  fill: var(--slip);
-  stroke: var(--figure);
-  stroke-width: 5;
-}
-
-.toxeia .vane-arrow {
-  fill: var(--figure);
-  transform-box: view-box;
-  transform-origin: 0 0;
-  rotate: var(--toward, 0deg);
-  transition: rotate 0.7s cubic-bezier(0.3, 1.4, 0.5, 1);
-}
-
-.toxeia .tox-wind.still .vane-arrow {
-  opacity: 0.25;
-}
-
-.toxeia .tox-wind b {
-  font: 800 clamp(2.6rem, 4.6vw, 4rem)/1 Georgia, serif;
-  font-variant-numeric: tabular-nums;
-}
-
-.toxeia .tox-wind small {
-  align-self: end;
-  padding-bottom: 0.45rem;
-  font: 700 clamp(1rem, 1.5vw, 1.3rem)/1 system-ui, sans-serif;
-}
-
-/* ── The range: the white-ground frieze ───────────────────────────────────── */
+/* ── The range: the target, face on ───────────────────────────────────────── */
 
 .toxeia .range {
   position: relative;
@@ -166,29 +113,50 @@
   display: block;
   width: 100%;
   height: auto;
-  max-height: 62vh;
+  max-height: min(62vh, calc(100svh - 22.5rem));
   overflow: visible;
 }
 
-/* The pennants stream the way the wind blows and flutter faster in a strong one. */
-.toxeia .range-art .flag {
-  transform-origin: 0 0;
-  animation: tox-flutter var(--flutter, 1.2s) ease-in-out infinite alternate;
-}
-
-.toxeia .range-art .ribbon {
-  transform-origin: 0 34px;
-  animation: tox-ribbon var(--flutter, 1.2s) ease-in-out infinite alternate;
-}
-
-/* The aim ring: it follows the bow at ~20 Hz, eased between updates. */
-.toxeia .range-art .aim {
-  transition: transform 0.06s linear;
+/* The aim dot glides after the bow (Range.tsx eases it every frame) and pulses. */
+.toxeia .range-art .aim-pulse {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: tox-pulse 1.1s ease-out infinite;
 }
 
 .toxeia[data-phase='flight'] .range-art .aim,
 .toxeia[data-phase='pass'] .range-art .aim {
   opacity: 0.35;
+}
+
+/* The wind overlay, top left: the arrow turns to the wind. */
+.toxeia .range-art .wind-label {
+  fill: var(--figure);
+  font: 700 28px system-ui, sans-serif;
+  letter-spacing: 0.14em;
+}
+
+.toxeia .range-art .wind-arrow {
+  fill: var(--figure);
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  rotate: var(--toward, 0deg);
+  transition: rotate 0.7s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.toxeia .range-art .wind.still .wind-arrow {
+  opacity: 0.25;
+}
+
+.toxeia .range-art .wind-speed {
+  fill: var(--figure);
+  font: 800 76px Georgia, serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.toxeia .range-art .wind-unit {
+  fill: var(--figure);
+  font: 700 30px system-ui, sans-serif;
 }
 
 /* The draw meter: slip while weak, terracotta when good, gold at a full draw. */
@@ -200,7 +168,7 @@
 
 .toxeia .draw-fill {
   fill: var(--slip);
-  transition: width 0.08s linear;
+  transition: y 0.08s linear, height 0.08s linear;
 }
 
 .toxeia .draw-meter.good .draw-fill {
@@ -211,20 +179,22 @@
   fill: var(--gold);
 }
 
-/* The archer: the bow and string bend as he draws (the art does it); on the loose
-   the string thrums and the bow kicks. */
-.toxeia .archer.loosed .string {
-  animation: tox-thrum 0.3s ease-out;
+/* On the loose the meter's frame flashes gold. */
+.toxeia .draw-meter.loosed .draw-frame {
+  animation: tox-loose 0.35s ease-out;
 }
 
-.toxeia .archer.loosed .bow {
+/* The flight, the thunk, the arrow in the face. The arrow leaves the bow (below
+   the frame) big and shrinks into the face; it sticks and the target jolts when
+   the flight lands (--flight after the loose). */
+.toxeia .range-art .flight {
   transform-box: fill-box;
   transform-origin: 50% 50%;
-  animation: tox-kick 0.3s ease-out;
+  animation:
+    tox-fly var(--flight, 0.55s) cubic-bezier(0.2, 0.55, 0.35, 1) both,
+    tox-out 0.01s linear var(--flight, 0.55s) forwards;
 }
 
-/* The flight, the thunk, the arrow in the face. The arrow appears and the target
-   jolts when the flight lands (--flight after the loose). */
 .toxeia .range-art .stuck.fresh {
   animation: tox-stick 0.01s linear var(--flight, 0.55s) both;
 }
@@ -248,16 +218,16 @@
   animation: tox-shock 0.5s ease-out var(--flight, 0.55s) both;
 }
 
-/* The score, stamped as the arrow lands: big, by the target. The gold is gold. */
+/* The score, stamped as the arrow lands: big, right of the target. The gold is gold. */
 .toxeia .tox-stamp {
   position: absolute;
-  top: 8%;
-  right: 2.5%;
+  top: 10%;
+  right: 13%;
   z-index: 3;
   min-width: 1.6em;
   padding: 0.05em 0.3em 0.12em;
   color: var(--slip);
-  font: 900 clamp(4rem, 9vw, 7rem)/1 Georgia, serif;
+  font: 900 clamp(3.4rem, 7vw, 6rem)/1 Georgia, serif;
   text-align: center;
   background: var(--figure);
   border-radius: 0.2em;
@@ -349,29 +319,66 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* The champion's row (li.champ, at the end): gold, with a flat black offset. */
+.toxeia .tox-board li.champ {
+  background: var(--gold);
+  box-shadow: 0.3rem 0.3rem 0 var(--figure);
+}
+
+/* ── The end: the champion's face beside the board, so the board and Rematch
+   fit on one screen ──────────────────────────────────────────────────────── */
+
+.toxeia[data-phase='done'] .range-art {
+  max-height: min(42vh, 24rem);
+}
+
+.toxeia[data-phase='done'] .draw-meter {
+  display: none;
+}
+
+.toxeia[data-phase='done'] .range-art .wind {
+  display: none;
+}
+
+.toxeia[data-phase='done'] .tox-board li.up:not(.champ) {
+  background: var(--slip);
+}
+
+@media (min-width: 901px) {
+  .toxeia[data-phase='done'] {
+    grid-template-columns: minmax(0, 1.45fr) minmax(16rem, 1fr);
+    align-items: start;
+  }
+
+  .toxeia[data-phase='done'] .tox-top {
+    grid-column: 1 / -1;
+  }
+
+  .toxeia[data-phase='done'] .tox-board {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+  }
+
+  .toxeia[data-phase='done'] .tox-board li {
+    padding: 0.7rem 1rem;
+  }
+}
+
 /* ── Keyframes ───────────────────────────────────────────────────────────── */
 
-@keyframes tox-flutter {
-  from { transform: skewY(-5deg) scaleX(0.94); }
-  to { transform: skewY(6deg) scaleX(1.03); }
+@keyframes tox-pulse {
+  0% { opacity: 0.7; scale: 1; }
+  100% { opacity: 0; scale: 1.9; }
 }
 
-@keyframes tox-ribbon {
-  from { transform: skewY(-9deg); }
-  to { transform: skewY(9deg); }
+@keyframes tox-loose {
+  0% { fill: var(--gold); }
+  100% { fill: var(--figure); }
 }
 
-@keyframes tox-thrum {
-  0%, 100% { transform: none; }
-  20% { transform: translateX(-3px); }
-  40% { transform: translateX(2px); }
-  60% { transform: translateX(-1px); }
-}
-
-@keyframes tox-kick {
-  0% { transform: none; }
-  30% { transform: translateX(5px) rotate(-3deg); }
-  100% { transform: none; }
+@keyframes tox-fly {
+  from { translate: var(--fx, 0) var(--fy, 0); scale: 3.4; }
+  to { translate: 0 0; scale: 1; }
 }
 
 @keyframes tox-stick {
@@ -381,8 +388,8 @@
 
 @keyframes tox-jolt {
   0% { transform: none; }
-  20% { transform: translateX(10px) rotate(1.5deg); }
-  50% { transform: translateX(-4px) rotate(-0.6deg); }
+  20% { transform: scale(0.982) translateY(4px); }
+  55% { transform: scale(1.006); }
   100% { transform: none; }
 }
 
@@ -408,10 +415,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .toxeia .range-art .flag,
-  .toxeia .range-art .ribbon,
-  .toxeia .archer.loosed .string,
-  .toxeia .archer.loosed .bow,
+  .toxeia .range-art .aim-pulse,
+  .toxeia .draw-meter.loosed .draw-frame,
   .toxeia .range-art .target.thunk,
   .toxeia .range-art .thunk-spark .shock {
     animation: none;

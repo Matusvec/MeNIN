@@ -1,13 +1,12 @@
-// Toxeia on the arena screen: who's shooting, the wind, the range (artist's Range: the archer
-// drawing with the arrow phone, the target, the bow's live aim, the flight and the thunk), the
-// score stamp, and the board. lib/toxeia.ts calls the range; this only draws it, in artist's
-// white-ground look (toxeia.css, artist's file: its class contract is at its top).
+// Toxeia on the arena screen: who's shooting, the range (artist's Range: the target with the
+// bow's live aim dot, the wind, the draw meter, the flight and the thunk), the score stamp, and
+// the board. lib/toxeia.ts calls the range; this only draws it, in artist's white-ground look
+// (toxeia.css, artist's file: its class contract is at its top).
 
 import { useEffect, useState, type CSSProperties } from 'react'
 import type { ArenaView } from './lib/arena'
 import { AIM_SPAN, ARROWS, arrowsOf, newest, nextUp, onFace, order, seenAt, standings, windOf, type ToxeiaFeed } from './lib/toxeia'
 import Range, { FLIGHT_S, type ToxShot } from './toxeia/Range'
-import WindVane from './toxeia/WindVane'
 import './toxeia.css'
 
 // Archer colors in shooting order, in the pottery palette (as the Stadion's lanes).
@@ -67,7 +66,6 @@ export default function ToxeiaPanel({ view }: { view: ArenaView & ToxeiaFeed }) 
           <b>{shooter?.name ?? 'Toxeia'}</b>
           <span>{phase === 'done' && shooter ? 'Champion' : shooter && arrowNo ? `Arrow ${arrowNo} of ${ARROWS}` : 'The archery'}</span>
         </div>
-        <WindVane wind={windOf(range)} />
         <div className="tox-total">
           <strong>{shooter?.total ?? 0}</strong>
           <small>points</small>

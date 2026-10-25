@@ -666,13 +666,13 @@ body:has(.menin-scene.on) .mode-layout:has(.arena:not([data-phase='none'])) .wor
   padding-bottom: 4.6rem;
 }
 
+/* The host note (one room per arena, voice and sound notes) stays in the flow,
+   small, at the right under the action rows, so it never covers a button or the
+   scene. */
 .arena .host-guard {
-  position: fixed;
-  right: 6.6rem;
-  bottom: 1rem;
-  z-index: 20;
-  max-width: 17rem;
-  margin: 0;
+  justify-self: end;
+  max-width: 28rem;
+  margin: 0.8rem 0 0 auto;
   font-size: 0.68rem;
   line-height: 1.3;
   opacity: 0.7;
