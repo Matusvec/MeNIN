@@ -244,3 +244,188 @@ private struct TrackLine: View {
         .accessibilityLabel("\(Int(progress * 100)) percent of the track")
     }
 }
+
+// MARK: - Boxing
+
+/// The boxer's phone: your health, theirs, and every hit felt. Props in; the
+/// iOS lead's fight session fills it.
+struct FightModel: Equatable {
+    enum Phase: Equatable {
+        case waiting(String?)
+        /// 3, 2, 1, then 0 for FIGHT.
+        case countdown(Int)
+        case fighting
+        case ko(won: Bool)
+    }
+
+    /// One hit, as the phone shows it: `landed` when you hit them, else you took it.
+    struct Hit: Equatable {
+        var id: Int
+        var landed: Bool
+        /// "JAB!", "HOOK!", "UPPERCUT!", "BODY!".
+        var label: String
+    }
+
+    var phase: Phase = .waiting(nil)
+    var me: PoetPlate?
+    var opponent: PoetPlate?
+    /// 0...1.
+    var myHealth: Double = 1
+    var theirHealth: Double = 1
+    /// Seconds left in the bout.
+    var seconds: Int?
+    var hit: Hit?
+}
+
+struct FightView: View {
+    let model: FightModel
+    var onBack: (() -> Void)? = nil
+
+    @State private var flashes = 0
+
+    var body: some View {
+        ZStack {
+            StadionPalette.clay.ignoresSafeArea()
+            VStack(spacing: Metrics.s3) {
+                MeanderBand().stroke(StadionPalette.figure, lineWidth: 2.5).frame(height: 14).padding(.horizontal, 6)
+                HStack(spacing: Metrics.s3) {
+                    if let onBack { BackButton(action: onBack) }
+                    Text("Boxing").tracked(10, color: StadionPalette.figure.opacity(0.75))
+                    Spacer()
+                    if let seconds = model.seconds, model.phase == .fighting {
+                        Text("\(seconds)")
+                            .font(Typeface.display(24, weight: 800))
+                            .foregroundStyle(seconds <= 10 ? Color.white : StadionPalette.figure)
+                            .frame(width: 52, height: 52)
+                            .background(seconds <= 10 ? Palette.vermilion : StadionPalette.slip, in: Circle())
+                            .overlay(Circle().strokeBorder(StadionPalette.figure, lineWidth: 3))
+                            .contentTransition(.numericText(countsDown: true))
+                    }
+                }
+                .padding(.horizontal, Metrics.s4)
+                HStack(spacing: Metrics.s3) {
+                    HealthBand(name: model.me?.name ?? "You", health: model.myHealth, seat: model.me?.ink, trailing: false)
+                    HealthBand(name: model.opponent?.name ?? "Them", health: model.theirHealth, seat: model.opponent?.ink, trailing: true)
+                }
+                .padding(.horizontal, Metrics.s4)
+                Spacer(minLength: 0)
+                stage
+                Spacer(minLength: 0)
+                MeanderBand().stroke(StadionPalette.figure, lineWidth: 2.5).frame(height: 14).padding(.horizontal, 6)
+            }
+            .padding(.vertical, Metrics.s2)
+            flash
+        }
+        .animation(Motion.stamp, value: model.phase)
+        .onChange(of: model.hit?.id) { _, new in
+            if new != nil { flashes += 1 }
+        }
+        .sensoryFeedback(trigger: model.hit?.id) { _, _ in
+            guard let hit = model.hit else { return nil }
+            return hit.landed ? .impact(weight: .medium) : .impact(weight: .heavy, intensity: 1)
+        }
+    }
+
+    @ViewBuilder
+    private var stage: some View {
+        switch model.phase {
+        case .waiting(let line):
+            VStack(spacing: Metrics.s4) {
+                Text("Fists up!")
+                    .font(Typeface.display(52, weight: 900))
+                    .foregroundStyle(StadionPalette.figure)
+                Text(line ?? "Hold the phone like a fist. Point it at your rival and punch: the side you point to throws.")
+                    .font(Typeface.text(16, weight: 600))
+                    .foregroundStyle(StadionPalette.figure.opacity(0.8))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, Metrics.s6)
+            }
+        case .countdown(let n):
+            Text(n > 0 ? "\(n)" : "FIGHT")
+                .font(Typeface.display(n > 0 ? 220 : 110, weight: 900))
+                .foregroundStyle(StadionPalette.slip)
+                .shadow(color: StadionPalette.figure, radius: 0, x: 8, y: 8)
+                .minimumScaleFactor(0.5)
+                .lineLimit(1)
+                .id(n)
+                .transition(.scale(scale: 1.6).combined(with: .opacity))
+        case .fighting:
+            VStack(spacing: Metrics.s3) {
+                Text("Fists up!")
+                    .font(Typeface.display(52, weight: 900))
+                    .foregroundStyle(StadionPalette.figure)
+                if let hit = model.hit {
+                    // The last hit, stamped: gold when you landed it, vermilion when you took it.
+                    Text(hit.label)
+                        .font(Typeface.display(44, weight: 900))
+                        .foregroundStyle(hit.landed ? StadionPalette.gold : Palette.vermilion)
+                        .shadow(color: StadionPalette.figure, radius: 0, x: 4, y: 4)
+                        .id(hit.id)
+                        .transition(.scale(scale: 1.8).combined(with: .opacity))
+                }
+            }
+        case .ko(let won):
+            VStack(spacing: Metrics.s3) {
+                Text("KO")
+                    .font(Typeface.display(160, weight: 900))
+                    .foregroundStyle(won ? StadionPalette.gold : StadionPalette.slip)
+                    .shadow(color: StadionPalette.figure, radius: 0, x: 8, y: 8)
+                Text(won ? "You win" : "You're down")
+                    .font(Typeface.display(30, weight: 700))
+                    .foregroundStyle(StadionPalette.figure)
+            }
+            .transition(.scale(scale: 1.4).combined(with: .opacity))
+        }
+    }
+
+    /// The hit flash: the whole screen takes it, gold when you land, vermilion when you're hit.
+    private var flash: some View {
+        let landed = model.hit?.landed ?? true
+        return (landed ? StadionPalette.gold : Palette.vermilion)
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
+            .keyframeAnimator(initialValue: 0.0, trigger: flashes) { color, o in color.opacity(o) } keyframes: { _ in
+                MoveKeyframe(flashes > 0 ? 0.6 : 0)
+                CubicKeyframe(0, duration: 0.35)
+            }
+    }
+}
+
+/// Health as a vase band: a meander-framed strip of slip draining to black.
+private struct HealthBand: View {
+    let name: String
+    let health: Double
+    var seat: Color?
+    /// The opponent's band drains toward the center, mirroring yours.
+    var trailing: Bool
+
+    var body: some View {
+        VStack(alignment: trailing ? .trailing : .leading, spacing: 4) {
+            Text(name)
+                .font(Typeface.display(15, weight: 700))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(seat ?? StadionPalette.figure, in: Capsule())
+            GeometryReader { geo in
+                let w = geo.size.width * CGFloat(min(1, max(0, health)))
+                ZStack(alignment: trailing ? .trailing : .leading) {
+                    Rectangle().fill(StadionPalette.figure)
+                    ZStack {
+                        Rectangle().fill(health < 0.3 ? Color(hex: 0xE07A4A) : StadionPalette.slip)
+                        MeanderBand().stroke(StadionPalette.figure, lineWidth: 1.5).padding(.vertical, 3)
+                    }
+                    .frame(width: w)
+                    .clipped()
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 3, style: .continuous).strokeBorder(StadionPalette.figure, lineWidth: 2.5))
+            }
+            .frame(height: 22)
+            .animation(.easeOut(duration: 0.25), value: health)
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(name) health \(Int(health * 100)) percent")
+    }
+}
