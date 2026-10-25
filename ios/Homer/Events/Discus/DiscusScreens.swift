@@ -64,7 +64,7 @@ struct DiscusArenaRoot: View {
         switch battle.room?.phaseValue {
         case .lobby:
             let ready = battle.players.count >= 2
-            Button { battle.startBattle() } label: { ArrowLabel(title: ready ? "Begin" : "Waiting for throwers") }
+            Button { battle.startBattle() } label: { ArrowLabel(title: ready ? "Start throwing" : "Waiting for throwers") }
                 .buttonStyle(.homer)
                 .disabled(!ready)
                 .padding(.bottom, Metrics.s6)
