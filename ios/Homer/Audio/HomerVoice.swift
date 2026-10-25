@@ -225,6 +225,21 @@ final class HomerVoice {
     private static var bakedCache: [String: [Float]] = [:]
 
     /// Bundled audio for a fixed line, if it was rendered at the stage's format.
+    /// The text each baked lesson demo speaks, as `bakedKey` of the server's `demoSpoken` when it
+    /// was baked. Re-bake a demo and update its hash together.
+    static let bakedDemos: [String: String] = [
+        "lesson-beat-demo": "68de495071cffb6d",
+        "lesson-formula-demo": "95f955422c7040f6",
+        "lesson-epithet-demo": "5969ac75645b4629",
+    ]
+
+    /// A baked lesson demo, only if it speaks exactly `text`: a rewritten verse falls back to live
+    /// voice, so the caption and the audio can never disagree.
+    static func bundledDemo(_ key: String, text: String) -> [Float]? {
+        guard bakedDemos[key] == bakedKey(text) else { return nil }
+        return bundled(key)
+    }
+
     static func bundled(_ key: String) -> [Float]? {
         guard let url = Bundle.main.url(forResource: key, withExtension: "caf", subdirectory: "Voice")
                 ?? Bundle.main.url(forResource: key, withExtension: "caf"),

@@ -812,9 +812,15 @@ struct PhoneHomeView: View {
                 .focused($typing)
                 .onChange(of: code) { code = String(code.uppercased().filter(\.isLetter).prefix(4)) }
                 .onSubmit(join)
+                .tint(Palette.action)  // the caret
                 .padding(.horizontal, Metrics.s4)
                 .padding(.vertical, Metrics.s2)
                 .background(Palette.paper, in: RoundedRectangle(cornerRadius: Metrics.radiusM, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: Metrics.radiusM, style: .continuous)
+                        .strokeBorder(Palette.action, lineWidth: typing ? 3 : 0)
+                }
+                .animation(.easeOut(duration: 0.12), value: typing)
                 .accessibilityLabel("Room code")
             if let joinError {
                 Text(joinError).font(Typeface.text(13, weight: 600)).foregroundStyle(Palette.cream)

@@ -141,7 +141,8 @@ private struct HallKey {
         hasLedge = false
         switch kind {
         case .primary, .destructive:
-            face = ramp(0xC3D3DA, 0xADC1CA); rim = .white; label = .white
+            // Quieter, not invisible: ink-muted on pale sea-track is about 4.9:1.
+            face = ramp(0xEDF6F8, 0xE3ECEF); rim = Color(hex: 0xC9D8DE); label = Color(hex: 0x4C6B7A)
         case .secondary, .cream:
             face = ramp(0xEDF6F8, 0xEDF6F8); rim = Color(hex: 0xD4E8EE); label = Color(hex: 0xA3B6BF)
         case .quiet:

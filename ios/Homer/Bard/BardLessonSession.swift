@@ -107,7 +107,7 @@ final class BardLessonSession {
             lane.startedAt = clock.beatAtMs
             demoLane = lane
         }
-        if let demo = HomerVoice.bundled("lesson-\(lesson.id)-demo") {
+        if let demo = HomerVoice.bundledDemo("lesson-\(lesson.id)-demo", text: lesson.demoSpoken) {
             // Baked so every stressed syllable sits on its pulse; the file starts 1 s before beat 1.
             turn.playVoice(demo, atMs: clock.beatAtMs - Self.demoPrerollMs)
             for (n, line) in lines.enumerated() {

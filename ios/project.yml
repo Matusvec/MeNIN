@@ -94,7 +94,28 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.matusvec.homer.tests
         GENERATE_INFOPLIST_FILE: YES
 
+  HomerUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: HomerUITests
+    dependencies:
+      - target: Homer
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.matusvec.homer.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Homer
+
 schemes:
+  HomerUITests:
+    build:
+      targets:
+        Homer: all
+        HomerUITests: [test]
+    test:
+      targets:
+        - HomerUITests
   Homer:
     build:
       targets:
