@@ -2,7 +2,8 @@ import simd
 
 // The scene's look, per mood. Each mood is four matte inks (dark to light)
 // laid down as flat paper-cut layers, plus how the field and the flecks move.
-// `rest` is the idle state: the wine-dark sea.
+// `rest` is the idle state: Hall's white Aegean, Atelier's cream page, or Cut
+// paper's wine-dark sea.
 
 enum Mood: Int, CaseIterable {
     case rest, anger, grief, joy, awe, tenderness, fear, defiance, longing
@@ -84,15 +85,32 @@ struct MoodStyle {
 extension Mood {
     var style: MoodStyle { Mood.styles[rawValue] }
 
-    /// The styles for the current design direction. Only `rest` differs: Atelier
-    /// rests on the cream page, Cut paper on the wine-dark sea.
-    static var styles: [MoodStyle] { Direction.current == .atelier ? atelierStyles : cutPaperStyles }
+    /// The styles for the current design direction. Only `rest` differs: Hall rests
+    /// on the website's white Aegean, Atelier on the cream page, Cut paper on the
+    /// wine-dark sea.
+    static var styles: [MoodStyle] {
+        switch Direction.current {
+        case .hall: hallStyles
+        case .atelier: atelierStyles
+        case .cutPaper: cutPaperStyles
+        }
+    }
 
+    private static let hallStyles = Mood.allCases.map { $0.makeStyle(.hall) }
     private static let atelierStyles = Mood.allCases.map { $0.makeStyle(.atelier) }
     private static let cutPaperStyles = Mood.allCases.map { $0.makeStyle(.cutPaper) }
 
     private func makeStyle(_ direction: Direction) -> MoodStyle {
         switch self {
+        case .rest where direction == .hall:
+            // The website's light Aegean (homer/web/src/scene/moods.ts), whiter and
+            // moving more: mostly white paper, the sea blue flowing through it in
+            // slow bands, a few blue flecks drifting.
+            return MoodStyle(
+                inks: [0x8CC4D9, 0xC4E3EE, 0xE6F3F8, 0xF7FBFC],
+                field: FieldMotion(speed: 0.07, drift: [0.03, 0.005], turb: 1.2, jag: 0, detail: 0.2, scale: 0.8, tremble: 0, lightY: -0.45, lightAmt: 0.1, soft: 0.004, lift: 0.1, tilt: -0.35, amp: 0.45),
+                flecks: FleckMotion(spawn: .anywhere, vel: [0.01, 0.018], radial: 0, jitter: 0.02, bounce: 0, sway: 0.012, drag: 0.2, life: 8...12, size: 2...4, shape: .dot, alpha: 0.55, ink: 0),
+                wash: .below)
         case .rest where direction == .atelier:
             // The page from the concept (#F7F3EC), with faint paper layers in it.
             return MoodStyle(

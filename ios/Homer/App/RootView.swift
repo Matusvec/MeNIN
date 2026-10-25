@@ -22,7 +22,7 @@ struct RootView: View {
             content
         }
         // The palette ignores the system scheme; pin system chrome to match it (dark-mode Mac arena).
-        .preferredColorScheme(Direction.current == .atelier ? .light : .dark)
+        .preferredColorScheme(Direction.current.isLight ? .light : .dark)
         .onOpenURL { app.open($0) }
         .onChange(of: app.route, initial: true) { app.routeChanged() }
     }
@@ -115,6 +115,8 @@ struct RootView: View {
             }
         case .dev:
             Routed(app: app, title: "Dev", chrome: true) { DevMenu(app: app) }
+        case .gallery(let page):
+            DesignGalleryView(page: page)
         }
     }
 }

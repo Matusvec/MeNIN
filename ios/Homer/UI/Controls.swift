@@ -22,7 +22,12 @@ struct HomerButtonStyle: ButtonStyle {
             .padding(.horizontal, 18 * k)
             .frame(minHeight: 44 * k)
             .background {
-                if kind != .quiet {
+                if kind == .primary && Direction.current == .hall {
+                    // The website's pressable key: a sea gradient on a hard ledge (docs/hall-tokens.md).
+                    RoundedRectangle(cornerRadius: Metrics.radiusS * k, style: .continuous)
+                        .fill(LinearGradient(colors: [Color(hex: 0x65B9D8), Palette.action], startPoint: .top, endPoint: .bottom))
+                        .shadow(color: Color(hex: 0x287794), radius: 0, x: 0, y: configuration.isPressed ? 1 : 4 * k)
+                } else if kind != .quiet {
                     RoundedRectangle(cornerRadius: Metrics.radiusS * k, style: .continuous)
                         .fill(fill)
                         .overlay {
@@ -40,7 +45,7 @@ struct HomerButtonStyle: ButtonStyle {
 
     private var fill: Color {
         switch kind {
-        case .primary: Palette.hero
+        case .primary: Palette.action
         case .cream: Palette.onHero
         case .secondary: Palette.paper
         case .quiet: .clear

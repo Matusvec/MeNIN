@@ -11,7 +11,7 @@ struct AppIconArt: View {
         GeometryReader { geo in
             let s = geo.size.width
             Group {
-                if direction == .atelier { atelier(s) } else { cutPaper(s) }
+                if direction.isLight { atelier(s) } else { cutPaper(s) }
             }
             .colorEffect(ShaderLibrary.paperGrain(.float(0.04)))
         }

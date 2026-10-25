@@ -20,6 +20,8 @@ final class AppModel {
         /// Discus solo: a throw with no server and no second phone (Events/Discus).
         case discusThrow
         case dev
+        /// Dev: the design gallery at one page (`-startScreen gallery -galleryPage N`), for renders.
+        case gallery(page: Int)
     }
 
     /// Events playable on this build (SPEC "The games": a tile that can't run 5 times in a row
@@ -64,6 +66,7 @@ final class AppModel {
         case "practice": route = .practice
         case "bard": route = .bard
         case "first": route = .firstOpen
+        case "gallery": route = .gallery(page: defaults.integer(forKey: "galleryPage"))
         default: break
         }
     }
@@ -85,7 +88,7 @@ final class AppModel {
             music.play(.trainingAmbience)
         case .player:
             music.stopAll()
-        case .arena, .firstOpen, .dev, .discusThrow:
+        case .arena, .firstOpen, .dev, .discusThrow, .gallery:
             break
         }
     }

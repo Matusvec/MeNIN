@@ -176,7 +176,8 @@ struct AxisRow: View {
                 }
             }
             Text("\(value)")
-                .font(Typeface.display(20, on: stage, weight: 600))
+                .font(Typeface.text(17 * k, weight: 600))  // Inter: Bodoni's small "10" reads as "IO"
+                .monospacedDigit()
                 .foregroundStyle(Palette.ink)
                 .frame(width: 24 * k, alignment: .trailing)
                 .contentTransition(.numericText(value: Double(value)))
