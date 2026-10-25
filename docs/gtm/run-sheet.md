@@ -129,14 +129,14 @@ Between judges, or after a judge stays for a rematch. The spec's target is under
 
 ## Switching events, and the motion games
 
-These are the only operator steps for the Stadion, boxing (Pygmachia) and archery. **The 8 PM runs fail any run where someone does a step that isn't on this sheet** (`docs/ux-flow.md`, "Sat 8 PM runs"), so do exactly these. Sources: `homer/web/src/Arena.tsx`, `lib/stadion.ts`, `lib/boxing.ts`, and SPEC for archery (pm, Sat ~6:15 PM).
+These are the only operator steps for the Stadion, boxing (Pygmachia) and archery. **The 8 PM runs fail any run where someone does a step that isn't on this sheet** (`docs/ux-flow.md`, "Sat 8 PM runs"), so do exactly these. Sources: `homer/web/src/Arena.tsx`, `lib/stadion.ts`, `lib/boxing.ts`, `lib/toxeia.ts` and the phone's archery screens (archery on the website since 0dd557e, Sat 6:35 PM).
 
 ### Every event
 
 - **Begin needs at least two players joined.**
 - **Switching events means a new hall.** An open hall has no "New event" button. To change events:
   1. Operator: reload the arena tab.
-  2. Operator: click **"Open the hall: {event}"**. The buttons read "Stadion" and "Pygmachia (beta)"; archery has no button yet, because it's still in build.
+  2. Operator: click **"Open the hall: {event}"**. The buttons read "Stadion", "Pygmachia (beta)" and "Toxeia (beta)" (archery).
   3. Players: type the **new room code** on their phones. That rejoin is a step, so do it every time.
   4. Operator: **Begin** once at least two players show on the arena.
   - Budget about 30 seconds, or more, for a switch at the table (reload, new code, every phone rejoining).
@@ -166,17 +166,20 @@ These are the only operator steps for the Stadion, boxing (Pygmachia) and archer
 | Operator | Press nothing until Rematch. |
 | Fighters | Phone held like a fist. **Stand more than an arm's length apart and punch the air, never at each other.** |
 
-### Archery (in build, not on the website yet)
+### Archery (Toxeia, beta)
 
-From SPEC and the phone code. Don't run it at the table until it has a website button and passes its 5 clean runs.
+On the website since Sat 6:35 PM; a scripted run passed at 6:34 (2 archers, 6 arrows). Don't run it for judges until it passes its 5 clean runs on real phones. **Nothing starts by itself:** the bow phone starts each archer, and the arena's scoreboard of joined phones hides once the range opens (the range has its own board).
 
 | Who | Step |
 | --- | --- |
-| Operator | Open the hall: archery (once it has a button). Both phones join with the new code; they count as the two players, so Begin's minimum is met. Begin. |
-| Players | Two team phones join. The first to join is the **bow**, the other the **arrow**, and each says which it is in big type. |
-| The bow phone | Asks each archer's name. |
-| Each archer | Stands facing the screen with the bow arm out and shoots 3 arrows. Each arrow has 45 s before it's lost. After the third arrow, pass **both** phones to the next archer, hand to hand. |
-| Operator | Rematch at the end. |
+| Operator | Open the hall: **Toxeia (beta)**. Until two phones join, Begin reads "Waiting for the bow and the arrow". |
+| Players | Two team phones join with the new code. The first to join is the **bow**, the other the **arrow**; each shows BOW or ARROW in big type. |
+| Operator | **Begin.** Homer reads the rules once. The range says "Name the first archer on the bow". |
+| The bow phone | Held out at arm's length, pointed at the target: tap **Ready** (where it points becomes the centre). Then type the archer's name under "Next archer" and tap **"I'm up: {name}"**. |
+| Each archer | Bow phone in the outstretched hand, aimed at the target. Arrow phone in the other hand: **hold to nock**, pull back toward your face ("Full draw. Let go!"), let go to shoot. 3 arrows, 45 s each before it's lost. The next arrow follows by itself. |
+| Between archers | Both phones read "Pass both phones to the next archer". Pass **both**, hand to hand. The next archer types their name on the bow phone. |
+| To end | After the last archer, tap **"That's everyone"** on the bow phone. (The arena's **Finish** button does the same, only between archers.) Homer crowns the best total: "The bow goes to {name}, with {total}." |
+| Operator | Press nothing while arrows fly. **"Next" during an arrow's score skips its reveal**, so it counts as a fallback. Rematch at the end. |
 
 ### At the table
 
