@@ -333,3 +333,15 @@ Export it the same way as the Devpost video. Upload it unlisted as its own YouTu
 ## Hacker's Choice clips (separate from both videos)
 
 At karaoke and around the hall, film 15-second vertical clips on any phone: a discus throw, the scene shifting color during a verse, a crowd reacting to a verdict. Post them tagging the sponsors. Only film people who said yes. One person, one hour at most, and never at the expense of the build.
+
+## What the research said (leader, Sun ~4:50 AM)
+
+Sources read before the v4/v5 polish pass: Devpost's own "6 tips for making a hackathon demo video" (https://info.devpost.com/blog/6-tips-for-making-a-hackathon-demo-video), hackathon.com's demo-video guide (https://tips.hackathon.com/article/creating-the-best-demo-video-for-a-hackathon-what-to-know), a 3-minute pitch guide (https://blogs.reskilll.com/hackathon-demo-presentation-tips-pitch-3-minutes-win-2026/), and general editing guidance on hooks and cut rhythm (https://reap.video/blog/video-editing-tips, https://www.capcut.com/create/music-video-pacing-emotional-montage-rhythm).
+
+What changed in the cut because of it:
+- **The elevator pitch lands in the first seconds**, not at the title: a one-line caption at 0:03 ("Homer judges your verse out loud. Live.") so the sound-off test passes before C1 at ~0:17. Devpost: "open with the elevator pitch and what the app does in the first few seconds."
+- **Real demo early, no slides, no code.** The battle stays the spine; the C2 diagram is the only explainer card and stays at 6.6 s.
+- **Clean audio is a judging factor.** The mix is verified by script (duration, true peak, -14 LUFS) before any render is named; v2 and v3 shipped with a 2.5 s silent track and nobody heard it until the leader's QA.
+- **Cut on the music.** The theme is 107.7 BPM (bar = 2.23 s); montage and card cuts snap to bar starts, with varied lengths (half a bar, one bar, two bars). The battle cuts on speech.
+- **Captions carry the message with sound off**, placed off the speaker's mouth.
+- **Don't speed up speech to fit**; trim at sentence ends instead (Matus's answers were trimmed, never sped).
