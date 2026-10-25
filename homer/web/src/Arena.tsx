@@ -201,7 +201,7 @@ export default function ArenaPanel({
   // count-in through the verdict, so the Mac's speakers never reach a phone's mic.
   const spokenGame = ['poetry', 'debate', 'coach'].includes(view?.room?.event ?? '')
   useMusic({
-    hush: spokenGame && ['ready', 'speaking', 'judging', 'scored'].includes(view?.room?.phase ?? ''),
+    hush: spokenGame && !['lobby', 'finished'].includes(view?.room?.phase ?? 'lobby'), // Matus: off for the whole battle, Begin through the crown
     duck: Boolean(view?.speaking), // the bed in lobbies and results, ducked only under Homer (leader overrides SPEC's "demo stays ducked")
   })
   // A poet's phone that drops for a moment shows nothing; "away" only after 3 s gone.

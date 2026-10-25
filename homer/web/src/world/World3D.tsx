@@ -29,8 +29,10 @@ const TRACK = 0xd9824f
 const SEA = 0x1f9be0
 const CYPRESS = 0x2f7a46
 const OLIVE = 0x6aa84f
-const SKIN = [0xf6d2b3, 0xeab68e, 0xd39a6c, 0xb07650, 0x8a5636, 0x5e3a23]
-const CROWD = [0xe94b3c, 0xf5a623, 0x4a90e2, 0x7ed321, 0x9b59b6, 0xf8e71c, 0x50e3c2, 0xff6fa8, 0xffffff, 0x1abc9c]
+// A Mediterranean crowd: fair, olive, tan and light brown skin.
+const SKIN = [0xf3d3b8, 0xe8bf9c, 0xd6ab82, 0xc69c6e, 0xb8875c, 0xa5764d]
+// Chitons and himations in undyed linen and wool (white, cream, ivory, beige, oatmeal), one muted ochre.
+const CROWD = [0xfbf8f1, 0xf3ead6, 0xefe6cf, 0xe2d3b5, 0xd8c8a8, 0xbf9a5f]
 
 const mat = (color: number, roughness = 0.85) => new THREE.MeshStandardMaterial({ color, roughness, metalness: 0 })
 
