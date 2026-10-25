@@ -54,18 +54,21 @@ Before and after numbers to capture for Adoptability: minutes from a Figma frame
 
 **What we did.** Matus asked for the app to "match the color scheme on the website, like the blue". The team ran it through the Figma variables we already had, not through code:
 1. **builder** pulled the website's real tokens out of its CSS (`homer/web/src/index.css`, `wired.css`) in 15 minutes, with Claude Code (a CSS scan plus headless Chrome), not Figma. **The website had no color variables at all.** 128 distinct hard-coded colors became 37 named color tokens. 69 type values became 16 type roles on 2 families, and 17 radii became 8 radius tokens. The 73 spacing values were left as they are. The sheet is `docs/hall-tokens.md`.
-2. **artist** added a third mode, **Hall**, to the "MeNIN" collection in "MeNIN · Directions". It sits beside Atelier and Cut paper, and every variable keeps its Swift name. Then artist laid out the frames that change: join, the event menu, the waits, the verdict, with more of the flowing scene behind them. [N variables, N frames, minutes].
-3. **swift** added `case hall` to the app's `Direction` switch (`ios/Homer/UI/Tokens.swift`), read the values from the Hall mode, and shipped **build 32**. [minutes from Hall values to build 32; lines in Tokens.swift; view files touched].
+2. **artist** added a third mode, **Hall**, to the "MeNIN" collection in "MeNIN · Directions". It sits beside Atelier and Cut paper, and every variable keeps its Swift name. All 36 variables got Hall values: the 31 existing ones plus 5 new seat variables. That took 5 minutes, plus a 3-minute contrast round. Then artist laid out the frames that change, with more of the flowing scene behind them: 12 frames in 8 minutes: 5 screens (join, a turn, the wait, the verdict and the arrow pad), each on the SE and the Pro Max, plus keyboard-up and held states. **The flip test:** switching the Verdict frame to Hall flipped 72 of its 73 bound fills in one step, and 8 of 9 on Join. The one left in each is the painted scene art, whose inks are hard-coded. Side by side: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=36-128 · the Hall page: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=30-102
+3. **swift** added `case hall` to the app's `Direction` switch (`ios/Homer/UI/Tokens.swift`), put in the Hall values, and shipped **build 32** (0.1.0, `202610242101`, uploaded 9:06 PM). It took 22 minutes from the agreed token table to the upload. Tokens.swift changed by +69/−36 lines, and only 5 view files outside it were touched, 1–9 lines each. **32 view files (119 views) took the new look with no edits, and no screen needed a hand-edited color.**
 
 **Before → after (Adoptability).**
 - Before (Sat 12:36 PM): matching the app to the website meant hand-copying values from a CSS file into Swift, screen by screen, with no record of which value came from where.
-- After (Sat ~10:15 PM): one new mode in Figma and one new case in the app. Flipping a Figma frame to Hall shows the app's look before any code is written. [Whole-app reskin: N lines of tokens + N view files; N rework rounds; N issues found in the real-phone visual pass.]
+- After (Sat 9:06 PM, build 32 uploaded): one new mode in Figma and one new case in the app. Flipping a Figma frame to Hall shows the app's look before any code is written: 72 of 73 fills on the Verdict frame, in one step. In code, the whole-app reskin was +69/−36 lines of tokens plus 5 small view edits, in 22 minutes, with 3 rework rounds. [What the real-phone visual pass on build 33 finds.]
 
 **Friction, kept honest.**
 - The sync is still by convention, not live. A Figma change reaches Swift only when an agent re-reads the variables (the same limit as the Fri 23:39 entry).
-- [Hard-coded colors that the reskin exposed in views, and how many.]
+- In Figma, the first pass of the Hall frames didn't match the real app and was rebuilt to it. pm's two review rounds raised 7 blocking issues and 10 notes, and artist caught 3 more fixes. The seat colors didn't match the website and were fixed before the build. Contrast took two rounds of computed ratios.
+- The painted scene art doesn't follow the variables (its inks are hard-coded), so it was the one fill per frame that didn't flip.
+- In code, 13 hard-coded colors are left (12 in the app-icon art, 1 shadow). There were 3 rework rounds: builder's sheet changed 6 values, the computed contrast ratios changed 3, and a grey system blur was dropped.
+- **The values went into Swift by hand**, from a token table agreed in both directions. They weren't read back from Figma with `get_variable_defs`. That read-back is the cheap check to add next time.
 - Step 1 was an audit, not a lookup: the Make-built website kept every color hard-coded (128 of them), so naming them took judgment, and the spacing (73 values) was too scattered to tokenize tonight.
-- [What the real-phone visual pass caught that the Figma frames didn't.]
+- [What the real-phone visual pass on build 33 caught that the Figma frames didn't.]
 - The website itself didn't change. It was already the reference, so this stage only moved the app.
 
 **Why it's repeatable.** One variable collection, one mode per look, and every variable named after its code token. A third look cost one mode and one enum case, not a fork. Another team can copy exactly that.
@@ -77,15 +80,15 @@ Before and after numbers to capture for Adoptability: minutes from a Figma frame
 >
 > We already kept every design token in one Figma variable collection, each variable named after its Swift token, with one mode per look (Atelier, Cut paper). So the fix was a **third mode, Hall**:
 > 1. Audit the website's CSS: 128 hard-coded colors became 37 named tokens. (15 min)
-> 2. Add Hall to the variables, and lay out the changed frames in Figma first. [minutes]
-> 3. Add one case to the app's `Direction` switch, and ship build 32. [minutes]
+> 2. Add Hall to the variables (36, in 5 min) and lay out the changed frames in Figma first (12, in 8 min). Flipping a frame to Hall turned 72 of its 73 fills in one step.
+> 3. Add one case to the app's `Direction` switch, and ship build 32. (22 min)
 >
 > **Before:** hand-copying values from a CSS file, screen by screen.
-> **After:** one mode in Figma, one case in code. [N lines, N view files, N rework rounds.]
+> **After:** one mode in Figma, one case in code. +69/−36 lines of tokens and 5 small view edits restyled 119 views. (22 min to build 32)
 >
-> **Friction:** the sync is by convention, not live. [hard-coded colors found]. [what the real-phone pass caught].
+> **Friction:** the sync is by convention, not live: values went in by hand, not read back from Figma. 3 rework rounds. 13 hard-coded colors left. [what the real-phone pass caught]
 >
-> *Embed: the Directions file with a frame flipped Atelier → Hall; a photo of build 32 next to the website.*
+> *Embed: the Atelier → Hall side by side (https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=36-128); a photo of build 32 next to the website. Live embeds need the Directions file shared "Anyone with the link → can view".*
 
 ## Log format
 
@@ -228,3 +231,10 @@ Figma's four stages are **Ideation, Prototyping, Handoff, Code generation**. Giv
 - Worked (1-5): 4
 - What made it into the project: page "Hall · Reskin" (https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=30-102), with **12 frames**: Join, Turn, Wait, Verdict (battle) and the camera Arrow pad, each at iPhone SE 375×667 and Pro Max 440×956, plus Join · SE · keyboard up and Arrow pad · SE · held. All are filled with the worst-case strings ("Konstantina, Tamer of the Wine-Dark Sea", a 7-word theme, three long phrases, a 100/100 score). Every frame's fit is **measured in the script** (stack height = frame height, spacers ≥ 5 pt), not eyeballed. Into the build: the Hall contrast values above, the frosted-card blur, Inter for small numerals, and the SE turn layout (the ring beside SPEAK). In code the same evening: the app's Metal scene got a Hall rest from the website's moods (`ios/Homer/Scene/Moods.swift`, `SceneRenderer.swift`).
 - Friction: **2 review rounds** from the product manager, with 7 blocking fixes and 10 notes. The first pass drew what a turn screen should show rather than what the app does: 5 axes with Flow first, "Round 2 of 3", Talk to Homer's "↑ from your last" on a battle verdict, and no countdown ring. The leader asked for frames that match the app, because judges will compare them. They were rebuilt to the app: Image/Answer/Craft, the 20 s ring, the required "Stuck?" line, live words as a tail with no ellipsis, and a keyboard-up Join. **3 self-caught fixes:** a draw-meter card stretched by a grow flag; Bodoni's "10" and "14" read as "IO" and "I4" at small sizes, so the numerals went to Inter; and Turn · Pro Max overflowed by 28 pt once the ring went in. The product manager approved both batches by 21:01 and said the measured fits made the reviews quick.
+
+### Code generation · Hall: the app takes the website's palette through the Direction switch · Sat Oct 24, 20:44–21:06
+- Tool(s): Swift by hand, from one token table agreed with the artist session by message before either of us built. The Swift names are the Figma variable names (code syntax `Palette.x`), so the table was the handoff. We didn't read the values back with `get_variable_defs`: the Figma mode and `Tokens.swift` were typed from the same table in parallel. A read-back after both land would be the cheap check to add next time. Renders came from one headless simulator, muted and booted only for screenshots (a debug route `-startScreen gallery -galleryPage N` opens any screen sample), because Matus's phone wasn't on the cable.
+- Minutes: 22, from the agreed table to build 32 uploaded (tokens compiling at 20:49, upload at 21:06)
+- Worked (1-5): 4
+- What made it into the project: **a whole-app reskin as one enum case.** `Direction.hall` is the new default, and every `Palette` token picks three ways. `ios/Homer/UI/Tokens.swift` is **+69/−36**, and **5 view files** changed outside it, each by 1–9 lines: `Controls.swift` (the primary key becomes the website's sea gradient on a hard ledge, through a new `Palette.action` token), `Scorecard.swift` (verdict numerals in Inter), `HomeView.swift` (no page fill, so the scene shows), and `AppIconArt.swift` and `RootView.swift` (light/dark through `Direction.isLight`). **32 view files (119 views) restyled with no edits and 0 hand-edited colours in any screen.** 13 hard-coded colours remain outside the tokens: 12 in the app-icon art and 1 shadow. The sports' pottery colours stay on purpose, because the website's sports use the same ones. Build **32 (0.1.0, 202610242101)**, uploaded to TestFlight at 21:06.
+- Friction: **3 rework rounds in 20 minutes.** (1) builder's extracted sheet (`docs/hall-tokens.md`) landed after the first values were in, and changed 6 of them: ink2, ink3, onPage2, accent (the website's label blue `#2F7F9C`), sea and gold. Gold text stayed at the darker bar gold so it reads on light. (2) The artist's computed contrast ratios changed 3 more (ink2 and onPage2 `#3F5F72`, goldDeep `#7A5A1E`). (3) A system blur under the frosted cards, which the Figma flip test asked for, rendered **grey** on the light sea, so it was dropped for 0.92 white alone, which stays readable over a strong gold mood. The leader also caught a stale gallery sample that still drew the old metronome turn ("BREATHE · 3 bars left"); the live turn has used the free-verse ring since build 17, and the sample now shows the real one. Still open: the product manager's SE-to-Pro-Max pass on a real phone (build 32), and Matus's whiter-scene tweak (build 33).

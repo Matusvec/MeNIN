@@ -268,7 +268,8 @@ struct HomeTabBar: View {
 #Preview {
     @Previewable @State var tab = "atelier"
     ZStack(alignment: .bottom) {
-        Palette.page.ignoresSafeArea()
+        // Hall: no page fill, the flowing scene is the page.
+        (Direction.current == .hall ? Color.clear : Palette.page).ignoresSafeArea()
         HomeView(name: "Alex",
                  lesson: .init(path: "Bard / Lesson 02", title: "The formula,\nhalf a line for free", meta: "Four-beat line · 4 min", progress: 0.6),
                  collectionSummary: "12 formulas · 2 battles · Herald")

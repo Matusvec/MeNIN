@@ -387,6 +387,8 @@ extension GallerySample {
         speak.moment = .speaking(lane: lane(ago: 13.2), transcript: "Wine-dark sea took my brother's ship\nthe whale-road swallowed his sails",
                                  hand: hand, rescueId: "2", talking: true, level: 0.6, pushToTalk: true)
         speak.homer = HomerLine(text: "Grey-eyed Athena.", whisper: true)
+        speak.handsFree = true
+        speak.verseWindow = VerseWindow(start: Date().addingTimeInterval(-7), end: Date().addingTimeInterval(13))
         var result = PlayerModel(me: me, code: "WKRD", round: 2, rounds: 3)
         result.moment = .result(card: card, reveal: 1, coined: "storm-throated")
         var final = PlayerModel(me: me, code: "WKRD", round: 3, rounds: 3)

@@ -10,23 +10,39 @@ import UIKit
 //   Bodoni Moda, wine as the one strong accent, hairline cards.
 // - Cut paper: the first art pass. Bold Fraunces, paper and ink slabs with
 //   cut-paper shadows over a dark, colorful scene.
+// - Hall: the website's palette (Matus, Sat 8:40 PM: "match the color scheme on
+//   the website, like the blue"). Atelier's type; the Aegean blues and slate
+//   inks of homer/web; frosted paper over the flowing white scene, which shows
+//   behind every screen. The default.
 //
 // Both are matte: flat fills, never gloss or glow. The scene brings the color.
 
 // MARK: - Direction
 
 enum Direction: String, CaseIterable, Sendable {
-    case atelier, cutPaper
+    case atelier, cutPaper, hall
 
     /// Chosen at launch (a debug setting until Matus picks). Views read it
     /// through Palette and Typeface; rebuild the view tree after changing it.
-    nonisolated(unsafe) static var current: Direction = .atelier
+    nonisolated(unsafe) static var current: Direction = .hall
 
-    var title: String { self == .atelier ? "Atelier" : "Cut paper" }
+    var title: String {
+        switch self {
+        case .atelier: "Atelier"
+        case .cutPaper: "Cut paper"
+        case .hall: "Hall"
+        }
+    }
 
-    /// Reads the saved choice (key `menin.direction`). Call once at launch, before any view.
+    /// A light page with Atelier's type and hairlines (Atelier and Hall); Cut paper is the dark one.
+    var isLight: Bool { self != .cutPaper }
+
+    /// The saved choice's key. `.v2` since Hall: a phone that saved Atelier earlier starts on Hall.
+    private static let key = "menin.direction.v2"
+
+    /// Reads the saved choice. Call once at launch, before any view.
     static func loadSaved() {
-        if let raw = UserDefaults.standard.string(forKey: "menin.direction"), let d = Direction(rawValue: raw) {
+        if let raw = UserDefaults.standard.string(forKey: key), let d = Direction(rawValue: raw) {
             current = d
         }
     }
@@ -34,7 +50,7 @@ enum Direction: String, CaseIterable, Sendable {
     /// Saves a new choice. Rebuild the view tree (or relaunch) to see it everywhere.
     static func save(_ d: Direction) {
         current = d
-        UserDefaults.standard.set(d.rawValue, forKey: "menin.direction")
+        UserDefaults.standard.set(d.rawValue, forKey: key)
     }
 }
 
@@ -51,52 +67,69 @@ extension Color {
 }
 
 enum Palette {
-    private static func pick(_ atelier: UInt32, _ cutPaper: UInt32) -> Color {
-        Color(hex: Direction.current == .atelier ? atelier : cutPaper)
+    private static func pick(_ atelier: UInt32, _ cutPaper: UInt32, _ hall: UInt32) -> Color {
+        switch Direction.current {
+        case .atelier: Color(hex: atelier)
+        case .cutPaper: Color(hex: cutPaper)
+        case .hall: Color(hex: hall)
+        }
     }
 
     // The page and its paper.
-    static var page: Color { pick(0xF7F3EC, 0x1A1325) }
-    static var paper: Color { pick(0xFFFCF7, 0xF3EADB) }
-    static var paper2: Color { pick(0xF2ECE2, 0xE9DCC6) }
-    static var paper3: Color { pick(0xE4DCD2, 0xDCCAB0) }
+    static var page: Color { pick(0xF7F3EC, 0x1A1325, 0xF7FBFC) }
+    /// Hall's paper is frosted: white at 0.92 over the flowing scene, like the website's cards (a
+    /// system material under it read grey on the light sea, so it's opacity alone).
+    static var paper: Color { Direction.current == .hall ? Color(hex: 0xFFFFFF, opacity: 0.92) : pick(0xFFFCF7, 0xF3EADB, 0xFFFFFF) }
+    static var paper2: Color { pick(0xF2ECE2, 0xE9DCC6, 0xEDF7F9) }
+    static var paper3: Color { pick(0xE4DCD2, 0xDCCAB0, 0xD4E8EE) }
     /// Hairlines on paper. Cut paper has none: its edges are shadows.
-    static var line: Color { Direction.current == .atelier ? Color(hex: 0xE4DCD2) : .clear }
+    static var line: Color {
+        switch Direction.current {
+        case .atelier: Color(hex: 0xE4DCD2)
+        case .cutPaper: .clear
+        case .hall: Color(hex: 0xC9D8DE)
+        }
+    }
 
     // Ink.
-    static var ink: Color { pick(0x302A29, 0x1C1524) }
-    static var ink2: Color { pick(0x82756E, 0x4B4153) }
-    static var ink3: Color { pick(0xA69A92, 0x8B8090) }
+    static var ink: Color { pick(0x302A29, 0x1C1524, 0x2C4B5C) }
+    static var ink2: Color { pick(0x82756E, 0x4B4153, 0x3F5F72) }
+    static var ink3: Color { pick(0xA69A92, 0x8B8090, 0x78909C) }
 
     // The hero surface: the poet's words, the carved line, a chosen card.
-    static var hero: Color { pick(0x682C3E, 0x1C1524) }
-    static var onHero: Color { pick(0xFFF8ED, 0xF3EADB) }
-    static var onHero2: Color { pick(0xDDC3C5, 0xA79EA3) }
+    static var hero: Color { pick(0x682C3E, 0x1C1524, 0x334B5B) }
+    static var onHero: Color { pick(0xFFF8ED, 0xF3EADB, 0xFFFFFF) }
+    static var onHero2: Color { pick(0xDDC3C5, 0xA79EA3, 0x9FCFE0) }
     /// Light text on any dark or colored slab (seat plates, the scoreboard).
-    static var cream: Color { pick(0xFFF8ED, 0xF3EADB) }
+    static var cream: Color { pick(0xFFF8ED, 0xF3EADB, 0xF7FBFC) }
 
     /// Text set straight on the page (Atelier's cream, Cut paper's dark sea).
-    static var onPage: Color { pick(0x302A29, 0xF3EADB) }
-    static var onPage2: Color { pick(0x82756E, 0xB9AFA8) }
+    static var onPage: Color { pick(0x302A29, 0xF3EADB, 0x2C4B5C) }
+    static var onPage2: Color { pick(0x82756E, 0xB9AFA8, 0x3F5F72) }
     /// The wordmark and other brand marks on the page.
-    static var brand: Color { pick(0x682C3E, 0xF3EADB) }
+    static var brand: Color { pick(0x682C3E, 0xF3EADB, 0x2E8EB5) }
+
+    /// The primary action's fill (the Join, Ready and Next buttons). The hero slab in Atelier and Cut
+    /// paper; the website's action blue in Hall. Text on it is onHero.
+    static var action: Color { pick(0x682C3E, 0x1C1524, 0x328EAF) }
 
     /// The accent on paper: labels, marks, the beat that's playing now.
-    static var accent: Color { pick(0x682C3E, 0x1F5361) }
+    static var accent: Color { pick(0x682C3E, 0x1F5361, 0x2F7F9C) }
 
     // Supporting inks, each with one job.
-    static var wine: Color { pick(0x682C3E, 0x6B1F3E) }
-    static var gold: Color { pick(0xC99A3E, 0xE8B73A) }      // hits, best lines, the hoard
-    static var goldDeep: Color { pick(0x9A7128, 0xA8720F) }  // gold on paper
-    static var vermilion: Color { pick(0xC8452C, 0xEC4A1C) } // live: the mic, the clock
-    static var sea: Color { pick(0x2D5C66, 0x1F5361) }       // Homer's voice
-    static var olive: Color { pick(0x6E7A2E, 0x6E7A2E) }     // Socrates
-    static var lilac: Color { pick(0x8A72C4, 0xAE84FF) }     // debate moves
+    static var wine: Color { pick(0x682C3E, 0x6B1F3E, 0x682C3E) }
+    static var gold: Color { pick(0xC99A3E, 0xE8B73A, 0xC99A3E) }      // hits, best lines, the hoard
+    static var goldDeep: Color { pick(0x9A7128, 0xA8720F, 0x7A5A1E) }  // gold on paper
+    static var vermilion: Color { pick(0xC8452C, 0xEC4A1C, 0xC8452C) } // live: the mic, the clock
+    static var sea: Color { pick(0x2D5C66, 0x1F5361, 0x328EAF) }       // Homer's voice
+    static var olive: Color { pick(0x6E7A2E, 0x6E7A2E, 0x6E7A2E) }     // Socrates
+    static var lilac: Color { pick(0x8A72C4, 0xAE84FF, 0x8A72C4) }     // debate moves
 
     /// One ink per poet seat, so a poet keeps their color all battle.
     static var seats: [Color] {
-        Direction.current == .atelier
-            // Wine is the hero surface in Atelier, so no seat wears it. The first four (a
+        Direction.current.isLight
+            // Wine is the hero surface in Atelier, so no seat wears it. Hall keeps Atelier's
+            // seats: the website's battle SEAT_INKS are these, so a poet's colour matches the big screen. The first four (a
             // full room) are four plainly different hues from 2 m: sea, vermilion, gold, plum.
             ? [0x2D5C66, 0xC8452C, 0xA8741F, 0x5B3F73, 0x6E7A2E].map { Color(hex: $0) }
             : [0xEC4A1C, 0x2C6FD6, 0xE8B73A, 0x2E9C7A, 0xC2569A].map { Color(hex: $0) }
@@ -121,7 +154,7 @@ enum Typeface {
         if let f = cache[key] { return f }
         let serif = UIFont(descriptor: UIFont.systemFont(ofSize: size).fontDescriptor.withDesign(.serif)!, size: size)
         let f: Font
-        if direction == .atelier {
+        if direction.isLight {
             f = variable(name: italic ? "BodoniModa-Italic" : "BodoniModa-Regular", size: size, axes: [
                 "opsz": min(96, max(6, opticalSize ?? size)), "wght": min(900, max(400, weight)),
             ], fallback: serif)
@@ -230,7 +263,7 @@ enum Metrics {
     /// The page's side margin (Figma: 24).
     static let margin: CGFloat = 24
 
-    static var labelTracking: CGFloat { Direction.current == .atelier ? 0.8 : 1.4 }
+    static var labelTracking: CGFloat { Direction.current.isLight ? 0.8 : 1.4 }
 }
 
 // MARK: - Stage
@@ -333,7 +366,7 @@ struct PaperSurface: ViewModifier {
     var lifted: Bool = true
 
     func body(content: Content) -> some View {
-        let atelier = Direction.current == .atelier
+        let atelier = Direction.current.isLight
         let light = fill == Palette.paper || fill == Palette.page || fill == Palette.paper2 || fill == Palette.cream
         content.background {
             RoundedRectangle(cornerRadius: radius, style: .continuous)
