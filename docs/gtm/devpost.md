@@ -8,7 +8,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 | --- | --- | --- | --- |
 | `[N]`, `[first]`, `[last]`, `[time]` | **Number** | The first-timer study on the build named in `docs/study.md` (build 18, 0.1.0 (202610241606); if it's missing, the newest of builds 14, 11 and 4), using one of pm's line options. It's a lesson, so it's the strict "Beat" score, not the battle's Flow. | Sat 8 PM |
 | `[real-mic WER]` | **Number** | swift's rerun of the keyterm test on a real iPhone mic. If it differs from 3%/20%, it replaces those numbers everywhere. | When swift runs it |
-| `[turn-to-voice p50]` | **Number** | The measured time from a turn's end to Homer's first word, on the 5 PM shoot's build (its latency HUD; the shoot is the full-battle gate) | Sat 5 PM |
+| `[turn-to-voice p50]` | **Number** | The measured time from a turn's end to Homer's first word, on the evening shoot's build (its latency HUD), or multiplayer's check-run tally if it has the number | Sat ~9 PM |
 | `[poet's name]`, `[the poet's scene]`, `[poet quote]`, `[composer's name]`, `[how the score was made]`, `[team]` | **A fact only Matus has** | Matus (the list went to leader) | Today |
 | `[If debate passed]` | Checkpoint | The Sat 8 PM check: 5 runs in a row without a failure. Delete the section if it failed. (Discus already passed its check early: 5 of 5 clean real-phone runs on the website (16:46–16:49 PM, build 18) plus 5 scripted runs, throws of 19.8 to 66.9 m, one real foul handled, no stalls or drops (leader, Sat ~4:50 PM).) | Sat 8 PM |
 | `[URL]` | Link | **The website** (SPEC, Sat 12:20 PM): the arena in a browser at a public HTTPS URL, served from the droplet. It's the first "try it" link. | When it's deployed |
