@@ -776,14 +776,14 @@ Everything else has no music: the turn (T0 to T8), round titles (B2), the tally 
 
 ## Sat 8 PM runs
 
-The checkpoint (`docs/gtm/reality-check.md`): an extra event that can't run **5 times in a row without a failure** stays a locked tile for the demo. Poetry is never locked, but it gets the same 5 runs, because it's the demo.
+The checkpoint (`docs/gtm/reality-check.md`): an extra event that can't run **5 times in a row without a failure** stays a locked tile for the demo. Poetry is never locked, but it gets the same 5 runs, because it's the demo. Talk to Homer gets 3, because it's in the video shoot and judges will try it (leader).
 
 **Rules for every run**
 
 - **Set up as at the table:** the arena is the website, full screen in a browser on the arena Mac, on Ethernet. Phones in poetry and debate have wired EarPods. The production agent service runs with Moss dealing, demo mode is on, and every phone is on **build 25 or later**, the build judges get (leader), all on the same build. Check the number in TestFlight on every phone before an event's first run. **Build 24 counts as 25 for every event but archery:** build 25 changed only two archery files (leader checked the diff). So poetry, debate, discus, the Stadion and boxing can run on build 24 with no re-run, and archery waits for build 25. Run it in the hacking hall, not in a quiet room.
-- **The count:** 5 clean runs in a row per event. A failure resets that event's count to 0, and you can start again right away. A new build, a redeploy or a code change also resets it.
-- **When:** debate and poetry have to finish by 9 PM, when the hall noise test starts. The motion events (discus, the Stadion, boxing and archery) use no mic, so hall noise doesn't touch them. If there are enough people, run them at the same time on a second laptop in the hall. If not, run them after 9 PM and finish by the leader's cutoff (proposed: 10:30 PM, so the tiles are settled before the 11 PM freeze).
-- **Order:** debate, then poetry, about 40 minutes for both. The motion events go in this order: the Stadion, boxing, discus, then archery, about 45 minutes for all four. Boxing comes after the Stadion because SPEC opens boxing only once the Stadion passes. Archery goes last because it's the newest, and until it passes, its tile stays locked.
+- **The count:** 5 clean runs in a row per event, and 3 for Talk to Homer. A failure resets that event's count to 0, and you can start again right away. A new build, a redeploy or a code change also resets it.
+- **When:** debate, poetry and Talk to Homer have to finish by 9 PM, when the hall noise test starts. The motion events (discus, the Stadion, boxing and archery) use no mic, so hall noise doesn't touch them. If there are enough people, run them at the same time on a second laptop in the hall. If not, run them after 9 PM and finish by the leader's cutoff (proposed: 10:30 PM, so the tiles are settled before the 11 PM freeze).
+- **Order:** debate, then poetry, then Talk to Homer, about 50 minutes for all three. The motion events go in this order: the Stadion, boxing, discus, then archery, about 45 minutes for all four. Boxing comes after the Stadion because SPEC opens boxing only once the Stadion passes. Archery goes last because it's the newest, and until it passes, its tile stays locked.
 - **Motion events:** play only where there's arm room, away from laptops and other people, with a firm grip on the phone. If a phone leaves anyone's hand, that's a failure, and it stops that event for the night until the leader says otherwise.
 - **Between runs:** the hall stays open. Use Rematch, the way we will at the table. Never relaunch the app or restart a server.
 - **Between events:** after an event's last run, the operator presses **New event**, picks the next game, and presses **Begin**. Every phone stays joined, so nobody types a new code. New event is next to Rematch on the results screen and next to Begin in the lobby (builder, 6:44 PM).
@@ -834,6 +834,29 @@ Player slips aren't failures when the app handles them as designed: a freeze get
   - A verdict starts more than 5 s after a turn ends.
   - Homer's voice speaks instead of Socrates'.
   - Any drum plays.
+
+### Talk to Homer
+
+- **One run:** one conversation. Press New event, pick Talk to Homer and press Begin. Begin reads "Waiting for a poet" until one phone is in, then works with one. Homer opens with a theme ("Give me a verse about {theme}."), and the poet takes four turns, each with the 3-2-1, SPEAK and the 20 s window:
+  1. A verse on the theme.
+  2. A second try that takes Homer's fix.
+  3. A talk-back, like "Give me an example" or an answer to what he said.
+  4. A third verse.
+
+  While the poet speaks, the arena reads "{name} is speaking · Homer is listening" and the words appear live. Then "Homer is answering…" shows with the loading mark, and Homer speaks his reply, captioned. Each verse gets a score out of 100, with Image, Answer and Craft bars on the newest one. From the second verse on, the score shows the trend against the poet's last one ("34 → 41 ↑"), and the best so far is marked. The talk-back gets a reply and no score. Then the operator presses **End** ("The conversation is over") and **New conversation** for the next run.
+- **Who plays:** the poet in run 1, and someone who has never talked to Homer in at least 1 of the 3, since judges will. One run has two poets, to check that Homer says "{name}, you first." and then names whoever is up.
+- **Also a failure:**
+  - The words don't appear live on the arena while the poet speaks, or the first words get clipped.
+  - Homer's reply starts more than 5 s after a turn ends.
+  - A wait shows no loading mark or "Homer is answering…", so the screen looks frozen.
+  - A reply runs over two sentences, isn't spoken, or isn't captioned.
+  - A reply ignores what the poet said, gives the same fix twice, or doesn't hand the floor back.
+  - Homer reads out a score or a number, names the poet's feeling, or uses jargon like meter, syllable or stanza.
+  - A verse gets no score out of 100, or a later verse shows no trend.
+  - Any turn gets "Homer is silent on this one." or a greyed score, which means Claude or the judge timed out.
+  - The theme, or Homer's own words in a reply, has something from after the Bronze Age: a phone, a train, a deadline, a clock hour, an umbrella. Quoting the poet's own modern words back is fine.
+  - Begin doesn't start with one poet, End doesn't end the conversation, or New conversation doesn't start fresh with a new theme.
+- **Write down, but not a failure:** every verse score in order, like `34 → 41 → 47`. Also write down a talk-back that got scored, or a verse that got no score because Homer took it as talk. If either happens twice in the series, tell the leader.
 
 ### Discus
 
@@ -912,6 +935,9 @@ Archery has been on the website since 6:35 PM as "Toxeia (beta)" (SPEC acbecb0).
 | Debate | 3 | | | | |
 | Debate | 4 | | | | |
 | Debate | 5 | | | | |
+| Talk to Homer | 1 | | | | |
+| Talk to Homer | 2 | | | | |
+| Talk to Homer | 3 | | | | |
 | Discus | 1 | | | | |
 | Discus | 2 | | | | |
 | Discus | 3 | | | | |
@@ -933,7 +959,7 @@ Archery has been on the website since 6:35 PM as "Toxeia (beta)" (SPEC acbecb0).
 | Archery | 4 | | | | |
 | Archery | 5 | | | | |
 
-In Notes, write the winner's time for the Stadion, how each boxing bout ended and how long it lasted, and any fumbled pass in archery.
+In Notes, write the verse scores in order for Talk to Homer, the winner's time for the Stadion, how each boxing bout ended and how long it lasted, and any fumbled pass in archery.
 
 | Poetry run | Time | Theme | Epithets (Poet 1, Poet 2) | Pass or fail | What failed |
 | --- | --- | --- | --- | --- | --- |
@@ -943,7 +969,7 @@ In Notes, write the winner's time for the Stadion, how each boxing bout ended an
 | 4 | | | | | |
 | 5 | | | | | |
 
-Add rows for any restarted series. If an event never gets 5 clean in a row by its cutoff (9 PM for debate, the leader's cutoff for the motion events), its tile stays locked, and the demo script's lines for that event don't run.
+Add rows for any restarted series. If an event never gets its clean runs in a row (5, or 3 for Talk to Homer) by its cutoff (9 PM for debate and Talk to Homer, the leader's cutoff for the motion events), its tile stays locked, and the demo script's lines for that event don't run. If Talk to Homer misses, tell the leader before the video shoot.
 
 ---
 

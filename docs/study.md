@@ -34,7 +34,7 @@ Five people who have never freestyled take MeNIN's first lesson, and we write do
 
   If any of these fails, message the leader before you start. Don't run the study on another build or in a different mode on your own.
 
-**Why the build matters:** since build 4, the beat is judged more strictly than in build 3. A hit has to land closer to the drum, and each drum beat counts one hit at most. Every person in the study has to be on the same build, or their numbers can't be compared. Judges get build 25 or later, and lesson 1 hasn't changed from build 18 through 25, in the app or on Homer's server (pm checked the code, Sat 7 PM), so the study's number holds for what judges play. Builds 4, 11, 14 and 18 score lesson 1 exactly the same (swift confirmed), so if the phone moves between them partway through, keep going and write it in Notes. Any other build change: stop and message the leader.
+**Why the build matters:** since build 4, the beat is judged more strictly than in build 3. A hit has to land closer to the drum, and each drum beat counts one hit at most. Every person in the study has to be on the same build, or their numbers can't be compared. Judges get build 25 or later, and lesson 1 hasn't changed from build 18 through 25, in the app or on Homer's server (pm and swift checked the code, Sat 7 PM), so the study's number holds for what judges play. Builds 4, 11, 14, 18 and 25 (202610241844) score lesson 1 exactly the same (swift confirmed), so if the phone moves between them partway through, keep going and write it in Notes. Any other build change: stop and message the leader.
 
 ## Who counts
 
