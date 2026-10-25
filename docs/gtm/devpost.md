@@ -221,7 +221,7 @@ Main prizes are automatic.
 
 ## Submission checklist
 
-- [ ] Every teammate added on Devpost
+- [ ] Every teammate added on Devpost. **Use the same email as your Cal Hacks sign-up:** asked whether it must match, an organizer said "no but ideally yes" (#0-ask-directors, Sat 4:46 PM).
 - [ ] **Team name, a 2–3 sentence elevator pitch and our table number.** The Hive FAQ: "All submissions must include a 2-3 sentence elevator pitch / summary, team location (your table number), and the team name." Tables are assigned "shortly after the 9:00 AM submission deadline" (Hacker Guide), so add the table number then if Devpost has a field for it.
 - [ ] No keys in the repo: `.env` gitignored, `.env.example` committed, and the leader's full-history secret scan rerun after the Sat ~11 PM freeze
 - [ ] **Repo public by 8:00 AM Sunday:** Sunya (the owner) flips it in Settings → General → Danger Zone. It stays private until then (Matus's call). Matus pings Sunya Saturday night.

@@ -2,9 +2,10 @@
 
 1. "Give me a theme" (or "theme: the last train out"): Homer deals a theme and
    five formulas that fit the beat, from the same dealer the game uses.
-2. The user answers with a verse using them, and Homer judges it: the Beat
-   from the stress scanner, Craft, Image, Answer and Range, the best line and
-   a one-line verdict. The hand is remembered per conversation, so Craft sees it.
+2. The user answers with a verse using them, and Homer judges it like a battle
+   verse, on content: Image, Answer and Craft (x4, x4, x2 = out of 100), the
+   best line and a one-line verdict. The hand is remembered per conversation,
+   so Craft sees it. Where the stresses fell is shown, but it isn't scored.
 
 (Agent Chat Protocol.)
 
@@ -41,12 +42,12 @@ from .config import load_env
 
 NAME = "homer-bard"
 DESCRIPTION = (
-    "Homer, the legendary bard, deals you a theme and five formulas that fit the beat, then judges the verse you "
-    "improvise with them: his verdict, five scores (Beat, Craft, Image, Answer, Range) and your best line."
+    "Homer, the legendary bard, deals you a theme and five formulas from his world, then judges the verse you "
+    "improvise with them like a battle verse: his verdict, Image, Answer and Craft (out of 100) and your best line."
 )
 README = Path(__file__).resolve().parents[1] / "AGENTVERSE.md"
 MAX_LINES, MAX_CHARS = 8, 800
-AXES = ("beat", "craft", "image", "answer", "range")
+AXES = ("image", "answer", "craft")  # what a battle verse is scored on (content only); the total is the judge's /100
 
 HELP = (
     "I am Homer. I improvised the Iliad out loud, from ready-made phrases that fit the beat. Let's do a round. "
@@ -125,7 +126,7 @@ def reply(card: dict[str, Any]) -> str:
     s = card.get("scores", {})
     scores = " · ".join(f"{a.capitalize()} {s.get(a, 0)}" for a in AXES)
     head = card.get("verdict") or "Homer is silent on this one."
-    out = [head, "", f"{scores} ({sum(s.get(a, 0) for a in AXES)} of 50)"]
+    out = [head, "", f"{scores} ({card.get('total', 0)} of 100)"]
     if card.get("bestLine"):
         out.append(f"Best line: \"{card['bestLine']}\"")
     lines = [line.get("pattern", "") for line in ((card.get("scan") or {}).get("lines") or [])]

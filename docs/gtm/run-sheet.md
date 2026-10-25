@@ -59,7 +59,7 @@ If iPhone C is already covering for a dead poet phone, the judge's phone after 2
   - 20 W only slows the drain.
   - Under 20 W, or USB-A only, can't charge it.
   - Write down which bank, if any, can feed the Mac: ______
-  - **The Mac has to stay plugged in during judging** (leader, Sat 4:24 PM), because `caffeinate -dims` only prevents system sleep on AC power, and a sleeping Mac stops the arena. So find a live outlet in the 9:20 hall check, or use the power strip and extension cord, or a 30 W+ bank as the last resort. An Air at 100% would last the 2-hour window on battery, but it may sleep. Plug into the table's outlet if it has one; a hacker reported a dead outlet at their table on Friday, so don't count on it. MLH on judging: outlets "probably limited, make sure all your devices are fully charged before demos!" (#0-ask-directors, Sat 12:43 PM).
+  - **Plug the Mac in if the table has power** (leader, Sat 4:24 PM). If it doesn't (on Saturday some mezzanine tables' power strips were dead, and the top floor had no table power; #0-general, Sat 5:43–5:50 PM, hackers), an Air at 100% lasts the 2-hour window on battery, and `caffeinate -dims` keeps it awake: its `-i` stops idle sleep on battery too (`man caffeinate`). Find a live outlet in the 9:20 hall check, or use the power strip and extension cord, or a 30 W+ bank. Plug into the table's outlet if it has one; a hacker reported a dead outlet at their table on Friday, so don't count on it. MLH on judging: outlets "probably limited, make sure all your devices are fully charged before demos!" (#0-ask-directors, Sat 12:43 PM).
 - **Phones:** on power banks between runs, off them for runs.
 - **The 40% rule:** any phone under 40% swaps roles with iPhone C between judges and goes on a bank. Write the swap on the sheet, so nobody grabs the wrong phone.
 - **Budget:** mic streaming, a bright screen and constant network drain a phone fast. Expect roughly 15 to 20% an hour during judging. Bank top-ups between judges cover the 2-hour window.
@@ -91,7 +91,7 @@ Before every run:
 
 - [ ] **Keep the arena Mac awake** (leader, Sat 4:24 PM: both phones and the arena dropped in the same second). **A network blip self-recovers:** the arena shows "Reconnecting…" and finishes the battle (builder killed the database mid-battle to test it). **Only a sleeping Mac or a closed tab kills the battle,** because the arena drives it:
   - [ ] In a Terminal, run `caffeinate -dims` and leave it running for the whole session. Or set System Settings → Battery → Options → prevent automatic sleeping on power adapter, plus Lock Screen → turn display off → Never.
-  - [ ] **The Mac is plugged in.** `caffeinate -s` only holds off system sleep on AC power.
+  - [ ] **The Mac is plugged in if the table has power.** On battery, `caffeinate`'s `-i` still stops idle sleep (`-s` only adds AC-only protection), so a charged Air stays awake either way. Some mezzanine and top-floor tables had no power on Saturday (#0-general, Sat 5:43–5:50 PM, hackers).
   - [ ] **The arena tab stays in front** in its own full-screen window. Browsers slow down background tabs.
   - [ ] The lid stays open. Closing it sleeps the Mac whatever caffeinate says.
 - [ ] The main room is open on the website, both poets have joined, and demo config is on. Nothing is preloaded: Homer writes a fresh theme and coins fresh epithets every battle (SPEC 7866476).
@@ -119,13 +119,68 @@ Between judges, or after a judge stays for a rematch. The spec's target is under
 
 | Seconds | Operator | Poets |
 | --- | --- | --- |
-| 0–2 | Press **Rematch**: same poets, new theme cards. | Lower the phones and reset your stance. |
-| 2–6 | Check the arena: the theme cards are up and the old carved line is gone. | Check your phone: a new hand, and Hold to speak works. |
+| 0–2 | Press **Rematch**: same poets, and Homer coins a fresh theme. | Lower the phones and reset your stance. |
+| 2–6 | Check the arena: the fresh theme is up and the old carved line is gone. | Check your phone: three new phrases, and the mic opens on your turn. |
 | 6–10 | Nod "ready". | Nod "ready". |
 
 - **If it isn't reset in 10 s:** reload the website's tab and click "Resume" (see Fallbacks). Don't press Rematch a second time.
 - **Drill it Saturday night:** five times in a row, timed. Write the slowest time here: ______
 - **More than 30 s until the next judge:** phones go back on their banks.
+
+## Switching events, and the motion games
+
+These are the only operator steps for the Stadion, boxing (Pygmachia) and archery. **The 8 PM runs fail any run where someone does a step that isn't on this sheet** (`docs/ux-flow.md`, "Sat 8 PM runs"), so do exactly these. Sources: `homer/web/src/Arena.tsx`, `lib/stadion.ts`, `lib/boxing.ts`, and SPEC for archery (pm, Sat ~6:15 PM).
+
+### Every event
+
+- **Begin needs at least two players joined.**
+- **Switching events means a new hall.** An open hall has no "New event" button. To change events:
+  1. Operator: reload the arena tab.
+  2. Operator: click **"Open the hall: {event}"**. The buttons read "Stadion" and "Pygmachia (beta)"; archery has no button yet, because it's still in build.
+  3. Players: type the **new room code** on their phones. That rejoin is a step, so do it every time.
+  4. Operator: **Begin** once at least two players show on the arena.
+  - Budget about 30 seconds, or more, for a switch at the table (reload, new code, every phone rejoining).
+- **"Next" is the operator's button** if a phase between turns sticks. It's on screen except while someone is racing, fighting or shooting. **Pressing Next counts as a fallback:** use it so the run finishes, but that run isn't clean for the 8 PM count. (gtm's default; leader can overrule it.)
+- **Rematch** is the only operator step at the end of every event.
+
+### Grip rule, for every phone that's swung or pumped
+
+- A firm grip, with a grippy case or a wrist strap on **every** phone used in the discus, the Stadion, boxing or archery, not just iPhone C.
+- **If a phone leaves someone's hand, that event is stopped for the night.** No exceptions at the table.
+
+### The Stadion (running)
+
+| Who | Step |
+| --- | --- |
+| Operator | Open the hall: Stadion. Players join with the new code. Begin. |
+| Homer, automatic | "One stadion. Phone in hand, pump your arms like a sprinter." Then "Runners, to your marks.", the 3-2-1 and the race (40 s at most), the places, and "The stadion goes to {name}." |
+| Operator | **Press nothing until Rematch.** |
+| Runners | Phone in hand, pump your arms. Stand with arm room all around; nobody next to the table's laptops. |
+
+### Boxing (Pygmachia, beta)
+
+| Who | Step |
+| --- | --- |
+| Operator | Open the hall: Pygmachia (beta). Fighters join with the new code. Begin. |
+| Homer, automatic | "{A} and {B}. Fists up." The bell starts by itself: 60 s or a knockout, then the result and "{winner}. The ring is yours." With three fighters, the winner stays on automatically, and the waiting fighter's phone (not the arena) shows "Up next: you fight the winner of {A} vs {B}". |
+| Operator | Press nothing until Rematch. |
+| Fighters | Phone held like a fist. **Stand more than an arm's length apart and punch the air, never at each other.** |
+
+### Archery (in build, not on the website yet)
+
+From SPEC and the phone code. Don't run it at the table until it has a website button and passes its 5 clean runs.
+
+| Who | Step |
+| --- | --- |
+| Operator | Open the hall: archery (once it has a button). Both phones join with the new code; they count as the two players, so Begin's minimum is met. Begin. |
+| Players | Two team phones join. The first to join is the **bow**, the other the **arrow**, and each says which it is in big type. |
+| The bow phone | Asks each archer's name. |
+| Each archer | Stands facing the screen with the bow arm out and shoots 3 arrows. Each arrow has 45 s before it's lost. After the third arrow, pass **both** phones to the next archer, hand to hand. |
+| Operator | Rematch at the end. |
+
+### At the table
+
+The demo script's after-2:00 extras (discus, debate) switch events, and on the website a switch is a reload plus every phone rejoining: about 30 seconds or more. So offer a switch only when the judge is clearly staying. pm is asking leader whether builder adds an in-hall switch, and this section changes if it lands.
 
 ## Fallbacks
 
@@ -158,7 +213,7 @@ Optional, but each one fixes a real risk at a loud, shared table:
 | A Bluetooth speaker, only if there's no wired one | 1 | Louder than the Mac | **Policy risk is low:** the ban targets hotspots and routers, and a Bluetooth speaker isn't network equipment. The phrase "other broadcasting equipment" is vague, though, so unplug it if a director objects and fall back to the Mac speakers. **The real risk is technical:** Bluetooth adds roughly 150 to 300 ms of audio delay. Battles have no drum now (free verse), so the delay only matters for the beat under Homer's stitched song, where a small lag is harmless. Bluetooth also drops out in a crowded 2.4 GHz hall, so prefer a wired speaker. |
 | **USB-C to Ethernet adapter** | 1 | **Required, not optional.** The MacBook Air has no ethernet port, and the venue Wi-Fi is slow. | Reserve the ethernet cable in the H@B app as well. |
 | A power bank with **≥30 W USB-C PD** | 1 | Feeds the Mac under load | Only if none of the current banks can (see Power) |
-| A grippy phone case or a wrist strap | 1 | For discus, on iPhone C | |
+| A grippy phone case or a wrist strap | One per phone that's swung | For the discus, the Stadion, boxing and archery: every phone used in a motion event | If a phone leaves someone's hand, that event stops for the night |
 
 ## Packing list
 
@@ -170,7 +225,7 @@ Optional, but each one fixes a real risk at a loud, shared table:
 - [ ] Power banks, all at 100%, plus short USB-C cables for every device
 - [ ] **Every teammate's Cal Hacks badge.** "You will NEED it to get into the venue. We will not be handing out extras" (#0-announcements, Sat 9:56 AM, organizer). No badge means no teammate, and no whole team means no judging.
 - [ ] **A power strip and an extension cord.** Hackers reported dead outlets at two tables Friday, and an organizer advised bringing an extension cord (#0-ask-directors, Fri). Check our table's outlet in the 9:20 hall check.
-- [ ] A grippy case or wrist strap, for discus
+- [ ] A grippy case or wrist strap on every phone used in the discus, the Stadion, boxing or archery
 - [ ] Gaffer tape, for the cables
 - [ ] The backup video, saved locally on the Mac and all three phones (not streamed)
 - [ ] This sheet, printed

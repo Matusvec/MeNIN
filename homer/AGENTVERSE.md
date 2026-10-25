@@ -21,13 +21,12 @@ when Dawn came early I was already gone
 ## What you get back
 
 - **His verdict:** one line, spoken like a legend, never like a lecturer.
-- **Five scores from 1 to 10:**
-  - Beat, counted by a deterministic stress scanner over the CMU Pronouncing Dictionary, not by the model.
-  - Craft: did you use your formulas and bend them to the theme.
-  - Image.
+- **Three scores from 1 to 10, the game's battle scale, on content:**
+  - Image: a picture we can see.
   - Answer: did you answer the theme.
-  - Range.
-- **Your best line,** and where your hits fell, in capitals.
+  - Craft: did you use your formulas and bend them to the theme.
+  - The total is out of 100: Image and Answer count four times, Craft twice.
+- **Your best line,** and where your stresses fell, in capitals (shown, not scored).
 - Sometimes a new formula you coined, for your hoard.
 
 Say "give me a theme" again for another round.
@@ -36,7 +35,7 @@ Say "give me a theme" again for another round.
 
 Homer hosts MeNIN, a party game of ancient Greek contests (poetry battles, Socratic debate, discus) on one shared screen with phones as controllers, built at Cal Hacks 13.0. This agent speaks the Agent Chat Protocol and calls the same agent service the game uses:
 - the dealer that builds a hand from the game's formula bank, part hand-written and part mined from public-domain Homer translations;
-- the stress scanner that scores the Beat;
-- the judge that scores the rest. It runs on Claude, with a cached prompt and a streamed verdict.
+- the stress scanner that shows where your stresses fell;
+- the judge that scores your verse on content. It runs on Claude, with a cached prompt and a streamed verdict.
 
 It keeps each conversation's hand for an hour so your verse is judged against it, and nothing else.

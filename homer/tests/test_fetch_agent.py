@@ -9,6 +9,7 @@ from homer.fetch_agent import HELP, Rounds, hand_reply, intent, judge_text, on_c
 
 CARD = {
     "scores": {"beat": 10, "craft": 6, "image": 7, "answer": 5, "range": 6},
+    "total": 60,  # the judge's weighted total: 4*7 + 4*5 + 2*6
     "verdict": "Salt in your teeth, that's a picture.",
     "bestLine": "I stand on the shore with salt in my teeth",
     "coined": "",
@@ -29,7 +30,7 @@ def test_parse_reads_lines_and_an_optional_theme():
 
 def test_reply_reads_like_homer():
     text = reply(CARD)
-    assert text.startswith("Salt in your teeth, that's a picture.\n\nBeat 10 · Craft 6 · Image 7 · Answer 5 · Range 6 (34 of 50)")
+    assert text.startswith("Salt in your teeth, that's a picture.\n\nImage 7 · Answer 5 · Craft 6 (60 of 100)")  # content only
     assert "Best line: \"I stand on the shore with salt in my teeth\"" in text and "the WINE dark SEA" in text
     assert reply({**CARD, "declined": True}) == "Not in my hall. Give me another."
     assert reply({**CARD, "silent": True, "verdict": ""}).startswith("Homer is silent on this one.")
