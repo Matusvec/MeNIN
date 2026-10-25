@@ -182,6 +182,7 @@ export default function ArenaPanel({
   const subscribe = useCallback((listener: () => void) => arena.current?.onProsody(listener) ?? (() => {}), [])
   const [word, setWord] = useState<WordMark | null>(null)
   const [picking, setPicking] = useState(false) // "New event": the event picker is open
+  const [leaving, setLeaving] = useState<GameEvent | null>(null) // an event picked while a hall is still open
   const onWord = useCallback((next: WordMark | null) => {
     setWord((was) => (was === next || (was && next && was.n === next.n && was.x === next.x && was.y === next.y) ? was : next))
   }, [])
@@ -300,26 +301,52 @@ export default function ArenaPanel({
         <div className="arena" data-phase="none">
           <Heading kicker="Host a battle" title="Open the hall" note="This screen is the arena. Phones join with the MeNIN app." />
           {view.status === 'offline' && <p className="wired-note">{view.error || 'Lost the hall. Reconnecting…'}</p>}
-          {/* The event board (EventCards, styled by the artist); opening one hosts its room. */}
-          <EventCards
-            disabled={view.status !== 'connected'}
-            onPick={(event) => {
-              arena.current?.startSound()
-              arena.current?.createRoom(event)
-            }}
-          />
-          <div className="wired-actions open-choices">
-            {view.resumable && (
+          {/* A hall this browser hosts is still open (a reload, the menu): Resume comes first, and an event card
+              asks before it ends that hall for everyone (a new hall would leave its battle running with no arena). */}
+          {view.resumable && (
+            <div className="wired-actions open-choices">
               <button
-                className="secondary-action"
+                className="primary-action"
+                autoFocus
                 onClick={() => {
+                  setLeaving(null)
                   arena.current?.startSound()
                   arena.current?.resume(view.resumable!)
                 }}
               >
                 Resume {view.resumable.code}
               </button>
-            )}
+              {leaving && (
+                <>
+                  <p className="wired-note">Leave hall {view.resumable.code}? Its battle ends for everyone.</p>
+                  <button
+                    className="secondary-action"
+                    onClick={() => {
+                      const old = view.resumable!
+                      setLeaving(null)
+                      arena.current?.startSound()
+                      arena.current?.leaveFor(old, leaving)
+                    }}
+                  >
+                    Leave it and open a new hall
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+          {/* The event board (EventCards, styled by the artist); opening one hosts its room. */}
+          <EventCards
+            disabled={view.status !== 'connected'}
+            onPick={(event) => {
+              if (view.resumable) {
+                setLeaving(event)
+                return
+              }
+              arena.current?.startSound()
+              arena.current?.createRoom(event)
+            }}
+          />
+          <div className="wired-actions open-choices">
             {view.status === 'offline' && view.error && (
               <button className="secondary-action" onClick={() => arena.current?.retry()}>
                 Try again

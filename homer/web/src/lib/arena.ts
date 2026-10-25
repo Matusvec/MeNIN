@@ -404,6 +404,16 @@ export class Arena {
     this.watch(room.id)
   }
 
+  /** Leave a hall this browser hosts for a new one. Past its lobby, its battle ends for everyone (end_battle),
+   *  so no battle runs on with no arena; a hall still in its lobby is finished by create_room itself. */
+  leaveFor(old: Room, event: GameEvent): void {
+    if (!this.conn) return
+    if (old.phase !== 'lobby' && old.phase !== 'finished') {
+      this.call(() => this.conn!.reducers.endBattle({ roomId: old.id }))
+    }
+    this.createRoom(event)
+  }
+
   startBattle(): void {
     this.call(() => this.conn!.reducers.startBattle({ roomId: this.roomId }))
   }
