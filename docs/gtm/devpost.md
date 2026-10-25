@@ -6,7 +6,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 
 | Placeholder | Kind | Comes from | When |
 | --- | --- | --- | --- |
-| `[N]`, `[first]`, `[last]`, `[time]` (**only in the [A] lines; if the study doesn't run, use the [B] lines**: Matus hasn't confirmed it) | **Number** | The first-timer study on the build named in `docs/study.md` (build 18, 0.1.0 (202610241606); if it's missing, the newest of builds 14, 11 and 4), using one of pm's line options. It's a lesson, so it's the strict "Beat" score, not the battle's Flow. | Sat 8 PM |
+| `[N]`, `[first]`, `[last]`, `[time]` (**only in the [A] lines; if the study doesn't run, use the [B] lines**. **[B] is the default everywhere until Matus confirms the study ran**; leader, Sat ~9:45 PM. If it ran, keep the number, scoped to "beat-scored lesson one (build 18)".) | **Number** | The first-timer study on the build named in `docs/study.md` (build 18, 0.1.0 (202610241606); if it's missing, the newest of builds 14, 11 and 4), using one of pm's line options. It's a lesson, so it's the strict "Beat" score, not the battle's Flow. | Sat 8 PM |
 | `[real-mic WER]` | **Number** | swift's rerun of the keyterm test on a real iPhone mic. If it differs from 3%/20%, it replaces those numbers everywhere. | When swift runs it |
 | `[turn-to-voice p50]` | **Number** | The measured time from a turn's end to Homer's first word, on the evening shoot's build (its latency HUD), or multiplayer's check-run tally if it has the number | Sat ~9 PM |
 | `[poet's name]`, `[the poet's scene]`, `[poet quote]`, `[composer's name]`, `[how the score was made]`, `[team]` | **A fact only Matus has** | Matus (the list went to leader) | Today |
