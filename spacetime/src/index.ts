@@ -506,15 +506,17 @@ const COUNTER_MICROS = 600_000n; // blocking a head shot opens a counter window 
 const PUNCH_GAP_MICROS = 250_000n; // at most four punches a second
 // Boxing v2 (SPEC), tuned offline so spam loses to paced or counter fighters and a fight runs
 // about 30–50 s: damage = base × power × stamina × combo × counter × guard.
-const HEAD_BASE = 3.5;
-const BODY_BASE = 2;
+const HEAD_BASE = 4.5;
+const BODY_BASE = 2.5;
 const BODY_DRAIN = 15; // a body shot takes this much of the target's stamina
 const PUNCH_COST = 12; // stamina per punch
 const RAPID_COST = 8; // more for a punch under RAPID_MICROS after your last
 const RAPID_MICROS = 300_000n;
 const BLOCKED_COST = 10; // more for a punch into a raised guard
 const STAMINA_REGEN = 20; // per second, always
-const LOW_STAMINA = 30; // below this: half damage and no combo bonus
+const LOW_STAMINA = 30; // below this: TIRED_DAMAGE and no combo bonus
+const TIRED_DAMAGE = 0.3; // a tired punch's share (leader, from BPXW: a tired flail mustn't KO in 30 s)
+const COMBO_MAX = 3; // a chain tops out here; the next punch starts a new one
 const COMBO_MICROS = 1_200_000n; // the next punch within this keeps the chain
 const GUARD_HEAD = 0.25; // a raised guard lets this much of a head shot through
 const GUARD_BODY = 0.5; // and this much of a body shot
@@ -1546,8 +1548,9 @@ export const setFistAim = spacetimedb.reducer(
 // A punch (boxing v2). Aimed high it goes for the head, low for the body; there are no misses
 // on aim (phone yaw drifts). Damage = base × power × stamina × combo × counter × guard:
 // - stamina: each punch costs 12 (8 more when thrown under 0.3 s after your last, 10 more
-//   into a guard); it refills 20 a second; below 30 a punch does half and can't combo.
-// - combo: the 2nd punch within 1.2 s of your last does ×1.25, the 3rd and on ×1.5, unless
+//   into a guard); it refills 20 a second; below 30 a punch does 0.3 and can't combo.
+// - combo: the 2nd punch within 1.2 s of your last does ×1.25, the 3rd ×1.5, then the chain
+//   starts over (COMBO_MAX), unless
 //   your last was blocked or you've been hit since.
 // - counter: blocking a head shot opens a 0.6 s window; a punch in it does ×2 (`counter`).
 // - guard: a raised guard lets 25% of a head shot through ('blocked') and 50% of a body shot.
@@ -1573,13 +1576,13 @@ export const throwPunch = spacetimedb.reducer(
     const since = last ? now - last.at.microsSinceUnixEpoch : -1n;
     const hitSince = last !== undefined && log.some(x => x.playerId === foe.playerId && x.result === 'landed' && x.id > last!.id);
     const chained = last !== undefined && since <= COMBO_MICROS && last.result !== 'blocked' && !hitSince;
-    const combo = chained ? last!.combo + 1 : 1;
+    const combo = chained && last!.combo < COMBO_MAX ? last!.combo + 1 : 1;
     const tired = me.stamina < LOW_STAMINA;
     const comboBonus = tired ? 1 : combo >= 3 ? 1.5 : combo === 2 ? 1.25 : 1;
     const blocked = foe.guard && zone === 'head';
     const guardLet = !foe.guard ? 1 : zone === 'head' ? GUARD_HEAD : GUARD_BODY;
     const base = zone === 'head' ? HEAD_BASE : BODY_BASE;
-    const damage = Math.round(base * power * (tired ? 0.5 : 1) * comboBonus * (counter ? 2 : 1) * guardLet * 10) / 10;
+    const damage = Math.round(base * power * (tired ? TIRED_DAMAGE : 1) * comboBonus * (counter ? 2 : 1) * guardLet * 10) / 10;
     const cost = PUNCH_COST + (last && since < RAPID_MICROS ? RAPID_COST : 0) + (blocked ? BLOCKED_COST : 0);
     ctx.db.punch.insert({
       id: 0n, roomId: args.roomId, playerId: me.playerId, targetId: foe.playerId, zone, power, aimYaw: yaw, aimPitch: pitch,

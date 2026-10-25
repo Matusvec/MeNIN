@@ -316,8 +316,12 @@ function connect() {
       c.subscriptionBuilder()
         .onApplied(() => {
           clearTimeout(watchdog);
-          const open = all('room').filter(r => r.phase !== 'finished');
-          say(`watching ${DBN}: ${all('room').length} rooms (${open.map(r => `${r.code} ${r.event} ${r.phase}`).join(', ') || 'none open'}), ${all('player').filter(p => p.connected).length} poets connected`);
+          // One line, short enough for a stage screen: counts, and only the newest hall by name.
+          const rooms = all('room');
+          const open = rooms.filter(r => r.phase !== 'finished');
+          const latest = rooms.reduce((top, r) => (!top || r.id > top.id ? r : top), undefined);
+          const poets = new Set(all('player').filter(p => p.connected).map(p => p.identity.toHexString())).size;
+          say(`watching ${DBN}: ${rooms.length} rooms, ${open.length} open${latest ? ` (latest: ${latest.code} ${latest.event} ${latest.phase})` : ''}, ${poets} poet${poets === 1 ? '' : 's'} connected`);
           // The snapshot's own insert callbacks run after onApplied; skip them.
           setTimeout(() => (live = true), 500);
         })

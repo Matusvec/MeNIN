@@ -529,7 +529,7 @@ check((await fighterOf(BA.id)).aim_yaw > 0.19 && (await fighterOf(BA.id)).aim_pi
 await sleep(3200);
 await call(ada, 'throw_punch', Bx.id, 'jab', 1, 0.1, 0.5);
 let hit = (await punchesIn()).at(-1);
-check(hit.result === 'landed' && hit.zone === 'head' && hit.damage === 3.5 && hit.combo === 1 && (await fighterOf(BB.id)).health === 96.5, 'v2: a full-power head shot lands for 3.5');
+check(hit.result === 'landed' && hit.zone === 'head' && hit.damage === 4.5 && hit.combo === 1 && (await fighterOf(BB.id)).health === 95.5, 'v2: a full-power head shot lands for 4.5');
 check(Math.round((await fighterOf(BA.id)).stamina) === 88, 'a punch costs 12 stamina');
 await call(ada, 'throw_punch', Bx.id, 'jab', 1, 0.1, 0.5);
 check((await punchesIn()).length === 1, 'no more than four punches a second');
@@ -538,27 +538,27 @@ await call(bo, 'set_fist_aim', Bx.id, 0, 0.5, true);
 await call(ada, 'throw_punch', Bx.id, 'hook', 1, 0, 0.6);
 hit = (await punchesIn()).at(-1);
 let bb = await fighterOf(BB.id);
-check(hit.result === 'blocked' && hit.combo === 2 && Math.abs(hit.damage - 1.1) < 1e-6 && bb.counter_until[0] > 0, "Bo's guard lets a quarter of Ada's second punch through (3.5 x 1.25 x 0.25 = 1.1) and opens his counter window");
+check(hit.result === 'blocked' && hit.combo === 2 && Math.abs(hit.damage - 1.4) < 1e-6 && bb.counter_until[0] > 0, "Bo's guard lets a quarter of Ada's second punch through (4.5 x 1.25 x 0.25 = 1.4) and opens his counter window");
 check((await fighterOf(BA.id)).stamina < 80, 'a punch into a guard costs Ada 10 more stamina (22 in all)');
 await call(bo, 'throw_punch', Bx.id, 'uppercut', 1, 0, 0.2);
 hit = (await punchesIn()).at(-1);
-check(hit.result === 'landed' && hit.counter && hit.damage === 7 && !(await fighterOf(BB.id)).guard, "Bo's counter inside the window does double (7), and punching dropped his guard");
+check(hit.result === 'landed' && hit.counter && hit.damage === 9 && !(await fighterOf(BB.id)).guard, "Bo's counter inside the window does double (9), and punching dropped his guard");
 await sleep(400);
 await call(bo, 'throw_punch', Bx.id, 'jab', 1, 0, 0.3);
 hit = (await punchesIn()).at(-1);
-check(hit.combo === 2 && hit.damage === 4.4 && (await fighterOf(BB.id)).combo === 2, "his next punch within 1.2 s is a combo: x1.25 (4.4)");
+check(hit.combo === 2 && hit.damage === 5.6 && (await fighterOf(BB.id)).combo === 2, "his next punch within 1.2 s is a combo: x1.25 (5.6)");
 await call(bo, 'set_fist_aim', Bx.id, 0, 0.5, true);
 await sleep(400);
 const before = (await fighterOf(BB.id)).stamina;
 await call(ada, 'throw_punch', Bx.id, 'hook', 1, 0, -0.5);
 hit = (await punchesIn()).at(-1);
-check(hit.result === 'landed' && hit.zone === 'body' && hit.combo === 1 && hit.damage === 1 && (await fighterOf(BB.id)).stamina < before - 5, 'a body shot gets half through a guard (1), drains 15 stamina, and starts a new chain after a block');
+check(hit.result === 'landed' && hit.zone === 'body' && hit.combo === 1 && hit.damage === 1.3 && (await fighterOf(BB.id)).stamina < before - 5, 'a body shot gets half through a guard (1.3), drains 15 stamina, and starts a new chain after a block');
 for (let i = 0; i < 6; i++) {
   await sleep(260);
   await call(ada, 'throw_punch', Bx.id, 'jab', 1, 0, -0.5);
 }
 hit = (await punchesIn()).at(-1);
-check((await fighterOf(BA.id)).stamina < 30 && hit.damage <= 1, `spamming wears Ada out: tired punches do half, with no combo bonus (${hit.damage})`);
+check((await fighterOf(BA.id)).stamina < 30 && hit.damage <= 0.8 && hit.combo <= 3, `spamming wears Ada out: tired punches do 0.3, no combo bonus, and the chain tops out at 3 (${hit.damage}, combo ${hit.combo})`);
 await call(bo, 'set_fist_aim', Bx.id, 0, 0.5, false);
 console.log('     paced combos to a knockout...');
 for (let i = 0; i < 60 && (await room(Bx.id)).phase === 'speaking'; i++) {
