@@ -18,7 +18,7 @@ Share column: "anonymous embed OK" means Figma's public oEmbed endpoint returns 
 | Flip, Atelier → Hall: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=36-128 | One prototype frame twice, side by side; only the variable mode differs (for the deck) | same file |
 | Prototype flow 1 (first open → event menu → Poetry → Practice turn → verdict): https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102 | Clickable Atelier prototype | same file |
 | Prototype flow 2 (join → arena turn → carved line → champion): https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364 | Clickable Atelier prototype | same file |
-| **MeNIN (Make): the website**: https://www.figma.com/make/0o7GzG4KEQejktGJeUuNbt/MeNIN | The Figma Make app the website began as (committed Sat 12:33 PM); found in Sunya's stage-log deck | anonymous embed OK (Sun 03:45); Sunya to confirm "Anyone with the link" in its Share dialog |
+| **MeNIN (Make): the website**: https://www.figma.com/make/0o7GzG4KEQejktGJeUuNbt/MeNIN | The Figma Make app the website began as (committed Sat 12:33 PM); found in Sunya's stage-log deck | anonymous embed OK (Sun 03:45); its owner to confirm "Anyone with the link" in the Share dialog |
 | **MeNIN · Discus (Make)**: https://www.figma.com/make/MexcUVEohKsNVAw5pHh596 | Figma Make seeded with the live discus screens (Sat 09:00) | anonymous embed OK |
 | **MeNIN · Stage log (Figma track)** (Slides): https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm | The deck: 19 slides since Sun 03:50, with both designers' paths. Matus's remaining clicks are in `docs/gtm/figma-deck-clicks.md` | anonymous embed OK; Matus to confirm "can view" in Share |
 | **Homer · Atelier** concept (Design), Matus: https://www.figma.com/design/zBILNwJB2NaVofBNJouAOW | The concept frame (node 46-378) the app's look came from | anonymous embed OK (Sun 03:45) |
@@ -155,7 +155,7 @@ Figma's four stages are **Ideation, Prototyping, Handoff, Code generation**. Giv
 ## Entries
 
 ### Ideation · Project plan and spec · Fri Oct 23, evening
-- Tool(s): **the Figma AI agent in Figma Design** (Sunya). It turned the app description into one screen for each part of the iOS experience, so the team had a first screen set to react to before any code (from Sunya's stage-log deck; leader, Sun ~3:25 AM).
+- Tool(s): **the Figma AI agent in Figma Design** (from Sunya's log; who ran it is for Matus to confirm). It turned the app description into one screen for each part of the iOS experience, so the team had a first screen set to react to before any code (from Sunya's stage-log deck; leader, Sun ~3:25 AM).
 - Minutes: about 45
 - Worked (1-5): 5
 - What made it into the project: `Homer Cal Hacks 13.0 Project Plan.md`, `SPEC.md`, `docs/ux-flow.md` (the flow, states and screen inventory to design against)
@@ -319,23 +319,23 @@ Figma's four stages are **Ideation, Prototyping, Handoff, Code generation**. Giv
 - Friction: the diagram tool's automatic layout came back as one 2,300 px strip with 16 px labels, unreadable on a 16:9 card. So `use_figma` moved the nodes into two rows in a 1920×1080 section; the connectors follow their endpoints, so only their anchor sides and line type changed. "Cartesia speech-to-text" broke at its hyphen and got a line break after "Cartesia". The export came back with 40 px of FigJam's grey canvas around the section, so it was cropped and padded to exactly 1920×1080. The tool's architecture layout was skipped because it forces gateway lanes and its own colours, which don't fit a phone-to-big-screen flow. FigJam can't animate, so the lit-path video is SVG built from the section's coordinates, not a second design.
 - Reviewers' change (02:00–02:05): three reviewers (a hackathon judge, a trailer editor and a sponsor judge) called the 7-box diagram "a static docs flowchart". The board now also has a **4-box video card**: Your voice → Cartesia → SpacetimeDB → Claude + Homer's voice, with gold connectors and Bodoni labels. In the video, a gold line carries one real word, "rage", the Iliad's first word, through all four. The detailed 7-box section stays on the board for anyone who wants the full path. Friction: Bodoni at 48 px overflowed FigJam's shape padding ("Spacetim/eDB"), so the labels went to 40 px on wider boxes.
 
-### Prototyping · The website path (Sunya): the full frontend in Figma Make · before Sat Oct 24, 12:33 PM (the Make app's commit)
+### Prototyping · The website path (from Sunya's log): the full frontend in Figma Make · before Sat Oct 24, 12:33 PM (the Make app's commit)
 - Tool(s): Figma Make, to build the full frontend one scene at a time: the home, the battle scenes, the lessons. File: https://www.figma.com/make/0o7GzG4KEQejktGJeUuNbt/MeNIN (from Sunya's stage-log deck)
-- Minutes: about 90 (Sunya's estimate)
+- Minutes: about 90 (an estimate, from Sunya's log)
 - Worked (1-5): 4
 - What made it into the project: a complete frontend codebase, the website that became the big screen.
 - Friction: Make generated odd images of Homer and placed them strangely. Its colours stayed hard-coded, with no variables, which is why the Hall audit (Sat 20:43) had to name 128 of them by hand.
 
-### Handoff · The website path (Sunya): Make's code export to GitHub · Sat Oct 24, around 12:33 PM
+### Handoff · The website path (from Sunya's log): Make's code export to GitHub · Sat Oct 24, around 12:33 PM
 - Tool(s): Figma Make's code export, pushed to GitHub. The generated code itself was the handoff: each teammate on a branch, changes by pull request.
-- Minutes: about 20 (Sunya's estimate)
+- Minutes: about 20 (an estimate, from Sunya's log)
 - Worked (1-5): 5
 - What made it into the project: the website's code in the repo (`homer/web/`), where the agents could work on it. Nothing was lost between Make and the repo.
 - Friction: the handoff moved code, not design decisions. The website kept its own art and palette, so the app and the website looked like two products until the Hall mode (Sat night, above).
 
-### Code generation · The website path (Sunya): Claude Code on the Make output · Sat Oct 24
+### Code generation · The website path (from Sunya's log): Claude Code on the Make output · Sat Oct 24
 - Tool(s): Claude Code on the Make output. Agents connected the backend and kept adding features.
-- Minutes: about 120 (Sunya's estimate)
+- Minutes: about 120 (an estimate, from Sunya's log)
 - Worked (1-5): 4
 - What made it into the project: the 3D arena, an expressive Homer, the poet-selection landing and the Iliad Easter egg, on top of Make's frontend. The stack: React 19, Vite, Three.js, Tailwind (website) · SwiftUI (app) · Python, FastAPI, Claude (agent service) · Cartesia (voice) · SpacetimeDB (real-time state) · DigitalOcean, Caddy (hosting).
 - Friction: Make's code had no colour variables (128 hard-coded colours), so matching the app to the website later began with an audit that named them by hand (37 tokens).
@@ -344,5 +344,5 @@ Figma's four stages are **Ideation, Prototyping, Handoff, Code generation**. Giv
 - Tool(s): Figma Slides through the Figma MCP (`use_figma` with the Slides API, `upload_assets`). Each website-path slide is a clone of its app-path stage slide, mirrored and recoloured in the website's palette, so the two paths face each other in the same layout.
 - Minutes: 30
 - Worked (1-5): 4
-- What made it into the project: the deck went from 10 to 19 slides. New: the demo slide (with a video stand-in), "How a turn works" (the FigJam diagram), Sunya's four website-path stage slides beside the app's, two Hall slides where the paths meet, and a files slide with every Figma file linked. Matus's remaining clicks (sharing, the live embeds, the video) are in `docs/gtm/figma-deck-clicks.md`.
+- What made it into the project: the deck went from 10 to 19 slides. New: the demo slide (with a video stand-in), "How a turn works" (the FigJam diagram), the website path's four stage slides (from Sunya's log) beside the app's, two Hall slides where the paths meet, and a files slide with every Figma file linked. Matus's remaining clicks (sharing, the live embeds, the video) are in `docs/gtm/figma-deck-clicks.md`.
 - Friction: the Plugin API can't create embeds, change sharing or add a video, so those stay with Matus. Cloned slides kept the source's rating squares, so a 5/5 slide showed four squares until one was added. "Code generation" wraps to two lines, which collided with a path label placed under the title, so the path went into the stage line instead ("Stage IV of IV · the website"). The FigJam diagram's "+" was a near-invisible Bodoni hairline and was reset in Inter, on the board and in the video.
