@@ -6,7 +6,8 @@
 //   node scripts/render-timeline.mjs ../docs/video/timeline-take.log ../docs/video/broll/timeline.mp4
 //   BEFORE=4000 AFTER=4000 AT=verdict node scripts/render-timeline.mjs <log> <out.mp4>
 //
-// AT is the reducer whose first event centres the window (default verdict). Needs Google
+// AT is the reducer whose first event centres the window (default verdict). HALL picks the
+// hall (its join code); by default the first Poetry hall that reached its finale. Needs Google
 // Chrome (headless, for the type) and ffmpeg with libx264.
 
 import { spawn, execFileSync } from 'node:child_process';
@@ -28,15 +29,30 @@ const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
 // ---------------------------------------------------------------- the log
 
-const events = readFileSync(logPath, 'utf8')
+// Lines are wall, ms, [hall,] caller, reducer, text, colour (older logs have no hall column).
+const all = readFileSync(logPath, 'utf8')
   .split('\n')
   .filter(l => l && !l.startsWith('#'))
   .map(l => {
-    const [wall, ms, who, reducer, text, colour] = l.split('\t');
-    return { wall, t: Number(ms), who, reducer, text, colour };
+    const f = l.split('\t');
+    const [wall, ms, hall, who, reducer, text, colour] = f.length >= 7 ? f : [f[0], f[1], '', ...f.slice(2)];
+    return { wall, t: Number(ms), hall, who, reducer, text, colour };
   })
   .filter(e => Number.isFinite(e.t))
   .sort((a, b) => a.t - b.t);
+// Older lines carry no hall: they came from a logger that followed one hall at a time, so each
+// belongs to the hall its last "watching:" / "new hall:" line named.
+let following = '';
+for (const e of all) {
+  const named = e.reducer === 'create_room' && /hall ([A-Z]{4})$/.exec(e.text);
+  if (named && !e.hall) following = named[1];
+  if (!e.hall) e.hall = named ? named[1] : following;
+}
+// The hall: HALL, else the first Poetry hall with a finale (logs without halls: everything).
+const poetry = [...new Set(all.filter(e => / Poetry · hall /.test(e.text)).map(e => e.text.split('hall ').pop()))];
+const HALL = process.env.HALL ?? poetry.find(h => all.some(e => e.hall === h && e.text === 'the finale')) ?? '';
+const events = HALL ? all.filter(e => e.hall === HALL) : all;
+if (HALL) console.log(`hall ${HALL}: ${events.length} events`);
 const anchor = events.find(e => e.reducer === AT);
 if (!anchor) {
   console.error(`no ${AT} event in ${logPath}`);

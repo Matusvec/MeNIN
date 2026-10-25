@@ -8,9 +8,10 @@
 //   STDB_URL=http://127.0.0.1:3000 STDB_DB=homer-test npm run -s timeline
 //   LOG=../docs/video/timeline-take.log npm run -s timeline   # also log every event for the video
 //
-// With LOG, each event is also appended there as one tab-separated line: wall-clock time
-// (HH:MM:SS.mmm), epoch ms, caller (phone, agent, arena, timer), reducer, text, and the mood's
-// colour (#rrggbb, scene lines only). scripts/render-timeline.mjs turns it into video.
+// With LOG, every hall's events (not just the one on screen) are also appended there as one
+// tab-separated line: wall-clock time (HH:MM:SS.mmm), epoch ms, the hall's code, caller (phone,
+// agent, arena, timer), reducer, text, and the mood's colour (#rrggbb, scene lines only).
+// scripts/render-timeline.mjs turns a hall's lines into video.
 //
 // Lines are cut to the terminal's width, so nothing wraps; about 60 columns shows them whole.
 
@@ -64,14 +65,16 @@ function fit(line: string): string {
   return out + '…' + esc('0');
 }
 const WHO: Record<number, string> = { [PHONE]: 'phone', [AGENT]: 'agent', [ARENA]: 'arena', [TIMER]: 'timer' };
+let at = 0n; // the room of the event being reported
 function say(reducer: string, text: string, swatch = '', hex = 0) {
   const label = reducer.padEnd(17);
-  console.log(fit(`${esc('2')}${stamp()}${esc('0')} ${esc(`1;${CALLER[reducer] ?? 37}`)}${label}${esc('0')} ${swatch}${text}`));
+  if (at === roomId) console.log(fit(`${esc('2')}${stamp()}${esc('0')} ${esc(`1;${CALLER[reducer] ?? 37}`)}${label}${esc('0')} ${swatch}${text}`));
   if (LOG) {
     const now = new Date();
     const wall = now.toTimeString().slice(0, 8) + '.' + String(now.getMilliseconds()).padStart(3, '0');
     const colour = hex ? '#' + hex.toString(16).padStart(6, '0') : '';
-    appendFileSync(LOG, [wall, now.getTime(), WHO[CALLER[reducer]] ?? 'other', reducer, text.replace(/\t/g, ' '), colour].join('\t') + '\n');
+    const code = all('room').find(r => r.id === at)?.code ?? '';
+    appendFileSync(LOG, [wall, now.getTime(), code, WHO[CALLER[reducer]] ?? 'other', reducer, text.replace(/\t/g, ' '), colour].join('\t') + '\n');
   }
 }
 const quote = (s: string, n: number) => {
@@ -95,26 +98,34 @@ let conn: DbConnection;
 let roomId = 0n;
 const all = (t: string) => [...((conn.db as any)[t].iter() as Iterable<any>)];
 const name = (playerId: bigint) => all('player').find(p => p.id === playerId)?.name ?? 'a poet';
-const mine = (row: { roomId: bigint }) => roomId !== 0n && row.roomId === roomId;
+// An event to report: the hall on screen, or with LOG any hall (the log keeps them all).
+const mine = (row: { roomId: bigint }) => {
+  at = row.roomId;
+  return LOG !== '' || (roomId !== 0n && row.roomId === roomId);
+};
 const shown = new Map<bigint, { at: number; words: number }>(); // the last transcript line per turn
 let songLines = 0;
 let songTimer: ReturnType<typeof setTimeout> | undefined;
 let live = false;
 
+const pretty = (event: string) => (event === 'coach' ? 'Talk to Homer' : event[0].toUpperCase() + event.slice(1));
+
 function follow(r: any, why: string) {
   roomId = r.id;
+  at = r.id;
   shown.clear();
-  const event = r.event === 'coach' ? 'Talk to Homer' : r.event[0].toUpperCase() + r.event.slice(1);
   console.log('');
-  say('create_room', `${why}: ${event} · hall ${r.code}`);
+  say('create_room', `${why}: ${pretty(r.event)} · hall ${r.code}`);
 }
 
 function wire() {
   conn.db.room.onInsert((_c, r) => {
     if (live && (!ROOM || r.code === ROOM)) follow(r, 'new hall');
+    else if (live && LOG) { at = r.id; say('create_room', `new hall: ${pretty(r.event)} · hall ${r.code}`); }
   });
   conn.db.room.onUpdate((_c, a, b) => {
-    if (b.id !== roomId || a.phase === b.phase) return;
+    at = b.id;
+    if (a.phase === b.phase || (b.id !== roomId && !LOG)) return;
     const up = b.currentTurnId ? all('turn').find(t => t.id === b.currentTurnId) : undefined;
     if (a.phase === 'lobby' && b.phase !== 'finished') say('start_battle', 'the battle begins');
     else if (a.phase === 'scored' && b.phase === 'ready' && up) say('advance', `next up: ${name(up.playerId)}`);

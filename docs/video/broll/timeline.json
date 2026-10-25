@@ -1,0 +1,19 @@
+{
+  "video": "docs/video/broll/timeline.mp4",
+  "fps": 60,
+  "width": 1920,
+  "height": 1080,
+  "seconds": 8,
+  "frame0": {
+    "epochMs": 1792920313094,
+    "wall": "02:25:13.094"
+  },
+  "anchor": {
+    "reducer": "verdict",
+    "epochMs": 1792920317094,
+    "wall": "02:25:17.094",
+    "atSecond": 4,
+    "text": "“The desert night when it was cold and brigh…”"
+  },
+  "changes": 7
+}

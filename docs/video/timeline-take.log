@@ -1,0 +1,217 @@
+01:40:55.713	1792917655713	arena	create_room	watching: Poetry · hall JVRV	
+01:50:47.924	1792918247924	arena	create_room	new hall: Talk to Homer · hall BPFH	
+01:51:16.670	1792918276670	arena	create_room	new hall: Poetry · hall HASH	
+01:51:27.716	1792918287716	phone	join_room	Hesiodos joins	
+01:51:30.608	1792918290608	agent	name_poet	Hesiodos, Whetter of the Sickle	
+01:51:33.986	1792918293986	arena	advance	finished	
+01:51:33.987	1792918293987	arena	create_room	new hall: Talk to Homer · hall JHQS	
+01:51:40.492	1792918300492	phone	join_room	Hesiodos joins	
+01:51:42.195	1792918302195	arena	start_battle	the battle begins	
+01:51:42.368	1792918302368	agent	name_poet	Hesiodos, Reader of the North Wind	
+01:51:44.429	1792918304429	agent	deal_round	theme: “The war between two brothers”	
+01:51:47.902	1792918307902	arena	start_turn	Hesiodos · 3-2-1, then speak	
+01:51:49.592	1792918309592	phone	update_transcript	Hesiodos: two	
+01:51:51.276	1792918311276	agent	set_scene	anger 0.10	#ec4a1c
+01:51:54.392	1792918314392	agent	set_scene	defiance 0.50	#ae84ff
+01:51:57.342	1792918317342	phone	update_transcript	Hesiodos: two Mais	
+01:51:58.545	1792918318545	phone	update_transcript	Hesiodos: two Mais non, a	
+01:52:12.153	1792918332153	timer	turn_timeout	Hesiodos · 4 words → Homer	
+01:53:12.154	1792918392154	arena	skip_turn	Hesiodos · no verdict, skipped	
+01:57:06.927	1792918626927	arena	create_room	new hall: Poetry · hall ZTUQ	
+02:03:21.596	1792919001596	arena	create_room	new hall: Poetry · hall FVDG	
+02:06:59.518	1792919219518	arena	create_room	new hall: Poetry · hall YKVV	
+02:10:55.429	1792919455429	phone	join_room	Matus joins	
+02:10:57.056	1792919457056	agent	name_poet	Matus, Watcher of the Headland	
+02:11:00.328	1792919460328	phone	enter	Matus checks in	
+02:11:12.581	1792919472581	phone	join_room	Hesiodos joins	
+02:11:14.049	1792919474049	agent	name_poet	Hesiodos, Shaper of the Bronze Wheel	
+02:11:48.034	1792919508034	arena	advance	finished	
+02:11:48.034	1792919508034	arena	create_room	new hall: Poetry · hall KYFM	
+02:13:15.732	1792919595732	phone	join_room	Matus joins	
+02:13:17.427	1792919597427	agent	name_poet	Matus, Mender of the Loom	
+02:13:18.466	1792919598466	phone	enter	Matus checks in	
+02:13:56.437	1792919636437	phone	join_room	Hesiodos joins	
+02:13:58.034	1792919638034	agent	name_poet	Hesiodos, Walker of the Long Road	
+02:14:47.218	1792919687218	arena	advance	finished	
+02:14:47.219	1792919687219	arena	create_room	new hall: Poetry · hall UKQR	
+02:15:13.296	1792919713296	phone	join_room	Matus joins	
+02:15:14.921	1792919714921	agent	name_poet	Matus, Pourer of Dark Wine	
+02:15:18.456	1792919718456	phone	join_room	Hesiodos joins	
+02:15:20.314	1792919720314	agent	name_poet	Hesiodos, Thrower of the Knucklebones	
+02:15:24.484	1792919724484	arena	start_battle	the battle begins	
+02:15:24.983	1792919724983	agent	deal_round	theme: “The cave where the giant sleeps”	
+02:15:25.305	1792919725305	phone	enter	Matus checks in	
+02:15:33.068	1792919733068	arena	start_turn	Matus · 3-2-1, then speak	
+02:15:37.145	1792919737145	phone	update_transcript	Matus: The	
+02:15:38.216	1792919738216	phone	update_transcript	Matus: The cave where the giant	
+02:15:38.724	1792919738724	agent	set_scene	anger 0.10	#ec4a1c
+02:15:39.244	1792919739244	phone	update_transcript	Matus: …cave where the giant sleeps.	
+02:15:39.984	1792919739984	phone	update_transcript	Matus: …the giant sleeps. He is	
+02:15:40.040	1792919740040	agent	set_scene	awe 0.60 · fear 0.50	#e8b73a
+02:15:41.592	1792919741592	agent	set_scene	awe 0.60 · fear 0.50	#e8b73a
+02:15:41.672	1792919741672	phone	update_transcript	Matus: …giant sleeps. He is the	
+02:15:42.652	1792919742652	phone	update_transcript	Matus: …the descendant of the Cyclops.	
+02:15:43.346	1792919743346	agent	set_scene	awe 0.70 · fear 0.60	#e8b73a
+02:15:44.174	1792919744174	phone	update_transcript	Matus: …of the Cyclops. and the	
+02:15:44.541	1792919744541	agent	set_scene	awe 0.80 · fear 0.60	#e8b73a
+02:15:46.166	1792919746166	phone	update_transcript	Matus: …was a tragedy. The giant	
+02:15:46.705	1792919746705	agent	set_scene	awe 0.70 · fear 0.50	#e8b73a
+02:15:47.459	1792919747459	phone	update_transcript	Matus: …a tragedy. The giant is	
+02:15:48.226	1792919748226	agent	set_scene	fear 0.70 · awe 0.60	#6f8f7f
+02:15:49.246	1792919749246	phone	update_transcript	Matus: …a peaceful being. of all	
+02:15:49.302	1792919749302	agent	set_scene	awe 0.80 · grief 0.60	#e8b73a
+02:15:50.666	1792919750666	phone	update_transcript	Matus: …of all the mythical creatures.	
+02:15:50.946	1792919750946	agent	set_scene	awe 0.60 · grief 0.50	#e8b73a
+02:15:52.132	1792919752132	phone	update_transcript	Matus: …all the mythical creatures. He	
+02:15:52.195	1792919752195	agent	set_scene	awe 0.70 · grief 0.50	#e8b73a
+02:15:52.993	1792919752993	phone	update_transcript	Matus: …He is the healing old	
+02:15:53.594	1792919753594	agent	set_scene	awe 0.70 · tenderness 0.50	#e8b73a
+02:15:53.735	1792919753735	phone	update_transcript	Matus: …is the healing old older	
+02:15:55.160	1792919755160	agent	set_scene	awe 0.70 · tenderness 0.50	#e8b73a
+02:15:55.209	1792919755209	phone	update_transcript	Matus: …healing old older brother. That	
+02:15:55.496	1792919755496	phone	end_turn	Matus · 43 words → Homer	
+02:15:57.063	1792919757063	agent	post_score	Matus · 40/100	
+02:15:57.063	1792919757063	agent	verdict	“The healing old older brother. Gentle giant…”	
+02:16:03.007	1792919763007	arena	advance	next up: Hesiodos	
+02:16:04.731	1792919764731	arena	start_turn	Hesiodos · 3-2-1, then speak	
+02:16:28.982	1792919788982	timer	turn_timeout	Hesiodos · silence: one more try	
+02:16:30.829	1792919790829	arena	start_turn	Hesiodos · 3-2-1, then speak	
+02:16:50.234	1792919810234	arena	create_room	new hall: Poetry · hall PRFL	
+02:18:27.054	1792919907054	phone	join_room	Matus joins	
+02:18:27.915	1792919907915	phone	join_room	Hesiod joins	
+02:18:28.951	1792919908951	phone	enter	Matus checks in	
+02:18:29.510	1792919909510	agent	name_poet	Hesiod, Keeper of the Lamp-Oil	
+02:18:29.953	1792919909953	agent	name_poet	Matus, Soother of Giants	
+02:18:30.398	1792919910398	phone	enter	Hesiod checks in	
+02:18:37.913	1792919917913	arena	start_battle	the battle begins	
+02:18:38.190	1792919918190	agent	deal_round	theme: “Coins for the ferryman, never paid”	
+02:18:41.256	1792919921256	arena	start_turn	Matus · 3-2-1, then speak	
+02:18:43.581	1792919923581	phone	update_transcript	Matus: AM	
+02:18:44.614	1792919924614	phone	update_transcript	Matus: AM in verse.	
+02:18:44.747	1792919924747	agent	set_scene	anger 0.10	#ec4a1c
+02:18:45.909	1792919925909	phone	update_transcript	Matus: …verse. Coins for the ferryman	
+02:18:46.680	1792919926680	phone	update_transcript	Matus: …for the ferryman never paid.	
+02:18:47.602	1792919927602	agent	set_scene	grief 0.70 · longing 0.50	#294c98
+02:18:48.099	1792919928099	phone	update_transcript	Matus: …the ferryman never paid. All	
+02:18:49.842	1792919929842	agent	set_scene	grief 0.80 · longing 0.50	#294c98
+02:18:49.849	1792919929849	phone	update_transcript	Matus: …he gave back to me	
+02:18:50.775	1792919930775	phone	update_transcript	Matus: …gave back to me and	
+02:18:51.500	1792919931500	phone	update_transcript	Matus: …to me and I took	
+02:18:52.716	1792919932716	phone	update_transcript	Matus: …to my grave. Even though	
+02:18:52.826	1792919932826	agent	set_scene	grief 0.60 · longing 0.50	#294c98
+02:18:54.130	1792919934130	phone	update_transcript	Matus: …though I told him I	
+02:18:55.305	1792919935305	agent	set_scene	grief 0.80 · longing 0.50	#294c98
+02:18:55.365	1792919935365	phone	update_transcript	Matus: …I would get his return,	
+02:18:56.662	1792919936662	phone	update_transcript	Matus: …would get his return, the	
+02:18:57.126	1792919937126	agent	set_scene	grief 0.80 · longing 0.50	#294c98
+02:18:57.854	1792919937854	phone	update_transcript	Matus: …offer never came. and he	
+02:18:58.327	1792919938327	agent	set_scene	grief 0.80 · longing 0.60	#294c98
+02:18:59.716	1792919939716	phone	update_transcript	Matus: …never came. and he lost	
+02:19:00.324	1792919940324	agent	set_scene	grief 0.80 · longing 0.50	#294c98
+02:19:00.629	1792919940629	phone	update_transcript	Matus: …all his goods for evermore.	
+02:19:01.661	1792919941661	agent	set_scene	grief 0.70 · anger 0.50	#294c98
+02:19:02.086	1792919942086	phone	update_transcript	Matus: …his goods for evermore. And	
+02:19:03.282	1792919943282	agent	set_scene	grief 0.70 · anger 0.50	#294c98
+02:19:03.369	1792919943369	phone	update_transcript	Matus: …And I felt terrible but	
+02:19:03.980	1792919943980	phone	end_turn	Matus · 53 words → Homer	
+02:19:04.621	1792919944621	agent	set_scene	grief 0.80 · longing 0.30	#294c98
+02:19:05.484	1792919945484	agent	post_score	Matus · 38/100	
+02:19:05.485	1792919945485	agent	verdict	“I took back to my grave. A debtor's ghost, …”	
+02:19:11.063	1792919951063	arena	advance	next up: Hesiod	
+02:19:12.914	1792919952914	arena	start_turn	Hesiod · 3-2-1, then speak	
+02:19:29.911	1792919969911	PRFL	arena	create_room	watching: Poetry · hall PRFL	
+02:19:37.163	1792919977163	PRFL	timer	turn_timeout	Hesiod · silence: one more try	
+02:19:39.011	1792919979011	PRFL	arena	start_turn	Hesiod · 3-2-1, then speak	
+02:20:03.261	1792920003261	PRFL	timer	turn_timeout	Hesiod · silence: skipped	
+02:20:06.804	1792920006804	PRFL	arena	advance	round 1 ends	
+02:20:06.971	1792920006971	PRFL	agent	post_verdict	“Matus, Soother of Giants, takes it with the…”	
+02:20:06.971	1792920006971	PRFL	agent	post_verdict	carved: “and I took back to my grave.”	
+02:20:09.091	1792920009091	PRFL	agent	post_song	the song: 4 lines	
+02:20:57.093	1792920057093	GLPQ	arena	create_room	new hall: Poetry · hall GLPQ	
+02:21:19.219	1792920079219	GLPQ	phone	join_room	Matus joins	
+02:21:21.166	1792920081166	GLPQ	phone	enter	Matus checks in	
+02:21:21.368	1792920081368	GLPQ	agent	name_poet	Matus, Clanger of the Bronze Obol	
+02:21:33.047	1792920093047	GLPQ	phone	join_room	Hesiod joins	
+02:21:34.462	1792920094462	GLPQ	agent	name_poet	Hesiod, Tamer of the Plough-Ox	
+02:22:15.559	1792920135559	GLPQ	arena	advance	finished	
+02:22:15.560	1792920135560	ABGR	arena	create_room	new hall: Poetry · hall ABGR	
+02:23:51.053	1792920231053	ABGR	phone	join_room	Hesiod joins	
+02:23:52.611	1792920232611	ABGR	agent	name_poet	Hesiod, Sweeper of the Hearthstone	
+02:24:23.319	1792920263319	ABGR	arena	advance	finished	
+02:24:23.319	1792920263319	RHTJ	arena	create_room	new hall: Poetry · hall RHTJ	
+02:24:39.533	1792920279533	RHTJ	phone	join_room	Matus joins	
+02:24:39.563	1792920279563	RHTJ	phone	join_room	Hesiod joins	
+02:24:41.057	1792920281057	RHTJ	agent	name_poet	Hesiod, Keeper of the Spindle	
+02:24:41.365	1792920281365	RHTJ	agent	name_poet	Matus, Thrower of Knucklebones	
+02:24:41.452	1792920281452	RHTJ	phone	enter	Matus checks in	
+02:24:42.024	1792920282024	RHTJ	phone	enter	Hesiod checks in	
+02:24:49.563	1792920289563	RHTJ	arena	start_battle	the battle begins	
+02:24:49.953	1792920289953	RHTJ	agent	deal_round	theme: “The sword you buried in sand”	
+02:24:52.721	1792920292721	RHTJ	arena	start_turn	Matus · 3-2-1, then speak	
+02:24:55.134	1792920295134	RHTJ	phone	update_transcript	Matus: Dig	
+02:24:56.062	1792920296062	RHTJ	phone	update_transcript	Matus: Dig it up.	
+02:24:56.828	1792920296828	RHTJ	agent	set_scene	defiance 0.60 · anger 0.35	#ae84ff
+02:24:57.163	1792920297163	RHTJ	phone	update_transcript	Matus: Dig it up. The	
+02:24:57.925	1792920297925	RHTJ	agent	set_scene	defiance 0.70 · anger 0.50	#ae84ff
+02:24:58.927	1792920298927	RHTJ	phone	update_transcript	Matus: …I buried in the sand	
+02:24:59.727	1792920299727	RHTJ	phone	update_transcript	Matus: …in the deserts of afar	
+02:24:59.810	1792920299810	RHTJ	agent	set_scene	defiance 0.70 · anger 0.60	#ae84ff
+02:25:00.871	1792920300871	RHTJ	phone	update_transcript	Matus: …deserts of afar even though	
+02:25:01.419	1792920301419	RHTJ	agent	set_scene	defiance 0.60 · anger 0.50	#ae84ff
+02:25:02.040	1792920302040	RHTJ	phone	update_transcript	Matus: …of afar even though I	
+02:25:02.709	1792920302709	RHTJ	agent	set_scene	defiance 0.60 · anger 0.50	#ae84ff
+02:25:02.877	1792920302877	RHTJ	phone	update_transcript	Matus: …could not take my growing	
+02:25:03.930	1792920303930	RHTJ	phone	update_transcript	Matus: …not take my growing heart	
+02:25:04.106	1792920304106	RHTJ	agent	set_scene	longing 0.70 · defiance 0.60	#c0694a
+02:25:05.319	1792920305319	RHTJ	phone	update_transcript	Matus: …take my growing heart that	
+02:25:06.025	1792920306025	RHTJ	phone	update_transcript	Matus: …aches in deep inside of	
+02:25:06.143	1792920306143	RHTJ	agent	set_scene	longing 0.70 · defiance 0.60	#c0694a
+02:25:07.110	1792920307110	RHTJ	phone	update_transcript	Matus: …inside of me for my	
+02:25:08.258	1792920308258	RHTJ	phone	update_transcript	Matus: …for my loved one afar.	
+02:25:09.480	1792920309480	RHTJ	agent	set_scene	longing 0.80 · grief 0.60	#c0694a
+02:25:09.733	1792920309733	RHTJ	phone	update_transcript	Matus: …my loved one afar. I	
+02:25:11.685	1792920311685	RHTJ	phone	update_transcript	Matus: …came from lands afar but	
+02:25:12.414	1792920312414	RHTJ	agent	set_scene	longing 0.80 · grief 0.50	#c0694a
+02:25:12.498	1792920312498	RHTJ	phone	update_transcript	Matus: …but I arrived into the	
+02:25:13.756	1792920313756	RHTJ	phone	update_transcript	Matus: …arrived into the desert night	
+02:25:14.845	1792920314845	RHTJ	agent	set_scene	longing 0.80 · tenderness 0.40	#c0694a
+02:25:15.044	1792920315044	RHTJ	phone	update_transcript	Matus: …the desert night when it	
+02:25:15.298	1792920315298	RHTJ	phone	end_turn	Matus · 58 words → Homer	
+02:25:16.237	1792920316237	RHTJ	agent	set_scene	longing 0.85 · tenderness 0.30	#c0694a
+02:25:17.094	1792920317094	RHTJ	agent	post_score	Matus · 44/100	
+02:25:17.094	1792920317094	RHTJ	agent	verdict	“The desert night when it was cold and brigh…”	
+02:25:23.890	1792920323890	RHTJ	arena	advance	next up: Hesiod	
+02:25:25.585	1792920325585	RHTJ	arena	start_turn	Hesiod · 3-2-1, then speak	
+02:25:26.999	1792920326999	RHTJ	phone	update_transcript	Hesiod: to	
+02:25:27.923	1792920327923	RHTJ	agent	set_scene	anger 0.10	#ec4a1c
+02:25:29.779	1792920329779	RHTJ	phone	update_transcript	Hesiod: to that. The	
+02:25:31.207	1792920331207	RHTJ	phone	update_transcript	Hesiod: to that. The sword	
+02:25:33.061	1792920333061	RHTJ	phone	update_transcript	Hesiod: …in the sand was one	
+02:25:34.301	1792920334301	RHTJ	phone	update_transcript	Hesiod: …the sand was one the	
+02:25:34.527	1792920334527	RHTJ	agent	set_scene	grief 0.60 · longing 0.50	#294c98
+02:25:35.724	1792920335724	RHTJ	agent	set_scene	defiance 0.50 · anger 0.30	#ae84ff
+02:25:35.761	1792920335761	RHTJ	phone	update_transcript	Hesiod: …highest sign of command. Man	
+02:25:37.020	1792920337020	RHTJ	phone	update_transcript	Hesiod: …on man would die to	
+02:25:37.701	1792920337701	RHTJ	agent	set_scene	defiance 0.60 · awe 0.50	#ae84ff
+02:25:38.185	1792920338185	RHTJ	phone	update_transcript	Hesiod: …man would die to for	
+02:25:38.911	1792920338911	RHTJ	phone	update_transcript	Hesiod: …die to for it stand	
+02:25:40.437	1792920340437	RHTJ	agent	set_scene	defiance 0.60 · awe 0.50	#ae84ff
+02:25:40.537	1792920340537	RHTJ	phone	update_transcript	Hesiod: …its honor. defend its banner.	
+02:25:41.500	1792920341500	RHTJ	phone	update_transcript	Hesiod: …honor. defend its banner. Now	
+02:25:42.384	1792920342384	RHTJ	phone	update_transcript	Hesiod: …it was buried in the	
+02:25:42.430	1792920342430	RHTJ	agent	set_scene	defiance 0.80 · awe 0.60	#ae84ff
+02:25:43.360	1792920343360	RHTJ	phone	update_transcript	Hesiod: …in the sand, its own	
+02:25:44.911	1792920344911	RHTJ	agent	set_scene	grief 0.60 · longing 0.50	#294c98
+02:25:45.231	1792920345231	RHTJ	phone	update_transcript	Hesiod: …its own honor sad, going	
+02:25:46.056	1792920346056	RHTJ	agent	set_scene	grief 0.70 · longing 0.50	#294c98
+02:25:46.426	1792920346426	RHTJ	phone	update_transcript	Hesiod: …own honor sad, going home	
+02:25:48.129	1792920348129	RHTJ	phone	end_turn	Hesiod · 54 words → Homer	
+02:25:48.761	1792920348761	RHTJ	agent	set_scene	grief 0.80 · longing 0.60	#294c98
+02:25:49.654	1792920349654	RHTJ	agent	post_score	Hesiod · 52/100	
+02:25:49.655	1792920349655	RHTJ	agent	verdict	“Going home from a defeated field. Now that …”	
+02:25:55.960	1792920355960	RHTJ	arena	advance	round 1 ends	
+02:25:56.243	1792920356243	RHTJ	agent	post_verdict	“Hesiod takes the round with the line that m…”	
+02:25:56.244	1792920356244	RHTJ	agent	post_verdict	carved: “going home from a defeated field.”	
+02:25:58.392	1792920358392	RHTJ	agent	post_song	the song: 4 lines	
+02:26:02.711	1792920362711	RHTJ	arena	advance	the finale	
+02:26:24.988	1792920384988	RHTJ	arena	advance	finished	
