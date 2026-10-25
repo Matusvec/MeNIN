@@ -10,7 +10,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 | `[real-mic WER]` | **Number** | swift's rerun of the keyterm test on a real iPhone mic. If it differs from 3%/20%, it replaces those numbers everywhere. | When swift runs it |
 | `[turn-to-voice p50]` | **Number** | The measured time from a turn's end to Homer's first word, on the evening shoot's build (its latency HUD), or multiplayer's check-run tally if it has the number | Sat ~9 PM |
 | `[poet's name]`, `[the poet's scene]`, `[poet quote]`, `[composer's name]`, `[how the score was made]`, `[team]` | **A fact only Matus has** | Matus (the list went to leader) | Today |
-| `[If debate passed]` | Checkpoint | The Sat 8 PM check: 5 runs in a row without a failure. Delete the section if it failed. (Discus already passed its check early: 5 of 5 clean real-phone runs on the website (16:46–16:49 PM, build 18) plus 5 scripted runs, throws of 19.8 to 66.9 m, one real foul handled, no stalls or drops (leader, Sat ~4:50 PM).) | Sat 8 PM |
+| `[If debate passed]` | Checkpoint | The Sat 8 PM check: 5 runs in a row without a failure. Delete the section if it failed. **`[If discus passes on 31]`** works the same way: discus needs 5 clean real-phone runs on build 31 (leader and pm, Sat ~8:25 PM: the build-18 pass came before discus v2 shipped in build 21). Its earlier 5 of 5 on build 18 no longer counts. | Sat 8 PM, and the 31 runs |
 | ~~`[URL]`~~ | Link | **Filled: https://play.206.189.237.157.sslip.io** (`homer/DEPLOY.md`; it answered HTTP 200 at Sat 5:50 PM). Still open it on a phone on cellular before submitting. | Done |
 | `[TestFlight public link]`, `[Video]`, `[ASI:One link]` (the Figma Slides link is filled: https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm) | Link | Apple's Beta App Review; [video.md](video.md); the Slides deck; builder | As each lands |
 
@@ -48,7 +48,7 @@ One screen is the arena: our website at https://play.206.189.237.157.sslip.io, o
 | --- | --- | --- |
 | **Poetry battle** (main event) | Homer | Improvise free verse, answering the poet before you |
 | [If debate passed] **Socratic debate** | Socrates | Argue a question in timed spoken turns |
-| **Discus** | Homer announces | Swing your phone; its motion sensors measure the throw |
+| **[If discus passes on 31]** **Discus** | Homer announces | Swing your phone; its motion sensors measure the throw |
 | **Talk to Homer** | Homer | Speak a verse; Homer answers out loud in two sentences, quoting your words, with one fix. A conversation with no scorecard. |
 | [If it passed] **Stadion** | Homer announces | Pump your arms with the phone in your hand like a sprinter; everyone races at once, live on the screen |
 
@@ -75,7 +75,7 @@ Other events show as locked tiles, because we only unlock what's solid: an event
 
 **[If debate passed] Socratic debate.** It's the same engine as the battle: timed spoken turns, the scene and a spoken verdict, with no beat. Socrates hosts in his own voice, and sides are dealt by turn order. Our demo question: "Is it cheating to let an AI write your love letter?" Your hand holds rhetorical moves ("define your terms", "counterexample", "analogy"). Tap a move as you make it, and the judge checks that you really made it. Freeze, and Socrates whispers you a question to ask. It has its own five axes: Claim, Reason, Answer, Craft and Poise.
 
-**Discus.** Hold a button with your thumb, swing your iPhone, and lift your thumb to release. You never let go of the phone. Core Motion measures the swing and the release, the arena flies the throw in silence, the distance lands with a fanfare, and Homer calls the throw ("Strong arm."). No voice, no AI: just physics and bragging rights.
+**[If discus passes on 31]** **Discus.** Hold a button with your thumb, swing your iPhone, and lift your thumb to release. You never let go of the phone. Core Motion measures the swing and the release, the arena flies the throw in silence, the distance lands with a fanfare, and Homer calls the throw ("Strong arm."). No voice, no AI: just physics and bragging rights.
 
 ## How we built it
 
@@ -134,7 +134,7 @@ The total is out of 100. Clichés and dodging the theme cost. In the lessons, **
 - A live battle on iPhones, with Homer's spoken verdict [turn-to-voice p50] s after the last word.
 - 3% word error rate in our tests, with a drum at full volume as test noise, down from 20%, by feeding the phrases Homer dealt each poet to the recognizer.
 - The stitched song: the room leaves with one poem it made together.
-- The discus: 5 of 5 clean runs on real phones in its check, with throws from 19.8 to 66.9 m and a foul handled. [If debate passed: three events in one hall.]
+- [If discus passes on 31: The discus: 5 of 5 clean runs on real phones on build 31, with throws from [min] to [max] m.] [If debate passed: three events in one hall.]
 
 ## What we learned
 

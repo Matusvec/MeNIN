@@ -20,7 +20,7 @@ One screen is the arena: our website at https://play.206.189.237.157.sslip.io, o
 
 - **The poetry battle** (the main event). Homer writes a fresh theme every round and coins each poet a fresh epithet. Your phone shows three of Homer's phrases, stock phrases that fit the theme and the beat, the way Homer himself improvised. They're optional: "Stuck? Use one of Homer's phrases. It scores Craft." There's no metronome: the beat is how Homer trains you, and in battle you spit free. 3, 2, 1, SPEAK, and you get one window with a countdown ring, into a hands-free mic. Go quiet for about two and a half seconds, and he whispers you a phrase that fits. About three seconds after your last word, he scores you on five axes and quotes your best line. At the end, he stitches everyone's lines into one song and crowns a champion.
 - [If it passed] **The Socratic debate**, hosted by Socrates in his own voice.
-- **The discus**: swing your phone and lift your thumb to release. Homer calls the throw.
+- [If discus passes on 31] **The discus**: swing your phone and lift your thumb to release. Homer calls the throw.
 - **Talk to Homer**: speak, and Homer answers out loud in two sentences, quoting you, with one fix. A conversation, no score.
 - [If it passed] **The Stadion**: pump your arms with the phone like a sprinter; everyone races at once on the screen.
 - **Bard mode** (lessons) and **Practice mode** (spar with Homer).

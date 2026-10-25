@@ -181,9 +181,26 @@ These are the only operator steps for Talk to Homer, the Stadion, boxing (Pygmac
 
 ### Archery (Toxeia, beta)
 
-> **Out of date: camera mode is archery's main mode now** (live on the website since Sat 8:10 PM). The Mac's webcam tracks the bow arm and the draw, the archer's own phone nocks and looses, and nobody passes phones. **The two-phone table below is the fallback.** pm is sending the camera steps from the code, and gtm rewrites this section when they land. **Until then, don't run archery.** Every phone on build 31 or later, and archery isn't shown to judges until it passes its 5 clean runs on 31.
+> **Don't run archery at the table until it passes its 5 camera runs on build 31** (two-phone mode gets 2 clean fallback runs with Camera off; leader, Sat ~8:25 PM). Every phone on build 31 or later. Steps from pm, checked against `Arena.tsx`, `lib/arena.ts` and `lib/toxeia.ts` (Sat ~8:25 PM).
 
-**Nothing starts by itself, and nobody types a name.** Archers are the joined players, in the order they joined. The first phone in is the **bow** and its player shoots first; the second phone is the **arrow** and its player shoots second. Once the range opens, the arena's scoreboard of joined phones hides (the range has its own board).
+**Camera mode is the main mode** (live on the website since Sat 8:10 PM). The Mac's webcam tracks the bow arm and the draw, each archer's own phone nocks and looses, and **nobody passes phones**. Archers are the joined players, in join order, and the arena calls each one up itself: there's no Ready and no name to type. Once the range opens, the arena's scoreboard of joined phones hides (the range has its own board).
+
+| Who | Step |
+| --- | --- |
+| **Everyone who'll shoot** | **Joins with the code before Begin, on their own phone.** |
+| Operator | **New event → Toxeia (beta)** (or Open the hall: Toxeia (beta)). Until two phones are in, Begin reads "Waiting for the bow and the arrow". **Begin.** |
+| Operator | Press **Camera on** (in the button row). The judging hall starts with the camera off. The first time, allow the browser's camera prompt. A small camera view with the tracked skeleton appears in a corner of the range. |
+| Homer, automatic | "Toxeia. Face the target and raise your bow arm. Phone in the other hand: thumb down, draw it back to your face, lift your thumb to loose." Then "{name}, step up to the line." and "{name} steps to the line." |
+| Each archer, 3 arrows | Stand facing the target, **where the camera sees your whole upper body**. Raise the bow arm: the aim dot follows it, and it zeroes at the start of each arrow once the arm is still. Thumb down on your own phone, bring the drawing hand back to your jaw while the draw meter fills, and **lift your thumb to loose**. 45 s an arrow before it's lost. |
+| Between archers, automatic | "{name} finishes on {total}." then "{next}, step up to the line." No phones change hands. |
+| The end, automatic | After the last joined player's third arrow: "The bow goes to {name}, with {total}." |
+| Operator | Press nothing while arrows fly. **"Next" during an arrow's score skips its reveal**, so it counts as a fallback. **Rematch** or **New event** at the end. |
+| **If the camera loses the archer, automatic** | **Changing (builder, Sat ~8:30 PM).** Today: after about 1 s the arena says "Step into view: phones meanwhile", the two station phones take that arrow (the two-phone steps below), and the camera comes back on the next one. After builder's change, the arrow holds with "Step into view" until the archer is back, and the phones take over only if the camera is off or fails. The final wording comes from pm. |
+| **If the camera can't work at all** | The operator presses **Camera off**. It stays in two-phone mode for good, with the steps below. That counts as a fallback. |
+
+#### Fallback: two-phone mode
+
+Only when the camera is off, or by itself for one arrow when the camera loses the archer. **Nobody types a name.** Archers are the joined players, in the order they joined. The first phone in is the **bow** and its player shoots first; the second phone is the **arrow** and its player shoots second. Once the range opens, the arena's scoreboard of joined phones hides (the range has its own board).
 
 | Who | Step |
 | --- | --- |
@@ -194,7 +211,7 @@ These are the only operator steps for Talk to Homer, the Stadion, boxing (Pygmac
 | Each archer | Bow phone in the outstretched hand, aimed at the target (a live dot shows where it points). Arrow phone in the other hand: **hold to nock**, pull back toward your face, let go to shoot. 3 arrows, 45 s each before it's lost. The next arrow follows by itself. |
 | Between archers | The bow says **"Pass both phones to {next}"**. Pass **both**, hand to hand; the next archer holds the bow out and taps **Ready**. |
 | The end | **It ends by itself** after the last joined player's third arrow: the results come up and Homer crowns the best total. |
-| Operator | Press nothing while arrows fly. **"Next" during an arrow's score skips its reveal**, so it counts as a fallback. Rematch at the end. |
+| Operator | Press nothing while arrows fly. **"Next" during an arrow's score skips its reveal**, so it counts as a fallback. Rematch or New event at the end. |
 
 ### At the table
 
