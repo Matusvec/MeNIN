@@ -605,5 +605,116 @@ fighters = await sql(null, `SELECT * FROM fighter WHERE room_id = ${Bq.id}`);
 check((await room(Bq.id)).phase === 'ready' && (await room(Bq.id)).round_no === 2 && fighters.find(f => f.seat === 0).player_id === id('Bo') && fighters.find(f => f.seat === 1).player_id === id('Cy') && fighters.every(f => f.health === 100), 'winner stays on: Bo meets the next challenger, Cy, at full health');
 await call(arena, 'end_battle', Bq.id);
 
+// ---------------------------------------------------------------- toxeia
+
+// Archery: one archer at a time on two phones, Ada's the bow and Bo's the arrow; Cy watches.
+await call(arena, 'create_room', 'toxeia', 1, 2, 2, 80, 'four_beat', false, false, true);
+const Tx = (await sql(null, 'SELECT * FROM room'))
+  .filter(x => x.host[0] === `0x${arena.hex}`)
+  .sort((a, b) => b.id - a.id)[0];
+check(Tx.event === 'toxeia' && Tx.auto_ready && Tx.turn_seconds === 45, 'toxeia room: auto-ready, 45 s an arrow');
+await call(ada, 'join_room', Tx.code, 'Ada', '', []);
+await call(bo, 'join_room', Tx.code, 'Bo', '', []);
+await call(cy, 'join_room', Tx.code, 'Cy', '', []);
+const tp = await sql(null, `SELECT * FROM player WHERE room_id = ${Tx.id}`);
+const tid = n => tp.find(p => p.name === n).id;
+const range = async () => (await sql(null, `SELECT * FROM range WHERE room_id = ${Tx.id}`))[0];
+const shots = async () => (await sql(null, `SELECT * FROM arrow_shot WHERE room_id = ${Tx.id}`)).sort((a, b) => a.id - b.id);
+const archers = async () => await sql(null, `SELECT * FROM archer WHERE room_id = ${Tx.id}`);
+await call(ada, 'claim_station', Tx.id, '');
+await call(bo, 'claim_station', Tx.id, 'bow');
+let st = await range();
+check(st.bow_id === tid('Ada') && st.arrow_id === tid('Bo'), "first come gets the bow; asking for a taken station gives the free one");
+check(await fails(cy, 'claim_station', Tx.id, ''), 'a third phone finds both stations taken');
+check(await fails(cy, 'claim_station', Tx.id, 'quiver'), "a station is 'bow', 'arrow' or ''");
+await call(bo, 'claim_station', Tx.id, 'bow');
+check((await range()).arrow_id === tid('Bo'), 'Bo keeps the arrow when the bow is taken');
+await call(arena, 'start_battle', Tx.id);
+st = await range();
+check((await room(Tx.id)).phase === 'ready' && st.archer_id === 0 && st.arrow_no === 0, 'the range opens: the bow phone asks for a name');
+check(await fails(bo, 'next_archer', Tx.id, 'Odysseus'), 'only the bow names the archer');
+await call(ada, 'set_bow_aim', Tx.id, 0.5, 0.5);
+check((await range()).aim_yaw === 0, 'no aim before an arrow is up, without an error');
+await call(ada, 'next_archer', Tx.id, 'Odysseus');
+st = await range();
+const ody = (await archers())[0];
+check((await room(Tx.id)).phase === 'speaking' && st.archer_id === ody.id && st.arrow_no === 1 && Math.abs(st.wind) <= 6, `Odysseus is up: arrow 1, wind ${st.wind.toFixed(1)} m/s`);
+check(st.ends_at[0] - st.opened_at[0] === 45_000_000, 'a 45 s window an arrow');
+check(await fails(ada, 'next_archer', Tx.id, 'Penelope'), 'one archer at a time');
+// The module's flight, for the expectations: 30 m at 30..70 m/s, the sight set for a full draw.
+const fly = (yaw, pitch, draw, wind) => {
+  const t = 30 / (30 + 40 * Math.min(1, draw / 0.9));
+  const x = yaw + 0.18 * wind * t;
+  const y = pitch - 0.5 * 9.81 * (t * t - (30 / 70) ** 2);
+  const r = Math.hypot(x, y);
+  return { x, y, t, ring: r < 0.61 ? 10 - Math.floor(r / 0.061) : 0 };
+};
+await call(bo, 'set_bow_aim', Tx.id, 0.3, 0.3);
+await call(ada, 'set_draw', Tx.id, 0.4);
+check((await range()).aim_yaw === 0 && (await range()).draw === 0, 'only the bow aims and only the arrow draws');
+const offset = -0.18 * st.wind * (30 / 70); // aim off by the drift a full draw takes
+await call(ada, 'set_bow_aim', Tx.id, offset, 0);
+await call(bo, 'set_draw', Tx.id, 0.6);
+st = await range();
+check(Math.abs(st.aim_yaw - offset) < 1e-6 && Math.abs(st.draw - 0.6) < 1e-6, 'the bow streams its aim, the arrow its draw');
+await call(ada, 'set_bow_aim', Tx.id, offset, 0);
+await call(ada, 'loose', Tx.id, 1);
+check((await shots()).length === 0, 'only the arrow phone looses');
+await call(bo, 'loose', Tx.id, 1);
+let shot = (await shots()).at(-1);
+check((await room(Tx.id)).phase === 'scored' && shot.ring === 10 && Math.abs(shot.x) < 0.002 && Math.abs(shot.y) < 0.002 && Math.abs(shot.flight - 0.429) < 0.001,
+  `into the gold: aimed off for the wind, a full draw scores 10 (${shot.x}, ${shot.y}, ${shot.flight} s)`);
+check((await archers())[0].total === 10 && (await archers())[0].arrows === 1, "Odysseus has 10 after one arrow");
+await call(bo, 'loose', Tx.id, 1);
+check((await shots()).length === 1, 'one loose an arrow');
+await call(arena, 'advance', Tx.id);
+st = await range();
+check((await room(Tx.id)).phase === 'speaking' && st.arrow_no === 2 && st.draw === 0, `arrow 2: fresh wind (${st.wind.toFixed(1)} m/s)`);
+await call(ada, 'set_bow_aim', Tx.id, 0, 0);
+await call(bo, 'loose', Tx.id, 0.45);
+shot = (await shots()).at(-1);
+let want = fly(0, 0, 0.45, st.wind);
+check(shot.ring === 0 && shot.y < -0.6 && Math.abs(shot.y - want.y) < 0.002 && Math.abs(shot.x - want.x) < 0.002 && Math.abs(shot.flight - 0.6) < 0.001,
+  `a half draw flies slow (0.6 s) and drops under the face: ${shot.y} m`);
+await call(arena, 'advance', Tx.id);
+console.log('     waiting 46 s for the third arrow\'s time to run out...');
+await sleep(46_000);
+shot = (await shots()).at(-1);
+check((await room(Tx.id)).phase === 'scored' && shot.arrow_no === 3 && shot.flight === 0 && shot.ring === 0, 'time runs out: the arrow is lost (flight 0, no rings)');
+check((await archers())[0].arrows === 3 && (await archers())[0].total === 10, 'three arrows: Odysseus finishes on 10');
+await call(arena, 'advance', Tx.id);
+st = await range();
+check((await room(Tx.id)).phase === 'ready' && st.archer_id === 0, 'three arrows each: back to the bow for the next name');
+check(await fails(ada, 'next_archer', Tx.id, 'odysseus'), 'an archer who has shot is not called again');
+await call(ada, 'next_archer', Tx.id, 'Penelope');
+for (let i = 1; i <= 3; i++) {
+  st = await range();
+  await call(ada, 'set_bow_aim', Tx.id, 0.1, 0.05);
+  await call(bo, 'loose', Tx.id, 0.95);
+  shot = (await shots()).at(-1);
+  want = fly(0.1, 0.05, 0.95, st.wind);
+  check(shot.ring === want.ring && Math.abs(shot.x - want.x) < 0.002, `Penelope's arrow ${i}: wind ${st.wind.toFixed(1)} m/s, lands (${shot.x}, ${shot.y}) in ring ${shot.ring}`);
+  await call(arena, 'advance', Tx.id);
+}
+const pen = (await archers()).find(a => a.name === 'Penelope');
+const penShots = (await shots()).filter(x => x.archer_id === pen.id);
+check(pen.total === penShots.reduce((t, x) => t + x.ring, 0) && pen.arrows === 3, `Penelope's total is her rings: ${pen.total}`);
+check(await fails(cy, 'next_archer', Tx.id, ''), 'only the bow (or the arena) closes the range');
+await call(ada, 'next_archer', Tx.id, '');
+check((await room(Tx.id)).phase === 'finale', "the bow says that's everyone: the finale");
+await call(arena, 'advance', Tx.id);
+check((await room(Tx.id)).phase === 'finished', 'toxeia finished');
+await call(arena, 'rematch', Tx.id);
+st = await range();
+check((await room(Tx.id)).phase === 'ready' && (await archers()).length === 0 && (await shots()).length === 0 && st.bow_id === tid('Ada') && st.arrow_id === tid('Bo'),
+  'rematch: same phones on the same stations, no archers yet');
+await call(arena, 'advance', Tx.id);
+check((await room(Tx.id)).phase === 'finale', 'the arena can close the range while no archer is up');
+await call(arena, 'advance', Tx.id);
+await call(arena, 'set_event', Tx.id, 'toxeia', 1);
+await call(bo, 'leave_room', Tx.id);
+await call(cy, 'claim_station', Tx.id, '');
+check((await range()).arrow_id === tid('Cy'), 'a phone that leaves the lobby frees its station');
+
 console.log(failures === 0 ? '\nall checks passed' : `\n${failures} check(s) failed`);
 process.exit(failures === 0 ? 0 : 1);

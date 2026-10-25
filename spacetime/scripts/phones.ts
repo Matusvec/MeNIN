@@ -11,6 +11,8 @@
 //   CODE=ABCD LAZY=Bo npm run phones               # Stadion: Bo jogs at 4 m/s (hits the cap)
 //   CODE=ABCD POETS=4 PACIFIST=Ada,Bo npm run phones  # boxing: Ada and Bo only guard (goes to the bell)
 //   CODE=ABCD STYLE=Ada:spam,Bo:counter npm run phones # boxing styles: spam, paced (default), counter
+//   CODE=ABCD ARCHERS=Odysseus,Penelope npm run phones # archery: the first phone is the bow, the
+//                                                      # second the arrow; these archers shoot
 //
 // With HOST, it waits for that arena's newest lobby and follows it if the arena opens a
 // new room before the battle begins. It leaves the room after the last battle.
@@ -27,6 +29,7 @@ const NAMES = process.env.NAMES ? process.env.NAMES.split(',').map(n => n.trim()
 const POETS = Number(process.env.POETS ?? (process.env.NAMES ? NAMES.length : 2));
 const STAY = process.env.STAY === '1';
 const IDLE_MS = 120_000;
+const ARCHERS = (process.env.ARCHERS ?? 'Odysseus,Penelope,Telemachus').split(',').map(n => n.trim()).filter(Boolean);
 const VERSES = [
   ['The sea came grey against the hull at dawn', 'and {card} carried what the wind had drawn'],
   ['We pulled the oars until the oars were bone', 'and {card} brought the long ship home alone'],
@@ -83,6 +86,11 @@ class Phone {
             .subscribe([`SELECT * FROM room WHERE id = ${RID}`, `SELECT * FROM turn WHERE room_id = ${RID}`, 'SELECT * FROM hand',
               `SELECT * FROM heat WHERE room_id = ${RID}`, `SELECT * FROM runner WHERE room_id = ${RID}`,
               `SELECT * FROM fight WHERE room_id = ${RID}`, `SELECT * FROM fighter WHERE room_id = ${RID}`]);
+          // Archery's tables on their own, so a database without them yet still works.
+          c.subscriptionBuilder()
+            .onError(() => {})
+            .subscribe([`SELECT * FROM range WHERE room_id = ${RID}`, `SELECT * FROM archer WHERE room_id = ${RID}`,
+              `SELECT * FROM arrow_shot WHERE room_id = ${RID}`]);
         })
         .onConnectError((_c, e) => reject(e))
         .build();
@@ -92,6 +100,7 @@ class Phone {
     this.me = BigInt(p.id);
     await this.conn.reducers.enter({ roomId: RID });
     console.log(`${clock()} ${this.name} joined ${CODE} and checked in`);
+    if (this.room()?.event === 'toxeia') await this.conn.reducers.claimStation({ roomId: RID, role: '' }).catch(() => {});
   }
 
   room() {
@@ -127,6 +136,7 @@ class Phone {
       }
       return;
     }
+    if (r?.event === 'toxeia') return this.shoot(r);
     if (!r || !r.currentTurnId) return;
     const t = this.turn(r.currentTurnId);
     if (!t || t.playerId !== this.me) return;
@@ -236,6 +246,69 @@ class Phone {
     console.log(`${clock()} ${this.name} (${pacifist ? 'pacifist' : style}) ${won ? 'won' : fight?.winnerId ? 'lost' : 'drew'}${fight?.ko ? ' by KO' : ' at the bell'} after ${secs} s: ${punches} punches, health ${Math.round(me?.health ?? 0)}, stamina ${Math.round(me?.stamina ?? 0)}`);
   }
 
+  // Archery. The bow phone names the next archer from ARCHERS (then '': that's everyone) and
+  // aims each arrow: it swings in from off the target, settles, and holds with a tremor, aimed
+  // off for a full draw's wind drift with an error that grows with each archer (the first is
+  // the best). The arrow phone nocks, draws over 1.2 s streaming the draw, holds, and looses;
+  // one arrow in six is a weak draw that drops low.
+  async shoot(r: any) {
+    const st = [...this.conn.db.range.iter()][0];
+    if (!st) return;
+    const archers = [...this.conn.db.archer.iter()];
+    if (st.bowId === this.me && r.phase === 'ready' && st.archerId === 0n) {
+      const key = `name ${finished} ${archers.length}`;
+      if (this.handled.has(key)) return;
+      this.handled.add(key);
+      await sleep(1500);
+      const name = ARCHERS.find(n => !archers.some(a => a.name === n)) ?? '';
+      await this.conn.reducers.nextArcher({ roomId: RID, name })
+        .then(() => console.log(`${clock()} ${this.name} (the bow): ${name ? `next archer, ${name}` : "that's everyone"}`))
+        .catch(e => console.log(`${clock()} ${this.name}: ${(e as Error).message}`));
+      return;
+    }
+    const key = `arrow ${st.archerId} ${st.arrowNo}`;
+    if (r.phase !== 'speaking' || st.archerId === 0n || this.handled.has(key)) return;
+    if (st.bowId === this.me) {
+      this.handled.add(key);
+      await this.aim(st, archers.sort((a, b) => Number(a.id - b.id)).findIndex(a => a.id === st.archerId));
+    } else if (st.arrowId === this.me) {
+      this.handled.add(key);
+      await this.draw(st);
+    }
+  }
+
+  async aim(st: any, index: number) {
+    const sd = 0.04 + 0.04 * Math.max(0, index);
+    const gauss = () => Math.sqrt(-2 * Math.log(1 - Math.random())) * Math.cos(2 * Math.PI * Math.random());
+    const yaw0 = -0.18 * st.wind * (30 / 70) + sd * gauss();
+    const pitch0 = sd * gauss();
+    const seed = Math.random() * 6;
+    const t0 = Date.now();
+    for (;;) {
+      const cur = [...this.conn.db.range.iter()][0];
+      if (this.room()?.phase !== 'speaking' || !cur || cur.archerId !== st.archerId || cur.arrowNo !== st.arrowNo) break;
+      const t = (Date.now() - t0) / 1000;
+      const swing = Math.max(0, 1 - t / 1.5);
+      const yaw = yaw0 + 0.4 * swing * Math.sin(seed) + 0.008 * Math.sin(t * 7 + seed);
+      const pitch = pitch0 + 0.3 * swing * Math.cos(seed) + 0.008 * Math.sin(t * 5.3 + seed);
+      await this.conn.reducers.setBowAim({ roomId: RID, yaw, pitch }).catch(() => {});
+      await sleep(50);
+    }
+  }
+
+  async draw(st: any) {
+    await sleep(1800 + Math.random() * 1200);
+    const weak = Math.random() < 1 / 6;
+    const full = weak ? 0.55 + Math.random() * 0.15 : 0.9 + Math.random() * 0.1;
+    const t0 = Date.now();
+    while (Date.now() - t0 < 1700) {
+      if (this.room()?.phase !== 'speaking') return;
+      await this.conn.reducers.setDraw({ roomId: RID, draw: full * Math.min(1, (Date.now() - t0) / 1200) }).catch(() => {});
+      await sleep(50);
+    }
+    await this.conn.reducers.loose({ roomId: RID, draw: full }).catch(e => console.log(`${clock()} ${this.name}: ${(e as Error).message}`));
+  }
+
   async throw(turnId: bigint) {
     for (let i = 1; i <= 10; i++) {
       await this.conn.reducers.setProsody({ roomId: RID, loudness: i / 10, pitch: 0, hits: 1 }).catch(() => {});
@@ -260,6 +333,12 @@ for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   });
 }
 for (const p of phones) await p.join();
+const started = Date.now();
+phones[0].conn.db.arrowShot.onInsert((_c, x) => {
+  if (ms(x.at) < started) return;
+  const who = [...phones[0].conn.db.archer.iter()].find(a => a.id === x.archerId)?.name ?? '?';
+  console.log(`${clock()} ${who}, arrow ${x.arrowNo}: ${x.flight === 0 ? 'time ran out' : `ring ${x.ring} at (${x.x.toFixed(2)}, ${x.y.toFixed(2)}) m, draw ${x.draw.toFixed(2)}, wind ${x.wind.toFixed(1)} m/s`}`);
+});
 
 // Counted from the subscription: an arena can rematch faster than a poll would see `finished`.
 let closed = false;

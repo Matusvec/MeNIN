@@ -10,6 +10,42 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
+export const Archer = __t.object("Archer", {
+  id: __t.u64(),
+  roomId: __t.u64(),
+  name: __t.string(),
+  total: __t.u32(),
+  arrows: __t.u32(),
+  at: __t.timestamp(),
+});
+export type Archer = __Infer<typeof Archer>;
+
+export const ArrowShot = __t.object("ArrowShot", {
+  id: __t.u64(),
+  roomId: __t.u64(),
+  archerId: __t.u64(),
+  arrowNo: __t.u32(),
+  aimYaw: __t.f32(),
+  aimPitch: __t.f32(),
+  draw: __t.f32(),
+  wind: __t.f32(),
+  x: __t.f32(),
+  y: __t.f32(),
+  ring: __t.u32(),
+  flight: __t.f32(),
+  at: __t.timestamp(),
+});
+export type ArrowShot = __Infer<typeof ArrowShot>;
+
+export const ArrowTimer = __t.object("ArrowTimer", {
+  scheduledId: __t.u64(),
+  scheduledAt: __t.scheduleAt(),
+  roomId: __t.u64(),
+  archerId: __t.u64(),
+  arrowNo: __t.u32(),
+});
+export type ArrowTimer = __Infer<typeof ArrowTimer>;
+
 export const ColorSample = __t.object("ColorSample", {
   id: __t.u64(),
   roomId: __t.u64(),
@@ -165,6 +201,22 @@ export const RaceTimer = __t.object("RaceTimer", {
   heatNo: __t.u32(),
 });
 export type RaceTimer = __Infer<typeof RaceTimer>;
+
+export const Range = __t.object("Range", {
+  roomId: __t.u64(),
+  bowId: __t.u64(),
+  arrowId: __t.u64(),
+  archerId: __t.u64(),
+  arrowNo: __t.u32(),
+  wind: __t.f32(),
+  aimYaw: __t.f32(),
+  aimPitch: __t.f32(),
+  draw: __t.f32(),
+  openedAt: __t.timestamp(),
+  endsAt: __t.timestamp(),
+  updatedAt: __t.timestamp(),
+});
+export type Range = __Infer<typeof Range>;
 
 export const Reaction = __t.object("Reaction", {
   id: __t.u64(),

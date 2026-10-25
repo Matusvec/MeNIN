@@ -2,7 +2,7 @@
 
 This is the shared state for **Battle mode** only. Bard and Practice are single-device and talk to the agent service directly, so they are not modeled here. The module lives in `src/index.ts`; if this file and the code disagree, fix one of them.
 
-**Events.** Each game is a config on one engine (SPEC "The games"). `room.event` picks it: `poetry`, `debate`, `discus`, `coach`, `stadion` or `pygmachia`. The module knows how many score axes an event has, what kind of card the hand holds (`EVENTS` in `src/index.ts`), and its turn timing (`turnWindow`). The axis labels, the host, the beat on or off, and the copy all live in the app's event config.
+**Events.** Each game is a config on one engine (SPEC "The games"). `room.event` picks it: `poetry`, `debate`, `discus`, `coach`, `stadion`, `pygmachia` or `toxeia`. The module knows how many score axes an event has, what kind of card the hand holds (`EVENTS` in `src/index.ts`), and its turn timing (`turnWindow`). The axis labels, the host, the beat on or off, and the copy all live in the app's event config.
 
 | Event | Axes | Hand | Turn | Agent |
 | --- | --- | --- | --- | --- |
@@ -12,6 +12,7 @@ This is the shared state for **Battle mode** only. Bard and Practice are single-
 | `coach` | none, or the 5 poetry axes for a verse attempt; Homer's reply is `score.verdict` | empty | free verse: 2.25 s count-in, then 20 s | yes: the theme, then a reply per turn; see [Coach](#coach) |
 | `stadion` | none | empty | no turns: everyone runs at once, a 3 s count-in, then up to 40 s | **none**: see [Stadion](#stadion) |
 | `pygmachia` | none | empty | no turns: two fighters live, a 3 s count-in, then 60 s or a knockout | **none**: see [Pygmachia](#pygmachia) |
+| `toxeia` | none | empty | no turns: one archer at a time on two phones (bow and arrow), 3 arrows each, 45 s an arrow | **none**: see [Toxeia](#toxeia) |
 
 An open hall switches events with `set_event`, keeping its poets (P16).
 
@@ -63,6 +64,10 @@ stadion: lobby ─start_battle─▶ ready ─start_race─▶ speaking (racing)
 
 pygmachia: lobby ─start_battle─▶ ready ─start_fight─▶ speaking (fighting) ─knockout / bell─▶ scored
            scored ─advance─▶ ready (next bout: winner stays on) │ finale ─advance─▶ finished
+
+toxeia:  lobby ─start_battle─▶ ready (the bow names an archer) ─next_archer─▶ speaking (an arrow up) ─loose / timer─▶ scored
+         scored ─advance─▶ speaking (the archer's next arrow) │ ready (after 3: the next name)
+         ready ─next_archer('') / advance─▶ finale ─advance─▶ finished
 ```
 
 | Phase | Meaning | Who moves it on |
@@ -215,15 +220,27 @@ Every `set_scene` also appends `id, room_id, turn_id, ms` (milliseconds since `s
 
 ### `fighter` (public, one row per fighter in the current bout). Writers: phone (`set_fist_aim`, `throw_punch`), the module.
 
-`player_id` (pk), `room_id`, `seat` (0 = the one who stays on, 1 = the challenger), `health` (f32, 100 down to 0), `guard` (bool: the phone upright at the face; it covers the head only), `aim_yaw`, `aim_pitch` (f32, −1…1: left/right, low/high; the latest from the phone), `counter_until` (a block opens this fighter's 0.5 s counter window; epoch for none), `updated_at`. Poets not in the bout have no row: they're waiting.
+`player_id` (pk), `room_id`, `seat` (0 = the one who stays on, 1 = the challenger), `health` (f32, 100 down to 0), `guard` (bool: the phone upright at the face; it covers the head only), `aim_yaw`, `aim_pitch` (f32, −1…1: left/right, low/high; the latest from the phone), `counter_until` (blocking a head shot opens this fighter's 0.6 s counter window; epoch for none), `updated_at`, then appended (v2) `stamina` (f32, 100 down to 0: punches cost it, rest refills it, kept current on every aim frame) and `combo` (u32: the chain running now, 0 idle). Poets not in the bout have no row: they're waiting.
 
 ### `punch` (public, insert-only, one row per punch). Writer: phone (`throw_punch`), resolved by the module.
 
-`id` (insert order), `room_id`, `player_id`, `target_id`, `zone` (`head` if aimed at pitch ≥ 0, else `body`), `power` (f32, 0–1), `aim_yaw`, `aim_pitch`, `result` (`landed`, `blocked` or `missed`), `damage` (f32), `counter` (bool: landed inside the puncher's counter window), `at`, `t` (unused, 0), `kind` (`jab`, `hook` or `uppercut`, from the phone: flavour, for the animation).
+`id` (insert order), `room_id`, `player_id`, `target_id`, `zone` (`head` if aimed at pitch ≥ 0, else `body`), `power` (f32, 0–1), `aim_yaw`, `aim_pitch`, `result` (`landed`, `blocked` or `missed`), `damage` (f32), `counter` (bool: landed inside the puncher's counter window), `at`, `t` (unused, 0), `kind` (`jab`, `hook` or `uppercut`, from the phone: flavour, for the animation), then appended (v2) `combo` (u32: this punch's place in its chain, 1, 2, 3…). v2 results are `landed` or `blocked` (a blocked head shot still does 25%); `missed` was v1's.
+
+### `range` (public, one row per room). Writers: phones (`claim_station`, `next_archer`, `set_bow_aim`, `set_draw`), the module.
+
+`room_id` (pk), `bow_id`, `arrow_id` (the two phones' player ids; 0 = unclaimed), `archer_id` (the archer up; 0 = the bow phone asks for a name), `arrow_no` (u32, 1–3; 0 = none up), `wind` (f32, m/s, signed crosswind: + blows right as the archer faces the target; 0–6 either way, rolled per arrow), `aim_yaw`, `aim_pitch` (f32, −1…1: the bow's latest; ±1 is ±1 m on the face), `draw` (f32, 0…1: the arrow phone's latest), `opened_at`, `ends_at` (this arrow's 45 s window), `updated_at`.
+
+### `archer` (public). Writer: the bow phone (`next_archer`), the module.
+
+`id`, `room_id`, `name` (from the bow phone; archers are not players, the players are the two phones), `total` (u32: the rings summed), `arrows` (u32: shot so far, out of 3), `at`.
+
+### `arrow_shot` (public, insert-only, one row per arrow). Writer: the module (on `loose`, or when the window runs out).
+
+`id`, `room_id`, `archer_id`, `arrow_no`, `aim_yaw`, `aim_pitch`, `draw`, `wind` (as at the loose), `x`, `y` (f32, metres on the target face from the gold's centre, + right, + up), `ring` (u32: 10 in the gold … 1, 0 off the face), `flight` (f32, seconds in the air; 0 = never loosed: time ran out), `at`.
 
 ### Private tables
 
-`config` (the owner and the service key), `service` (the agent identities), `turn_timer` (the scheduled turn ends), `race_timer` and `fight_timer` (a heat's cap, a bout's final bell), and `presence` (one row per open connection: connection_id, identity; `player.connected` is true while an identity has any). No client sees these.
+`config` (the owner and the service key), `service` (the agent identities), `turn_timer` (the scheduled turn ends), `race_timer`, `fight_timer` and `arrow_timer` (a heat's cap, a bout's final bell, an arrow's window), and `presence` (one row per open connection: connection_id, identity; `player.connected` is true while an identity has any). No client sees these.
 
 ## Reducers
 
@@ -238,6 +255,7 @@ Every `set_scene` also appends `id, room_id, turn_id, ms` (milliseconds since `s
 | `advance` | room_id | After each reveal finishes (verdict TTS, round verdict, song) | `scored` → next turn's `ready`, or `round_end`; `round_end` → next round, or `finale`; `finale` → `finished` |
 | `skip_turn` | turn_id | A poet never steps up (the phone dropped: wait 10 s), or the judge never answers | The current turn is `skipped` and the phase becomes `scored` |
 | `start_race` | room_id | Stadion: after "Runners, to your marks" | From `ready`: `go_at` = now + 3 s, `cap_at` = `go_at` + 40 s, `speaking`. Errors: `not a stadion`, `the runners are not on the line`. |
+| `advance` (toxeia) | room_id | After an arrow's reveal; or in `ready` to close the range | `scored` → the archer's next arrow (`speaking`, fresh wind), or after 3 back to `ready` for the next name; `ready` with no archer up → `finale`. |
 | `start_fight` | room_id | Pygmachia: the bell | From `ready`: `go_at` = now + 3 s, `ends_at` = `go_at` + 60 s, `speaking`. Errors: `not a fight`, `the fighters are not in their corners`. |
 | `end_battle` | room_id | The host's End button (coach has no end of its own) | Any phase but lobby or finished: `finished`. The live turn (waiting, speaking or judging) becomes `skipped` and its timer is cancelled, so a late `end_turn` or `post_score` is refused. Works for any event. |
 | `rematch` | room_id | "Rematch", or to un-wedge a demo | Any phase but lobby: clears rounds, turns, scores, samples, song, reactions and throws; zeroes totals; empties hands; goes straight to `dealing` (discus: straight to the first throw's `ready`). Poets, names, epithets and seats stay. |
@@ -260,7 +278,12 @@ Every `set_scene` also appends `id, room_id, turn_id, ms` (milliseconds since `s
 | `throw_discus_full` | turn_id, speed, angle, timing, distance, foul, release_speed f32, roll f32, spin f32, foul_reason String | Newer phones, instead of `throw_discus` | The same as `throw_discus`, plus the release columns (release_speed 0–40, roll −180–180, spin 0–60, foul_reason `''`/`late`/`sector`). |
 | `set_stride` | room_id, speed f32, distance f32 | Stadion: about 10 Hz while running | Never an error. Ignored before `go_at`, after crossing, or outside a race. distance is kept monotone and clamped to 25 m/s × elapsed; crossing 192 m places and times the runner; when all are across (or at the cap) the rest are placed by distance and the room moves to `scored`. Points by place go to `player.total` (last gets 1). |
 | `set_fist_aim` | room_id, yaw f32, pitch f32, guard bool | Pygmachia: about 20 Hz while fighting | The fighter's aim (clamped to −1…1) and guard. Silent outside a fight. |
-| `throw_punch` | room_id, kind String, power f32, yaw f32, pitch f32 | Pygmachia: one per punch | Silent before the bell, after it, for a poet not in the bout, or faster than 4 a second. |yaw| > 0.5 misses; a head punch into a raised guard is blocked (the blocker's counter window opens); otherwise it lands for 4 + 12·power, ×1.5 inside your own counter window. Punching drops your guard. Health 0 is a knockout. |
+| `throw_punch` | room_id, kind String, power f32, yaw f32, pitch f32 | Pygmachia: one per punch | Silent before the bell, after it, for a poet not in the bout, or faster than 4 a second. No misses on aim (v2): pitch ≥ 0 goes for the head, below for the body. Damage and stamina: see [Pygmachia](#pygmachia). Punching drops your guard. Health 0 is a knockout. |
+| `claim_station` | room_id, role String (`bow`, `arrow` or '') | Toxeia: the phone's role screen | Takes that station, or with '' keeps yours, else the bow, else the arrow. A taken one keeps yours or gives the free one. A station stays with the player row until that phone leaves the lobby. Errors: `not an archery range`, `both stations are taken`. |
+| `next_archer` | room_id, name String | Toxeia: the bow phone (or the arena) in `ready` | A new `archer` and its first arrow (`speaking`). '' means that's everyone: `finale`. Errors: `only the bow names the archer`, `not waiting for an archer`, `<name> has shot: another name`, `the range is full` (12). |
+| `set_bow_aim` | room_id, yaw f32, pitch f32 | Toxeia: the bow phone, about 20 Hz while an arrow is up | The aim, clamped to −1…1. Silent unless you're the bow and an arrow is up. |
+| `set_draw` | room_id, draw f32 | Toxeia: the arrow phone, about 20 Hz while nocked | The draw, clamped to 0…1. Silent unless you're the arrow and an arrow is up. |
+| `loose` | room_id, draw f32 | Toxeia: the arrow phone, on the thumb lift | The arrow flies from the bow's latest aim at this draw through this arrow's wind; the `arrow_shot` row, the archer's total, `scored`. Silent unless you're the arrow and an arrow is up (so a second loose is ignored). |
 | `throw_discus` | turn_id, speed f32, angle f32, timing f32, distance f32, foul bool | Discus: once, when the thrower's thumb lifts | Thrower only, while the turn is `speaking`. Refused out of range (speed 0–60, angle −90–90, timing 0–1, distance 0–100). Inserts a `discus_throw` (distance 0 if foul), marks the turn `scored`, raises `player.total` to the best throw in tenths of a metre, and moves to `scored`. |
 
 ### Agent service
@@ -351,11 +374,22 @@ Everyone races at once (SPEC "The games"): no turns, no Claude.
 
 ## Pygmachia
 
-Boxing (SPEC "The games"), lean v1: health only, 60 s or a knockout, no Claude.
+Boxing (SPEC "The games"), v2: health and stamina, combos and counters, 60 s or a knockout, no Claude.
 
 - `start_battle` needs two poets. With three or four it's winner-stays-on: `room.rounds` = poets − 1 bouts; bout 1 is seats 0 and 1, then the last winner (the incumbent on a draw) meets the next seat. `fighter` holds the two in the current bout.
 - The phones calibrate centre at `fight.go_at` and stream `set_fist_aim` (with the guard) and `throw_punch`; the module resolves each punch into a `punch` row and the fighters' health.
+- A punch's damage = base × power × stamina × combo × counter × guard. Base: head 3.5, body 2 (health 100). Stamina: a punch costs 12, 8 more if thrown under 0.3 s after your last, 10 more into a raised guard; it refills 20 a second; below 30 a punch does half and gets no combo bonus. Combo: the 2nd punch within 1.2 s of your last is ×1.25, the 3rd and on ×1.5, unless your last was blocked or you've been hit since. Guard: lets 25% of a head shot through (`blocked`) and 50% of a body shot. Counter: blocking a head shot opens a 0.6 s window; a punch inside it does ×2 (`counter`). A body shot that lands drains 15 of the target's stamina. Tuned (offline, 400 fights a matchup, then live with scripted fighters) so spam loses to paced or counter fighters and a fight runs about 30–50 s.
 - A knockout or the bell ends the bout (`winner_id`, `ko`; the most health wins at the bell, equal is a draw); the winner's `player.total` goes up by one, and the room goes to `scored`.
+
+## Toxeia
+
+Archery (SPEC "The games"): one archer at a time holds two phones, the bow (it aims) and the arrow (it draws and looses). No turns, no Claude.
+
+- Both phones join the room as players and take a station with `claim_station` (first come gets the bow). `start_battle` needs both filled (it fills unclaimed ones in seat order) and goes to `ready`, where the bow phone asks for the archer's name and calls `next_archer`. More phones can join and watch; only the stations act.
+- Each arrow (`speaking`) rolls its own wind and opens a 45 s window. The bow streams `set_bow_aim` and the arrow streams `set_draw` (for the screen's draw meter); `loose` shoots. No loose in 45 s and the arrow is lost (`flight` 0, ring 0).
+- Where it lands: the arrow flies 30 m at 30 m/s off a bare draw up to 70 m/s at a draw of 0.9 or more (full). The sight is set for full, so a slower arrow drops by its extra fall: ½·g·(t² − t_full²) (a 0.45 draw drops 0.86 m, off the face). The wind drifts it 0.18 × wind × flight sideways (6 m/s at full draw is 0.46 m). x = yaw + drift, y = pitch − drop (metres; the aim is ±1 m). The face has ten 6.1 cm rings: ring = 10 − floor(r / 0.061) for r < 0.61 m, else 0.
+- `advance` after each arrow's reveal: the archer's next arrow, or after 3 back to `ready` for the next name. A name already used is refused; `next_archer('')` (or the host's `advance` in `ready`) closes the range: `finale`, then `finished`. The champion is the best `archer.total` (clients break ties: more 10s, then who shot first). `player.total` stays 0: the players are phones.
+- `rematch` keeps the stations and clears the archers and arrows.
 
 ## Discus
 
@@ -377,6 +411,8 @@ Discus is a motion minigame: no voice, no Claude, no agent (SPEC "The games", UX
 - **Transcript**: on each STT partial (a few per second). `end_turn` carries the final.
 - **Scene**: about every 1.5 s, from the agent.
 - **Debate**: `beat_at` = `started_at` + 3 s (the three-count), `ends_at` = `beat_at` + 45 s. No beat grid.
+- **Pygmachia**: `set_fist_aim` about 20 Hz per fighter; a punch row reaches the screen in ~30 ms on Maincloud.
+- **Toxeia**: `set_bow_aim` and `set_draw` about 20 Hz each while an arrow is up (one shared `range` row, so ~40 updates a second).
 - **Discus**: `beat_at` = `started_at`, `ends_at` = 30 s later. The wind-up streams over `set_prosody` at about 20 Hz, under the same one-in-flight rule.
 
 ## Running it
@@ -387,7 +423,7 @@ cd spacetime && npm install
 npm run typecheck
 npm run publish:local                    # keeps data; publish:local:reset wipes it
 npm run publish:test                     # the isolated test database `homer-test` (no dev-agent, no shared key)
-npm run smoke                            # poetry, discus, set_event, debate, coach, stadion and pygmachia over HTTP against homer-test, 171 checks (~3 min)
+npm run smoke                            # poetry, discus, set_event, debate, coach, stadion, pygmachia and toxeia over HTTP against homer-test, 207 checks (~5 min)
 npm run logs
 ```
 

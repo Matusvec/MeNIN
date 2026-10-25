@@ -352,6 +352,74 @@ const fightTimer = table(
   }
 );
 
+// Toxeia (archery), one row per room. The station is two phones held by one archer: the bow
+// (it aims) and the arrow (it draws and looses). Also the archer up, and the arrow on the
+// string: its wind, the bow's live aim and the arrow's live draw (latest wins, ~20 Hz each).
+const range = table(
+  { public: true },
+  {
+    roomId: t.u64().primaryKey(),
+    bowId: t.u64(), // the bow phone's player id (0: unclaimed)
+    arrowId: t.u64(), // the arrow phone's
+    archerId: t.u64(), // the archer up (0: the bow phone asks for a name)
+    arrowNo: t.u32(), // 1..3 (0: none up)
+    wind: t.f32(), // crosswind in m/s, signed: + blows right as the archer faces the target
+    aimYaw: t.f32(), // -1..1: the bow's aim, AIM_SPAN metres each way on the target
+    aimPitch: t.f32(),
+    draw: t.f32(), // 0..1: how far the arrow phone is drawn back
+    openedAt: t.timestamp(), // this arrow's window
+    endsAt: t.timestamp(),
+    updatedAt: t.timestamp(),
+  }
+);
+
+// An archer: a name the bow phone gave, not a player (the players are the two phones).
+const archer = table(
+  { public: true },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    roomId: t.u64().index('btree'),
+    name: t.string(),
+    total: t.u32(), // the rings, summed
+    arrows: t.u32(), // shot so far, out of ARROWS
+    at: t.timestamp(),
+  }
+);
+
+// Every arrow, insert-only: where it landed on the target face, in metres from the gold's
+// centre (+ right, + up), and the ring (10 the gold … 1, 0 off the face). flight 0: never
+// loosed (time ran out).
+const arrowShot = table(
+  { public: true },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    roomId: t.u64().index('btree'),
+    archerId: t.u64(),
+    arrowNo: t.u32(),
+    aimYaw: t.f32(),
+    aimPitch: t.f32(),
+    draw: t.f32(),
+    wind: t.f32(),
+    x: t.f32(),
+    y: t.f32(),
+    ring: t.u32(),
+    flight: t.f32(), // seconds in the air
+    at: t.timestamp(),
+  }
+);
+
+// Private: an arrow's window runs out.
+const arrowTimer = table(
+  {},
+  {
+    scheduledId: t.u64().primaryKey().autoInc(),
+    scheduledAt: t.scheduleAt(),
+    roomId: t.u64().index('btree'),
+    archerId: t.u64(),
+    arrowNo: t.u32(),
+  }
+);
+
 // Private: one row per open connection. A poet is connected while any of their
 // sockets is open, so a phone that reconnects before the server notices its old
 // socket died isn't marked gone when that old socket finally closes.
@@ -387,6 +455,10 @@ const spacetimedb = schema({
   fighter,
   punch: punches,
   fightTimer,
+  range,
+  archer,
+  arrowShot,
+  arrowTimer,
 });
 export default spacetimedb;
 
@@ -404,6 +476,7 @@ type Turn = Infer<typeof turn.rowType>;
 type Fight = Infer<typeof fight.rowType>;
 type Fighter = Infer<typeof fighter.rowType>;
 type Punch = Infer<typeof punches.rowType>;
+type Range = Infer<typeof range.rowType>;
 
 const HAND_SIZE = 5;
 const MIN_PLAYERS = 2;
@@ -441,6 +514,20 @@ const LOW_STAMINA = 30; // below this: half damage and no combo bonus
 const COMBO_MICROS = 1_200_000n; // the next punch within this keeps the chain
 const GUARD_HEAD = 0.25; // a raised guard lets this much of a head shot through
 const GUARD_BODY = 0.5; // and this much of a body shot
+// Toxeia: the sight is set for a full draw, so a weak one flies slow and drops; the wind
+// pushes the arrow sideways for as long as it's in the air.
+const ARROWS = 3; // each archer's
+const ARROW_SECONDS = 45; // an arrow's window: no loose by then and it's lost
+const MAX_ARCHERS = 12;
+const RANGE_METRES = 30; // the line to the target
+const MAX_WIND = 6; // m/s
+const FULL_DRAW = 0.9; // drawn this far back counts as full
+const SLOW_ARROW = 30; // m/s off a bare draw
+const FAST_ARROW = 70; // m/s off a full one
+const GRAVITY = 9.81;
+const WIND_DRIFT = 0.18; // metres sideways per m/s of wind per second of flight
+const AIM_SPAN = 1; // the bow's aim at ±1 is this many metres from the gold
+const RING_WIDTH = 0.061; // ten rings on a 122 cm face
 const THROW_SECONDS = 30; // a discus thrower's time in the circle
 const MAX_SPEED = 60; // rad/s; a phone gyro tops out near 35
 const MAX_DISTANCE = 100; // metres
@@ -459,6 +546,7 @@ const EVENTS: Record<string, { axes: number; card: string; weights: number[] }> 
   coach: { axes: 0, card: '', weights: [] }, // Judge mode: Homer replies in score.verdict, no scores
   stadion: { axes: 0, card: '', weights: [] }, // everyone races at once: no turns, no Claude
   pygmachia: { axes: 0, card: '', weights: [] }, // boxing: two fighters, live, no Claude
+  toxeia: { axes: 0, card: '', weights: [] }, // archery: one archer at a time on two phones, no Claude
 };
 
 // ---------------------------------------------------------------- helpers
@@ -495,6 +583,10 @@ function isPygmachia(r: Room): boolean {
   return r.event === 'pygmachia';
 }
 
+function isToxeia(r: Room): boolean {
+  return r.event === 'toxeia';
+}
+
 function seconds(s: number): bigint {
   return BigInt(s) * 1_000_000n;
 }
@@ -526,9 +618,10 @@ function eventSettings(
     : coach ? COACH_SECONDS
     : event === 'stadion' ? STADION_CAP_SECONDS
     : event === 'pygmachia' ? FIGHT_SECONDS
+    : event === 'toxeia' ? ARROW_SECONDS
     : lines * POETRY_SECONDS_PER_LINE;
   if (turnSeconds > 120) throw new SenderError('a turn cannot run past 120 seconds');
-  return { rounds: demo || coach ? 1 : rounds, turnSeconds, autoReady: event === 'discus' || event === 'stadion' || event === 'pygmachia' || coach || demo || autoReady };
+  return { rounds: demo || coach ? 1 : rounds, turnSeconds, autoReady: event === 'discus' || event === 'stadion' || event === 'pygmachia' || event === 'toxeia' || coach || demo || autoReady };
 }
 
 // Inserts a round and its turns in seat order, rotated by one seat each
@@ -670,6 +763,88 @@ function rested(ctx: Ctx, f: Fighter): Fighter {
   return { ...f, stamina: Math.min(100, f.stamina + STAMINA_REGEN * Math.max(0, dt)), updatedAt: ctx.timestamp };
 }
 
+// The room's range row, made on first use.
+function rangeOf(ctx: Ctx, roomId: bigint): Range {
+  return (
+    ctx.db.range.roomId.find(roomId) ??
+    ctx.db.range.insert({
+      roomId, bowId: 0n, arrowId: 0n, archerId: 0n, arrowNo: 0, wind: 0, aimYaw: 0, aimPitch: 0, draw: 0,
+      openedAt: EPOCH, endsAt: EPOCH, updatedAt: ctx.timestamp,
+    })
+  );
+}
+
+// The range opens: phones that never claimed a station fill the free ones in seat order,
+// connected first, and the bow phone asks for the first archer's name.
+function openRange(ctx: Ctx, r: Room): void {
+  const st = rangeOf(ctx, r.id);
+  const players = playersOf(ctx, r.id).sort((a, b) => Number(b.connected) - Number(a.connected));
+  const held = (id: bigint) => players.some(p => p.id === id);
+  let bowId = held(st.bowId) ? st.bowId : 0n;
+  let arrowId = held(st.arrowId) ? st.arrowId : 0n;
+  for (const p of players) {
+    if (p.id === bowId || p.id === arrowId) continue;
+    if (!bowId) bowId = p.id;
+    else if (!arrowId) arrowId = p.id;
+  }
+  if (!bowId || !arrowId) throw new SenderError('archery needs two phones: a bow and an arrow');
+  ctx.db.range.roomId.update({
+    ...st, bowId, arrowId, archerId: 0n, arrowNo: 0, wind: 0, draw: 0, openedAt: EPOCH, endsAt: EPOCH, updatedAt: ctx.timestamp,
+  });
+  ctx.db.room.id.update({ ...getRoom(ctx, r.id), phase: 'ready', roundNo: 0, nextTheme: '', currentTurnId: 0n });
+}
+
+// The next arrow on the string: fresh wind (0–6 m/s, either way), a 45 s window.
+function nockArrow(ctx: Ctx, roomId: bigint, archerId: bigint, arrowNo: number): void {
+  const speed = Math.round(ctx.random() * MAX_WIND * 10) / 10;
+  const wind = speed === 0 || ctx.random() < 0.5 ? speed : -speed;
+  const endsAt = after(ctx.timestamp, seconds(ARROW_SECONDS));
+  ctx.db.range.roomId.update({
+    ...rangeOf(ctx, roomId), archerId, arrowNo, wind, draw: 0, openedAt: ctx.timestamp, endsAt, updatedAt: ctx.timestamp,
+  });
+  ctx.db.arrowTimer.roomId.delete(roomId);
+  ctx.db.arrowTimer.insert({ scheduledId: 0n, scheduledAt: ScheduleAt.time(endsAt.microsSinceUnixEpoch), roomId, archerId, arrowNo });
+  setPhase(ctx, getRoom(ctx, roomId), 'speaking', 0n);
+}
+
+// Where an arrow lands on the face. It flies at 30 m/s off a bare draw up to 70 m/s off a
+// full one (FULL_DRAW and past); the sight is set for full, so a slower arrow drops by the
+// extra fall over its longer flight, and the wind drifts it sideways for the whole flight.
+function landing(yaw: number, pitch: number, draw: number, wind: number): { x: number; y: number; ring: number; flight: number } {
+  const v = SLOW_ARROW + (FAST_ARROW - SLOW_ARROW) * Math.min(1, draw / FULL_DRAW);
+  const flight = RANGE_METRES / v;
+  const sighted = RANGE_METRES / FAST_ARROW;
+  const drop = 0.5 * GRAVITY * (flight * flight - sighted * sighted);
+  const x = Math.round((AIM_SPAN * yaw + WIND_DRIFT * wind * flight) * 1000) / 1000;
+  const y = Math.round((AIM_SPAN * pitch - drop) * 1000) / 1000;
+  const r = Math.hypot(x, y);
+  const ring = r < 10 * RING_WIDTH ? 10 - Math.floor(r / RING_WIDTH) : 0;
+  return { x, y, ring, flight: Math.round(flight * 1000) / 1000 };
+}
+
+// The arrow is scored (draw null: its time ran out, no arrow left the bow).
+function recordArrow(ctx: Ctx, roomId: bigint, st: Range, draw: number | null): void {
+  const a = ctx.db.archer.id.find(st.archerId)!;
+  const hit = draw === null ? { x: 0, y: 0, ring: 0, flight: 0 } : landing(st.aimYaw, st.aimPitch, draw, st.wind);
+  ctx.db.arrowShot.insert({
+    id: 0n, roomId, archerId: a.id, arrowNo: st.arrowNo, aimYaw: st.aimYaw, aimPitch: st.aimPitch,
+    draw: draw ?? 0, wind: st.wind, ...hit, at: ctx.timestamp,
+  });
+  ctx.db.archer.id.update({ ...a, total: a.total + hit.ring, arrows: a.arrows + 1 });
+  ctx.db.range.roomId.update({ ...st, draw: draw ?? 0, updatedAt: ctx.timestamp });
+  ctx.db.arrowTimer.roomId.delete(roomId);
+  setPhase(ctx, getRoom(ctx, roomId), 'scored', 0n);
+}
+
+// The range and the sender's station, while an arrow is up; null otherwise.
+function onRange(ctx: Ctx, roomId: bigint, station: 'bow' | 'arrow'): Range | null {
+  const r = ctx.db.room.id.find(roomId);
+  const st = ctx.db.range.roomId.find(roomId);
+  if (!r || !st || !isToxeia(r) || r.phase !== 'speaking' || st.archerId === 0n) return null;
+  const p = playerOf(ctx, roomId);
+  return p && p.id === (station === 'bow' ? st.bowId : st.arrowId) ? st : null;
+}
+
 function getRoom(ctx: Ctx, roomId: bigint): Room {
   const r = ctx.db.room.id.find(roomId);
   if (!r) throw new SenderError('no such room');
@@ -768,6 +943,11 @@ function clearBattle(ctx: Ctx, roomId: bigint): void {
   ctx.db.fighter.roomId.delete(roomId);
   ctx.db.punch.roomId.delete(roomId);
   ctx.db.fightTimer.roomId.delete(roomId);
+  ctx.db.archer.roomId.delete(roomId);
+  ctx.db.arrowShot.roomId.delete(roomId);
+  ctx.db.arrowTimer.roomId.delete(roomId);
+  const st = ctx.db.range.roomId.find(roomId); // the stations stay: same phones, next battle
+  if (st) ctx.db.range.roomId.update({ ...st, archerId: 0n, arrowNo: 0, wind: 0, draw: 0, openedAt: EPOCH, endsAt: EPOCH });
   for (const p of playersOf(ctx, roomId)) {
     ctx.db.player.id.update({ ...p, total: 0 });
     const h = ctx.db.hand.playerId.find(p.id);
@@ -795,6 +975,10 @@ function beginBattle(ctx: Ctx, r: Room): void {
   }
   if (isStadion(r)) {
     startHeat(ctx, r, 1);
+    return;
+  }
+  if (isToxeia(r)) {
+    openRange(ctx, r);
     return;
   }
   if (isPygmachia(r)) {
@@ -1013,7 +1197,19 @@ export const advance = spacetimedb.reducer({ roomId: t.u64() }, (ctx, { roomId }
   const r = getRoom(ctx, roomId);
   requireHost(ctx, r);
 
-  if (r.phase === 'scored' && (isStadion(r) || isPygmachia(r))) {
+  if (isToxeia(r) && (r.phase === 'scored' || r.phase === 'ready')) {
+    // Archery: the archer's next arrow, or back to the bow phone for a name. With no archer
+    // up, the host closes the range: the champion.
+    const st = rangeOf(ctx, roomId);
+    const a = st.archerId ? ctx.db.archer.id.find(st.archerId) : undefined;
+    if (r.phase === 'ready' && !a) setPhase(ctx, r, 'finale', 0n);
+    else if (r.phase === 'ready') throw new SenderError('an archer is up');
+    else if (a && a.arrows < ARROWS) nockArrow(ctx, roomId, a.id, a.arrows + 1);
+    else {
+      ctx.db.range.roomId.update({ ...st, archerId: 0n, arrowNo: 0, wind: 0, draw: 0, updatedAt: ctx.timestamp });
+      setPhase(ctx, r, 'ready', 0n);
+    }
+  } else if (r.phase === 'scored' && (isStadion(r) || isPygmachia(r))) {
     // The motion games have no turns: the next heat or bout, or the champion.
     if (r.roundNo < r.rounds) (isStadion(r) ? startHeat : startBout)(ctx, r, r.roundNo + 1);
     else setPhase(ctx, r, 'finale', 0n);
@@ -1071,6 +1267,7 @@ export const endBattle = spacetimedb.reducer({ roomId: t.u64() }, (ctx, { roomId
   if (r.phase === 'lobby' || r.phase === 'finished') throw new SenderError(`cannot end from ${r.phase}`);
   ctx.db.raceTimer.roomId.delete(roomId);
   ctx.db.fightTimer.roomId.delete(roomId);
+  ctx.db.arrowTimer.roomId.delete(roomId);
   for (const tr of [...ctx.db.turn.roomId.filter(roomId)]) {
     ctx.db.turnTimer.turnId.delete(tr.id);
     if (tr.id === r.currentTurnId && ['waiting', 'speaking', 'judging'].includes(tr.status)) {
@@ -1146,6 +1343,10 @@ export const leaveRoom = spacetimedb.reducer({ roomId: t.u64() }, (ctx, { roomId
   if (r.phase === 'lobby') {
     ctx.db.hand.playerId.delete(p.id);
     ctx.db.player.id.delete(p.id);
+    const st = ctx.db.range.roomId.find(roomId);
+    if (st && (st.bowId === p.id || st.arrowId === p.id)) {
+      ctx.db.range.roomId.update({ ...st, bowId: st.bowId === p.id ? 0n : st.bowId, arrowId: st.arrowId === p.id ? 0n : st.arrowId });
+    }
   } else {
     ctx.db.player.id.update({ ...p, connected: false });
   }
@@ -1384,6 +1585,92 @@ export const fightTimeout = spacetimedb.reducer(
     const [a, b] = [...ctx.db.fighter.roomId.filter(r.id)];
     const winner = !a || !b || a.health === b.health ? 0n : a.health > b.health ? a.playerId : b.playerId;
     endFight(ctx, r.id, winner, false);
+  }
+);
+
+// ---------------------------------------------------------------- toxeia
+
+// A phone takes a station: 'bow' or 'arrow', or '' for whichever is free (the bow first).
+// Asking for a taken one keeps the station you have, or gives you the free one. A station
+// stays with its phone's seat until that phone leaves the lobby, so a phone that drops and
+// comes back (same device, or a new one taking the seat by name) is still the bow or arrow.
+export const claimStation = spacetimedb.reducer({ roomId: t.u64(), role: t.string() }, (ctx, { roomId, role }) => {
+  const r = getRoom(ctx, roomId);
+  if (!isToxeia(r)) throw new SenderError('not an archery range');
+  if (!['', 'bow', 'arrow'].includes(role)) throw new SenderError("a station is 'bow', 'arrow' or ''");
+  const p = playerOf(ctx, roomId);
+  if (!p) throw new SenderError('you are not in this room');
+  const st = rangeOf(ctx, roomId);
+  const free = (id: bigint) => id === 0n || id === p.id || !ctx.db.player.id.find(id);
+  const mine = st.bowId === p.id ? 'bow' : st.arrowId === p.id ? 'arrow' : '';
+  let want = role || mine;
+  if (!want || !free(want === 'bow' ? st.bowId : st.arrowId)) {
+    want = mine || (free(st.bowId) ? 'bow' : free(st.arrowId) ? 'arrow' : '');
+  }
+  if (!want) throw new SenderError('both stations are taken');
+  ctx.db.range.roomId.update({
+    ...st,
+    bowId: want === 'bow' ? p.id : st.bowId === p.id ? 0n : st.bowId,
+    arrowId: want === 'arrow' ? p.id : st.arrowId === p.id ? 0n : st.arrowId,
+    updatedAt: ctx.timestamp,
+  });
+});
+
+// The bow phone (or the arena) names the next archer, and their first arrow goes up. An empty
+// name means that's everyone: the range closes, the champion.
+export const nextArcher = spacetimedb.reducer({ roomId: t.u64(), name: t.string() }, (ctx, { roomId, name }) => {
+  const r = getRoom(ctx, roomId);
+  if (!isToxeia(r)) throw new SenderError('not an archery range');
+  const st = rangeOf(ctx, roomId);
+  const p = playerOf(ctx, roomId);
+  if (!r.host.isEqual(ctx.sender) && (!p || p.id !== st.bowId)) throw new SenderError('only the bow names the archer');
+  if (r.phase !== 'ready' || st.archerId !== 0n) throw new SenderError('not waiting for an archer');
+  const archers = [...ctx.db.archer.roomId.filter(roomId)];
+  if (name.trim() === '') {
+    setPhase(ctx, r, 'finale', 0n);
+    return;
+  }
+  const n = text(name, 'name', 1, 24);
+  if (archers.some(a => a.name.toLowerCase() === n.toLowerCase())) throw new SenderError(`${n} has shot: another name`);
+  if (archers.length >= MAX_ARCHERS) throw new SenderError('the range is full');
+  const a = ctx.db.archer.insert({ id: 0n, roomId, name: n, total: 0, arrows: 0, at: ctx.timestamp });
+  ctx.db.room.id.update({ ...r, roundNo: archers.length + 1 });
+  nockArrow(ctx, roomId, a.id, 1);
+});
+
+// The bow phone, about 20 Hz: where it points, -1..1 each way. Silent unless it's the bow
+// and an arrow is up.
+export const setBowAim = spacetimedb.reducer(
+  { roomId: t.u64(), yaw: t.f32(), pitch: t.f32() },
+  (ctx, { roomId, yaw, pitch }) => {
+    const st = onRange(ctx, roomId, 'bow');
+    if (st) ctx.db.range.roomId.update({ ...st, aimYaw: unit(yaw), aimPitch: unit(pitch), updatedAt: ctx.timestamp });
+  }
+);
+
+// The arrow phone, about 20 Hz while nocked: how far it's drawn, 0..1. Silent unless it's the
+// arrow and an arrow is up.
+export const setDraw = spacetimedb.reducer({ roomId: t.u64(), draw: t.f32() }, (ctx, { roomId, draw }) => {
+  const st = onRange(ctx, roomId, 'arrow');
+  if (st) ctx.db.range.roomId.update({ ...st, draw: clamp01(draw), updatedAt: ctx.timestamp });
+});
+
+// The arrow phone lets go: the arrow flies from the bow's latest aim, at this draw, through
+// this arrow's wind (see landing). Silent unless it's the arrow and an arrow is up.
+export const loose = spacetimedb.reducer({ roomId: t.u64(), draw: t.f32() }, (ctx, { roomId, draw }) => {
+  const st = onRange(ctx, roomId, 'arrow');
+  if (st) recordArrow(ctx, roomId, st, clamp01(draw));
+});
+
+export const arrowTimeout = spacetimedb.reducer(
+  { onSchedule: arrowTimer },
+  { timer: arrowTimer.rowType },
+  (ctx, { timer }) => {
+    const r = ctx.db.room.id.find(timer.roomId);
+    const st = ctx.db.range.roomId.find(timer.roomId);
+    if (!r || !st || !isToxeia(r) || r.phase !== 'speaking') return;
+    if (st.archerId !== timer.archerId || st.arrowNo !== timer.arrowNo) return;
+    recordArrow(ctx, r.id, st, null);
   }
 );
 

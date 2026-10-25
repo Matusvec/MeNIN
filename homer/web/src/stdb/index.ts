@@ -37,6 +37,7 @@ import {
 import AdvanceReducer from "./advance_reducer";
 import ChooseThemeReducer from "./choose_theme_reducer";
 import ClaimServiceReducer from "./claim_service_reducer";
+import ClaimStationReducer from "./claim_station_reducer";
 import CreateRoomReducer from "./create_room_reducer";
 import DealRoundReducer from "./deal_round_reducer";
 import DeclineTurnReducer from "./decline_turn_reducer";
@@ -45,7 +46,9 @@ import EndTurnReducer from "./end_turn_reducer";
 import EnterReducer from "./enter_reducer";
 import JoinRoomReducer from "./join_room_reducer";
 import LeaveRoomReducer from "./leave_room_reducer";
+import LooseReducer from "./loose_reducer";
 import NamePoetReducer from "./name_poet_reducer";
+import NextArcherReducer from "./next_archer_reducer";
 import PlayCardReducer from "./play_card_reducer";
 import PostScoreReducer from "./post_score_reducer";
 import PostSongReducer from "./post_song_reducer";
@@ -53,6 +56,8 @@ import PostVerdictReducer from "./post_verdict_reducer";
 import ReactReducer from "./react_reducer";
 import RematchReducer from "./rematch_reducer";
 import RescueReducer from "./rescue_reducer";
+import SetBowAimReducer from "./set_bow_aim_reducer";
+import SetDrawReducer from "./set_draw_reducer";
 import SetEventReducer from "./set_event_reducer";
 import SetFistAimReducer from "./set_fist_aim_reducer";
 import SetProsodyReducer from "./set_prosody_reducer";
@@ -72,6 +77,8 @@ import UpdateTranscriptReducer from "./update_transcript_reducer";
 // Import all procedure arg schemas
 
 // Import all table schema definitions
+import ArcherRow from "./archer_table";
+import ArrowShotRow from "./arrow_shot_table";
 import ColorSampleRow from "./color_sample_table";
 import DiscusThrowRow from "./discus_throw_table";
 import FightRow from "./fight_table";
@@ -81,6 +88,7 @@ import HeatRow from "./heat_table";
 import PlayerRow from "./player_table";
 import ProsodyRow from "./prosody_table";
 import PunchRow from "./punch_table";
+import RangeRow from "./range_table";
 import ReactionRow from "./reaction_table";
 import RoomRow from "./room_table";
 import RoundRow from "./round_table";
@@ -94,6 +102,34 @@ import TurnRow from "./turn_table";
 
 /** The schema information for all tables in this module. This is defined the same was as the tables would have been defined in the server. */
 const tablesSchema = __schema({
+  archer: __table({
+    name: 'archer',
+    indexes: [
+      { accessor: 'id', name: 'archer_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+      { accessor: 'roomId', name: 'archer_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'archer_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, ArcherRow),
+  arrowShot: __table({
+    name: 'arrow_shot',
+    indexes: [
+      { accessor: 'id', name: 'arrow_shot_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+      { accessor: 'roomId', name: 'arrow_shot_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'arrow_shot_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, ArrowShotRow),
   colorSample: __table({
     name: 'color_sample',
     indexes: [
@@ -217,6 +253,17 @@ const tablesSchema = __schema({
       { name: 'punch_id_key', constraint: 'unique', columns: ['id'] },
     ],
   }, PunchRow),
+  range: __table({
+    name: 'range',
+    indexes: [
+      { accessor: 'roomId', name: 'range_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'range_room_id_key', constraint: 'unique', columns: ['roomId'] },
+    ],
+  }, RangeRow),
   reaction: __table({
     name: 'reaction',
     indexes: [
@@ -337,6 +384,7 @@ const reducersSchema = __reducers(
   __reducerSchema("advance", AdvanceReducer),
   __reducerSchema("choose_theme", ChooseThemeReducer),
   __reducerSchema("claim_service", ClaimServiceReducer),
+  __reducerSchema("claim_station", ClaimStationReducer),
   __reducerSchema("create_room", CreateRoomReducer),
   __reducerSchema("deal_round", DealRoundReducer),
   __reducerSchema("decline_turn", DeclineTurnReducer),
@@ -345,7 +393,9 @@ const reducersSchema = __reducers(
   __reducerSchema("enter", EnterReducer),
   __reducerSchema("join_room", JoinRoomReducer),
   __reducerSchema("leave_room", LeaveRoomReducer),
+  __reducerSchema("loose", LooseReducer),
   __reducerSchema("name_poet", NamePoetReducer),
+  __reducerSchema("next_archer", NextArcherReducer),
   __reducerSchema("play_card", PlayCardReducer),
   __reducerSchema("post_score", PostScoreReducer),
   __reducerSchema("post_song", PostSongReducer),
@@ -353,6 +403,8 @@ const reducersSchema = __reducers(
   __reducerSchema("react", ReactReducer),
   __reducerSchema("rematch", RematchReducer),
   __reducerSchema("rescue", RescueReducer),
+  __reducerSchema("set_bow_aim", SetBowAimReducer),
+  __reducerSchema("set_draw", SetDrawReducer),
   __reducerSchema("set_event", SetEventReducer),
   __reducerSchema("set_fist_aim", SetFistAimReducer),
   __reducerSchema("set_prosody", SetProsodyReducer),

@@ -13,6 +13,9 @@ import { DbConnection } from './bindings/index';
 const URI = (process.env.STDB_URL ?? 'http://127.0.0.1:3000').replace(/^http/, 'ws');
 const DBN = process.env.STDB_DB ?? 'homer';
 const TABLES = ['room', 'player', 'turn', 'round', 'score', 'discus_throw', 'song_line', 'fight', 'fighter', 'punch', 'heat', 'runner'];
+// Newer events' tables, subscribed on their own: a database that doesn't have them yet still
+// gets watched for everything else.
+const OPTIONAL = ['range', 'archer', 'arrow_shot'];
 
 const clock = () => new Date().toLocaleTimeString('en-US', { hour12: false }) + '.' + String(Date.now() % 1000).padStart(3, '0');
 const say = (line: string) => console.log(`${clock()} ${line}`);
@@ -38,6 +41,14 @@ const cleared = new Map<bigint, number>();
 type Bout = { go: number; aims: Map<bigint, number[]>; punches: { playerId: bigint; result: string; damage: number; counter: boolean; lat: number }[] };
 const bouts = new Map<bigint, Bout>();
 const strides = new Map<bigint, Map<bigint, number[]>>();
+// The arrow on the string per room: when it went up, and the bow's aim and the arrow's draw updates.
+const arrows = new Map<bigint, { up: number; aims: number[]; draws: number[] }>();
+const rate = (ts: number[]) => {
+  const span = ts.length > 1 ? (ts[ts.length - 1] - ts[0]) / 1000 : 0;
+  let gap = 0;
+  for (let i = 1; i < ts.length; i++) gap = Math.max(gap, ts[i] - ts[i - 1]);
+  return `${span ? (ts.length / span).toFixed(1) : '0'} Hz (longest gap ${gap} ms)`;
+};
 
 function milestone(roomId: bigint, step: 'ready' | 'started' | 'words') {
   const r = resets.get(roomId);
@@ -199,6 +210,37 @@ function wire() {
     if (!a.place && b.place) say(`${code(b.roomId)} ${poet(b.playerId)} ${b.time > 0 ? `crosses in ${b.time.toFixed(2)} s` : `stops at ${Math.round(b.distance)} m`}: place ${b.place}`);
   });
 
+  // Toxeia: the stations, each archer and arrow (its wind), the aim and draw streams' rates
+  // per arrow, and where it landed, with the loose's push latency.
+  const archerName = (id: bigint) => all('archer').find(a => a.id === id)?.name ?? `archer ${id}`;
+  conn.db.range.onUpdate((_c, a, b) => {
+    const c = code(b.roomId);
+    if (a.bowId !== b.bowId || a.arrowId !== b.arrowId) {
+      say(`${c} stations: bow ${b.bowId ? poet(b.bowId) : '-'}, arrow ${b.arrowId ? poet(b.arrowId) : '-'}`);
+    }
+    if (b.archerId && (a.archerId !== b.archerId || a.arrowNo !== b.arrowNo)) {
+      arrows.set(b.roomId, { up: Date.now(), aims: [], draws: [] });
+      say(`${c} ${archerName(b.archerId)}, arrow ${b.arrowNo}: wind ${b.wind >= 0 ? '→' : '←'} ${Math.abs(b.wind).toFixed(1)} m/s`);
+      return;
+    }
+    const m = arrows.get(b.roomId);
+    if (m && (a.aimYaw !== b.aimYaw || a.aimPitch !== b.aimPitch)) m.aims.push(Date.now());
+    if (m && a.draw !== b.draw) m.draws.push(Date.now());
+  });
+  conn.db.archer.onInsert((_c, x) => {
+    if (live) say(`${code(x.roomId)} next archer: ${x.name}`);
+  });
+  conn.db.arrowShot.onInsert((_c, x) => {
+    if (!live) return;
+    const c = code(x.roomId);
+    const m = arrows.get(x.roomId);
+    arrows.delete(x.roomId);
+    const total = all('archer').find(a => a.id === x.archerId)?.total ?? 0;
+    if (x.flight === 0) say(`${c}   time ran out: arrow ${x.arrowNo} lost`);
+    else say(`${c}   loosed at draw ${x.draw.toFixed(2)}: ring ${x.ring} at (${x.x.toFixed(2)}, ${x.y.toFixed(2)}) m, ${x.flight.toFixed(2)} s in the air; pushed in ${Date.now() - micros(x.at)} ms`);
+    if (m) say(`${c}   ${secs(micros(x.at) - m.up)} on the string; bow aim ${rate(m.aims)}, draw ${rate(m.draws)}; ${archerName(x.archerId)} has ${total}`);
+  });
+
   let songTimer: ReturnType<typeof setTimeout> | undefined;
   let songLines = 0;
   conn.db.songLine.onInsert((_c, l) => {
@@ -240,6 +282,9 @@ function connect() {
           setTimeout(() => (live = true), 500);
         })
         .subscribe(TABLES.map(t => `SELECT * FROM ${t}`));
+      c.subscriptionBuilder()
+        .onError(() => say(`no ${OPTIONAL.join('/')} tables on ${DBN} yet; watching the rest`))
+        .subscribe(OPTIONAL.map(t => `SELECT * FROM ${t}`));
     })
     .onConnectError((_c, e) => retry(`connect failed: ${e.message}`, 3000))
     .onDisconnect(() => retry('watcher lost its connection', 2000))
