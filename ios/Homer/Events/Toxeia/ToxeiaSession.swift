@@ -22,6 +22,7 @@ final class ToxeiaSession {
     @ObservationIgnored private var follower: Task<Void, Never>?
     @ObservationIgnored private var claimed = false
     @ObservationIgnored private var seenShot: UInt64 = 0
+    @ObservationIgnored private var ended = false
 
     init(battle: BattleClient) {
         self.battle = battle
@@ -32,6 +33,17 @@ final class ToxeiaSession {
     var archers: [ArcherRow] { ToxeiaTables.archer.rows.filter { $0.roomId == battle.roomId } }
     var needsName: Bool { station == .bow && battle.room?.phaseValue == .ready && (range?.archerId ?? 0) == 0 }
     var arrowUp: Bool { battle.room?.phaseValue == .speaking && (range?.archerId ?? 0) != 0 }
+
+    /// No names to type: the archers are the room's players in join order (seat), each once. Whoever
+    /// has shot already is skipped by name, counted so two of the same name both get their turn.
+    var nextArcher: PlayerRow? {
+        var shot = Dictionary(archers.map { ($0.name, 1) }, uniquingKeysWith: +)
+        for p in battle.players {
+            if let n = shot[p.name], n > 0 { shot[p.name] = n - 1; continue }
+            if p.connected { return p }
+        }
+        return nil
+    }
 
     func attach() {
         haptics.prepare()
@@ -59,14 +71,18 @@ final class ToxeiaSession {
     }
 
     /// The next archer's name; an empty name is "That's everyone" (the module goes to the finale).
-    func name(_ archer: String) {
+    private func name(_ archer: String) {
         let name = archer.trimmingCharacters(in: .whitespaces)
         guard let room = battle.room else { return }
         battle.call(Reducer.NextArcher.name, Reducer.NextArcher(roomId: room.id, name: name))
     }
 
-    /// The bow's "Ready": where it points now is the centre.
-    func ready() { bow.zero() }
+    /// The bow's "Ready", tapped by the archer up at arm's length: where it points now is the centre,
+    /// and the next player in join order is the archer.
+    func ready() {
+        bow.zero()
+        if needsName, let next = nextArcher { name(next.name) }
+    }
 
     /// The arrow phone's pad: thumb down nocks, thumb up looses.
     func setNocked(_ on: Bool) {
@@ -98,6 +114,12 @@ final class ToxeiaSession {
             if next == .arrow { arrow.start() }
         }
         trackShots()
+        // Everyone has shot: the range closes by itself (no "That's everyone" to tap).
+        if archers.isEmpty { ended = false }
+        if station == .bow, needsName, !ended, !archers.isEmpty, nextArcher == nil {
+            ended = true
+            name("")
+        }
         guard arrowUp else { return }
         switch station {
         case .bow:

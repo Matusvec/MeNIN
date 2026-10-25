@@ -16,7 +16,6 @@ struct ToxeiaPhoneRoot: View {
             } else {
                 BowView(model: bowModel(session), actions: BowActions(
                     ready: { session?.ready() },
-                    setName: { session?.name($0) },
                     back: onBack
                 ))
             }
@@ -47,7 +46,13 @@ struct ToxeiaPhoneRoot: View {
             m.lastShot = ArcheryShot(x: Double(shot.x) / Self.faceRadius, y: Double(shot.y) / Self.faceRadius, score: Int(shot.ring))
         }
         if s.needsName {
-            m.phase = s.archers.isEmpty ? .role : .passing(next: nil)
+            // No names to type: the next player in join order takes the bow and taps Ready.
+            if let next = s.nextArcher {
+                m.phase = .role
+                m.archer = PoetPlate(id: "\(next.id)", name: next.name, epithet: next.epithet, seat: Int(next.seat))
+            } else {
+                m.phase = .waiting(s.archers.isEmpty ? "Waiting for the archers" : "That's everyone")
+            }
         } else if s.arrowUp {
             m.phase = .aiming
         } else {
