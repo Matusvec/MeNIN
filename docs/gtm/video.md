@@ -108,7 +108,7 @@ If OBS misbehaves, fall back to ⌘⇧5 for the picture and use iPhone C's audio
 
 ## The Devpost video: shot list (2:00)
 
-**The video may be the first round.** MLH and organizers (#0-ask-directors, Sat 2:56–3:40 PM): "3 minutes for the video demo", "you can make your video demo more demo-focused and your live demo more pitch-focused", and "depending on track popularity, some categories may need to do a virtual first pass." The 2:00 cut fits. If Matus extends it toward 3:00, the extra time should be demo (a second full turn, or debate and discus if they pass at 8 PM), not talk.
+**The limit is 3 minutes, and the video is required** (MLH staff, #0-ask-directors and #0-general, Sat 6:29 PM: "3 min"; "you also need to include a 3 min video in your Devpost"). Our 2:00 cut fits. **The video may be the first round.** MLH and organizers (#0-ask-directors, Sat 2:56–3:40 PM): "3 minutes for the video demo", "you can make your video demo more demo-focused and your live demo more pitch-focused", and "depending on track popularity, some categories may need to do a virtual first pass." The 2:00 cut fits. If Matus extends it toward 3:00, the extra time should be demo (a second full turn, or debate and discus if they pass at 8 PM), not talk.
 
 **Built for judges who aren't in the room.** Devpost says the video is for "sponsors evaluating asynchronously", and Cartesia's staff have been hard to find. So the video has to carry each sponsor alone: name every sponsor on screen, show the keyterm numbers with how we measured them, and give responsibility its own card.
 
