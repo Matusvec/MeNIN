@@ -1,53 +1,30 @@
-# Figma deck: the clicks only Matus can do
+# Figma deck: what's left for Matus
 
 The deck is **MeNIN · Stage log (Figma track)**: https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm
 
-The artist session built everything the Figma MCP can reach (Sun Oct 25, 03:19–03:37). The Plugin API can't create embeds, change sharing or add a video, so those steps are below, in order. They take about 10 minutes in the Slides app.
+It has 20 slides and is cleaned up. Every Figma file in it passes the logged-out embed check (Sun 04:32). What's left can't be done through the Figma MCP: the live embeds and the video. That's about 10 minutes in the Slides app.
 
-## The clicks, in order
+**To embed:** copy the link, click the slide and paste (⌘V). If Slides asks, choose **Embed**. If the paste only makes a text link, use the toolbar's **Insert → Embed** and paste the link there.
 
-1. **Share the deck.** Open the deck, then **Share** (top right) → under "Who has access", **Anyone with the link** → **can view** → **Copy link**.
-   Figma's public oEmbed check already returns 200 for the deck (03:33), so this may already be set. Confirm it in the dialog anyway.
+## In order
 
-2. **Slide 16, "The prototype": embed both flows.**
-   - Flow 1, first open → practice → verdict: https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102
-   - Flow 2, join → arena → champion: https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364
+1. **Slide 17, "The prototype": embed both flows.** Put each one over the screenshots on the right, then delete the screenshots once the embeds play in Present mode.
+   - Flow 1, over the three phones at the top: https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102
+   - Flow 2, over the laptop shot at the bottom: https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364
 
-   Copy flow 1's link, click the slide and paste (⌘V). If Slides asks, choose **Embed**. If the paste only makes a text link, use the toolbar's **Insert → Embed** and paste the link there. Drag the embed over the three phone screenshots at the top right and size it to cover them. Do the same for flow 2 over the laptop screenshot at the bottom right. Once both play in Present mode, delete the screenshots underneath (or keep them as a fallback).
+2. **Slide 18, "Two directions, one switch": embed the Directions file** over the two Home screenshots on the left: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv
+   To open on the Atelier → Hall flip instead of the file's first page, use https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=36-128
 
-3. **Slide 17, "Two directions, one switch": embed the Directions file.** https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv
-   Paste the link the same way and place the embed over the two Home screenshots on the left. To land on the Atelier → Hall flip frame instead of the file's first page, use https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=36-128
+3. **Slide 10, "The website, as Paul built it in Figma Make": embed the Make file** over the website screenshot: https://www.figma.com/make/0o7GzG4KEQejktGJeUuNbt/MeNIN
+   Then delete the "[Make embed goes here]" chip and the screenshot under it. The slide's title, description and "Open the Make file ↗" link are already in place.
 
-4. **Slide 3, "The demo": the video.** Paste the YouTube link of the 3:00 cut onto the slide and choose **Embed**. If Slides won't embed YouTube, drag the final MP4 onto the slide instead, since Slides plays uploaded video. Then delete the "[video embed]" chip and the poster (the C1 title card) under it.
+4. **Slide 3, "The demo · 3:00": the video.** Paste the YouTube link of the final cut and choose **Embed**. If Slides won't embed YouTube, drag the final MP4 onto the slide instead. Then delete the "[video embed goes here]" chip and the poster (the C1 title card) under it.
 
-5. **Optional: the website's Make file.** Figma asks for "your Figma files (Make(s) and/or Figma prototypes)" to be embedded. The prototypes in step 2 cover that, but the website's Make file is its whole Figma path: https://www.figma.com/make/0o7GzG4KEQejktGJeUuNbt/MeNIN
-   There's no free space for it on slide 9 ("Stage II · the website"). Add a slide after 9 (⌘D on slide 9, then delete its contents) and paste the link there as an embed.
+5. **Share: confirm only.** The deck and every file in it already answer logged out, so link sharing is on. In the deck's **Share** dialog, check it says **Anyone with the link → can view**.
 
-6. **Check sharing on the other files.** Each one already passes the logged-out oEmbed check (03:33). Confirm "Anyone with the link → can view" in each Share dialog:
-   - FigJam "MeNIN · How it works (video card C2)": https://www.figma.com/board/c8DkYceOjp3OJ7PPLeYUcn
-   - The website's Make file (Paul's file, so Paul's Share dialog): https://www.figma.com/make/0o7GzG4KEQejktGJeUuNbt/MeNIN
-   - Matus's concept file: https://www.figma.com/design/zBILNwJB2NaVofBNJouAOW
+6. **Test as a judge.** Open the deck link in a private window, logged out, and present from slide 1. Check that the four embeds load and the "Open ↗" links on slide 20 open.
+   The repo link (github.com/sunya-afrasiabi/MeNIN, on slides 19 and 20) returns 404 until the repo goes public at 8 AM. That's expected.
 
-7. **Test as a judge.** Open the deck link in a private window, logged out. Present from slide 1 and check that every embed loads and every "Open ↗" link opens.
+## Slide map (20 slides)
 
-## What's in the deck now (19 slides)
-
-| # | Slide | Status |
-|---|---|---|
-| 1 | Title | Team line is now "Matus · Sunya · Paul" |
-| 2 | The problem | Unchanged |
-| 3 | The demo · 3:00 | **New.** Poster plus "[video embed]" stand-in (step 4) |
-| 4 | The workflow | Headline is now "Two designers, a team of agents, Figma in the middle." The designers box ends "Paul builds the website in Figma Make." The website box reads "The website's Figma Make app, exported to GitHub · builder session". The Figma box now says three modes (Atelier, Cut paper, Hall) |
-| 5 | How a turn works · FigJam | **New.** The FigJam 4-box diagram (Your voice → Cartesia → SpacetimeDB → Claude + Homer's voice), with the board link |
-| 6, 8, 10, 12 | Stages I–IV · the app | The stage line now ends "· the app". Slide 8 now says three modes |
-| 7, 9, 11, 13 | Stages I–IV · the website | **New.** Paul's path (the website), stage text from Sunya's log, in the website's own palette, facing the app slide: the Figma AI agent (45 min, 5/5), Figma Make (90 min, 4/5), Make export + GitHub (20 min, 5/5), Claude Code on the Make output (120 min, 4/5). Minutes are estimates from Sunya's log |
-| 14 | One hall, two codebases | **New.** Where the two paths meet: the Hall mode. Stand-in: hall-flip-atelier-to-hall.png |
-| 15 | The designer in the loop | **New.** The four rounds of scene feedback and the buttons. Stand-ins: hall-turn-promax.png, hall-join-promax.png |
-| 16 | The prototype | Unchanged. Embeds go here (step 2) |
-| 17 | Two directions, one switch | Unchanged. Embed goes here (step 3) |
-| 18 | Before and after | Unchanged |
-| 19 | The files | **New.** Every Figma file with an "Open ↗" link, plus the stack |
-
-Slide 4's Figma box and slide 8's tool text now say "three modes (Atelier, Cut paper, Hall)". Slide 8's "What made it in" keeps "23 colors in two modes", with "(Hall, the third, came Saturday night)" added, because that was the count at that stage. Slide 17 still compares two looks, which is right for that slide.
-
-**Confirmed (Matus, Sun ~3:40 AM): Paul ran Figma Make and the Figma AI agent.** Credit the website's path to Paul; the stage text is still from Sunya's log.
+1 Title · 2 The problem · 3 The demo · 4 The workflow · 5 How a turn works (FigJam) · 6/7 Stage I, the app / the website · 8/9 Stage II, the app / the website · 10 The website in Figma Make · 11/12 Stage III · 13/14 Stage IV · 15 One hall, two codebases · 16 The designer in the loop · 17 The prototype · 18 Two directions, one switch · 19 Before and after · 20 The files

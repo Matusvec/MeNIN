@@ -3,7 +3,7 @@
 | Time | What | Who | From |
 | --- | --- | --- | --- |
 | 7:00 | Pack from the packing list. The Mac, three iPhones and the power banks at 100%, or charging now. | All | run-sheet.md: Sunday timeline (7:00), Power, Packing list |
-| 7:00 | Watch **`~/Movies/MeNIN-video/out/rough-cut-v4.mp4`** once, start to finish, sound on (no v4 yet? `rough-cut-latest.mp4`). | **MATUS** | video.md: "Morning, 7:00" |
+| 7:00 | Watch **`~/Movies/MeNIN-video/out/rough-cut-v4.mp4`** once, start to finish, sound on (builder renders it with the 4.22 take; leader QAs it overnight). | **MATUS** | video.md: "Morning, 7:00" |
 | 7:20 | Any fixes go to builder, in one message. Confirm Sunya is up for the 8:00 repo flip. | **MATUS** | video.md: "Morning, 7:00"; run-sheet.md: Sat night |
 | 7:40 | **YouTube, Unlisted:** the final 3:00 cut, titled **"MeNIN: Homer teaches you to speak. Then you battle. (Cal Hacks 13.0)"**, with the description from video.md (e). Then the 2:00 export as its own Unlisted video, for Cartesia. Play both in a logged-out window. | **MATUS** | video.md: Export, (e) YouTube |
 | 7:45 | **Devpost: swap the video link** from the interim `menin-backup-90s` upload to the 3:00 YouTube link, and press Submit again. | **MATUS** | devpost.md: Submission checklist |
@@ -13,12 +13,13 @@
 | before 8:00 | Full-history secret scan rerun; leader says "clean" before the flip. | leader | devpost.md: Submission checklist; run-sheet.md: Sat ~11 PM |
 | 8:00 | **Sunya makes the repo public** (Settings → General → Danger Zone → Change visibility). | Sunya | run-sheet.md: 8:00 |
 | 8:00–8:40 | **Logged-out GitHub check** (private window): the repo, plus the README's #cartesia-ears-and-voice and #spacetimedb-the-hall sections. | Anyone but Sunya | run-sheet.md: 8:00–8:40; sponsor-submissions.md: §1, §4 |
-| 8:00–8:30 | **Build 45 checks, in order:** airplane reconnect → lesson 1's beat → Practice under a slow judge → visual pass → debate on Achilles' choice → verdict without the arena tab → Safari browser poet (slips first). pm captures only when Matus says "on screen". | **MATUS**, pm, a second teammate | ux-flow.md: "Visual pass" through "the verdict without the arena tab"; run-sheet.md: 8:00–8:30 |
+| 8:00–8:30 | **Only the three build 45 checks:** the airplane reconnect → lesson 1's beat → Practice under a slow judge. pm captures only when Matus says "on screen". **Stop at 8:30, whatever their state.** | **MATUS**, pm, a second teammate | ux-flow.md: "Visual pass" (the three checks); run-sheet.md: 8:00–8:30 |
 | 8:30 | TestFlight: is build 45 through Beta App Review? If so, install the public link on a phone that isn't a tester. If not, the browser poet is the fallback, but only if the Safari check passed. | **MATUS** | devpost.md: Submission checklist; run-sheet.md: Fallbacks |
-| 8:30–8:40 | **Only if Homer on Agentverse shipped:** the Fetch.ai Submission agent in ASI:One. Matus creates the team and enters the GitHub, Devpost and Fetch-cut video URLs; every teammate joins with the Team ID until it reads "Submitted". | **MATUS** + every teammate | opportunities.md: Fetch.ai; run-sheet.md: 8:00–8:40 |
+| **8:30–8:40** | **Starts at 8:30 no matter what. Only if Homer on Agentverse shipped:** the Fetch.ai Submission agent in ASI:One. Matus creates the team and enters the GitHub, Devpost and Fetch-cut video URLs; every teammate joins with the Team ID until it reads "Submitted". | **MATUS** + every teammate | opportunities.md: Fetch.ai; run-sheet.md: 8:00–8:40 |
 | 8:40 | **Devpost emails match Hive** for all three on the team page; each teammate fixes their own. | Matus checks, each fixes | devpost.md: Submission checklist; run-sheet.md: 8:45 |
 | 8:40 | Devpost final pass: every track ticked (Fetch.ai only if submitted), the Figma Slides link in "Try it out", the video is the 3:00 link, no `[` left. | **MATUS** | submission-packet.md: §3; devpost.md |
 | **8:45** | **Devpost submitted.** The hard deadline is 9:00. | **MATUS** | run-sheet.md: 8:45 |
+| 9:00–9:20 | **Visual pass** (cosmetic; build 45 is final either way) → debate on Achilles' choice → verdict without the arena tab → Safari browser poet. Over time: Safari slips first, then the no-arena-tab check, to right after table setup. | **MATUS**, pm, a second teammate | ux-flow.md: "Visual pass" through "the verdict without the arena tab"; run-sheet.md: 9:00–9:20 |
 | **9:30** | Whole team at the Palace of Fine Arts (the official arrival). | All | run-sheet.md: 9:30 |
 | **9:45** | **Table assignment** is announced; move within 30–45 min. Add the table number on Devpost if it has a field. | All (Devpost: Matus) | run-sheet.md: 9:45; devpost.md: Submission checklist |
 | 9:50 | **Ethernet** from the nearest hardline switch into the Mac. No IP address → tell a director now. | Operator | run-sheet.md: 9:50–10:20 |
