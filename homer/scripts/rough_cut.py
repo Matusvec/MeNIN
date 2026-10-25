@@ -1493,18 +1493,19 @@ def caption_lines(words: list[dict]) -> list[dict]:
     for w in words:
         cur = lines[-1] if lines else None
         if (cur and w["start"] - cur[-1]["end"] < 0.7 and not re.search(r"[.?!]$", cur[-1]["w"]) and cur[-1]["who"] == w["who"]
-                and (w["who"] == "matus" and not cur[-1]["w"].endswith(",")  # his: a clause at a time, then balanced
-                     or w["who"] != "matus" and len(cur) < 7 and len(" ".join(x["w"] for x in cur + [w])) <= 40)):
+                and (w["who"] != "room" and not (cur[-1]["w"].endswith(",") and len(" ".join(x["w"] for x in cur)) >= 20)
+                     # his and Homer's: a clause (a comma ends one past 20 characters), then balanced
+                     or w["who"] == "room" and len(cur) < 7 and len(" ".join(x["w"] for x in cur + [w])) <= 40)):
             cur.append(w)
         else:
             lines.append([w])
     balanced: list[list[dict]] = []
-    for ln in lines:  # his clauses: split into even chunks of 44 characters at most (two lines in the band)
+    for ln in lines:  # his and Homer's clauses: split into even chunks of 44 characters at most
         ends, acc = [], 0
         for x in ln:
             acc += len(x["w"]) + 1
             ends.append(acc)
-        n = -(-acc // 45) if ln[0]["who"] == "matus" else 1
+        n = -(-acc // 45) if ln[0]["who"] != "room" else 1
         cuts = sorted({min(range(len(ln) - 1), key=lambda i: abs(ends[i] - k * acc / n)) + 1 for k in range(1, n)}) if n > 1 else []
         for a, b in zip([0] + cuts, cuts + [len(ln)]):
             if b > a:
@@ -1535,13 +1536,22 @@ def captions(cuts: dict) -> Path | None:
     plates = [lt for lt in cuts["lowers"] if lt["id"] == "L0" or not lt.get("over") and lt["id"].startswith("L")]
     full = [lt for lt in cuts["lowers"] if lt["id"] == "L-SDK"]
     on = lambda group, a, b: any(lt["t0"] < b and a < lt["t0"] + lt["dur"] for lt in group)
+    beside = [sg for sg in cuts["segments"] if sg.get("beside")]  # the event log beside the wide
+    arena = [sg for sg in cuts["segments"] if sg["mode"] == "crop"]  # the arena's own screen (its verse, its captions)
+    inside = lambda group, t: any(sg["t0"] <= t < sg["t0"] + sg["dur"] for sg in group)
+    overlap = lambda group, a, b: sum(max(0.0, min(b, sg["t0"] + sg["dur"]) - max(a, sg["t0"])) for sg in group)
+    breaks = sorted(sg["t0"] for sg in cuts["segments"] if sg.get("beside") or sg["mode"] == "card")
     for i, ln in enumerate(lines):
         t0, t1 = ln["starts"][0], ln["end"]
+        if ln["who"] == "matus":  # his line ends at a cut to the event log or a card (one caption at a time there)
+            t1 = min([t1] + [b for b in breaks if t0 + 0.2 < b < t1])
         text = re.sub(r" -(?=\w)", "-", " ".join(ln["words"]))  # "end -to -end"
         if ln["who"] == "matus":  # his words: each phrase whole, beside his face (not his mouth), never on a plate:
             for a, b in CAPTION_FIXES.items():  # left; right while a lower third is up; at the foot under L15
                 text = text.replace(a, b)
-            pos = "foot" if on(full, t0, t1) else "right" if on(plates, t0, t1) else "left"
+            # over the event log: left, above L10 (never on the terminal rows); over the arena's screen: the foot band
+            pos = ("foot" if on(full, t0, t1) else "left" if inside(beside, t0) else "foot" if overlap(arena, t0, t1) > 0.5
+                   else "right" if on(plates, t0, t1) else "left")
             states.append({"id": f"{i:03d}-00", "words": [text], "k": 1, "t0": t0, "t1": t1, "side": True, "pos": pos})
             continue
         if ln["who"] == "homer":  # the narration: whole phrases on a band, at the foot over a card or a lower third
@@ -1558,14 +1568,19 @@ def captions(cuts: dict) -> Path | None:
     (d / "png").mkdir(parents=True)
     save(d / "states.json", states)
     run(["node", str(Path(__file__).parent / "captions.mjs"), str(d)])
-    seq, t = [], 0.0
+    # Each state on whole frames of the video's clock (padding sub-frame states to 0.034 s drifted the track ~0.1 s
+    # late by 1:16); a state shorter than a frame is skipped.
+    seq, f = [], 0
     blank = d / "png" / "blank.png"
     for s in states:
-        if s["t0"] > t + 0.001:
-            seq.append((blank, s["t0"] - t))
-        seq.append((d / "png" / f"{s['id']}.png", max(0.034, s["t1"] - max(s["t0"], t))))
-        t = max(t, s["t1"])
-    seq.append((blank, max(0.1, LENGTH - t)))
+        a, b = max(round(s["t0"] * FPS), f), round(s["t1"] * FPS)
+        if b <= a:
+            continue
+        if a > f:
+            seq.append((blank, (a - f) / FPS))
+        seq.append((d / "png" / f"{s['id']}.png", (b - a) / FPS))
+        f = b
+    seq.append((blank, max(0.1, LENGTH - f / FPS)))
     lst = d / "list.txt"
     lst.write_text("".join(f"file '{f}'\nduration {dur:.3f}\n" for f, dur in seq) + f"file '{blank}'\n")
     out = WORK / "captions.mov"
@@ -2181,15 +2196,16 @@ def build() -> None:
     n = 1 + max((int(m[1]) for f in OUT.glob("rough-cut-v*.mp4") if (m := re.match(r"rough-cut-v(\d+)\.mp4$", f.name))),
                 default=0)
     final, two = OUT / f"rough-cut-v{n}.mp4", OUT / f"rough-cut-v{n}-2min.mp4"
+    short = min(CARTESIA, cuts.get("marks", {}).get("montage") or CARTESIA)  # Cartesia's cut closes on C5's last frame
     part = OUT / f".rough-cut-v{n}.part.mp4"
     ff(*inputs, "-filter_complex", ";".join(graph), "-map", "[vout]", "-map", "1:a", "-t", str(LENGTH),
-       "-c:v", "libx264", "-preset", "medium", "-crf", "19", "-r", str(FPS), "-force_key_frames", str(CARTESIA),
+       "-c:v", "libx264", "-preset", "medium", "-crf", "19", "-r", str(FPS), "-force_key_frames", f"{short:.3f}",
        "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", str(part))
     sound_check(part, LENGTH, video=True)
     part.rename(final)
-    ff("-i", str(final), "-t", str(CARTESIA), "-c:v", "copy", "-af", f"afade=t=out:st={CARTESIA - 0.6}:d=0.6",
+    ff("-i", str(final), "-t", f"{short:.3f}", "-c:v", "copy", "-af", f"afade=t=out:st={short - 0.6:.3f}:d=0.6",
        "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", str(part))
-    sound_check(part, CARTESIA, video=True)
+    sound_check(part, short, video=True)
     part.rename(two)
     for src, name in ((final, "rough-cut-latest.mp4"), (two, "rough-cut-latest-2min.mp4")):
         shutil.copy(src, part)
