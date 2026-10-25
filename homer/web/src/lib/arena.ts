@@ -515,7 +515,10 @@ export class Arena {
     const fighters = [...db.fighter.iter()]
       .filter((f: Fighter) => f.roomId === this.roomId)
       .sort((a, b) => a.seat - b.seat)
-      .map((f) => ({ id: f.playerId, name: names.get(f.playerId) ?? 'Fighter', seat: f.seat, hp: f.health, guard: f.guard, yaw: f.aimYaw, pitch: f.aimPitch }))
+      .map((f) => ({
+        id: f.playerId, name: names.get(f.playerId) ?? 'Fighter', seat: f.seat, hp: f.health, guard: f.guard,
+        yaw: f.aimYaw, pitch: f.aimPitch, stamina: f.stamina, combo: f.combo,
+      }))
     const goMs = fight ? Number(fight.goAt.toMillis()) : 0
     if (goMs > 0 && this.fightClock?.go !== goMs) this.fightClock = { go: goMs, offset: Date.now() - (goMs - 3000) }
     const local = (ms: number) => (ms > 0 && this.fightClock ? ms + this.fightClock.offset : null)
@@ -524,7 +527,7 @@ export class Arena {
       .sort((a, b) => (a.id < b.id ? -1 : 1))
       .map((p) => ({
         id: String(p.id), from: p.playerId, to: p.targetId, kind: p.kind, zone: p.zone, power: p.power, yaw: p.aimYaw,
-        result: p.result, damage: p.damage, counter: p.counter, at: this.punchSeen.get(p.id) ?? 0,
+        result: p.result, damage: p.damage, counter: p.counter, combo: p.combo, at: this.punchSeen.get(p.id) ?? 0,
       }))
     return {
       fighters,
@@ -532,6 +535,7 @@ export class Arena {
       goAt: local(goMs),
       endsAt: fight ? local(Number(fight.endsAt.toMillis())) : null,
       ended: Boolean(fight && Number(fight.endedAt.toMillis()) > 0),
+      endedAt: fight ? local(Number(fight.endedAt.toMillis())) : null,
       ko: Boolean(fight?.ko),
       winnerId: fight?.winnerId ?? 0n,
     }
