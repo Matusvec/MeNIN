@@ -367,6 +367,8 @@ export default function Homer3D({ speaking, mode, action: actionProp, framing = 
       // Apply the pose.
       hips.position.y = HIPS_Y - pose.sit * THIGH
       homer.rotation.y = pose.yaw
+      // Seated and turned, the throne's back sticks out to his right: shift him so it stays in frame.
+      homer.position.x = pose.sit * 0.22
       torso.rotation.set(pose.torsoX, 0, pose.torsoZ)
       headPivot.rotation.set(pose.headX + look.y * 0.08, look.x * 0.22, pose.headZ)
       left.shoulder.rotation.set(pose.lShoulderX, pose.lShoulderY, pose.lShoulderZ)
