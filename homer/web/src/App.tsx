@@ -296,8 +296,8 @@ export default function App() {
     <main className="scene">
       <div className="animated-background" aria-hidden="true">
         <World3D speaking={isSpeaking} fallback={<div className="scene-artboard"><AegeanScene /></div>} />
-        <div className="scene-artboard homer-stage">
-          <Homer3D speaking={isSpeaking} mode={selectedMode} />
+        <div className="homer-stage">
+          <Homer3D speaking={isSpeaking} mode={selectedMode} framing="hall" />
         </div>
       </div>
 

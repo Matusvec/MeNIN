@@ -239,10 +239,11 @@ button {
   height: 100%;
 }
 
-/* Homer's frame over the 3D world: the world moves its own camera, so Homer doesn't drift. */
-.scene-artboard.homer-stage {
+/* Homer's frame over the 3D world: the whole viewport, so his full body fits above the dialogue. */
+.homer-stage {
+  position: absolute;
   z-index: 1;
-  animation: none;
+  inset: 0;
 }
 
 .homer-3d {
