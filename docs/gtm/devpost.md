@@ -247,6 +247,19 @@ It's published on the Apify Store: https://apify.com/matusnator/epithet-miner (A
 
 **Not on Devpost, so they can't be tagged:** MLH Best Use of Gen AI, Best .Tech Domain Name, Best Use of DigitalOcean (Hive lists them; Devpost doesn't). Still name DigitalOcean and Claude in the README and the "Built with" list.
 
+## Additional info (the Devpost form's step 4, for judges and organizers)
+
+Matus was filling this in at Sun 1:21 AM. Paste-ready answers:
+
+- **Upload a File** (optional): a PDF of the Figma Slides deck (in Figma: File → Export → PDF; 35 MB max), so a judge can read the stage log without opening Figma. Or skip it.
+- **GoDaddy Registry domains:** leave it blank unless Matus registers `playmenin.tech` tonight. If he does, write `playmenin.tech` and tick the GoDaddy Registry prize.
+- **Which AI tools did you use this weekend? (required, public):** Anthropic. **Remove OpenAI** unless a teammate really used ChatGPT or Codex this weekend. If the list has a Figma option, add it (the website was generated in Figma Make).
+- **Did you implement a generative AI model or API? (required):**
+  > Yes. Claude is Homer. Claude Opus 5.5 judges every spoken verse on Image, Answer and Craft (out of 100) against an anchored rubric with a JSON schema, quotes your best line, and writes everything Homer says: each round's theme, the epithet he calls you up with, the verdicts and the closing song stitched from the room's best lines. Claude Haiku reads the emotion in your voice so the scene can paint it. Cartesia's TTS gives Homer and Socrates their voices, and its streaming speech-to-text hears you, biased with the phrases Homer dealt you. Why: we wanted AI that makes you talk instead of talking for you, so the AI is the coach and the referee, never the speaker. The beat in the lessons is scored by a deterministic scanner, not by AI, and every AI call has a fallback, so a battle never stalls.
+- **Feedback about any technology (optional):**
+  > SpacetimeDB: server-side reducers and scheduled reducers made the battle's phase machine and turn timers simple, and row-level security kept each player's cards private. Our iOS client needed two patches to the community Swift SDK (per-room subscriptions and de-duplicated rows) and a cache fix on reconnect. Cartesia: sending the phrases we dealt each player as keyterms cut word errors from 20% to 3% in our noise tests, and final transcripts arrived 62–81 ms after the end of speech. Claude: Opus 5.5 with a cached prompt and a JSON schema wrote verdicts at about 0.9 s (p50), and a team of Claude Code sessions working in parallel built most of the app. Figma: naming every variable after its Swift token made a whole-app reskin one new variable mode; we wished the MCP could prompt Make directly.
+- **Gemini Project Number:** leave it blank (we don't enter Gemini).
+
 ## Submission checklist
 
 - [ ] **Tonight: create the Devpost project draft** (cal-hacks-13-0.devpost.com → My projects → start a submission), add every teammate, and **tick every track in the locked list to check each one is selectable**. Hackers asked whether an initial submission is due "before midnight" (#0-ask-directors, Sat 11:08 PM, no answer). The written deadline is 9:00 AM, but a draft tonight removes the risk, and it can be edited until the deadline.
