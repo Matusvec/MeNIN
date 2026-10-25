@@ -228,8 +228,8 @@ final class HomerVoice {
     /// The text each baked lesson demo speaks, as `bakedKey` of the server's `demoSpoken` when it
     /// was baked. Re-bake a demo and update its hash together.
     static let bakedDemos: [String: String] = [
-        "lesson-beat-demo": "68de495071cffb6d",
-        "lesson-formula-demo": "95f955422c7040f6",
+        "lesson-beat-demo": "a5df37ad490e032b",
+        "lesson-formula-demo": "2209aa2989712173",
         "lesson-epithet-demo": "5969ac75645b4629",
     ]
 
