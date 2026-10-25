@@ -14,6 +14,24 @@ Status key: ✅ the receipt is in the repo · ⚠️ true, but the wording or th
 
 gtm swaps each bracket for its real number as the receipts land.
 
+## Vital, not bolted on (Matus, Sat ~6 PM)
+
+**The test for every sponsor line: say what breaks without it.** If nothing breaks, it's bolted on, and it stays out of the main pitch. Never say "we also used", "integrated" or "behind a switch" in a pitch. The fallbacks are a reliability point ("a battle never stalls on a third-party call"), not a disclaimer.
+
+| Sponsor | Its job in MeNIN | Without it | The line |
+| --- | --- | --- | --- |
+| **SpacetimeDB** | Runs the battle: the phases, the turn timer, scores, your private cards (row-level security), the speaker's live voice row, seat takeover | There's no shared game: every screen disagrees, and a dropped phone loses its seat | "The server runs the battle, so the phone is just a screen." |
+| **Cartesia** | Hears every verse (ink-2 with the dealt phrases as keyterms) and is Homer's voice (sonic-3.6) | There's no game: you play by speaking, and Homer answers out loud | "Voice is the whole game." |
+| **Claude** | Judges every verse, writes every theme, call, epithet, verdict and the song; a team of Claude Code sessions built the app (232 of 245 commits) | No judge, no host, no game, and no app | "Homer is a live agent doing real work." |
+| **Figma** | The design system: variables carry their Swift names, so one mode switch in Figma is one launch flag in the app; Matus picked the look by flipping modes on the same frames | The look would have been picked from screenshots, and the app's tokens wouldn't trace back to a design | "We designed in Figma, and the code reads it." |
+| **Moss** | Deals phrases that fit a theme nobody has seen | Fresh themes would get cards matched by tags, which can't know the theme | "Fresh themes only work because of Moss." |
+| **Apify** | Mined nearly a third of the phrase bank (55 of 180) | A third fewer cards to play with [plus builder's share of hands with a mined card] | "Nearly a third of what you play with was mined by our Actor." |
+| **Meta** | The point of the product: two people answering each other, scored on how well they answer (Answer ×4), and one song made from everyone's lines | — | "You leave having made something together." |
+| **Fetch.ai** | Homer outside the hall: the same judge, as an agent anyone can use in ASI:One | Homer only exists in a room with a big screen | "Homer goes where you are." |
+| **DigitalOcean** (MLH) | Hosts the agent service and the website | No judge, no arena | — |
+
+**Honest weak spot:** Fetch.ai is a second surface, not part of the battle. Pitch it only to Fetch judges and in the Fetch cut of the video, never in the main 2:00. Apify works at build time; its vitality is the share of the bank, so lead with that number. The main pitch and the main video name only SpacetimeDB, Cartesia and Claude, plus Figma as how we built it.
+
 ## The three that have to be rock solid
 
 ### SpacetimeDB: "something that's hard to build without Spacetime"
