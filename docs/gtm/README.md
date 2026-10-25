@@ -78,13 +78,13 @@ Owners are roles. Matus decides who.
 
 ## The one-liner
 
-Frame from SPEC "The games": ancient Greek party games, with the poetry battle as the main event.
+Frame from SPEC "The idea": MeNIN trains your voice the way the Greeks did, like a sport. Homer teaches you to improvise poetry out loud, you spar with him, you battle other poets live, you debate the way Socrates did, and then you play Greek games with your friends. The poetry battle is the main event; the games are the fun layer, never the headline (Matus, Sun ~3:40 AM).
 
-> Thesis (Matus's vision): **"AI can write anything now. It can't stand up and move a room for you. The Greeks trained that like a sport. MeNIN is their games: party games for your voice."**
-> Close: **"Most AI talks for you. Homer makes you talk."**
-> Spoken fallback, for a judge who looks lost: **"Ancient Greek party games, like Wii Sports, and the main event is a rap battle judged by Homer."**
+> Thesis (Matus's vision): **"AI can write anything now. It can't stand up and move a room for you. MeNIN trains that the Greek way: Homer teaches you to improvise out loud, then you battle live."**
+> Close: **"Most AI talks for you. MeNIN makes you talk."**
+> Spoken fallback, for a judge who looks lost: **"Homer teaches you to improvise poetry out loud, then you battle your friends live, and he judges every verse."**
 > Opener: **"The first word of Western literature is *mēnin*. Rage. Homer opened with a fight, and so do we."**
-> Written (Devpost, video, app): **"MeNIN: ancient Greek party games, hosted by Homer. Battle in verse on one screen, with your iPhone as the controller."**
+> Written (Devpost, video, app): **"MeNIN: Homer teaches you to speak. Then you battle."** Tagline: "A live voice poetry battle: speak a verse into your iPhone and Homer judges it out loud within seconds. He teaches you to improvise like the Greeks; then you battle, debate and play."
 
 **Name: MeNIN** (μῆνιν, "rage", the first word of the Iliad). Say "MAY-nin" before anyone reads it. Homer hosts the poetry battle and Socrates hosts the debate.
 

@@ -28,7 +28,7 @@ One screen is the arena: our website at https://play.206.189.237.157.sslip.io, o
 - **Bard mode**: six short lessons (the beat, the formula, the epithet, the turn, the answer, the boast). Lesson one opens with the first line of the Iliad, whose first word in Greek is *mēnin*, our name. **Practice mode**: spar with Homer.
 - *Experimental:* no install needed. A judge or friend can play from their own phone's browser at `https://play.206.189.237.157.sslip.io/join/CODE?web=1` → "Play in your browser" (poetry and Talk to Homer only).
 
-**Who it's for:** spoken-word and slam poets, who practice alone between weekly open mics with no one to tell them whether their beat landed. The party games are why a room of friends opens it again.
+**Who it's for:** spoken-word and slam poets, who practice alone between weekly open mics with no one to tell them whether their beat landed. Battling friends, and the Greek games after, are why a room opens it again.
 
 ## How it works
 

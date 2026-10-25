@@ -2,7 +2,7 @@
 
 The table demo is in [demo-script.md](demo-script.md). This file holds everything around it: the lines, the booth pitches, the Q&A and the video.
 
-**Frame (SPEC "The games"):** ancient Greek party games, on one shared screen, with your iPhone as the controller. **The poetry battle is the main event and the spine of every demo.** **Discus is unlocked only if it passes 5 clean runs on build 31** (leader and pm, Sat ~8:25 PM: the build-18 pass came before discus v2 shipped in build 21); until then, `[If discus passes on 31]`. Socratic debate reaches the demo only if it runs 5 times in a row without failing by Sat 8 PM. Everything else appears as locked tiles.
+**Frame (SPEC "The idea"):** MeNIN trains your voice the way the Greeks did, like a sport. Homer teaches you to improvise poetry out loud, you spar with him, you battle other poets live, you debate the way Socrates did, and then you play Greek games with your friends, on one shared screen with your iPhone as the controller. Most AI talks for you. MeNIN makes you talk. **The poetry battle is the main event and the spine of every demo; the games are the fun layer, never the headline** (Matus, Sun ~3:40 AM). **Discus is unlocked only if it passes 5 clean runs on build 31** (leader and pm, Sat ~8:25 PM: the build-18 pass came before discus v2 shipped in build 21); until then, `[If discus passes on 31]`. Socratic debate reaches the demo only if it runs 5 times in a row without failing by Sat 8 PM. Everything else appears as locked tiles.
 
 **Tone (Matus):** professional and badass, never academic. History gets **one sharp line**, then straight to the battle. The battle is the loudest part. Say "iPhone", never "anyone".
 
@@ -13,12 +13,12 @@ The table demo is in [demo-script.md](demo-script.md). This file holds everythin
 **MeNIN** comes from μῆνιν (*mēnin*), "rage", the first word of the Iliad and so the first word of Western literature. **Homer** hosts the poetry battle and announces discus, and **Socrates** hosts the debate. Always write it **MeNIN**, matching the repo and the Figma file.
 
 - **Say it before anyone reads it: "MAY-nin."** Written cold, "MeNIN" gets read as "men-in" or "me-NIN". The opener does the teaching, so the first time a judge hears the word, they learn what it means.
-- **Devpost title (recommended): "MeNIN: Ancient Greek Party Games, Hosted by Homer."** Nobody knows "MeNIN" until it's explained, but everyone knows "Homer", so the title borrows his name to carry the poetry. Leader's version, "MeNIN: Party Games of Ancient Greece", is the fallback if a shorter title is wanted.
+- **Devpost title (recommended): "MeNIN: Homer teaches you to speak. Then you battle."** It's the title card's line (C1), so the Devpost, the video and the card all say the same arc, learn and then battle. Nobody knows "MeNIN" until it's explained, but everyone knows "Homer", so the title borrows his name. Fallback: "MeNIN: a live voice poetry battle, judged by Homer". The old "Ancient Greek Party Games" titles are retired (Matus, Sun ~3:40 AM).
 - **Heads-up:** "menin" is also a protein in cancer biology, so a web search won't find us. That's irrelevant at the table; the domain and the TestFlight link are how people find us.
 
 ## The thesis (Matus's vision)
 
-**AI can write anything now. What's left, and what matters more than ever, is a human who can stand up and move people.** The Greeks treated that as a skill you train in public, by contest: rhapsodes competing at the Panathenaic Games, citizens arguing in the Assembly, Socrates questioning people in the agora. MeNIN brings the contest back as party games, with AI as the coach and the judge, never the speaker.
+**AI can write anything now. What's left, and what matters more than ever, is a human who can stand up and move people.** The Greeks treated that as a skill you train in public, by contest: rhapsodes competing at the Panathenaic Games, citizens arguing in the Assembly, Socrates questioning people in the agora. MeNIN brings that training back: Homer teaches you to improvise out loud, you spar with him, battle other poets live and debate like Socrates, then play Greek games with your friends, with AI as the coach and the judge, never the speaker.
 
 - **The contrast that wins the room:** most AI talks *for* you; Homer makes *you* talk. Nearly every other table is building AI that speaks or acts for the user, so this is the one idea nobody else at Cal Hacks is pitching.
 - **The newest idea is the oldest one.** The Iliad is about 2,700 years old. "The future of AI is 2,700 years old" works as a Q&A or Devpost hook. Keep it out of the opener, which already has one history line.
@@ -37,7 +37,7 @@ The table demo is in [demo-script.md](demo-script.md). This file holds everythin
 
 | Length | Line |
 | --- | --- |
-| **The opener (first 14 s)** | **Homer** (the app's own first-open line, P12): "The first word of Western literature is *mēnin*. Rage." Then **Matus**: "AI can write anything now. It can't stand up and move a room for you. The Greeks trained that like a sport. MeNIN is their games: party games for your voice, with your iPhone as the controller." If the app can't play Homer's line, Matus says it himself. *(The old "like Wii Sports" opener is the fallback for a judge who looks lost: spoken only.)* |
+| **The opener (first ~15 s)** | **Homer** (the app's own first-open line, P12): "The first word of Western literature is *mēnin*. Rage." Then **Matus**: "AI can write anything now. It can't stand up and move a room for you. MeNIN trains that the Greek way: Homer teaches you to improvise out loud, then you battle live. Most AI talks for you. MeNIN makes you talk." If the app can't play Homer's line, Matus says it himself. *(For a judge who looks lost, one line: "Homer teaches you to speak. Then you battle.")* |
 | 5 s (written) | **MeNIN: a live voice poetry battle, judged out loud by Homer. Homer teaches you to improvise like the Greeks; then you battle, debate and play. Most AI talks for you. MeNIN makes you talk.** *(Matches the Devpost lead, leader, Sat ~8:45 PM.)* |
 | The second history line (only for Q&A or Devpost, never in the opener) | "The Greeks didn't separate sport and poetry: at the Panathenaic Games, poets competed reciting Homer right next to the athletes." |
 | The hand, in one line (mechanics, not history) | "You're dealt phrases that already fit the beat. That's how Homer improvised, and how freestyle works." |
@@ -56,10 +56,10 @@ The criteria are from #0-ask-directors. Every claim below has to be true by Sund
 
 | Criterion (their words) | Our proof at the table |
 | --- | --- |
-| **Application**: "who they help, what problem they solve, and why people would actually use them" | Spoken-word and slam poets in [the poet's scene] practice alone between weekly open mics. MeNIN gives them a stage every night that hears your beat. Party games are why a room of friends opens it again. **Saturday's first-timer number** goes here. |
+| **Application**: "who they help, what problem they solve, and why people would actually use them" | Spoken-word and slam poets in [the poet's scene] practice alone between weekly open mics. MeNIN gives them a stage every night that hears your beat. Battling friends, and the Greek games after, are why a room opens it again. **Saturday's first-timer number** goes here. |
 | **Intentionality**: "Every design choice should feel purposeful" | One engine, and every event is a config: host, cards, rubric, beat. One idea carried everywhere in the poetry battle: Homer's phrases, on your phone, in the rescue, in the judging (Craft), in the stitched song. |
 | **Functionality**: "live demo that runs smoothly... clear, meaningful video demo on devpost" | A live poetry battle on iPhones and the arena, Homer's spoken verdict within seconds ([turn-to-voice p50] once measured), a rehearsed fallback, a 3-minute video. **Only events that pass the checkpoint are unlocked; the rest are locked tiles, never half-working.** |
-| **Creativity**: "unexpected combinations of ideas or technologies" | Greek *agon* as party games: a poetry battle judged out loud by Homer, [if debate passed: a debate hosted by Socrates,] [if discus passes on 31: a discus you throw with your phone,] [if archery passes on 31: archery the webcam tracks,] all over a live sea that moves with your voice, with an original score by a teammate |
+| **Creativity**: "unexpected combinations of ideas or technologies" | Greek *agon*, the contest as the way you train a voice: Homer teaches you to improvise, then a poetry battle he judges out loud, [if debate passed: a debate hosted by Socrates,] and Greek games for fun after it ([if discus passes on 31: a discus you throw with your phone,] [if archery passes on 31: archery the webcam tracks]), all over a live sea that moves with your voice, with an original score by a teammate |
 | **Technical Complexity**: "engineering depth that goes beyond basic implementation" | Streaming STT biased with Homer's phrases as keyterms (3% word error in our tests with a drum at full volume as test noise, 20% without), on-device onset detection for the lessons' beat lane, the speaking phone's voice at 20 Hz through SpacetimeDB to the arena's scene, battle logic in server-side reducers with row-level security on your cards, a content-only Claude judge (verdict written in p50 0.9 s, laptop-measured), several events from one engine config, Core Motion physics [and webcam pose tracking for archery, if it passes], the haptic beat in lessons |
 
 ## Spread-thin guard (GTM watchdog rule)
@@ -68,14 +68,14 @@ The new frame raises the ceiling on Most Creative, Hacker's Choice and Meta. It 
 
 - **At least 80% of the 2 minutes is the poetry battle.** The other events get one line and a tile.
 - **An event that isn't solid stays a locked tile.** A locked tile reads as a roadmap; a broken event reads as spread thin.
-- If debate doesn't pass the checkpoint, the frame still holds with the battle [and the discus, if it passes on 31]: "Every party game starts with one great event. Ours is a poetry battle."
+- If debate doesn't pass the checkpoint, the frame still holds with the battle [and the discus, if it passes on 31]: "Homer teaches you to speak. Then you battle."
 
 ## Booth pitches (Saturday afternoon, 30 seconds each, phone in hand)
 
 Goal: every sponsor judge has played Homer before Sunday. Open the app first and talk second. **The route, times, booth numbers and what to show at each are in [booths.md](booths.md).** These are the 30-second lines.
 
 **Spacetime**
-> "MeNIN is ancient Greek party games, and SpacetimeDB *is* the arena. Every event runs on one shared state: turn order, scoring and the winner in reducers. The speaking phone streams its voice twenty times a second so the arena's scene moves with whoever's speaking. The client is Swift on iPhone. Want to take a turn?"
+> "MeNIN trains your voice the way the Greeks did: Homer teaches you to improvise, then you battle, debate and play Greek games live. SpacetimeDB *is* the arena. Every event runs on one shared state: turn order, scoring and the winner in reducers. The speaking phone streams its voice twenty times a second so the arena's scene moves with whoever's speaking. The client is Swift on iPhone. Want to take a turn?"
 Ask them: "What would make this a top-three Spacetime project for you?" Write down the answer and build toward it.
 
 **Cartesia**
@@ -84,11 +84,11 @@ Ask them: "How many winners are there, and what does great 'impact and responsib
 
 **Anthropic**
 > "For spoken-word and slam poets in [the poet's scene], who practice alone between weekly open mics. We measure it: Beat score, first try vs last, and next, Beat across a poet's first five sessions. Claude judges every verse with a stress count from our scanner, so it never guesses the beat, and every score shows its quote. The app is also being built by a team of Claude Code sessions."
-Keep the Anthropic story on the poets and on training (Bard mode). The party frame is why people come back, not the public-benefit claim.
+Keep the Anthropic story on the poets and on training (Bard mode). Battling and playing with friends is why people come back, not the public-benefit claim.
 Ask them: "Is our community narrow enough?"
 
 **Meta** (find them at their workshop)
-> "Party games for one room: one screen, everyone's phone is a controller. The main event is a poetry battle where the judge scores how well you answer the person before you, and at the end Homer stitches everyone's lines into one song."
+> "One room, one screen, everyone's phone is the mic: Homer teaches you to improvise, then you battle the people next to you. The main event is a poetry battle where the judge scores how well you answer the person before you, and at the end Homer stitches everyone's lines into one song."
 
 **Figma** (Booth #35)
 > "Two designers and a team of Claude Code sessions, with Figma's variables as the shared vocabulary between them. We're keeping a stage log, including what broke, like the web-to-iOS pivot."

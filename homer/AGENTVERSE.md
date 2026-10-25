@@ -33,7 +33,7 @@ Say "give me a theme" again for another round.
 
 ## Behind it
 
-Homer hosts MeNIN, a party game of ancient Greek contests (poetry battles, Socratic debate, discus) on one shared screen with phones as controllers, built at Cal Hacks 13.0. This agent speaks the Agent Chat Protocol and calls the same agent service the game uses:
+Homer hosts MeNIN, built at Cal Hacks 13.0. MeNIN trains your voice the way the Greeks did: Homer teaches you to improvise poetry out loud, then you battle other poets live, debate like Socrates and play Greek games with friends, on one shared screen with phones as controllers. This agent speaks the Agent Chat Protocol and calls the same agent service the game uses:
 - the dealer that builds a hand from the game's formula bank, part hand-written and part mined from public-domain Homer translations;
 - the stress scanner that shows where your stresses fell;
 - the judge that scores your verse on content. It runs on Claude, with a cached prompt and a streamed verdict.

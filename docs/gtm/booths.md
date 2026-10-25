@@ -91,7 +91,7 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 
 ### Meta (sponsor-06, optional)
 - **Show** two people answering each other in verse, then the stitched song.
-- **The line:** "Party games for one room. The judge literally scores how well you answer the person before you."
+- **The line:** "Poets battling in one room. The judge literally scores how well you answer the person before you."
 - **Ask:** "Who judges the Meta track on Sunday?"
 
 ### Spacetime (sponsor-14 or the Theater, 3:30 PM)

@@ -16,7 +16,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 
 ---
 
-**Project name / title:** MeNIN: Ancient Greek Party Games, Hosted by Homer *(fallback: "MeNIN: Party Games of Ancient Greece")*
+**Project name / title:** MeNIN: Homer teaches you to speak. Then you battle. *(fallback: "MeNIN: a live voice poetry battle, judged by Homer". The old "Ancient Greek Party Games" title is retired, Matus, Sun ~3:40 AM: if it's already typed into Devpost, change it.)*
 
 **Tagline** (200 chars; 182 used): A live voice poetry battle: speak a verse into your iPhone and Homer judges it out loud within seconds. He teaches you to improvise like the Greeks; then you battle, debate and play.
 
@@ -38,7 +38,7 @@ The first word of Western literature is μῆνιν (*mēnin*, pronounced "MAY-n
 
 MeNIN is for spoken-word and slam poets in [the poet's scene]. [poet's name] is one of them. Open mics are once a week, and between them you practice alone in your room, with no one to tell you whether your beat landed. [poet quote: one line from a poet texted Saturday, with permission] Improvising out loud is a learnable skill: Homer did it with stock phrases built to fit the beat, and freestyle rappers do it every night. Almost nobody gets to practice it with friends.
 
-So we built ancient Greek party games for your voice, with AI as the coach and the judge, never the speaker, and made the poetry battle the main event.
+So we built MeNIN to train your voice the way the Greeks did: Homer teaches you to improvise out loud, you battle other poets live, and then you play Greek games with your friends, with AI as the coach and the judge, never the speaker. The poetry battle is the main event.
 
 ## What it does
 

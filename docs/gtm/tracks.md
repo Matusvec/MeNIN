@@ -24,13 +24,13 @@ Credit the composer by name everywhere, and state honestly how the score was mad
 
 | Track | Before | Now | Why | Condition |
 | --- | --- | --- | --- | --- |
-| **Hacker's Choice** | Down (iOS reach) | **Up** | Discus is a zero-skill hook: anyone can swing a phone, then stay for the battle. Party games are what hackers actually play at 1 AM. | Discus ships. Still capped by iOS: hackers play on our devices or through TestFlight. |
+| **Hacker's Choice** | Down (iOS reach) | **Up** | Discus is a zero-skill hook: anyone can swing a phone, then stay for the battle. Battling your friends out loud is what a room of hackers actually plays at 1 AM. | Discus ships. Still capped by iOS: hackers play on our devices or through TestFlight. |
 | **Most Creative** | High | **Higher** | A rap battle judged by Homer, a debate hosted by Socrates and a discus thrown with your phone, all in one product. Nobody else has this. | The poetry battle stays the spine. The frame alone isn't the creativity. |
-| **Meta** | Medium-high | **High** | One screen, one room, everyone's phone a controller: party games are the clearest possible "bringing people closer". | The battle works live |
+| **Meta** | Medium-high | **High** | One screen, one room, everyone's phone a mic: poets answering each other out loud, then Greek games together, is the clearest possible "bringing people closer". | The battle works live |
 | **Cartesia** | Medium-high | **High, if debate ships** | Their own idea, "Multi-speaker agent: tutor, debate partner... with distinct voices", is now literal: Homer (Carl, "Steady Storyteller": calm depth) and Socrates (quick, wry, questioning) are two distinct Cartesia voices, one of them a debate host. | Socrates ships with his own voice. Otherwise unchanged: Homer as MC, coach and announcer. |
 | **Most Technically Complex** | Medium | **Up slightly** | Several events from one engine config, plus Core Motion physics alongside the real-time voice stack | Don't claim events that didn't ship |
 | **Spacetime** | High | **Up slightly** | More shared state ("games" is their first example). Discus throws become reducer events that every screen sees at once. | Same Swift-client smoke test |
-| **First Overall** | Medium | **Up** | "Like Wii Sports" makes the product clear to any judge in 3 seconds, and that legibility matters at a 2-minute table. | Functionality holds; nothing half-working is shown |
+| **First Overall** | Medium | **Up** | One line, "Homer teaches you to speak. Then you battle.", makes the product clear to any judge in 3 seconds, and that legibility matters at a 2-minute table. | Functionality holds; nothing half-working is shown |
 | **Anthropic** | Medium-low | **Slight risk** | A party frame can read as entertainment, not public benefit. Keep the Anthropic story on slam poets and Bard-mode training; the games are why people come back. Don't split the named community (debaters are a "what's next", not a second community). | The first-timer number exists |
 | **Figma** | Unchanged | Unchanged | The event menu and locked tiles add a design surface worth logging | Figma is actually used |
 
@@ -98,7 +98,7 @@ Criteria: Workflow Design, Adoptability ("a measurable before and after"), Outpu
 
 | # | Slide | Content |
 | --- | --- | --- |
-| 1 | Title | MeNIN: ancient Greek party games, hosted by Homer. Team. |
+| 1 | Title | MeNIN: Homer teaches you to speak. Then you battle. Team. |
 | 2 | The problem | Poets practice alone between weekly open mics. One sentence. |
 | 3 | The workflow | Two designers (the app, and the website in Figma Make) plus a team of Claude Code sessions, with Figma as the handoff between them. Reuse the FigJam how-it's-built diagram from [video.md](video.md). |
 | 4–7 | The stage log | One slide each for Ideation, Prototyping, Handoff and Code generation, **200 words max each**: the tool and why, minutes, a 1–5 rating, what made it in, and the friction. Pull from the log's entries; keep the dead ends (glow → matte, web → iOS). |
@@ -120,7 +120,7 @@ Criteria: Workflow Design, Adoptability ("a measurable before and after"), Outpu
 ### Cal Hacks main prizes (automatic)
 | Prize | Item | Our angle |
 | --- | --- | --- |
-| **First Overall** | MacBook Air 13" M5 | Ancient Greek party games that anyone gets in 3 seconds, with a poetry battle that judges remember |
+| **First Overall** | MacBook Air 13" M5 | Homer teaches you to improvise out loud, then a live poetry battle judges remember, understood in 3 seconds |
 | Second Overall | Nintendo Switch 2 | |
 | Third Overall | Google Intelligent Eyewear | |
 | **Most Creative Hack** | Instax camera plus film | Our strongest main-track bet. Nothing like it is in the field. |
@@ -177,7 +177,7 @@ These hit "Voice clear, responsive, and natural?" directly. The keyterm trick is
 > "how meaningfully they strengthen human connection, how essential and well-integrated AI is, originality, and the strength of the working demo."
 
 **How MeNIN hits it:**
-- **Party games for one room:** one screen, everyone's phone a controller. That's the most literal "bringing people closer" format there is.
+- **One room, out loud:** one screen, everyone's phone a mic, poets battling face to face and then playing Greek games together. That's the most literal "bringing people closer" format there is.
 - **Human connection:** people in one room answering each other out loud. The Answer axis literally scores responding to the person before you. The stitched song turns the room into co-authors.
 - **AI is essential:** Homer is the MC, the judge, the coach and the stitcher. Take him out and there's no game.
 - **Originality:** see the field. **Demo:** the table script.
