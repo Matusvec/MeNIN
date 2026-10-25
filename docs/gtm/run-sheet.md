@@ -14,7 +14,7 @@ Logistics for judging day, Sunday Oct 25: what goes where, what gets charged, ho
 - **Build 18** (0.1.0, `202610241606`) is only the first-timer study's build; `docs/study.md` records which build ran.
 - **The visual pass** runs once, on build 44, on Matus's iPhone 16 Plus (15 minutes; see the timeline).
 
-**The website (since PR #1, Sat ~10:40 PM):** "/" is now the **Poets' Hall** landing page ("Choose Homer"), and **https://play.206.189.237.157.sslip.io/homer** goes straight into Homer's hall. **On the arena Mac, always open https://play.206.189.237.157.sslip.io/homer** (bookmark it). Then click **"Host a battle"**, then **"Open the hall: Poetry battle"** (or another game). After a reload, it's /homer → "Host a battle" → **"Resume [code]"**.
+**The website (since PR #1, Sat ~10:40 PM):** "/" is now the **Poets' Hall** landing page ("Choose Homer"), and **https://play.206.189.237.157.sslip.io/homer** goes straight into Homer's hall. **On the arena Mac, always open https://play.206.189.237.157.sslip.io/homer** (bookmark it). Then click **"Host a battle"**: under the heading "Open the hall" is the board of event cards. Click the **Poetry battle** card (tagged "Start here"), or another game's card. After a reload, it's /homer → "Host a battle" → **"Resume [code]"**.
 
 **The hands: Moss deals them, judging included** (leader, Sat ~11 AM). `HOMER_DEALER=moss` is on in production; the old tag dealer takes over silently only if Moss stalls. So **the poets rehearse on Moss hands: start from [demo-hands.md](demo-hands.md)**, builder's sample Moss hands for the three demo themes. The Sat 1:30 PM full-battle checkpoint, the Sat 8 PM runs and every rehearsal use Moss hands. Moss ranks by meaning, so the hand for the same theme can vary a little between deals. Rehearse the theme's feel, not a fixed five.
 
@@ -35,7 +35,7 @@ Logistics for judging day, Sunday Oct 25: what goes where, what gets charged, ho
 | 9:00–9:20 | **Get our judging table number and move there.** The Hacker Guide: "Shortly after the 9:00 AM submission deadline, all projects will be assigned a table number. You will need to move to your assigned table by 10:30 AM." Watch #0-announcements and the app. The table may not be where we hacked. | Matus |
 | 9:20–10:00 | Hall check **at the assigned table**: find the nearest hardline switch (there's one every 3 tables, per the announcements), plug in ethernet, and **run the demo check until it says GO with no no-go warnings** (see Before each judge). Then set sound at demo volume, run the noise test, and do two full warm-up runs. If no switch reaches, tell a director immediately. Two teams had dead table ethernet on Friday night: one got no DHCP address, and one had a tripped cable. If the Mac shows no IP address on ethernet, tell a director right away and use venue Wi-Fi meanwhile. | All |
 | 10:10 | **Start the live SpacetimeDB timeline** on the Mac's second desktop, once, and leave it running (see "The SpacetimeDB flip" below). | Operator |
-| 10:15 | Table set: demo config loaded, the main room open, the website's hall open ("Open the hall" clicked, Homer heard), and the backup video cued. | Operator |
+| 10:15 | Table set: demo config loaded, the main room open, the website's hall open (/homer → "Host a battle" → the **Poetry battle** card clicked, Homer heard), and the backup video cued. | Operator |
 | 10:30–12:30 | Judging. The whole team stays at the table. The guide: "If your entire team is not present while a judge comes, you will not be judged!" Take bathroom breaks one at a time, never two at once. Reset with the rematch drill between judges. | All |
 
 ## Device roles
@@ -44,7 +44,7 @@ Every device runs the same TestFlight build. Check under TestFlight, MeNIN, buil
 
 | Device | Held by | Role | Connection | Power |
 | --- | --- | --- | --- | --- |
-| **Mac (arena)** | Operator | **The website, full screen in a browser, at https://play.206.189.237.157.sslip.io/homer**, with the display turned to face the judges (SPEC: the website is the only arena people see; the app's arena mode is an emergency fallback behind the Dev screen). Click **"Host a battle"**, then **"Open the hall: Poetry battle"** (or **"Resume [code]"** after a reload), which also lets the browser play sound, then check Homer speaks. Demo config on, operator keys, latency HUD on. A Terminal sits on a second desktop for the demo check. The main room is live. **There's no second backup room:** the website allows one driving tab per browser, so recovery is a reload and "Resume" (see Fallbacks). The backup video is paused in a second window. | Ethernet, through the USB-C adapter | **100% at the start.** Wall outlet if the table has one, or a power bank if one can feed it (see Power). |
+| **Mac (arena)** | Operator | **The website, full screen in a browser, at https://play.206.189.237.157.sslip.io/homer**, with the display turned to face the judges (SPEC: the website is the only arena people see; the app's arena mode is an emergency fallback behind the Dev screen). Click **"Host a battle"**, then **the **Poetry battle** card** (or **"Resume [code]"** after a reload), which also lets the browser play sound, then check Homer speaks. Demo config on, operator keys, latency HUD on. A Terminal sits on a second desktop for the demo check. The main room is live. **There's no second backup room:** the website allows one driving tab per browser, so recovery is a reload and "Resume" (see Fallbacks). The backup video is paused in a second window. | Ethernet, through the USB-C adapter | **100% at the start.** Wall outlet if the table has one, or a power bank if one can feed it (see Power). |
 | **iPhone A** | The poet | Poet 1: mic and hand. | Venue Wi-Fi, with cellular data as plan B | Power bank between runs |
 | **iPhone B** | Matus | Poet 2: mic and hand, and the staged freeze. | Same | Same |
 | **iPhone C** | Operator | **The spare, with duties in priority order:** 1) replaces a dead poet phone; 2) **backup arena** if the Mac dies: the website in Safari (one column under 900 px), or the app's Dev-screen arena as the last resort; 3) plays the backup video if the Mac is gone; 4) the judge's phone after 2:00, for discus or a rematch. Grippy case. | Same | Same |
@@ -118,7 +118,7 @@ Before every run:
   - [ ] **The arena tab stays in front** in its own full-screen window. Browsers slow down background tabs.
   - [ ] The lid stays open. Closing it sleeps the Mac whatever caffeinate says.
 - [ ] The main room is open on the website, both poets have joined, and demo config is on. Nothing is preloaded: Homer writes a fresh theme and coins fresh epithets every battle (SPEC 7866476).
-- [ ] A **fresh hall** is open (https://play.206.189.237.157.sslip.io/homer → "Host a battle" → "Open the hall: Poetry battle", Sunday morning on the judging build; never Resume a Saturday room, since older rooms keep their old settings), and Homer speaks.
+- [ ] A **fresh hall** is open (https://play.206.189.237.157.sslip.io/homer → "Host a battle" → the **Poetry battle** card, Sunday morning on the judging build; never Resume a Saturday room, since older rooms keep their old settings), and Homer speaks.
 - [ ] The hands-free mic opens on each phone's turn, and the 3-2-1 ticks and the thump can be felt.
 - [ ] Speaker volume is set and captions are on.
 - [ ] The operator key "replay opening" is ready.
@@ -158,7 +158,7 @@ These are the only operator steps for Talk to Homer, the Stadion, boxing (Pygmac
 
 - **Begin needs at least two players joined** (one for Talk to Homer).
 - **Switching events stays in the same hall** ("New event", builder, Sat 6:44 PM). Every phone stays joined, with no reload and no new code:
-  1. Operator: in the lobby or on the results screen, click **"New event"** (next to Begin or Rematch). It opens a picker of the other games: Poetry battle, Talk to Homer, Socratic debate, Discus, Stadion, Pygmachia (beta), Toxeia (beta). "Cancel" closes it.
+  1. Operator: in the lobby or on the results screen, click **"New event"** (next to Begin or Rematch). It opens a picker of the other games: Poetry battle, Talk to Homer, Socratic debate, Discus, Stadion, Pygmachia and Toxeia (the last two tagged "Beta"), as compact cards. "Cancel" closes it.
   2. Operator: click the game. The room goes back to the lobby with everyone still in it, and the phones change to the new game by themselves.
   3. Operator: **Begin.**
   - **Every phone on build 31 or later** (the judging build; see the top of this sheet). If a phone stays on the old game, it leaves and rejoins with the same code. That counts as a fallback.
@@ -177,7 +177,7 @@ These are the only operator steps for Talk to Homer, the Stadion, boxing (Pygmac
 
 | Who | Step |
 | --- | --- |
-| Operator | **New event → Talk to Homer** (or Open the hall: Talk to Homer). Until a phone joins, Begin reads "Waiting for a poet". **Begin.** |
+| Operator | **New event → Talk to Homer** (or "Host a battle" → the **Talk to Homer** card). Until a phone joins, Begin reads "Waiting for a poet". **Begin.** |
 | Homer, automatic | Opens on his own: "Give me a verse about {theme}." With two poets he adds "{name}, you first." |
 | Each turn, automatic | 3-2-1, SPEAK on the phone, a 20 s window ("I'm done" ends it early), then "Homer is answering…" and his reply out loud. The next turn follows by itself. |
 | Operator | **Press nothing while it runs.** Talk to Homer has no "Next"; the only operator button is **End**. |
@@ -188,7 +188,7 @@ These are the only operator steps for Talk to Homer, the Stadion, boxing (Pygmac
 
 | Who | Step |
 | --- | --- |
-| Operator | Open the hall: Stadion (or **New event → Stadion** from an open hall, phones stay joined). Begin. |
+| Operator | "Host a battle" → the **Stadion** card (or **New event → Stadion** from an open hall, phones stay joined). Begin. |
 | Homer, automatic | "One stadion. Phone in hand, pump your arms like a sprinter." Then "Runners, to your marks.", the 3-2-1 and the race (40 s at most), the places, and "The stadion goes to {name}." |
 | Operator | **Press nothing until Rematch.** |
 | Runners | Phone in hand, pump your arms. Stand with arm room all around; nobody next to the table's laptops. |
@@ -197,7 +197,7 @@ These are the only operator steps for Talk to Homer, the Stadion, boxing (Pygmac
 
 | Who | Step |
 | --- | --- |
-| Operator | Open the hall: Pygmachia (beta) (or **New event → Pygmachia (beta)**, phones stay joined). Begin. |
+| Operator | "Host a battle" → the **Pygmachia** card, tagged Beta (or **New event → Pygmachia**, phones stay joined). Begin. |
 | Homer, automatic | "{A} and {B}. Fists up." The bell starts by itself: 60 s or a knockout, then the result and "{winner}. The ring is yours." With three fighters, the winner stays on automatically, and the waiting fighter's phone (not the arena) shows "Up next: you fight the winner of {A} vs {B}". |
 | Operator | Press nothing until Rematch. |
 | Fighters | Phone held like a fist. **Stand more than an arm's length apart and punch the air, never at each other.** |
@@ -211,7 +211,7 @@ These are the only operator steps for Talk to Homer, the Stadion, boxing (Pygmac
 | Who | Step |
 | --- | --- |
 | **Everyone who'll shoot** | **Joins with the code before Begin, on their own phone.** |
-| Operator | **New event → Toxeia (beta)** (or Open the hall: Toxeia (beta)). Until two phones are in, Begin reads "Waiting for the bow and the arrow". |
+| Operator | **New event → Toxeia** (or "Host a battle" → the **Toxeia** card, tagged Beta). Until two phones are in, Begin reads "Waiting for the bow and the arrow". |
 | Operator | Press **Camera on** (in the button row; it works in the lobby too, so turn it on as soon as the archery hall opens). The judging hall starts with the camera off. The first time, allow the browser's camera prompt. A small camera view with the tracked skeleton appears in a corner of the range. Then **Begin**. |
 | Homer, automatic | "Toxeia. Face the target and raise your bow arm. Phone in the other hand: thumb down, draw it back to your face, lift your thumb to loose." Then "{name}, step up to the line." and "{name} steps to the line." |
 | Each archer, 3 arrows | Stand facing the target, **where the camera sees your whole upper body**. Raise the bow arm: the aim dot follows it, and it zeroes at the start of each arrow once the arm is still. Thumb down on your own phone, bring the drawing hand back to your jaw while the draw meter fills, and **lift your thumb to loose**. 45 s an arrow before it's lost. |
@@ -227,7 +227,7 @@ Only when the camera is off, or by itself for one arrow when the camera loses th
 
 | Who | Step |
 | --- | --- |
-| Operator | Open the hall: **Toxeia (beta)** (or **New event → Toxeia (beta)**, phones stay joined). Until two phones are in, Begin reads "Waiting for the bow and the arrow". |
+| Operator | "Host a battle" → the **Toxeia** card, tagged Beta (or **New event → Toxeia**, phones stay joined). Until two phones are in, Begin reads "Waiting for the bow and the arrow". |
 | **Everyone who'll shoot** | **Joins with the code before Begin.** The first two phones in become the bow and the arrow (each shows BOW or ARROW in big type). With 2 people that's all. With 3 or 4, players 3 and 4 join on their own phones, which show waiting; they shoot with the two station phones when their turn comes. |
 | Operator | **Begin.** Homer reads the rules once. |
 | The bow phone | Held out at arm's length, pointed at the target: tap **Take aim**. That starts the archer up (the first time, it also sets the centre of the aim). |
@@ -247,9 +247,9 @@ Each one is decided in advance and has a line to say, so nobody improvises at th
 | What breaks | Trigger | Do this | Owner | Say |
 | --- | --- | --- | --- | --- |
 | **The arena shows "Reconnecting…"** | Any time | **Wait.** It's a network blip, and the arena reconnects and finishes the battle on its own (builder's test). Keep talking. If it doesn't recover, treat it as "The room wedges" below (reload, then Resume). | Operator | "The hall's Wi-Fi is a battle of its own." |
-| **The room wedges.** A turn won't advance, Rematch doesn't reset, or a phone can't rejoin. | Over 10 s stuck | **Reload the website's tab and click "Resume [code]"**: same room, same code, same scores, and the battle carries on from its phase; the phones just wait. If that fails, click **"Open the hall"** for a new room, and the poets type its new code. If the browser itself is hung, force-quit it (⌘⌥⎋), relaunch, and Resume. | Operator | Matus: "Let's move to the other stage." |
+| **The room wedges.** A turn won't advance, Rematch doesn't reset, or a phone can't rejoin. | Over 10 s stuck | **Reload the website's tab and click "Resume [code]"**: same room, same code, same scores, and the battle carries on from its phase; the phones just wait. If that fails, click "Host a battle", then the **Poetry battle** card for a new room, and the poets type its new code. If the browser itself is hung, force-quit it (⌘⌥⎋), relaunch, and Resume. | Operator | Matus: "Let's move to the other stage." |
 | **One poet phone dies or freezes** | Any time | Hand that poet **iPhone C**. It joins the same room with the room code. | Operator | Matus keeps talking through the how-it-works line. |
-| **The Mac dies** | Any time | **Open https://play.206.189.237.157.sslip.io/homer in Safari on another device** (the iPad, a teammate's laptop, or iPhone C, propped facing the judges), click "Host a battle", then "Open the hall: Poetry battle" for a **new room**; the poets join its new code. Another device can't take over the Mac's room, since the host identity lives in the Mac's browser. Last resort: the app's emergency arena on iPhone C, behind the Dev screen. The speaker stays on if it's wired to that device, otherwise it's device audio. | Operator | "Same game, smaller box." |
+| **The Mac dies** | Any time | **Open https://play.206.189.237.157.sslip.io/homer in Safari on another device** (the iPad, a teammate's laptop, or iPhone C, propped facing the judges), click "Host a battle", then the **Poetry battle** card for a **new room**; the poets join its new code. Another device can't take over the Mac's room, since the host identity lives in the Mac's browser. Last resort: the app's emergency arena on iPhone C, behind the Dev screen. The speaker stays on if it's wired to that device, otherwise it's device audio. | Operator | "Same game, smaller box." |
 | **The Mac dies and iPhone C is already covering a poet** | Any time | **Practice Spar on one iPhone:** the poet against Homer, with that phone as both the arena and the mic. Or play the backup video on a phone. | Operator, poet | "Let me show you against Homer himself." |
 | **Network is slow or down** | Turns lag past the stall line twice | Decided by leader: ethernet into the Mac first, then cellular on the phones. **No hotspot (confirmed banned).** The Cal Hacks announcement on Fri 10:16 PM said: "Personal hotspots, routers, or other broadcasting equipment are prohibited inside the venue and we have tools to find who has these." It was repeated Sat 12:48 PM: Wi-Fi 6 works better, 2.4 GHz works only on the Mezzanine, and patch cables can be rented at the Mezzanine hardware desk. **Ethernet isn't a sure thing either:** on Saturday afternoon hackers reported Wi-Fi "very slow", ethernet links not coming up and one dead switch (#0-ask-directors, Sat 1:31 and 2:11 PM), so test our switch in the 9:20 hall check. Each phone uses its own cellular data instead, which isn't broadcasting. The Mac can't use cellular, so if its ethernet dies, **iPhone C on cellular becomes the arena.** | Operator, poets | "One second, the Wi-Fi in here is a battle of its own." |
 | **Two failures in a row, or no network at all** | Any time | **Backup video**, 90 s, of the best Saturday-night run. Play it from the Mac's second window, or from any phone (it's saved on all three). Play it with sound. | Operator | Matus: "Here's last night's battle, start to finish." Then quiet. |
