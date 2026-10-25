@@ -311,7 +311,7 @@ export class Arena {
       .withUri(STDB_URI)
       .withDatabaseName(STDB_DB)
       .withToken(loadToken())
-      .withAutomaticReconnect()
+      .withAutomaticReconnect({ maxDelayMs: 5000 }) // a Wi-Fi blip mid-verse: back within 5 s, not the SDK's 30 s
       .onAutomaticReconnect((_conn, _identity, token) => {
         saveToken(token)
         this.status = 'connected'

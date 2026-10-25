@@ -10,7 +10,7 @@
 
 import { useEffect, useId, useSyncExternalStore } from 'react'
 
-const SRC = '/audio/menin-theme.m4a?v=2' // v2: the loudness-normalised master; the query skips a cached quiet copy
+const SRC = '/audio/menin-theme.m4a?v=3' // v3: v2's master without its 59.8 s of leading silence; the query skips a cached copy
 // Levels for the loudness-normalised master (−16.7 LUFS): a bed you hear on MacBook
 // speakers, ducked well under Homer.
 const BED = 0.5
