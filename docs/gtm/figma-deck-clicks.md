@@ -27,7 +27,7 @@ It has 21 slides and is cleaned up. Every Figma file in it passes the logged-out
 5. **Share: confirm only.** The deck and every file in it already answer logged out, so link sharing is on. In the deck's **Share** dialog, check it says **Anyone with the link → can view**.
 
 6. **Test as a judge.** Open the deck link in a private window, logged out, and present from slide 1. Check that the four embeds load and the "Open ↗" links on slide 21 open.
-   The repo link (github.com/sunya-afrasiabi/MeNIN, on slides 19 and 21) returns 404 until the repo goes public at 8 AM. That's expected.
+   **Change the repo link on slides 19 and 21 to github.com/Matusvec/MeNIN** (the public mirror, leader, Sun 8:25 AM). The original, github.com/sunya-afrasiabi/MeNIN, stays private, so it returns 404 for a judge.
 
 ## Slide map (21 slides)
 

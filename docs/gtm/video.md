@@ -185,6 +185,8 @@ builder renders these through Cartesia, which doubles as the Cartesia showcase. 
 
 *L15 (leader, Sun ~4:25 AM): the fork is public (https://github.com/Matusvec/spacetimedb-swift, BSL 1.1 kept) and the draft PR is open upstream (https://github.com/avias8/spacetimedb-swift/pull/3). Say "a public fork with fixes sent upstream", never "open-sourced" or "our SDK": it's a fork of the community SDK, and Clockwork Labs has no official one. M4's spoken line stays as recorded; it's still true.*
 
+*C6's repo line (Sun 8:30 AM): the rendered end card likely shows github.com/sunya-afrasiabi/MeNIN (it's in `work/placeholders/C6.svg`), which stays private. The public repo is the mirror, github.com/Matusvec/MeNIN. The video can't be re-cut now, so put the mirror in the YouTube description's "Code:" line, which can be edited without a new upload.*
+
 *L14 uses the stat nobody can dispute (leader, Sun ~2:25 AM): builder's count of the website's CSS, `docs/hall-tokens.md`.*
 
 ### The timeline
