@@ -1122,6 +1122,8 @@ Archery has two modes (SPEC, Sat 7:20 PM). **Camera mode is the main one:** the 
 
 ### Visual pass (the 1 AM fix build)
 
+**The 8:00 order (leader):** the three build 45 checks, this visual pass, the debate check, the verdict without the arena tab, then the browser poet. If time runs short, the browser poet slips first, because it only matters if the public TestFlight link isn't approved. The backstop check slips second, because it already passed end to end on homer-test.
+
 One pass through every phone screen on the judging build: build 45 (0.1.0, 202610242325, confirmed Sun 2:12 AM), which is build 44 plus the Practice judge in its own task, the "Socrates is silent" match and the faster reconnect. pm diffed it for the runs rule, and the runs on 31 carry (leader, Sun 2:15 AM). If the reconnect check below fails on timing alone, they still carry; a failure of any other kind goes to leader. The 1 AM slot went to the video shoot, so the pass runs at 8:00, and Matus does three build 45 checks first: lesson 1's beat (the baked Iliad demo lands on the staff pulse and the lane dots match it), Practice under a slow judge (the wait shows, then a verdict or "Homer is silent on this one.", never stuck), and the reconnect check. The pass covers the Hall reskin with the final scene colours, the button system and Homer's labels (SPEC "The look", Sat 8:40 PM). It runs once, on build 45, to save Matus installs (leader). It isn't a 5-run series. Fix what fails, and check again on the next build.
 
 - **Phones:** two real phones and one render.
