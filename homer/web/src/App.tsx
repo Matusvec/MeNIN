@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import GameStrip from './GameStrip'
 import ArenaPanel from './Arena'
 import Homer3D, { type HomerAction } from './Homer3D'
+import { resolveAction } from './poets/rig'
 import World3D from './world/World3D'
 import JoinCard from './JoinCard'
 import Landing from './Landing'
@@ -345,10 +346,8 @@ function HomerHall({ joinCode, onBack }: { joinCode: string | null; onBack: () =
   return (
     <main className="scene">
       <div className="animated-background" aria-hidden="true">
-        <World3D speaking={isSpeaking} fallback={<div className="scene-artboard"><AegeanScene /></div>} />
-        <div className="homer-stage">
-          <Homer3D speaking={isSpeaking} mode={selectedMode} framing="hall" />
-        </div>
+        {/* Homer stands inside the world, on the plaza: one camera, one light, real shadows. */}
+        <World3D speaking={isSpeaking} homerAction={resolveAction(selectedMode)} fallback={<div className="scene-artboard"><AegeanScene /></div>} />
       </div>
 
       <GameStrip />

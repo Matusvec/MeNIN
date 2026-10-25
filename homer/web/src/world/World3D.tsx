@@ -6,6 +6,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import * as THREE from 'three'
+import { createPoetRig, type HomerAction } from '../poets/rig'
 
 type World3DProps = {
   /** Homer is talking: the crowd gets livelier. */
@@ -14,6 +15,8 @@ type World3DProps = {
   fallback?: ReactNode
   /** 'hall' (default): low, behind Homer on his plaza. 'vista': high over the whole island (the landing page). */
   view?: 'hall' | 'vista'
+  /** Homer stands on the plaza, in the world (sharing its camera, light and shadows), doing this. */
+  homerAction?: HomerAction
 }
 
 const SKY_TOP = new THREE.Color(0x2f8fe8)
@@ -34,8 +37,19 @@ const mat = (color: number, roughness = 0.85) => new THREE.MeshStandardMaterial(
 /** Smooth rolling hills: a few sine waves, gentle like Wii Sports Resort's fields. */
 const hill = (x: number, z: number) =>
   Math.sin(x * 0.045) * 1.6 + Math.cos(z * 0.06 + x * 0.02) * 1.3 + Math.sin((x + z) * 0.11) * 0.4
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
+/** The ground's height everywhere: flat (y 0) around the plaza and the stadion, rolling hills further
+ *  out, sloping under the sea at the far shore. Trees and temples stand on exactly this. */
+const groundHeight = (x: number, z: number) => {
+  const flat = clamp01((Math.hypot(x * 0.8, z + 12) - 40) / 30)
+  const shore = clamp01((-z - 70) / 30)
+  return hill(x, z) * flat * (1 - shore) - shore * 2.6
+}
+// Homer on the plaza: his feet, and his size (about 5.2 units tall: body height 6.06 x 0.86).
+const HOMER_SPOT = new THREE.Vector3(0, 0.4, 9)
+const HOMER_SCALE = 0.86
 
-export default function World3D({ speaking = false, fallback = null, view = 'hall' }: World3DProps) {
+export default function World3D({ speaking = false, fallback = null, view = 'hall', homerAction }: World3DProps) {
   const mountRef = useRef<HTMLDivElement>(null)
   const speakingRef = useRef(speaking)
   const [failed, setFailed] = useState(false)
@@ -43,6 +57,15 @@ export default function World3D({ speaking = false, fallback = null, view = 'hal
   useEffect(() => {
     speakingRef.current = speaking
   }, [speaking])
+  const hasHomer = homerAction !== undefined
+  const actionRef = useRef<HomerAction>(homerAction ?? 'idle')
+  const actionStarted = useRef(performance.now())
+  useEffect(() => {
+    if (homerAction && homerAction !== actionRef.current) {
+      actionRef.current = homerAction
+      actionStarted.current = performance.now()
+    }
+  }, [homerAction])
 
   useEffect(() => {
     const mount = mountRef.current
@@ -69,8 +92,9 @@ export default function World3D({ speaking = false, fallback = null, view = 'hal
     scene.fog = new THREE.Fog(0xd4efff, 90, 300)
     const camera = new THREE.PerspectiveCamera(38, 1, 0.5, 600)
     const vista = view === 'vista'
-    const cameraHome = vista ? new THREE.Vector3(-10, 22, 46) : new THREE.Vector3(0, 6.2, 26)
-    const lookAt = vista ? new THREE.Vector3(8, 0, -45) : new THREE.Vector3(0, 4.2, -20)
+    // Hall: low, like a Wii Sports camera, so Homer on the plaza fills the frame above the dialogue.
+    const cameraHome = vista ? new THREE.Vector3(-10, 22, 46) : new THREE.Vector3(0, 2.7, 24)
+    const lookAt = vista ? new THREE.Vector3(8, 0, -45) : new THREE.Vector3(0, 2.0, -21)
     camera.position.copy(cameraHome)
 
     // Sky dome: a vertical gradient, brightest at the horizon.
@@ -140,11 +164,9 @@ export default function World3D({ speaking = false, fallback = null, view = 'hal
     for (let i = 0; i < gPos.count; i++) {
       const x = gPos.getX(i)
       const z = gPos.getZ(i) - 40
-      // Flat around the plaza and the stadion, hilly further out.
-      const flat = Math.min(1, Math.max(0, (Math.hypot(x * 0.8, z + 22) - 28) / 30))
       // Toward the far edge the land slopes under the sea, leaving a sandy shore.
-      const shore = Math.min(1, Math.max(0, (-z - 70) / 30))
-      gPos.setY(i, hill(x, z) * flat * (1 - shore) - 0.4 - shore * 2.2)
+      const shore = clamp01((-z - 70) / 30)
+      gPos.setY(i, groundHeight(x, z))
       tint.copy(light).lerp(darkGrass, 0.5 + 0.5 * Math.sin(x * 0.17 + Math.cos(z * 0.13) * 2))
       if (shore > 0.45) tint.lerp(sand, Math.min(1, (shore - 0.45) * 4))
       groundColors.push(tint.r, tint.g, tint.b)
@@ -166,13 +188,13 @@ export default function World3D({ speaking = false, fallback = null, view = 'hal
 
     // The marble plaza Homer stands on, front and centre.
     const plaza = new THREE.Group()
-    add(new THREE.Mesh(new THREE.CylinderGeometry(11.5, 12, 0.8, 72), mat(MARBLE, 0.6)), plaza)
-    add(new THREE.Mesh(new THREE.CylinderGeometry(12.9, 13.5, 0.5, 72), mat(MARBLE_SHADE, 0.7)), plaza).position.y = -0.5
-    const inlay = add(new THREE.Mesh(new THREE.RingGeometry(7.4, 7.9, 72), mat(0xd7b46a, 0.5)), plaza, false)
+    add(new THREE.Mesh(new THREE.CylinderGeometry(7.5, 8, 0.8, 72), mat(MARBLE, 0.6)), plaza)
+    add(new THREE.Mesh(new THREE.CylinderGeometry(8.7, 9.3, 0.5, 72), mat(MARBLE_SHADE, 0.7)), plaza).position.y = -0.5
+    const inlay = add(new THREE.Mesh(new THREE.RingGeometry(4.6, 5.0, 72), mat(0xd7b46a, 0.5)), plaza, false)
     inlay.rotation.x = -Math.PI / 2
     inlay.position.y = 0.41
-    // Placed so Homer's feet (his own canvas) land on the marble, not on the grass behind it.
-    plaza.position.set(0, 0, -5)
+    // Homer stands at its centre (HOMER_SPOT).
+    plaza.position.set(HOMER_SPOT.x, 0, HOMER_SPOT.z)
     scene.add(plaza)
 
     // The stadion: a running track with white lanes, a green infield and tiered stands.
@@ -294,10 +316,10 @@ export default function World3D({ speaking = false, fallback = null, view = 'hal
       return group
     }
     const bigTemple = add(temple(6))
-    bigTemple.position.set(30, hill(30, -28) - 0.2, -50)
+    bigTemple.position.set(30, groundHeight(30, -50) - 0.3, -50)
     bigTemple.rotation.y = -0.35
     const smallTemple = add(temple(4))
-    smallTemple.position.set(-58, hill(-58, -40) + 1.2, -78)
+    smallTemple.position.set(-58, groundHeight(-58, -78) - 0.3, -78)
     smallTemple.rotation.y = 0.5
     smallTemple.scale.setScalar(0.9)
 
@@ -310,7 +332,7 @@ export default function World3D({ speaking = false, fallback = null, view = 'hal
       const crown = add(new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), mat(CYPRESS, 0.9)), tree)
       crown.scale.set(1.1, h / 2, 1.1)
       crown.position.y = h / 2 + 1
-      tree.position.set(x, hill(x, z) - 0.5, z)
+      tree.position.set(x, groundHeight(x, z), z)
       trees.push(add(tree))
     }
     const olive = (x: number, z: number, s = 1) => {
@@ -320,7 +342,7 @@ export default function World3D({ speaking = false, fallback = null, view = 'hal
         add(new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), mat(OLIVE, 0.9)), tree).position.set(px, py, pz)
       })
       tree.scale.setScalar(s)
-      tree.position.set(x, hill(x, z) - 0.5, z)
+      tree.position.set(x, groundHeight(x, z), z)
       trees.push(add(tree))
     }
     ;[[-16, -10], [-19, -16], [16, -12], [19, -18], [38, -40], [24, -44], [-44, -30], [-36, -52]].forEach(([x, z]) => cypress(x, z, 5 + ((x + z) & 3)))
@@ -400,6 +422,13 @@ export default function World3D({ speaking = false, fallback = null, view = 'hal
     const rippleGeometry = new THREE.RingGeometry(0.85, 1, 48)
     rippleGeometry.rotateX(-Math.PI / 2)
 
+    // Homer himself, on the plaza.
+    const rig = hasHomer ? createPoetRig(undefined, HOMER_SCALE) : null
+    if (rig) {
+      rig.root.position.copy(HOMER_SPOT)
+      scene.add(rig.root)
+    }
+
     // Pointer: the camera leans toward it (parallax); clicks hit the sea or the crowd.
     const pointer = new THREE.Vector2(0, 0)
     const pointerTarget = new THREE.Vector2(0, 0)
@@ -464,15 +493,21 @@ export default function World3D({ speaking = false, fallback = null, view = 'hal
       frame = requestAnimationFrame(animate)
       if (document.hidden || !mount.offsetWidth) return
       const time = clock.getElapsedTime()
+      step(time)
+    }
+    const step = (time: number, force = false) => {
       const live = performance.now() < awakeUntil || speakingRef.current || ripples.length > 0
-      if (!live && time - last < 1 / 30) return
-      const dt = last < 0 ? 0 : Math.min(time - last, 0.1)
-      last = time
+      if (!force && !live && time - last < 1 / 30) return
+      const dt = last < 0 ? 0 : Math.min(Math.max(time - last, 0), 0.1)
+      last = Math.max(last, time)
       const motion = reducedMotion ? 0.15 : 1
 
       pointer.lerp(pointerTarget, 1 - Math.exp(-dt * 3))
-      camera.position.set(cameraHome.x + pointer.x * 2.4, cameraHome.y - pointer.y * 1.1 + Math.sin(time * 0.2) * 0.15 * motion, cameraHome.z)
-      camera.lookAt(lookAt.x + pointer.x * 1.2, lookAt.y - pointer.y * 0.5, lookAt.z)
+      // The hall's camera leans less, so Homer stays put above the dialogue.
+      const lean = vista ? 1 : 0.5
+      camera.position.set(cameraHome.x + pointer.x * 2.4 * lean, cameraHome.y - pointer.y * 1.1 * lean + Math.sin(time * 0.2) * 0.15 * motion * lean, cameraHome.z)
+      camera.lookAt(lookAt.x + pointer.x * 1.2 * lean, lookAt.y - pointer.y * 0.5 * lean, lookAt.z)
+      rig?.update({ time, dt, speaking: speakingRef.current, action: actionRef.current, age: (performance.now() - actionStarted.current) / 1000, look: pointer, motion })
 
       for (let i = 0; i < seaPos.count; i++) {
         const x = seaBase[i * 3], z = seaBase[i * 3 + 2]
@@ -528,6 +563,19 @@ export default function World3D({ speaking = false, fallback = null, view = 'hal
       renderer.render(scene, camera)
     }
     animate()
+    // Dev only: step the hall's Homer by hand (the loop pauses while the page isn't on screen).
+    if (import.meta.env.DEV && rig) {
+      let fake = clock.getElapsedTime()
+      ;(window as unknown as Record<string, unknown>).__homer = {
+        advance: (seconds = 1) => {
+          for (let t = 0; t < seconds; t += 1 / 30) step((fake = Math.max(fake, clock.getElapsedTime()) + 1 / 30), true)
+        },
+        set: (next: HomerAction) => {
+          actionRef.current = next
+          actionStarted.current = performance.now()
+        },
+      }
+    }
 
     return () => {
       cancelAnimationFrame(frame)
