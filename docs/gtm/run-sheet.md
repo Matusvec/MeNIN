@@ -133,15 +133,15 @@ These are the only operator steps for the Stadion, boxing (Pygmachia) and archer
 
 ### Every event
 
-- **Begin needs at least two players joined.**
-- **Switching events means a new hall.** An open hall has no "New event" button. To change events:
-  1. Operator: reload the arena tab.
-  2. Operator: click **"Open the hall: {event}"**. The buttons read "Stadion", "Pygmachia (beta)" and "Toxeia (beta)" (archery).
-  3. Players: type the **new room code** on their phones. That rejoin is a step, so do it every time.
-  4. Operator: **Begin** once at least two players show on the arena.
-  - Budget about 30 seconds, or more, for a switch at the table (reload, new code, every phone rejoining).
+- **Begin needs at least two players joined** (one for Talk to Homer).
+- **Switching events stays in the same hall** ("New event", builder, Sat 6:44 PM). Every phone stays joined, with no reload and no new code:
+  1. Operator: in the lobby or on the results screen, click **"New event"** (next to Begin or Rematch). It opens a picker of the other games: Poetry battle, Talk to Homer, Socratic debate, Discus, Stadion, Pygmachia (beta), Toxeia (beta). "Cancel" closes it.
+  2. Operator: click the game. The room goes back to the lobby with everyone still in it, and the phones change to the new game by themselves.
+  3. Operator: **Begin.**
+  - **Every phone needs build 24 or later**, because that's when phones started following a switch live. If a phone stays on the old game, it leaves and rejoins with the same code. That counts as a fallback.
+  - Only pick a game that's unlocked for judges (see each event below). A locked one still shows in the picker.
 - **"Next" is the operator's button** if a phase between turns sticks. It's on screen except while someone is racing, fighting or shooting. **Pressing Next counts as a fallback:** use it so the run finishes, but that run isn't clean for the 8 PM count. (gtm's default; leader can overrule it.)
-- **Rematch** is the only operator step at the end of every event.
+- At the end of every event, the operator presses **Rematch** (the same game again) or **New event** (another game). Nothing else.
 
 ### Grip rule, for every phone that's swung or pumped
 
@@ -152,7 +152,7 @@ These are the only operator steps for the Stadion, boxing (Pygmachia) and archer
 
 | Who | Step |
 | --- | --- |
-| Operator | Open the hall: Stadion. Players join with the new code. Begin. |
+| Operator | Open the hall: Stadion (or **New event → Stadion** from an open hall, phones stay joined). Begin. |
 | Homer, automatic | "One stadion. Phone in hand, pump your arms like a sprinter." Then "Runners, to your marks.", the 3-2-1 and the race (40 s at most), the places, and "The stadion goes to {name}." |
 | Operator | **Press nothing until Rematch.** |
 | Runners | Phone in hand, pump your arms. Stand with arm room all around; nobody next to the table's laptops. |
@@ -161,29 +161,31 @@ These are the only operator steps for the Stadion, boxing (Pygmachia) and archer
 
 | Who | Step |
 | --- | --- |
-| Operator | Open the hall: Pygmachia (beta). Fighters join with the new code. Begin. |
+| Operator | Open the hall: Pygmachia (beta) (or **New event → Pygmachia (beta)**, phones stay joined). Begin. |
 | Homer, automatic | "{A} and {B}. Fists up." The bell starts by itself: 60 s or a knockout, then the result and "{winner}. The ring is yours." With three fighters, the winner stays on automatically, and the waiting fighter's phone (not the arena) shows "Up next: you fight the winner of {A} vs {B}". |
 | Operator | Press nothing until Rematch. |
 | Fighters | Phone held like a fist. **Stand more than an arm's length apart and punch the air, never at each other.** |
 
 ### Archery (Toxeia, beta)
 
-On the website since Sat 6:35 PM; a scripted run passed at 6:34 (2 archers, 6 arrows). **Needs build 25 or later on both phones:** in build 24 the bow phone can't name the first archer (swift is fixing it in 25). Don't run it for judges until it passes its 5 clean runs on real phones. **Nothing starts by itself:** the bow phone starts each archer, and the arena's scoreboard of joined phones hides once the range opens (the range has its own board).
+> **Draft for build 25, from SPEC acbecb0 (Sat 6:45 PM) and leader.** gtm checks every label against swift's build-25 code when swift confirms the build. **Until then, don't run archery.** It needs build 25 or later on every phone (build 24's bow phone can't start the first archer), and it isn't shown to judges until it passes its 5 clean runs on real phones.
+
+**Nothing starts by itself, and nobody types a name.** Archers are the joined players, in the order they joined. The first phone in is the **bow** and its player shoots first; the second phone is the **arrow** and its player shoots second. Once the range opens, the arena's scoreboard of joined phones hides (the range has its own board).
 
 | Who | Step |
 | --- | --- |
-| Operator | Open the hall: **Toxeia (beta)**. Until two phones join, Begin reads "Waiting for the bow and the arrow". |
-| Players | Two team phones join with the new code. The first to join is the **bow**, the other the **arrow**; each shows BOW or ARROW in big type. |
-| Operator | **Begin.** Homer reads the rules once. The range says "Name the first archer on the bow". |
-| The bow phone | Held out at arm's length, pointed at the target: tap **Ready** (where it points becomes the centre). Then type the archer's name under "Next archer" and tap **"I'm up: {name}"**. |
-| Each archer | Bow phone in the outstretched hand, aimed at the target. Arrow phone in the other hand: **hold to nock**, pull back toward your face ("Full draw. Let go!"), let go to shoot. 3 arrows, 45 s each before it's lost. The next arrow follows by itself. |
-| Between archers | Both phones read "Pass both phones to the next archer". Pass **both**, hand to hand. The next archer types their name on the bow phone. |
-| To end | After the last archer, tap **"That's everyone"** on the bow phone. (The arena's **Finish** button does the same, only between archers.) Homer crowns the best total: "The bow goes to {name}, with {total}." |
+| Operator | Open the hall: **Toxeia (beta)** (or **New event → Toxeia (beta)**, phones stay joined). Until two phones are in, Begin reads "Waiting for the bow and the arrow". |
+| **Everyone who'll shoot** | **Joins with the code before Begin.** The first two phones in become the bow and the arrow (each shows BOW or ARROW in big type). With 2 people that's all. With 3 or 4, players 3 and 4 join on their own phones, which show waiting; they shoot with the two station phones when their turn comes. |
+| Operator | **Begin.** Homer reads the rules once. |
+| The bow phone | Held out at arm's length, pointed at the target: tap **Ready**. That starts the archer up (the first time, it also sets the centre of the aim). |
+| Each archer | Bow phone in the outstretched hand, aimed at the target (a live dot shows where it points). Arrow phone in the other hand: **hold to nock**, pull back toward your face, let go to shoot. 3 arrows, 45 s each before it's lost. The next arrow follows by itself. |
+| Between archers | The bow says **"Pass both phones to {next}"**. Pass **both**, hand to hand; the next archer holds the bow out and taps **Ready**. |
+| The end | **It ends by itself** after the last joined player's third arrow: the results come up and Homer crowns the best total. |
 | Operator | Press nothing while arrows fly. **"Next" during an arrow's score skips its reveal**, so it counts as a fallback. Rematch at the end. |
 
 ### At the table
 
-The demo script's after-2:00 extras (discus, debate) switch events, and on the website a switch is a reload plus every phone rejoining: about 30 seconds or more. So offer a switch only when the judge is clearly staying. pm is asking leader whether builder adds an in-hall switch, and this section changes if it lands.
+The demo script's after-2:00 extras (discus, debate) switch events. That's now **New event → the game → Begin**, in the same hall, with every phone still joined, so offer an extra whenever the judge looks interested. Switch only from the results screen, never mid-battle.
 
 ## Fallbacks
 
