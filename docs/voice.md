@@ -2,7 +2,7 @@
 
 Spike notes from the swift session, 2026-10-23, updated 2026-10-24 for the iOS app. Covers Cartesia STT and TTS, client auth, and the beat bleeding into the mic. What's built is in "iOS implementation" below.
 
-**Status:** docs research plus endpoint checks. There is no Cartesia key on this machine, so there are no live latency numbers yet. Every item marked **Live test** still needs one. The probe script that runs all of them is ready (see "Live tests still to run").
+**Status:** measured live. STT on synthetic test clips, Fri Oct 23 ~10:59 PM PT (`docs/voice-wer/`): word error 3% with keyterms on every clip vs 9% clean / 20% at drum 0 dB without; final transcript 62–81 ms after `finalize`. TTS from the Mac on Wi-Fi, Sat Oct 24 ~2:33 PM PT (same folder): token 305 ms, socket 128 ms, first audio 78–90 ms, a 3.4–4.6 s line fully delivered in 350–515 ms. Still to measure: a real iPhone mic in a room, and phone-side numbers on venue Wi-Fi or cellular.
 
 Already verified without a key: `POST https://api.cartesia.ai/access-token` exists (401 without auth, while an unknown path gives 404). `wss://api.cartesia.ai/stt/websocket` and `wss://api.cartesia.ai/tts/websocket` both reject a bogus `access_token` query param with HTTP 401 at the handshake. So the URLs and the browser token path are live.
 

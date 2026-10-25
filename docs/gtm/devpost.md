@@ -11,7 +11,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 | `[turn-to-voice p50]` | **Number** | The measured time from a turn's end to Homer's first word, on the evening shoot's build (its latency HUD), or multiplayer's check-run tally if it has the number | Sat ~9 PM |
 | `[poet's name]`, `[the poet's scene]`, `[poet quote]`, `[composer's name]`, `[how the score was made]`, `[team]` | **A fact only Matus has** | Matus (the list went to leader) | Today |
 | `[If debate passed]` | Checkpoint | The Sat 8 PM check: 5 runs in a row without a failure. Delete the section if it failed. (Discus already passed its check early: 5 of 5 clean real-phone runs on the website (16:46–16:49 PM, build 18) plus 5 scripted runs, throws of 19.8 to 66.9 m, one real foul handled, no stalls or drops (leader, Sat ~4:50 PM).) | Sat 8 PM |
-| `[URL]` | Link | **The website** (SPEC, Sat 12:20 PM): the arena in a browser at a public HTTPS URL, served from the droplet. It's the first "try it" link. | When it's deployed |
+| ~~`[URL]`~~ | Link | **Filled: https://play.206.189.237.157.sslip.io** (`homer/DEPLOY.md`; it answered HTTP 200 at Sat 5:50 PM). Still open it on a phone on cellular before submitting. | Done |
 | `[TestFlight public link]`, `[Video]`, `[Figma Slides]`, `[ASI:One link]` | Link | Apple's Beta App Review; [video.md](video.md); the Slides deck; builder | As each lands |
 
 ---
@@ -22,7 +22,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 
 *Trademarks: no "Wii", "Wii Sports", "Guitar Hero" or "Olympic" anywhere in this page.*
 
-**Try it:** **[URL]**: open it on a laptop and it becomes the arena, then join from your iPhone · iPhone app: [TestFlight public link] · [playmenin.tech, if registered] · Video: [Video] · Figma: [Figma Slides] · Clickable prototypes: [first open → practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102) · [a full battle](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364)
+**Try it:** **https://play.206.189.237.157.sslip.io**: open it on a laptop and it becomes the arena, then join from your iPhone · iPhone app: [TestFlight public link] · [playmenin.tech, if registered] · Video: [Video] · Figma: [Figma Slides] · Clickable prototypes: [first open → practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102) · [a full battle](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364)
 
 ---
 
@@ -42,7 +42,7 @@ The first time you open MeNIN, Homer speaks before any menu: "The first word of 
 
 Homer is a live agent doing real work: he writes each round's theme, deals, listens, judges, coaches, hosts and writes the song from the room.
 
-One screen is the arena: our website at [URL], open in any laptop browser. Every player's iPhone is their controller. Scan the QR code or type the room code to join. No account needed.
+One screen is the arena: our website at https://play.206.189.237.157.sslip.io, open in any laptop browser. Every player's iPhone is their controller. Scan the QR code or type the room code to join. No account needed.
 
 | Event | Host | You |
 | --- | --- | --- |
@@ -80,7 +80,7 @@ Other events show as locked tiles, because we only unlock what's solid: an event
 ## How we built it
 
 - **One engine, many events.** Each event is a config: host, cards, rubric, turn length, beat on or off. [If debate passed: the debate took (hours) on top of the poetry engine.]
-- **The website ([URL]) is the arena,** and the only one people see. It's static files served from our droplet over HTTPS, on SpacetimeDB's TypeScript SDK and the same agent service as the app. Open it on a laptop and it hosts the room, drives the battle and speaks as Homer. Phones join its room with the app.
+- **The website (https://play.206.189.237.157.sslip.io) is the arena,** and the only one people see. It's static files served from our droplet over HTTPS, on SpacetimeDB's TypeScript SDK and the same agent service as the app. Open it on a laptop and it hosts the room, drives the battle and speaks as Homer. Phones join its room with the app.
 - **iOS app (SwiftUI, iOS 18+).** On your iPhone, the app is the controller (join by code or QR) plus training (Bard and Practice). Its own arena mode stays in the code, behind the Dev screen, as an emergency fallback.
   - AVAudioEngine captures the mic with voice processing.
   - Core Haptics plays the turn's thump and the 3-2-1 ticks, and the beat in your hand during lessons.
@@ -95,10 +95,10 @@ Other events show as locked tiles, because we only unlock what's solid: an event
 - **Cartesia** is the ears and the voice.
   - Streaming speech-to-text (**ink-2**, over WebSocket) writes the live transcript. We send every phrase Homer dealt the poet, plus the theme, as **keyterms**, so it catches "the wine-dark sea" through the noise. **Measured** (receipt: [`docs/voice-wer/`](docs/voice-wer/): the scripts, the raw output and the method): with a drum at full volume (0 dB) as the test noise, the word error rate is **3% with keyterms and 20% without**; clean, it's 3% vs 9%. The final transcript arrives **62–81 ms** after the phone signals the end of speech. These are synthetic test clips (a TTS voice and our drum, mixed digitally), not a real room or phone mic, so treat them as a best case. [real-mic WER] Battles no longer play a drum, so at the table the enemy is the hall; lessons still play it, on the same phone.
   - The phone streams straight to Cartesia with a short-lived token from our server, so no audio passes through us.
-  - Cartesia TTS is Homer (**sonic-3.6**, the voice Carl, "Steady Storyteller"): lessons, entrances, verdicts, the freeze whisper and the stitched song.
+  - Cartesia TTS is Homer (**sonic-3.6**, the voice Carl, "Steady Storyteller"), with first audio in under 0.1 s (78–90 ms, measured from the arena laptop on Wi-Fi; receipt `docs/voice-wer/`): lessons, entrances, verdicts, the freeze whisper and the stitched song.
 - **Claude (Anthropic)** is the judge, the coach and the MC.
   - The judge reads content, not rhythm. It gets the phrases Homer dealt you, the verse you're answering and the scanner's output, and returns Image, Answer and Craft (1 to 10 each, anchored so a typical first-timer verse lands at 4 to 6), the best line and a one-line verdict. The total is out of 100: Image ×4, Answer ×4, Craft ×2.
-  - Each judgment is one streamed request to **Claude Opus 5.5**: fast mode, low effort, a cached system prompt and a JSON schema, so the output is always valid. Verdict text landed in **p50 1.0 s, p95 1.5 s** over 10 live calls on Friday's judge (`homer/scripts/latency.py`). [Rerun on the current judge and commit the output; replace these numbers.]
+  - Each judgment is one streamed request to **Claude Opus 5.5**: fast mode, low effort, a cached system prompt and a JSON schema, so the output is always valid. Verdict text, the line Homer speaks, lands in **p50 0.9 s, p95 1.9 s**, and the whole judgment (scores and JSON) in p50 1.0 s, p95 2.0 s: 10 of 10 live calls answered, all reading the cached prompt (current judge, Sat Oct 24; receipt `homer/bench/latency-2026-10-24.txt`, from `homer/scripts/latency.py`).
   - Claude also writes each round's fresh theme and Homer's call to the first poet, coins a fresh epithet for every poet each battle, writes Homer's lesson feedback, his sparring verses and the round verdicts, and writes the stitched song. The freeze whisper makes no model call: it picks the dealt phrase that fits the line, so it's instant.
 - **The stress scanner** (Python, CMU Pronouncing Dictionary) counts the beat deterministically. It scores **Beat** in the lessons, where Homer teaches it, and it never comes from the model's opinion. Battles aren't scored on rhythm at all.
 - **Python + FastAPI** service for the Claude calls, the scanner and the formula bank, in Docker behind Caddy on **DigitalOcean**.
@@ -121,7 +121,7 @@ The total is out of 100. Clichés and dodging the theme cost. In the lessons, **
 
 - **One room, many mics.** The drum and Homer's voice bled into every phone's mic. First we moved the beat into your palm as haptics and ducked the arena drum while you spoke. Then Matus playtested it and said, "I just want to spit poetry without the metronome." So battles went free verse: nothing plays under a speaking poet, and the beat stays in the lessons, where it teaches.
 - **Hearing "rose-fingered Dawn" through noise.** Recognizers mangle exactly the rare phrases the game runs on. We feed the phrases Homer dealt you to the recognizer as keyterms, and in our tests, with a drum at full volume as test noise, the word error rate fell from 20% to 3%.
-- **A verdict that lands in three seconds.** Our first judge was a slow, multi-step tool loop. We cut it to one streamed Claude call with the scanner's count already in the prompt, low effort and a fixed JSON schema. Verdict text arrived in p50 1.0 s and p95 1.5 s on Friday's judge [rerun on the current judge], and Homer's voice follows as soon as it's written.
+- **A verdict that lands in three seconds.** Our first judge was a slow, multi-step tool loop. We cut it to one streamed Claude call with the scanner's count already in the prompt, low effort and a fixed JSON schema. On the current judge, the verdict line arrives in p50 0.9 s (p95 1.9 s) over 10 live calls (`homer/bench/latency-2026-10-24.txt`), and Homer's first audio comes under 0.1 s after the request (measured from a laptop on Wi-Fi, `docs/voice-wer/`).
 - **Every phone was syncing every room.** The community Swift SDK subscribes to whole tables, so with a 20 Hz voice stream each phone would have received every room's traffic. We patched it to subscribe per room.
 - **We switched from web to iOS mid-build.** On Friday night the scene was already written for the web in React, Three.js and GLSL. The palette and motion lived in plain math tables, so they carried over to Metal almost line for line. The React code didn't survive. On Saturday we brought the arena back to the browser: the website is now the only arena, so anyone can open it at a public URL.
 - **Six AI sessions on one 24 GB laptop.** The whole team of Claude Code sessions, plus Xcode and the simulators, shared one MacBook Air. We set a memory budget (keep 25% free, one simulator at a time, shut everything down after each screenshot) so the machine never ran out mid-build.
@@ -156,7 +156,7 @@ The total is out of 100. Clichés and dodging the theme cost. In the lessons, **
 *(For Microsoft's track. Each line answers one of their five capabilities.)*
 - **Customer understanding:** we started from one community, spoken-word and slam poets in [the poet's scene], and tested on people who'd never freestyled.
 - **Measurable usefulness:** the stress scanner's Beat score is an objective measure. [N] first-timers went from [first] to [last] out of 10 in one lesson.
-- **A path from prototype to production:** TestFlight now, then the App Store. The website is live at [URL], served from the same DigitalOcean droplet as the agent service (Docker), and SpacetimeDB runs on Maincloud.
+- **A path from prototype to production:** TestFlight now, then the App Store. The website is live at https://play.206.189.237.157.sslip.io, served from the same DigitalOcean droplet as the agent service (Docker), and SpacetimeDB runs on Maincloud.
 - **Responsible design:** captions, a hands-free mic that opens only on your turn, no audio through our server, gentle roasts, and the content and name filters (below).
 - **End-to-end functionality:** the live battle runs on real services, with nothing mocked.
 
@@ -191,8 +191,8 @@ It's published on the Apify Store: https://apify.com/matusnator/epithet-miner (A
 **Fetch.ai: Homer on Agentverse.** The whole battle turn works inside an ASI:One conversation. Ask Homer for a theme, and he deals you five stock phrases that fit it. Write your verse with them, and he judges it with the same scanner and Claude judge that run our live battles: five scores, your best line quoted and a one-line verdict. It's an agent registered on Agentverse that speaks the Agent Chat Protocol, running as a sidecar container next to our agent service, behind a switch, so the battle never depends on it. Agentverse's Inspector button can't reach an agent inside Docker, so we register its mailbox with an Agentverse API key from inside the container (`homer/scripts/agentverse_connect.py`). Agent: `homer-bard` (`agent1qf8cydj43pd7tue06mk9avnp45avcc4ss9gjm98r4lkjczsw0gskzw97edc`). Try it: [ASI:One link].
 
 **Moss: dealing that fits the theme, in milliseconds.** Homer writes a fresh theme every round, so no tag list can know it in advance. When he announces it, every poet's phone shows three of Homer's phrases that fit it. Moss ranks our whole bank of 180 formulas by meaning against the theme, including the 55 our Apify Actor mined, and the dealer draws from the closest matches. Before Moss, the dealer matched tags.
-- **Before and after:** [re-pick from the committed bench output on the 180-formula bank; our own samples show Moss still dealing "breaker of horses" for the brothers theme, so the old example can't stand]. Meaning search even finds phrases that share no word with the query: in our tests, "my grandmother's kitchen" (a test query, not a game theme) finds "the high-roofed hall".
-- **Measured on our production server** (a 2 GB DigitalOcean droplet, CPU only), over 60 queries across 20 themes, on the earlier 213-formula bank: Moss retrieval p50 **13.7 ms**, p95 32.2 ms (1.4 ms p50 on a MacBook). The whole deal request takes p50 43 ms.
+- **Before and after**, same seed (receipt: `homer/bench/moss-2026-10-24.txt`): for "The night before the battle", the tag dealer deals "the sea-wolf" and "the holy night"; Moss deals "the battle-sweat" and "the last to leave". For "A ship that never came home", Moss finds "and the ships went down" and "the one who stayed".
+- **Measured on the live 180-formula bank** (40 runs over 16 themes; receipt `homer/bench/moss-2026-10-24.txt`, from `homer/scripts/moss_bench.py`): a ranked lookup of the whole bank takes **p50 1.55 ms**, p95 1.93 ms, and a whole deal p50 1.87 ms. [builder: name the machine it ran on.] An earlier run on our 2 GB droplet, on the 213-formula bank, gave p50 13.7 ms.
 
 Voice games have to answer while the room is still listening, and Moss keeps the deal instant. It runs behind a switch: if Moss is ever slower than 500 ms or errors, our old tag dealer deals instead, silently. We tested both failures live.
 
@@ -211,7 +211,7 @@ Voice games have to answer while the room is still listening, and Moss keeps the
 - [ ] **Microsoft: "[Microsoft] Built for the Real World (1st), Customer Impact Award (2nd)"**, one entry since Sat ~4 PM ([opportunities.md](opportunities.md) #3)
 - [ ] MLH: Best Domain Name from GoDaddy Registry (only if we register one)
 - [ ] **Fetch.ai: Best Use of Fetch.ai** (only if Homer's judge is live on Agentverse and usable from ASI:One)
-- [ ] **Moss: Best Use of Moss.** Shipped: `HOMER_DEALER=moss` is live on the droplet, p50 13.7 ms, with a tested fallback. Tag it.
+- [ ] **Moss: Best Use of Moss.** Shipped: `HOMER_DEALER=moss` is live on the droplet, a ranked lookup p50 1.55 ms on the 180-formula bank (`homer/bench/moss-2026-10-24.txt`), with a tested fallback. Tag it.
 - [ ] MLH: Best Use of DigitalOcean (the agent service runs there)
 - [ ] **Apify, two entries again (Devpost, Sat 4:17 PM): tag both.** "[Apify] Best Use of Apify" (5 winners: $2,000 / $1,000 / $800 / $400 / $400) and **"[Apify] Best Actor sponsored by Apify"** ($400, 1 winner: "a Best Actor award for building an actor for this event. Project must be using Apify in a meaningful way."). Epithet Miner was built at this event and mined 55 of the bank's 180 formulas. The blurb still says **Epithet Miner is an Apify Actor, built with AI chat**, and gives the Store link and Actor ID `v4i7ItNXjHMmnKzfo`, as Apify staff asked ("in your submission just share the link and id for us", #spons-apify, Sat 1:13 PM).
 
@@ -230,7 +230,7 @@ Main prizes are automatic.
 - [ ] **Figma entry, exactly as Figma staff said** (#spons-figma, Sat 3:07 PM): the Figma Slides link goes in Project Details → **"Try it Out links"**; select **"[Figma] Best Figma Workflow Hack"** under Sponsors & Special Prizes; set the Slides sharing to **"View all"**. The design files are shared with "Anyone" too, and the whole team is Edu verified.
 - [ ] **Matus submits build 18 (0.1.0, `202610241606`) for external review (Beta App Review) as soon as it finishes processing**, so the public TestFlight link works. `docs/study.md` calls it the build the judges will see: free verse, content-only scoring, and the fix for silent turns. If a later build passes the 8 PM runs instead, submit that one too. Leader confirms the judging build at 11 PM.
 - [ ] TestFlight public link installs on an iPhone that isn't on our internal tester list
-- [ ] **The website opens at [URL]** in a private window on a laptop, and on a phone on cellular with Wi-Fi off, so we know it works off our network. Then an iPhone joins its room
+- [ ] **The website opens at https://play.206.189.237.157.sslip.io** in a private window on a laptop, and on a phone on cellular with Wi-Fi off, so we know it works off our network. Then an iPhone joins its room
 - [ ] Cover image: an arena frame with the carved gold line, matte, no neon
 - [ ] Every `[bracket]` filled or deleted. Search the page for `[` before submitting.
 - [ ] Submitted by **8:45 AM Sunday** (hard deadline 9:00)

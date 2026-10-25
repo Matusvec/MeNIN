@@ -10,13 +10,13 @@ Sponsor judges may score asynchronously from this page and the video alone (Devp
 
 μῆνιν (*mēnin*, "MAY-nin") means **rage**. It's the first word of the Iliad.
 
-**Try it: [URL]** (open it on a laptop and it's the arena) · **iPhone app:** [TestFlight link] · **Video:** [link] · **Devpost:** [link] · **Figma:** [design file](https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv) · prototypes: [first open → practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102), [a full battle](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364)
+**Try it: https://play.206.189.237.157.sslip.io** (open it on a laptop and it's the arena) · **iPhone app:** [TestFlight link] · **Video:** [link] · **Devpost:** [link] · **Figma:** [design file](https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv) · prototypes: [first open → practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102), [a full battle](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364)
 
 Built at Cal Hacks 13.0 by [team: names and roles], with a team of Claude Code sessions. Original score by [composer's name].
 
 ## What it is
 
-One screen is the arena: our website at [URL], open in any laptop browser. Every player's iPhone is their mic and their private cards.
+One screen is the arena: our website at https://play.206.189.237.157.sslip.io, open in any laptop browser. Every player's iPhone is their mic and their private cards.
 
 - **The poetry battle** (the main event). Homer writes a fresh theme every round and coins each poet a fresh epithet. Your phone shows three of Homer's phrases, stock phrases that fit the theme and the beat, the way Homer himself improvised. They're optional: "Stuck? Use one of Homer's phrases. It scores Craft." There's no metronome: the beat is how Homer trains you, and in battle you spit free. 3, 2, 1, SPEAK, and you get one window with a countdown ring, into a hands-free mic. Go quiet for about two and a half seconds, and he whispers you a phrase that fits. About three seconds after your last word, he scores you on five axes and quotes your best line. At the end, he stitches everyone's lines into one song and crowns a champion.
 - [If it passed] **The Socratic debate**, hosted by Socrates in his own voice.
@@ -62,6 +62,7 @@ Voice is the whole game: you play by speaking, and Homer answers out loud.
 | Word error rate, a drum at full volume (0 dB) as test noise, **with keyterms** | **3%** |
 | Same, **without keyterms** | 20% |
 | Final transcript after the end of speech | 62–81 ms |
+| Homer's first audio, from the arena laptop on Wi-Fi | 78–90 ms |
 
 **How we measured** (receipt: [`docs/voice-wer/`](docs/voice-wer/), with the scripts and the raw output, Fri Oct 23): a four-line verse spoken by a synthetic voice (macOS `say`), mixed digitally with a 90 BPM drum loop at +12, +6 and 0 dB, then run through ink-2 with and without keyterms (the verse's own formulas, the way the phone sends its dealt phrases). These are test recordings, not a real phone mic in a loud room, so treat them as a best case. Battles no longer play a drum, so at the table the noise is the hall; lessons still play it. [real-mic WER: replace or add swift's iPhone-mic numbers.]
 
@@ -84,7 +85,7 @@ Voice is the whole game: you play by speaking, and Homer answers out loud.
 ## Claude: the judge, the coach, the MC
 
 - **Homer is a live agent doing real work:** he writes every round's theme, coins every poet a fresh epithet, judges every verse, coaches you through lessons, hosts the battle and writes the stitched song.
-- **The judge** is one streamed call to Claude Opus 5.5 (fast mode, low effort) with a cached system prompt and a JSON schema, so the output is always valid. Verdict text in **p50 1.0 s, p95 1.5 s** over 10 live calls on Friday's judge (`homer/scripts/latency.py`) [rerun on the current judge and link the committed output].
+- **The judge** is one streamed call to Claude Opus 5.5 (fast mode, low effort) with a cached system prompt and a JSON schema, so the output is always valid. Verdict text in **p50 0.9 s, p95 1.9 s**, the whole judgment in p50 1.0 s, p95 2.0 s, over 10 live calls on the current judge ([`homer/bench/latency-2026-10-24.txt`](homer/bench/latency-2026-10-24.txt), from `homer/scripts/latency.py`).
 - **Battles are judged on content:** Image ×4, Answer ×4 and Craft ×2, out of 100, on an anchored scale where a typical first-timer verse lands at 4 to 6 out of 10. Claude gets the phrases Homer dealt you, the verse you're answering and the stress scanner's output. **The beat is never the model's opinion:** in the lessons, a deterministic stress scanner (CMU Pronouncing Dictionary) scores Beat. Range comes from an emotion classifier (Claude Haiku 5.5) that reads your words and voice every ~1.5 s; it paints the scene and isn't scored.
 - **Built with Claude, too:** the whole app was built by a team of Claude Code sessions (leader, product, art, multiplayer, iOS, agent service and go-to-market), each in its own folder, working from one spec ([`SPEC.md`](SPEC.md)).
 
@@ -94,7 +95,7 @@ Voice is the whole game: you play by speaking, and Homer answers out loud.
 
 ## Moss: dealing that fits the theme
 
-Homer writes a fresh theme every round, always from his own world (nothing invented after the Bronze Age), so no tag list can know it in advance. The dealer uses [Moss](https://moss.dev) to rank all 180 formulas by meaning against the theme, then deals Homer's phrases from the closest matches. So in our tests the query "my grandmother's kitchen" (a test, not a game theme) finds "the high-roofed hall" with no shared word. Measured on our production droplet (2 GB, CPU only), on the earlier 213-formula bank: p50 13.7 ms, p95 32.2 ms. It runs behind `HOMER_DEALER=moss`, and if Moss is slow (over 500 ms) or errors, the tag dealer deals instead.
+Homer writes a fresh theme every round, always from his own world (nothing invented after the Bronze Age), so no tag list can know it in advance. The dealer uses [Moss](https://moss.dev) to rank all 180 formulas by meaning against the theme, then deals Homer's phrases from the closest matches. Same seed, "The night before the battle": the tag dealer deals "the sea-wolf" and "the holy night"; Moss deals "the battle-sweat" and "the last to leave". Measured on the 180-formula bank over 40 runs ([`homer/bench/moss-2026-10-24.txt`](homer/bench/moss-2026-10-24.txt)): a ranked lookup p50 1.55 ms, p95 1.93 ms [builder: name the machine]. It runs behind `HOMER_DEALER=moss`, and if Moss is slow (over 500 ms) or errors, the tag dealer deals instead.
 
 ## Fetch.ai: Homer on Agentverse
 
@@ -124,7 +125,7 @@ open Homer.xcodeproj     # set your own signing team, then run on an iPhone
 ```
 The optional app key goes in `ios/Homer/Support/Secrets.xcconfig` (gitignored).
 
-**Website** (`homer/web/`): [how to build and serve it]. The live one is at [URL].
+**Website** (`homer/web/`): [how to build and serve it]. The live one is at https://play.206.189.237.157.sslip.io.
 
 **Agent service:** see [`homer/README.md`](homer/README.md). Copy `homer/.env.example` to `homer/.env`, then add your Anthropic and Cartesia keys.
 
