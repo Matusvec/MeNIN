@@ -78,7 +78,7 @@ Before and after numbers to capture for Adoptability: minutes from a Figma frame
 
 **Before → after (Adoptability).**
 - Before (Sat 12:36 PM): matching the app to the website meant hand-copying values from a CSS file into Swift, screen by screen, with no record of which value came from where.
-- After (Sat 9:06 PM, build 32 uploaded): one new mode in Figma and one new case in the app. Flipping a Figma frame to Hall shows the app's look before any code is written: 72 of 73 fills on the Verdict frame, in one step. In code, the whole-app reskin was +69/−36 lines of tokens plus 5 small view edits, in 22 minutes, with 3 rework rounds. [What the real-phone visual pass on build 33 finds.]
+- After (Sat 9:06 PM, build 32 uploaded): one new mode in Figma and one new case in the app. Flipping a Figma frame to Hall shows the app's look before any code is written: 72 of 73 fills on the Verdict frame, in one step. In code, the whole-app reskin was +69/−36 lines of tokens plus 5 small view edits, in 22 minutes, with 3 rework rounds. [What the real-phone visual pass on build 34 finds.]
 
 **Friction, kept honest.**
 - The sync is still by convention, not live. A Figma change reaches Swift only when an agent re-reads the variables (the same limit as the Fri 23:39 entry).
@@ -87,7 +87,7 @@ Before and after numbers to capture for Adoptability: minutes from a Figma frame
 - In code, 13 hard-coded colors are left (12 in the app-icon art, 1 shadow). There were 3 rework rounds: builder's sheet changed 6 values, the computed contrast ratios changed 3, and a grey system blur was dropped.
 - **The values went into Swift by hand**, from a token table agreed in both directions. They weren't read back from Figma with `get_variable_defs`. That read-back is the cheap check to add next time.
 - Step 1 was an audit, not a lookup: the Make-built website kept every color hard-coded (128 of them), so naming them took judgment, and the spacing (73 values) was too scattered to tokenize tonight.
-- [What the real-phone visual pass on build 33 caught that the Figma frames didn't.]
+- [What the real-phone visual pass on build 34 caught that the Figma frames didn't.]
 - The website itself didn't change. It was already the reference, so this stage only moved the app.
 
 **The scene: four rounds of a designer's feedback, through Figma renders of the real scene code** (artist, Sat 9:03–9:20 PM). A painted stand-in couldn't show Matus what the phone would actually do. So artist ran the website's own WebGL scene code headless, with the app's candidate values and a scripted voice, and placed each render full-bleed in all 12 Hall frames and the flip frame. Each round had a fresh render in Figma within 2–3 minutes. Matus's direction, in his words:
@@ -96,7 +96,7 @@ Before and after numbers to capture for Adoptability: minutes from a Figma frame
 3. "I just want the BLUE shooting there"
 4. **"blue at rest, colours on voice"** ("I LOVE the background")
 
-That's four direction changes in 17 minutes, three of them after the values were already in code. It's the honest part: **build 33 shipped round 3 (blue only)**, because the archive couldn't wait, and round 4 goes into build 34. One deliberate departure from the website is measured: the scene's tilt is flipped so the blue gathers low, behind the cards, because ink text on the blue streak measured only 4.1:1. Two render bugs cost a pass. Renders: Turn, mid-shoot (https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=34-179; repo copy `docs/figma/hall-turn-promax.png`) · Join, at rest (https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=31-179; `docs/figma/hall-join-promax.png`).
+That's four direction changes in 17 minutes, three of them after the values were already in code. It's the honest part: **build 33 shipped round 3 (blue only)**, because the archive couldn't wait. Round 4 shipped in **build 34** (9:33 PM), along with the button system. One deliberate departure from the website is measured: the scene's tilt is flipped so the blue gathers low, behind the cards, because ink text on the blue streak measured only 4.1:1. Two render bugs cost a pass. Renders: Turn, mid-shoot (https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=34-179; repo copy `docs/figma/hall-turn-promax.png`) · Join, at rest (https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=31-179; `docs/figma/hall-join-promax.png`).
 
 **The buttons.** Matus called them "generic and boring". In 6 minutes, artist built one component set: 12 variants (Primary, Secondary, Tertiary/link and Destructive, each Default, Pressed and Disabled, with or without an icon) on 16 new color variables named after their Swift tokens. The primary is the website's pressable key, a sea gradient on a hard ledge. Matus approved it over the scene he'd just picked, and the spec went to swift as values for build 34. Friction: Helvetica Neue isn't served to Figma, so the sheet renders in a stand-in face. The website's blue fails as a small label on white (3.6:1), so labels use a deeper sea (4.8:1). Button sheet: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=48-216 (`docs/figma/hall-buttons.png`)
 
@@ -119,7 +119,7 @@ That's four direction changes in 17 minutes, three of them after the values were
 >
 > **Friction:** the sync is by convention, not live: values went in by hand, not read back from Figma. 3 rework rounds. 13 hard-coded colors left. [what the real-phone pass caught]
 >
-> *Embed: the Atelier → Hall side by side (https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=36-128); Join (node 31-179); a photo of build 33 next to the website. The Directions file is already link-viewable, so these embed (see "Figma files" above). If an embed won't load in Slides, drop in the PNG from `docs/figma/` (hall-flip-atelier-to-hall.png, hall-join-promax.png).*
+> *Embed: the Atelier → Hall side by side (https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=36-128); Join (node 31-179); a photo of build 34 next to the website. The Directions file is already link-viewable, so these embed (see "Figma files" above). If an embed won't load in Slides, drop in the PNG from `docs/figma/` (hall-flip-atelier-to-hall.png, hall-join-promax.png).*
 
 **Slide: "The designer in the loop"**
 > Matus judged the scene the way a player sees it: moving, reacting to a voice. So every render in Figma came from the website's real scene code, run with a scripted voice, never a painted mock-up.
@@ -132,7 +132,7 @@ That's four direction changes in 17 minutes, three of them after the values were
 >
 > Then the buttons ("generic and boring"): one component set, 12 variants on 16 variables, approved over that background in 6 minutes.
 >
-> **Friction:** three of the four rounds came after the code had values, so build 33 shipped round 3 and round 4 lands in build 34. Our blue failed contrast as a small label (3.6:1), so labels use a deeper sea (4.8:1).
+> **Friction:** three of the four rounds came after the code had values, so build 33 shipped round 3, and round 4 followed minutes later in build 34. Our blue failed contrast as a small label (3.6:1), so labels use a deeper sea (4.8:1).
 >
 > *Embed: Turn, mid-shoot (node 34-179); Join, at rest (node 31-179); the button sheet (node 48-216). PNG fallbacks in `docs/figma/`: hall-turn-promax.png, hall-join-promax.png, hall-buttons.png.*
 
