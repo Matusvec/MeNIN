@@ -50,6 +50,7 @@ struct ToxeiaPhoneRoot: View {
             if let next = s.nextArcher {
                 m.phase = .role
                 m.archer = PoetPlate(id: "\(next.id)", name: next.name, epithet: next.epithet, seat: Int(next.seat))
+                m.passOn = !s.archers.isEmpty  // the phones come from the archer before
             } else {
                 m.phase = .waiting(s.archers.isEmpty ? "Waiting for the archers" : "That's everyone")
             }

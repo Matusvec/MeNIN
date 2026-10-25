@@ -31,10 +31,9 @@ struct ArcheryWind: Equatable {
 
 struct BowModel: Equatable {
     enum Phase: Equatable {
-        /// Before your first arrow: the big BOW screen, and Ready (the aim is zeroed there).
+        /// Before an archer's first arrow: the big BOW screen, the archer's name (the
+        /// room's players go in join order), and Ready (the aim is zeroed there).
         case role
-        /// Between archers: pass both phones on. The next archer types their name here.
-        case passing(next: String?)
         /// Your arrows: aim.
         case aiming
         /// Someone else is shooting, or the room isn't ready; an optional line.
@@ -42,7 +41,11 @@ struct BowModel: Equatable {
     }
 
     var phase: Phase = .role
+    /// In .role, the archer about to shoot; while aiming, the one shooting.
     var archer: PoetPlate?
+    /// In .role: the phones come from the last archer, so they're passed on to `archer`
+    /// ("Pass both phones to Bo"). False for the first archer ("Ada, take both phones").
+    var passOn = false
     /// Where the phone points, −1…1 each way, as in boxing: ±1 is ±1 m at the
     /// target, ±1.64 face radii (the face is 0.61 m). The point of aim, not the landing.
     var yaw: Double = 0
@@ -59,17 +62,12 @@ struct BowModel: Equatable {
 struct BowActions {
     /// "Ready": the archer holds the bow at the target and the aim is zeroed.
     var ready: (() -> Void)?
-    /// The next archer's name; "" means that's everyone (the event goes to its finale).
-    var setName: ((String) -> Void)?
     var back: (() -> Void)?
 }
 
 struct BowView: View {
     let model: BowModel
     var actions = BowActions()
-
-    @State private var name = ""
-    @FocusState private var naming: Bool
 
     var body: some View {
         ZStack {
@@ -99,7 +97,12 @@ struct BowView: View {
         switch model.phase {
         case .role:
             VStack(spacing: Metrics.s5) {
-                RoleMark(role: .bow)
+                if let archer = model.archer {
+                    RoleMark(role: .bow, compact: true)
+                    ArcherUp(name: archer.name, passOn: model.passOn)
+                } else {
+                    RoleMark(role: .bow)
+                }
                 Text("Hold me out at arm's length, point at the target.")
                     .font(Typeface.text(19, weight: 600))
                     .foregroundStyle(StadionPalette.slip)
@@ -108,41 +111,6 @@ struct BowView: View {
                 Spacer(minLength: 0)
                 readyButton("Ready")
             }
-        case .passing(let next):
-            VStack(spacing: Metrics.s5) {
-                PassMark(role: .bow)
-                VStack(alignment: .leading, spacing: Metrics.s2) {
-                    Text("Next archer").tracked(10, color: StadionPalette.slip.opacity(0.7))
-                    TextField("", text: $name, prompt: Text("Your name").foregroundStyle(StadionPalette.slip.opacity(0.45)))
-                        .font(Typeface.display(28, weight: 700))
-                        .foregroundStyle(StadionPalette.slip)
-                        .textInputAutocapitalization(.words)
-                        .autocorrectionDisabled()
-                        .submitLabel(.done)
-                        .focused($naming)
-                        .padding(.horizontal, Metrics.s4)
-                        .padding(.vertical, Metrics.s3)
-                        .overlay(RoundedRectangle(cornerRadius: Metrics.radiusM, style: .continuous)
-                            .strokeBorder(StadionPalette.gold, lineWidth: 2))
-                        .onSubmit(commitName)
-                }
-                .padding(.horizontal, Metrics.s5)
-                Spacer(minLength: 0)
-                let typed = name.trimmingCharacters(in: .whitespaces)
-                // A name is needed to go on: an empty Ready never ends the event by accident.
-                readyButton(typed.isEmpty ? "Type a name" : "I'm up: \(typed)", enabled: !typed.isEmpty)
-                if let setName = actions.setName {
-                    Button("That's everyone") {
-                        naming = false
-                        setName("")
-                    }
-                    .font(Typeface.text(17, weight: 700))
-                    .foregroundStyle(StadionPalette.slip.opacity(0.8))
-                    .padding(.vertical, Metrics.s2)
-                    .accessibilityHint("Ends the archery and goes to the results")
-                }
-            }
-            .onAppear { name = next ?? "" }
         case .aiming:
             VStack(spacing: Metrics.s4) {
                 HStack(alignment: .firstTextBaseline) {
@@ -186,15 +154,8 @@ struct BowView: View {
         }
     }
 
-    private func commitName() {
-        let n = name.trimmingCharacters(in: .whitespaces)
-        if !n.isEmpty { actions.setName?(n) }
-    }
-
-    private func readyButton(_ title: String, enabled: Bool = true) -> some View {
+    private func readyButton(_ title: String) -> some View {
         Button {
-            commitName()
-            naming = false
             actions.ready?()
         } label: {
             Text(title)
@@ -207,8 +168,39 @@ struct BowView: View {
         }
         .buttonStyle(.plain)
         .padding(.horizontal, Metrics.s5)
-        .disabled(actions.ready == nil || !enabled)
-        .opacity(enabled ? 1 : 0.5)
+        .disabled(actions.ready == nil)
+    }
+}
+
+/// Who shoots next, big: "Ada, take both phones." for the first archer, "Pass both
+/// phones to Bo" after that. The name is gold, the size of the BOW.
+private struct ArcherUp: View {
+    let name: String
+    let passOn: Bool
+
+    var body: some View {
+        VStack(spacing: Metrics.s2) {
+            if passOn {
+                Text("Pass both phones to").tracked(12, color: StadionPalette.slip.opacity(0.75))
+                big(name)
+            } else {
+                big("\(name),")
+                Text("take both phones.")
+                    .font(Typeface.display(28, weight: 800))
+                    .foregroundStyle(StadionPalette.slip)
+            }
+        }
+        .padding(.horizontal, Metrics.s5)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(passOn ? "Pass both phones to \(name)" : "\(name), take both phones")
+    }
+
+    private func big(_ text: String) -> some View {
+        Text(text)
+            .font(Typeface.display(56, weight: 900))
+            .foregroundStyle(StadionPalette.gold)
+            .lineLimit(1)
+            .minimumScaleFactor(0.45)
     }
 }
 
@@ -628,6 +620,14 @@ private struct MeanderRing: Shape {
 
 #Preview("Bow · role") {
     BowView(model: BowModel(phase: .role), actions: BowActions(ready: {}))
+}
+
+#Preview("Bow · first archer") {
+    BowView(model: BowModel(phase: .role, archer: PoetPlate(id: "1", name: "Ada", epithet: "", seat: 0)), actions: BowActions(ready: {}, back: {}))
+}
+
+#Preview("Bow · pass on") {
+    BowView(model: BowModel(phase: .role, archer: PoetPlate(id: "2", name: "Telemachus", epithet: "", seat: 1), passOn: true), actions: BowActions(ready: {}, back: {}))
 }
 
 #Preview("Bow · aiming") {
