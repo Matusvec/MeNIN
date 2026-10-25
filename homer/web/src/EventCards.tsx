@@ -1,12 +1,12 @@
-// The arena's event board: one card per event, each with its emblem, host and a line on how it
-// plays. The first card is featured. Used to open the hall and, compact, for "New event".
+// The arena's event board, in the hall's Wii Sports look with a Greek pottery touch: glossy white
+// buttons, each with a black-figure emblem on a terracotta medallion, its host and a line on how it
+// plays. The first is featured. Used to open the hall and, compact, for "New event".
 
-import type { CSSProperties } from 'react'
 import type { GameEvent } from './lib/arena'
 import { EVENTS, type EventInfo } from './lib/events'
 import './events.css'
 
-/** Simple emblems in the black-figure spirit: one silhouette per event. */
+/** Black-figure emblems, as on Greek pottery: a black silhouette with details incised in the clay. */
 function Emblem({ id }: { id: GameEvent }) {
   switch (id) {
     case 'poetry': // a lyre
@@ -20,7 +20,7 @@ function Emblem({ id }: { id: GameEvent }) {
       return (
         <svg viewBox="0 0 48 48" aria-hidden="true">
           <path d="M8 12a6 6 0 0 1 6-6h20a6 6 0 0 1 6 6v14a6 6 0 0 1-6 6H22l-9 8v-8h1a6 6 0 0 1-6-6z" />
-          <path d="M17 16h14M17 22h9" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
+          <path d="M17 16h14M17 22h9" className="incise-line" strokeWidth="3" strokeLinecap="round" />
         </svg>
       )
     case 'debate': // two voices facing off
@@ -34,7 +34,7 @@ function Emblem({ id }: { id: GameEvent }) {
       return (
         <svg viewBox="0 0 48 48" aria-hidden="true">
           <ellipse cx="24" cy="24" rx="17" ry="11" transform="rotate(-20 24 24)" />
-          <ellipse cx="24" cy="24" rx="7" ry="4.5" transform="rotate(-20 24 24)" fill="#fff" opacity="0.85" />
+          <ellipse cx="24" cy="24" rx="7" ry="4.5" transform="rotate(-20 24 24)" className="incise" />
           <path d="M5 34c4 4 9 6 15 6M43 14c-4-4-9-6-15-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
         </svg>
       )
@@ -49,7 +49,7 @@ function Emblem({ id }: { id: GameEvent }) {
       return (
         <svg viewBox="0 0 48 48" aria-hidden="true">
           <path d="M12 18a5 5 0 0 1 5-5h14a7 7 0 0 1 7 7v8a10 10 0 0 1-10 10h-6a10 10 0 0 1-10-10z" />
-          <path d="M18 13v10M24 13v10M30 14v9" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M18 13v10M24 13v10M30 14v9" className="incise-line" strokeWidth="2.5" strokeLinecap="round" />
           <rect x="15" y="38" width="16" height="5" rx="2" />
         </svg>
       )
@@ -57,7 +57,7 @@ function Emblem({ id }: { id: GameEvent }) {
       return (
         <svg viewBox="0 0 48 48" aria-hidden="true">
           <circle cx="22" cy="26" r="16" />
-          <circle cx="22" cy="26" r="10" fill="#fff" opacity="0.85" />
+          <circle cx="22" cy="26" r="10" className="incise" />
           <circle cx="22" cy="26" r="4.5" />
           <path d="M22 26L42 6M36 6h6v6" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
@@ -86,7 +86,6 @@ export default function EventCards({
             key={event.id}
             type="button"
             className={`event-card${featured ? ' featured' : ''}`}
-            style={{ '--accent': event.accent } as CSSProperties}
             disabled={disabled}
             onClick={() => onPick(event.id)}
           >

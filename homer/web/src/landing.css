@@ -320,3 +320,14 @@
 .select-trigger.single:focus-visible .path-go {
   transform: translateX(3px);
 }
+
+/* One path: no A button, so the dialogue has two columns. */
+.dialogue.single-path {
+  grid-template-columns: minmax(0, 1.2fr) minmax(17rem, 0.8fr);
+}
+
+@media (max-width: 760px) {
+  .dialogue.single-path {
+    grid-template-columns: 1fr;
+  }
+}

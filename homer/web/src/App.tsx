@@ -362,7 +362,7 @@ function HomerHall({ joinCode, onBack }: { joinCode: string | null; onBack: () =
         <i aria-hidden="true" />
       </header>
 
-      <section className="dialogue" aria-labelledby="dialogue-title">
+      <section className={`dialogue${onlyMode ? ' single-path' : ''}`} aria-labelledby="dialogue-title">
         <div className="dialogue-copy">
           <p className="welcome">{selected ? selected.label : 'Homer speaks'}</p>
           <h1 id="dialogue-title">{spokenMessage}<span className="typing-cursor" /></h1>
@@ -421,14 +421,17 @@ function HomerHall({ joinCode, onBack }: { joinCode: string | null; onBack: () =
           </div>
         )}
 
-        <button
-          className="continue-button"
-          type="button"
-          aria-label={onlyMode ? onlyMode.label : selected ? `Continue to ${selected.label}` : 'Select a mode'}
-          onClick={() => (onlyMode ? setActiveMode(onlyMode.id) : selected ? setActiveMode(selected.id) : setIsOpen(true))}
-        >
-          A
-        </button>
+        {/* The A button confirms a dropdown pick; with one path the path button is the action. */}
+        {!onlyMode && (
+          <button
+            className="continue-button"
+            type="button"
+            aria-label={selected ? `Continue to ${selected.label}` : 'Select a mode'}
+            onClick={() => (selected ? setActiveMode(selected.id) : setIsOpen(true))}
+          >
+            A
+          </button>
+        )}
       </section>
     </main>
   )
