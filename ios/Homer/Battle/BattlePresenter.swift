@@ -55,7 +55,9 @@ enum BattlePresenter {
             .filter { $0.playerId == mine && $0.turnNo < turn.turnNo }
             .sorted { $0.turnNo > $1.turnNo }
             .compactMap { battle.score(for: $0.id) }
-            .first { $0.axes.count == Axis.allCases.count }
+            // The baseline is the last JUDGED attempt: a neutral judge-timeout (4/4/4) doesn't count,
+            // so the phone's "↑ n" matches the big screen's.
+            .first { $0.axes.count == Axis.allCases.count && $0.verdict != "Homer is silent on this one." }
         return (Int(row.total), earlier.map { Int(row.total) - Int($0.total) }, ruling.axes)
     }
 

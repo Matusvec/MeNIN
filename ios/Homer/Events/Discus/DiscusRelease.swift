@@ -36,13 +36,9 @@ enum DiscusRelease {
         }
 
         init(_ m: CMDeviceMotion) {
-            let r = m.attitude.rotationMatrix
-            // CMRotationMatrix maps reference to device; its transpose takes device vectors to the world.
-            let deviceToWorld = simd_double3x3(rows: [
-                SIMD3(r.m11, r.m21, r.m31),
-                SIMD3(r.m12, r.m22, r.m32),
-                SIMD3(r.m13, r.m23, r.m33),
-            ])
+            // The orientation is checked against the sample's own gravity (MotionFrame), so the matrix
+            // convention can't be backwards.
+            let deviceToWorld = MotionFrame.deviceToWorld(m)
             self.init(t: m.timestamp,
                       rotationRate: SIMD3(m.rotationRate.x, m.rotationRate.y, m.rotationRate.z),
                       userAcceleration: SIMD3(m.userAcceleration.x, m.userAcceleration.y, m.userAcceleration.z),

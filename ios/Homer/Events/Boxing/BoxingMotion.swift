@@ -1,5 +1,6 @@
 import CoreMotion
 import Foundation
+import simd
 
 /// Boxing on the phone, held like a fist (after Wii Sports Boxing). Three things come out:
 /// - aim: where the fist points, relative to the guard pose captured at the bell (an air mouse),
@@ -29,15 +30,20 @@ final class BoxingMotion: @unchecked Sendable {
     static let rate = 100.0
     static let punchG = 2.5  // spike threshold, in g
     static let refractory = 0.25  // s between punches
-    static let yawRange = Double.pi / 4  // ±45° maps to ±1
-    static let pitchRange = Double.pi / 5  // ±36° maps to ±1
+    /// Aim gain: the module counts |yaw| > 0.5 as a miss, so ±1 spans ±60° (a miss beyond ±30°) and
+    /// pitch ±1 spans ±45°. Gentler than before: a natural punch stays inside the target.
+    static let yawRange = Double.pi / 3
+    static let pitchRange = Double.pi / 4
 
     private let manager = CMMotionManager()
     private let queue = OperationQueue()
     private let lock = NSLock()
-    private var reference: CMAttitude?
+    /// Where the fist pointed at the bell (world frame): the back of the phone (−z), which faces the
+    /// rival when the phone is held upright like a fist with the screen toward you.
+    private var reference: SIMD3<Double>?
     private var aim = Aim()
     private var lastPunchAt: TimeInterval = 0
+    private var lastSampleAt: TimeInterval?
     private var stillSince: TimeInterval?
     /// Recent rotation (in the guard frame) to classify a punch: the last ~150 ms of samples.
     private var recent: [(t: TimeInterval, yawRate: Double, pitchRate: Double, g: Double)] = []
@@ -68,12 +74,23 @@ final class BoxingMotion: @unchecked Sendable {
 
     private func step(_ m: CMDeviceMotion) {
         let t = m.timestamp
-        if reference == nil { reference = m.attitude.copy() as? CMAttitude }
+        // Aim from the pointing direction, not Euler angles: Euler yaw and pitch swing wildly (gimbal
+        // lock) with the phone upright, which pinned one phone's aim at −1 and missed 5 of 6 punches.
+        let pointing = MotionFrame.deviceToWorld(m) * SIMD3(0, 0, -1)
+        if reference == nil { reference = pointing }
         guard let reference else { return }
-        let relative = m.attitude.copy() as! CMAttitude
-        relative.multiply(byInverseOf: reference)
-        let yaw = clamp(-relative.yaw / Self.yawRange)  // phone turned right = positive
-        let pitch = clamp(relative.pitch / Self.pitchRange)  // tipped up = positive (head)
+        let now = MotionFrame.headingElevation(pointing)
+        // Re-centre slowly (time constant ~15 s) so gyro drift and a fighter who turns their stance
+        // can't pin the aim at one side for the rest of the fight (YLAR rematch: both phones at −0.9).
+        let dt = lastSampleAt.map { min(0.05, max(0, t - $0)) } ?? 0.01
+        lastSampleAt = t
+        var bell = MotionFrame.headingElevation(reference)
+        let drift = MotionFrame.wrap(now.heading - bell.heading)
+        bell.heading += drift * dt / 15
+        bell.elevation += (now.elevation - bell.elevation) * dt / 15
+        self.reference = SIMD3(cos(bell.elevation) * cos(bell.heading), cos(bell.elevation) * sin(bell.heading), sin(bell.elevation))
+        let yaw = clamp(-MotionFrame.wrap(now.heading - bell.heading) / Self.yawRange)  // turned right = positive
+        let pitch = clamp((now.elevation - bell.elevation) / Self.pitchRange)  // up = positive (head)
 
         let r = m.rotationRate
         let a = m.userAcceleration

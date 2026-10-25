@@ -74,6 +74,7 @@ final class BoxingSession {
             boutKey = key
             calibrated = false
             motion.start()
+            motion.calibrate()  // re-zero at the 3-2-1 too (a rematch must not inherit the last bout's centre)
             haptics.countIn(toMs: fight.goAt.epochMs)
             phase = .countdown(bellAt: fight.goAt.date)
         }
