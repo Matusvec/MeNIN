@@ -7,7 +7,7 @@ The six lesson scripts for Bard mode. The flow they run in is in `docs/ux-flow.m
 - **Everything in double quotes is spoken by TTS, exactly as written.** No markdown, no notation.
 - **Demo verses are notation, not speech.** CAPS mark the four hits, and ` / ` marks the break. Before TTS, lowercase the CAPS and drop the ` / `. Use the marks for the beat lane and for timing each hit to the drum.
 - **Placeholders** like `{word}` are filled in by the app or the agent before TTS: `{word}` is a word from the poet's line, `{formula}` is a card from their hand, `{title}` is the epithet they coined, `{last_word}` is the last word of their line, `{hits}` is the number of hits the scanner counted, spelled out ("Three"), `{lines}` is the number of lines the exercise asks for, spelled out ("four"), `{n}` is the lesson number, `{half}` is the first half of a line from the lesson's demo verse, and `{line}` is a whole demo line. Both are in plain words, without the CAPS or the ` / `.
-- **Feedback:** on each try, Homer says exactly one line: the first miss in the table that applies. If no miss applies, the lesson lands.
+- **Feedback:** on each try, Homer says exactly one line: the first miss in the table that applies. If no miss applies, the lesson lands. **Timing never fails a lesson** (Matus, Sat 9:45 PM: content over exact timing; the beats stay). In lesson 1, "No break", "A hit on a small word" and "Ahead of the drum" are notes: they never fail a try, and when the try lands Homer adds the first one after the success line. In every lesson, three to five hits count as four.
 - **Help after misses** (P10 in `docs/ux-flow.md`): after the third miss, Homer starts a line and the poet finishes it. After the fifth, he walks them through a whole line and the lesson lands. Both lines are in the table below.
 - **Nothing is locked.** "Unlocks" says what the poet walks away with and where Homer points them next.
 - **The voice:** a pro coach. Calm authority, precise, one fix at a time, never more than two sentences. He never names the poet's emotion.
@@ -32,17 +32,17 @@ The six lesson scripts for Bard mode. The flow they run in is in `docs/ux-flow.m
 
 - **id:** `beat`
 - **The move:** four hits a line, a break in the middle.
-- **Trains:** Beat.
-- **Lands when:** both lines have four hits and a break (scanner).
+- **Trains:** Beat and Craft.
+- **Lands when:** both lines have three to five hits (four is the aim; scanner), and the verse says something: Craft 6 or more from the judge's craft check. The break, where the hits fall and the timing never fail it.
 - **Unlocks:** the beat, which every mode is built on. Homer points to lesson 2.
 
 **Demo verse**
 
 ```
-the WIND was COLD / the WAVES were GREY
-we ROWED through the NIGHT / and SANG through the DAY
-my HANDS were RAW / my VOICE was STRONG
-the SEA kept TIME / and SO did I
+the MAST went DOWN / in the BLACK of the STORM
+we LOST the STARS / and we LOST the SHORE
+so I STRUCK the BENCH / and the ROWers SANG
+the STORM had a VOICE / but OURS was LOUDer
 ```
 
 **Name the move:** "Four hits a line. A breath in the middle."
@@ -53,11 +53,12 @@ the SEA kept TIME / and SO did I
 
 | Miss | Homer says |
 | --- | --- |
-| Three hits or fewer | "{hits} hits. I need four. Add a word with weight." |
-| Five hits or more | "{hits} hits. Too many. Cut a word." |
-| No break | "No breath. Split the line in two and let it rest." |
-| A hit on a small word | "Your hit fell on {word}. Move it to a word that matters." |
-| Ahead of the drum | "You're rushing the drum. Let it come to you." |
+| Two hits or fewer | "{hits} hits. I need four. Add a word with weight." |
+| Six hits or more | "{hits} hits. Too many. Cut a word." |
+| No break | "One note: breathe in the middle of the line." |
+| A hit on a small word | "One note: your hit fell on {word}. Give it to a word that matters." |
+| Ahead of the drum | "One note: let the drum come to you." |
+| Content is thin | "The beat's there. Now make me see the road." |
 
 **Success:** "Four and four. That's the beat. It's yours now."
 
@@ -68,17 +69,17 @@ the SEA kept TIME / and SO did I
 - **id:** `formula`
 - **The move:** fill half a line with a formula from your hand. Homer sets a hard line so you freeze, and the freeze rescue saves you.
 - **Trains:** Craft.
-- **Lands when:** a formula from the hand, whispered or picked, fills one half of the line, and the line has four hits.
+- **Lands when:** a formula from the hand, whispered or picked, fills one half of the line, and the line has three to five hits.
 - **Unlocks:** the hand and the freeze rescue, which every turn in Practice and Battle uses. Homer points to lesson 3.
 - **The hand for this lesson:** `wine-dark-sea`, `whale-road`, `as-the-fire-took-hold`, `with-nothing-in-my-hands`, `when-dawn-came-early`.
 
 **Demo verse.** Its formulas are the wine-dark sea, the whale-road and "when Dawn came early". Mark them on the lane as Homer says them.
 
 ```
-on the WINE-dark SEA / our SAILS were TORN
-the STORM came DOWN / like the WRATH of GODS
-we RODE the WHALE-road / for NIGHTS on END
-when DAWN came EARly / we SAW the SHORE
+on the WINE-dark SEA / with a CREW of GHOSTS
+I SANG their NAMES / so the GODS would KNOW
+we RODE the WHALE-road / till the STARS gave OUT
+when DAWN came EARly / I was ROWing aLONE
 ```
 
 **Name the move:** "Half of every line is already written. Pull a phrase from your hand and finish it."
@@ -106,7 +107,7 @@ when DAWN came EARly / we SAW the SHORE
 - **id:** `epithet`
 - **The move:** coin your own title, as in "___, Breaker of Horses". It goes into your hoard. In battle Homer coins you a fresh one each time, and yours is the fallback.
 - **Trains:** Craft.
-- **Lands when:** the title has exactly two hits, so it fills half a line, and it is used in a line with four hits. The judge rates it well.
+- **Lands when:** the title has one to three hits (two is the aim, half a line), and it is used in a line with three to five hits. The judge rates it well.
 - **Unlocks:** your fallback battle name. Homer uses it when he can't coin a fresh epithet in time. It also joins your hoard, so it can be dealt into your hand. Homer offers a battle: "You have a name now. Go fight."
 
 **Demo verse**
@@ -126,11 +127,11 @@ and YOU, my FRIEND / WHAT do they CALL you
 
 | Miss | Homer says |
 | --- | --- |
-| Three or more hits in the title | "Too heavy to carry. Cut your title to two hits." |
-| One hit in the title | "One hit. A title needs two. Breaker of what?" |
+| Four or more hits in the title | "Too heavy to carry. Cut your title to two hits." |
+| No hit in the title | "No weight in that title. Breaker of what?" |
 | Generic, judged weak | "Anyone could wear that. What do only you break?" |
 | Title not used in the line | "You named yourself, then left it behind. Put the title in the line." |
-| The line around it is off | "Strong title. The line around it is short a hit." |
+| The line around it is off | "Strong title. The line around it needs more weight." |
 
 **Success:** "{title}. Good. That's how my hall will know you."
 
@@ -166,7 +167,7 @@ and the WINE turned to ASH / in the BACK of my THROAT
 | Turned at line 1 or 2 | "You turned too soon. Hold your ground for two full lines." |
 | Turned at line 4 | "You turned on the last line. No room to land it. Turn at three." |
 | Said the feeling instead of showing it | "Don't tell me what changed. Show me what you saw." |
-| The turn cost a hit | "The turn cost you a hit in line three. Keep four, even on the bend." |
+| The turn cost a hit | "The turn cost you the beat in line three. Keep it, even on the bend." |
 
 **Success:** "You moved the room. That's the turn."
 
@@ -177,14 +178,14 @@ and the WINE turned to ASH / in the BACK of my THROAT
 - **id:** `answer`
 - **The move:** respond to a line Homer throws at you.
 - **Trains:** Answer.
-- **Lands when:** Answer is 7 or more, and both lines have four hits.
+- **Lands when:** Answer is 7 or more, and both lines have three to five hits.
 - **Unlocks:** Answer, the axis that makes a battle a conversation. Homer points to lesson 6, or to a spar.
 
 **Demo verse.** Line 1 is the insult, and lines 2 to 4 take its image and turn it around.
 
 ```
-you SAID I was a CANdle / that the RAIN would DROWN
-but a CANdle in the RAIN / is a FIRE that FIGHTS
+you SAID I was a LAMP / that the RAIN would DROWN
+but a LAMP in the RAIN / is a FIRE that FIGHTS
 the RAIN gets TIRED / the FIRE does NOT
 so BRING your STORM / I'll BRING the LIGHT
 ```
@@ -207,7 +208,7 @@ you CAME to the HALL / with an EMPty HAND
 | Agreed with it | "You just agreed with me. Flip it. Make my image work for you." |
 | Denied it | "Don't deny it. Own it, then turn it." |
 | Only one line | "Strong start. I asked for two. Finish it." |
-| Good answer, but a hit short | "That landed. Line two is a hit short. Tighten it." |
+| Good answer, but a hit short | "That landed. Line two lost its beat. Tighten it." |
 | Answer below 7 | "Clean lines, but it barely stung. Take my sharpest word and turn it on me." |
 
 **Success:** "That stung. Good. That's an answer."
@@ -219,7 +220,7 @@ you CAME to the HALL / with an EMPty HAND
 - **id:** `boast`
 - **The move:** land a closing line that hits.
 - **Trains:** Image.
-- **Lands when:** the closing line has four hits, ends on its heaviest word, and Image is 7 or more.
+- **Lands when:** the closing line has three to five hits, ends on its heaviest word, and Image is 7 or more.
 - **Unlocks:** the whole path. Homer offers a spar: "You're a bard now. Come spar with me."
 
 **Demo verse.** Line 4 is the boast.
@@ -249,7 +250,7 @@ and NOW you STAND / at the GATE of the HALL
 | Kept going after the hit | "You landed it, then kept talking. Stop on the hit." |
 | Hedged | "No maybe in a boast. Say it like it already happened." |
 | Didn't close the setup | "Close my verse, not a new one. Pay off the gate." |
-| A hit short | "The idea's there. Four hits, and save the heaviest for last." |
+| A hit short | "The idea's there. Give it weight, and save the heaviest for last." |
 | Image below 7 | "Clean, but I can't see it. Put one thing in that line I could paint." |
 
 **Success:** "That's how you leave a stage. Nobody speaks after that."
