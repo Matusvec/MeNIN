@@ -73,7 +73,7 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
   - Paying is Matus's call. Startup is the cheapest plan with real headroom (5 at once); Pro adds only one.
   - **Tell leader the answer right away.** If nobody's at the booth, send leader this draft for Matus to post in #spons-cartesia: "Hi Cartesia team! We're building MeNIN, a party game where Homer judges spoken verse live in Sonic 3.6. With a few phones in one room we hit the TTS concurrency limit of 2. Could you lift it for our account for the weekend, or tell us the cheapest plan that does? Happy to show you the demo at the booth."
 - **Show the keyterms live.** In the hall's noise, the poet speaks one of Homer's phrases ("the wine-dark sea"), and the live transcript catches it. Then Homer delivers the verdict in Carl's voice.
-- **The line:** "We feed Homer's phrases to the recognizer, so it catches the wine-dark sea in a loud hall. In our tests, with a drum at full volume as the noise, that's 3% word error with ink-2 keyterms and 20% without. The final transcript lands about 75 ms after you stop, and Homer's first audio comes in about 100 ms." If debate passed by then, play 10 s of Socrates, the second voice.
+- **The line:** "We feed Homer's phrases to the recognizer, so it catches the wine-dark sea in a loud hall. In our tests, with a drum at full volume as the noise, that's 3% word error with ink-2 keyterms and 20% without." If debate passed by then, play 10 s of Socrates, the second voice.
 - **Ask:**
   - "How many winners are there, and what does great 'impact and responsibility' look like to you?"
   - **"Does Cartesia keep STT audio or transcripts, and can we turn that off?"** The answer fills the privacy line on Devpost.
@@ -82,7 +82,7 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 
 ### Apify (ground floor, left; a teammate goes, since the 11 AM workshop clashes with Matus's coffee chat)
 - **Show** the Actor's output, then a hand on the phone with a mined formula in it, like "aegis-bearing Zeus".
-- **The line:** "Nearly a third of the phrases Homer deals you were mined by an Apify Actor from four public-domain Homer translations. No language model: readable rules, and our own stress scanner's beat count. A person reviewed every one."
+- **The line:** "Nearly a third of the phrases Homer deals you were mined by an Apify Actor from four public-domain Homer translations. No language model: readable rules, and our own stress scanner's beat count. Every one was reviewed before it went in."
 - **Ask:**
   - **"Does an Actor built by an AI coding agent count for Best Actor?"** Ours was written by Claude Code on your SDK and Crawlee, not in Apify's AI Chat.
   - "Does it have to be published on the Store, and public?"
@@ -98,7 +98,7 @@ Sources: the Hive schedule and venue map, the Hacker Guide, and each sponsor's S
 - **Their brief is "Something that's hard to build without Spacetime!"** (#0-general, Fri 6:52 PM, Spacetime staff). So show the moment that's hard without it: kill the app on one phone mid-battle and reopen it, and the poet takes their seat back with their score. Only show it if it passed (take 2 of the evening shoot, or multiplayer's check runs).
 - **Stay for their workshop** (4–5 PM, Theater). Spacetime staff judge this track.
 - **Show the Swift client live.** A phone joins the room and the arena reacts at once. Then the scene moving with the poet's voice, which is the 20 Hz stream into one table the arena subscribes to.
-- **The line:** "The whole battle is a phase machine in reducers, from the lobby to the crown, with a scheduled reducer for the turn timer. The phrases Homer deals you sit in a private table only your phone can read. The iPhone client is the community Swift SDK, and we patched it. Upstream, every client subscribes to whole tables, so every phone got every room's voice stream. Now each phone subscribes to its own room."
+- **The line:** "The whole battle is a phase machine in reducers, from the lobby to the crown, with a scheduled reducer for the turn timer. Row-level security means only your phone can read the phrases Homer deals you. The iPhone client is the community Swift SDK, and we patched it. Upstream, every client subscribes to whole tables, so every phone got every room's voice stream. Now each phone subscribes to its own room."
 - **The CEO will care about the patches.** Ask whether they'd want them upstream.
 - **Ask:** "What would make this a top-three Spacetime project for you?" Write the answer down and tell leader.
 - **Credits:** `spacetimedb.com/redeem?code=CALHACKS13` (#cohost-spacetime, Sat 12:10 AM, Spacetime staff).

@@ -61,8 +61,6 @@ Voice is the whole game: you play by speaking, and Homer answers out loud.
 | --- | --- |
 | Word error rate, a drum at full volume (0 dB) as test noise, **with keyterms** | **3%** |
 | Same, **without keyterms** | 20% |
-| Final transcript after the poet stops | about 75 ms |
-| Homer's first audio | about 100 ms |
 
 **How we measured:** a four-line verse spoken by a synthetic voice (macOS `say`), mixed digitally with a 90 BPM drum loop at +12, +6 and 0 dB, then run through ink-2 with and without keyterms (five dealt phrases). These are test recordings, not a real phone mic in a loud room, so treat them as a best case. Battles no longer play a drum, so at the table the noise is the hall; lessons still play it. [real-mic WER: replace or add swift's iPhone-mic numbers.]
 
@@ -75,8 +73,8 @@ Voice is the whole game: you play by speaking, and Homer answers out loud.
 ## SpacetimeDB: the hall
 
 - **The battle is a phase machine in reducers**, server-side: lobby → theme → dealing → ready → speaking → judging → scored → round end → finale → finished. A scheduled reducer closes each turn on time. The rules are in [`spacetime/CONTRACT.md`](spacetime/CONTRACT.md).
-- **The phrases Homer deals you sit in a private table** that only your phone can read.
-- **Every phone streams loudness and pitch at about 20 Hz** into one table the arena subscribes to, so the arena's scene moves with whoever is speaking.
+- **Row-level security guards your cards:** a client visibility filter on the `hand` table means only your phone can read the phrases Homer dealt you.
+- **The speaking phone streams loudness and pitch about 20 times a second** into one row per room that the arena subscribes to, so the scene moves with whoever is speaking.
 - **A phone that dies can rejoin** and take its seat back with its score. [Keep this only if it passed: multiplayer's check runs or take 2 of the evening shoot.]
 - **The iPhone client** is the community Swift SDK [avias8/spacetimedb-swift](https://github.com/avias8/spacetimedb-swift) 0.23.0, vendored with two patches (`ios/Vendor/SpacetimeDB/README.md`):
   - Upstream subscribes every client to whole tables, which would send every phone every room's 20 Hz stream. Ours subscribes per room.
@@ -85,13 +83,13 @@ Voice is the whole game: you play by speaking, and Homer answers out loud.
 ## Claude: the judge, the coach, the MC
 
 - **Homer is a live agent doing real work:** he writes every round's theme, coins every poet a fresh epithet, judges every verse, coaches you through lessons, hosts the battle and writes the stitched song.
-- **The judge** is one streamed call to Claude Opus 5.5 (fast mode, low effort) with a cached system prompt and a JSON schema, so the output is always valid. Verdict text in **p50 1.0 s, p95 1.5 s** (10 live calls, Fri Oct 23; `homer/scripts/latency.py`).
+- **The judge** is one streamed call to Claude Opus 5.5 (fast mode, low effort) with a cached system prompt and a JSON schema, so the output is always valid. Verdict text in **p50 1.0 s, p95 1.5 s** over 10 live calls on Friday's judge (`homer/scripts/latency.py`) [rerun on the current judge and link the committed output].
 - **Battles are judged on content:** Image ×4, Answer ×4 and Craft ×2, out of 100, on an anchored scale where a typical first-timer verse lands at 4 to 6 out of 10. Claude gets the phrases Homer dealt you, the verse you're answering and the stress scanner's output. **The beat is never the model's opinion:** in the lessons, a deterministic stress scanner (CMU Pronouncing Dictionary) scores Beat. Range comes from an emotion classifier (Claude Haiku 5.5) that reads your words and voice every ~1.5 s; it paints the scene and isn't scored.
 - **Built with Claude, too:** the whole app was built by a team of Claude Code sessions (leader, product, art, multiplayer, iOS, agent service and go-to-market), each in its own folder, working from one spec ([`SPEC.md`](SPEC.md)).
 
 ## Apify: Epithet Miner
 
-**Epithet Miner is an Apify Actor, built with AI chat:** Claude Opus 5.5 in Claude Code wrote it from our prompts. It mined part of the stock-phrase bank. The code is in [`apify/`](apify/), and it's on the Apify Store: [apify.com/matusnator/epithet-miner](https://apify.com/matusnator/epithet-miner) (Actor ID `v4i7ItNXjHMmnKzfo`). It reads four public-domain Homer translations from Project Gutenberg and finds noun-epithet formulas with readable rules, no language model. Then it counts their beats with our scanner's rule and ranks them by how often they recur. It mined 150 candidates. A person kept 55, so the bank grew from 158 to 213 (180 now, after modern phrases were cut for Homer's world: 55 of 180 are mined, nearly a third). It runs at build time only, and the game never calls Apify. How it was built, honestly: [`apify/BUILD_LOG.md`](apify/BUILD_LOG.md).
+**Epithet Miner is an Apify Actor, built with AI chat:** Claude Opus 5.5 in Claude Code wrote it from our prompts. It mined part of the stock-phrase bank. The code is in [`apify/`](apify/), and it's on the Apify Store: [apify.com/matusnator/epithet-miner](https://apify.com/matusnator/epithet-miner) (Actor ID `v4i7ItNXjHMmnKzfo`). It reads four public-domain Homer translations from Project Gutenberg and finds noun-epithet formulas with readable rules, no language model. Then it counts their beats with our scanner's rule and ranks them by how often they recur. It mined 150 candidates. Our product session (a Claude Code agent) kept 55 [Matus: add "and Matus checked them" only if true], so the bank grew from 158 to 213 (180 now, after modern phrases were cut for Homer's world: 55 of 180 are mined, nearly a third). It runs at build time only, and the game never calls Apify. How it was built, honestly: [`apify/BUILD_LOG.md`](apify/BUILD_LOG.md).
 
 ## Moss: dealing that fits the theme
 

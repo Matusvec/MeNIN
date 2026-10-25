@@ -49,7 +49,7 @@ Credit the composer by name everywhere, and state honestly how the score was mad
 **How MeNIN hits it:**
 - The arena-plus-phones battle is SpacetimeDB.
 - Rooms, turn order, the timer, scores, totals, the winner and the carved best line all live in tables. They're decided in **reducers, server-side**, not on any one device.
-- Each phone streams loudness and pitch at about 20 Hz into a table the arena subscribes to, so the scene moves with whoever is speaking. That's "instant sync between users" you can see.
+- The speaking phone streams loudness and pitch about 20 times a second into one row per room, which the arena subscribes to.
 - The emotion vector, every ~1.5 s, goes to the same place.
 
 **Make it undeniable:**
@@ -146,8 +146,8 @@ Their own idea list includes "**Multi-speaker agent**: tutor, debate partner... 
 
 **Our measured numbers (from swift; quote them as they are):**
 - **STT:** ink-2, with the phrases Homer dealt the poet sent as keyterms (five in the test), gets a **3% word error rate even with a drum at full volume (0 dB) as test noise**. Without keyterms it's **20%**. These come from test recordings (a four-line verse with the drum mixed in digitally), not a real iPhone mic. Say "in our tests, with a drum at full volume as the noise"; battles have no drum now, so at the table the enemy is the hall. Asked how we measured: "On test recordings with our drum mixed in at full volume. The real-mic test in the hall is Saturday night." swift reruns on a real iPhone mic once the agent is public, and those numbers replace these if they differ. The line: "We feed Homer's phrases to the recognizer, so it catches the wine-dark sea in a loud hall."
-- **The final transcript** arrives about **75 ms** after the poet stops.
-- **Homer's voice** (Carl, sonic-3.6): first audio in about **100 ms**.
+- **The final transcript** and **Homer's first audio**: not measured by us yet (`docs/voice.md`: "no live latency numbers yet"). Don't quote 75 ms or 100 ms.
+- **Homer's voice** is Carl on sonic-3.6.
 - **The beat lane (lessons only) is not Cartesia.** Its timing comes from onsets detected on the phone, not STT timestamps. Never credit STT for the lane.
 
 These hit "Voice clear, responsive, and natural?" directly. The keyterm trick is also our answer to "Likely edge cases handled?": the rare compounds the game runs on ("whale-road", "rose-fingered Dawn") are exactly what a recognizer mangles.

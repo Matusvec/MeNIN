@@ -74,11 +74,11 @@ The new frame raises the ceiling on Most Creative, Hacker's Choice and Meta. It 
 Goal: every sponsor judge has played Homer before Sunday. Open the app first and talk second. **The route, times, booth numbers and what to show at each are in [booths.md](booths.md).** These are the 30-second lines.
 
 **Spacetime**
-> "MeNIN is ancient Greek party games, and SpacetimeDB *is* the arena. Every event runs on one shared state: turn order, scoring and the winner in reducers. Each phone streams its voice at about twenty hertz so the arena's scene moves with whoever's speaking. The client is Swift on iPhone. Want to take a turn?"
+> "MeNIN is ancient Greek party games, and SpacetimeDB *is* the arena. Every event runs on one shared state: turn order, scoring and the winner in reducers. The speaking phone streams its voice twenty times a second so the arena's scene moves with whoever's speaking. The client is Swift on iPhone. Want to take a turn?"
 Ask them: "What would make this a top-three Spacetime project for you?" Write down the answer and build toward it.
 
 **Cartesia**
-> "Voice is the whole game. We feed Homer's phrases to the recognizer, so it catches the wine-dark sea in a loud hall: in our tests, with a drum at full volume as test noise, 3% word error using ink-2 keyterms, 20% without. The final transcript lands about 75 ms after you stop. Homer is Carl on Sonic 3.6, with first audio in about 100 ms. He judges you like a title-fight MC and whispers you a line when you freeze. [If debate shipped:] Socrates hosts the debate in a completely different voice: quick, wry, always asking."
+> "Voice is the whole game. We feed Homer's phrases to the recognizer, so it catches the wine-dark sea in a loud hall: in our tests, with a drum at full volume as test noise, 3% word error using ink-2 keyterms, 20% without. Homer is Carl on Sonic 3.6. He judges you like a title-fight MC and whispers you a line when you freeze. [If debate shipped:] Socrates hosts the debate in a completely different voice: quick, wry, always asking."
 Ask them: "How many winners are there, and what does great 'impact and responsibility' look like to you?"
 
 **Anthropic**
@@ -117,7 +117,7 @@ Answer in one breath, then stop.
 | What's AI and what isn't? | "Deterministic: the beat count, the scoring math and the discus physics. Claude: the judgment, the coaching, Homer's and Socrates' lines and the stitched song. Cartesia: ears and voice. Nothing is mocked." |
 | Why iPhone only? | "Your phone is the mic, the controller and the discus, and your turn starts with a thump in your palm. That needs native. The big screen is our website, so any laptop at the table becomes the arena." |
 | What happens Monday? | "Tap the TestFlight link on your iPhone. No account, open a room, play." *(Only if the public link is approved. Otherwise: "TestFlight now, App Store next.")* |
-| How fast is the verdict? | "About three seconds from your last word to Homer's voice. The transcript is final 75 ms after you stop, and Homer's voice starts about 100 ms after the verdict is written. The rest is Claude judging." *(Quote the measured p50, not a guess.)* |
+| How fast is the verdict? | "About [turn-to-voice p50] seconds from your last word to Homer's voice, and most of that is Claude judging." *(Quote the p50 measured at the evening shoot, never a guess.)* |
 | Is the music AI? | "No. [Composer's name] on our team composed the score. Claude judges your verse; a person wrote the music." *(Only if that's true for every cue. If any cue used AI tools, say which.)* |
 | What did you cut? | "Ranks, spectators, and every event that wasn't solid. Those are the locked tiles." |
 | What's hardest? | "Voices bleeding into each other's mics in one room. First we moved the beat into your palm. Then we cut the metronome from battles altogether, so nothing plays under a speaking poet." |

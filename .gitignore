@@ -1,0 +1,13 @@
+# Secrets, everywhere in the repo. Each part keeps its own .gitignore too.
+.env
+.env.*
+!.env.example
+.token-*
+*.p8
+*.pem
+Secrets.xcconfig
+
+# Build output and dependencies
+node_modules/
+dist/
+.DS_Store

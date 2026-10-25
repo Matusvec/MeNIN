@@ -2,6 +2,8 @@
 
 **Mine Homer's formulas out of public-domain translations.** Epithet Miner crawls the Iliad and the Odyssey on Project Gutenberg and pulls out the noun-epithet formulas the oral poets improvised with: *aegis-bearing Zeus*, *laughter-loving Aphrodite*, *the wine-dark deep*, *the horse-taming Trojans*, *over the wine-dark sea*. Each formula comes out tagged with how many beats it fills in a four-beat line (from the CMU Pronouncing Dictionary), themes, emotions, the translations it appears in, and how often it occurs.
 
+On the Apify Store: [apify.com/matusnator/epithet-miner](https://apify.com/matusnator/epithet-miner) (Actor ID `v4i7ItNXjHMmnKzfo`).
+
 It was built to fill the formula bank of [MeNIN](#how-it-feeds-menin), a game that teaches you to improvise poetry out loud the way Homer did, but the output is plain JSON for any project that wants a curated, scansion-tagged phrasebook of Homeric English.
 
 ## Why formulas
