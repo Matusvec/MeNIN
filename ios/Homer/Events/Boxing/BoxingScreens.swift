@@ -35,7 +35,14 @@ struct BoxingPhoneRoot: View {
         }
         switch session.phase {
         case .waiting:
-            m.phase = .waiting(session.motionAvailable ? nil : "This phone can't track motion.")
+            if !session.motionAvailable {
+                m.phase = .waiting("This phone can't track motion.")
+            } else if session.me == nil, session.fighters.count == 2 {
+                let names = session.fighters.compactMap { battle.player($0.playerId)?.name }
+                m.phase = .waiting("Up next: you fight the winner of \(names.joined(separator: " vs "))")
+            } else {
+                m.phase = .waiting(nil)
+            }
         case .countdown(let bellAt):
             let left = bellAt.timeIntervalSince(now)
             m.phase = .countdown(left > 0 ? min(3, Int(left / 0.75) + 1) : 0)

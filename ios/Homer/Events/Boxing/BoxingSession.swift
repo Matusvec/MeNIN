@@ -57,7 +57,13 @@ final class BoxingSession {
         guard let room = battle.room, room.event == "pygmachia" else { return }
         trackHits()
         let now = Date().timeIntervalSince1970 * 1000
-        guard let fight, fight.goAt.isSet, room.phaseValue == .speaking else {
+        guard let fight, fight.goAt.isSet, room.phaseValue == .speaking, me != nil else {
+            // No fighter row in a live bout: winner stays on, and this poet fights the winner next.
+            if room.phaseValue == .speaking, fight?.goAt.isSet == true, me == nil {
+                if phase == .fighting || isCountdown { motion.stop() }
+                phase = .waiting
+                return
+            }
             if phase == .fighting || isCountdown { motion.stop() }
             phase = (room.phaseValue == .scored || room.phaseValue == .finished || (fight?.endedAt.isSet ?? false)) && boutKey != nil ? .over : .waiting
             return

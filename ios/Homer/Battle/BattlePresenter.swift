@@ -46,6 +46,19 @@ enum BattlePresenter {
         FormulaCard(id: id, text: id, kind: .move, used: played)
     }
 
+    /// Talk to Homer: a verse attempt's /100 (the 5 poetry axes; a talk-back has none) and the change
+    /// from this poet's previous scored attempt.
+    static func coachScore(_ battle: BattleClient, before turn: TurnRow, mine: UInt64) -> (score: Int?, change: Int?, axes: [AxisScore]?) {
+        guard let row = battle.score(for: turn.id), row.axes.count == Axis.allCases.count else { return (nil, nil, nil) }
+        let ruling = ruling(row, event: .poetry)
+        let earlier = battle.turns
+            .filter { $0.playerId == mine && $0.turnNo < turn.turnNo }
+            .sorted { $0.turnNo > $1.turnNo }
+            .compactMap { battle.score(for: $0.id) }
+            .first { $0.axes.count == Axis.allCases.count }
+        return (Int(row.total), earlier.map { Int(row.total) - Int($0.total) }, ruling.axes)
+    }
+
     static func ruling(_ score: ScoreRow, event: EventKind) -> Ruling {
         // Poetry's total is the server's weighted one, out of 100 (post_score); debate sums its axes.
         event == .poetry
@@ -222,15 +235,19 @@ enum BattlePresenter {
             // Talk to Homer: his last answer stays up while the next turn gets ready.
             let previous = battle.turns.filter { $0.playerId == me.id && $0.turnNo < turn.turnNo }.max { $0.turnNo < $1.turnNo }
             if let previous, let reply = battle.score(for: previous.id)?.verdict, !reply.isEmpty {
-                model.moment = .answering(reply: reply, yourTurnAgain: true)
+                let scored = coachScore(battle, before: previous, mine: me.id)
+                model.moment = .answering(reply: reply, yourTurnAgain: true, score: scored.score, change: scored.change, axes: scored.axes)
             } else {
                 model.moment = .onDeck(hand: [], autoReady: room.autoReady)
             }
         case .judging where room.event == "coach":
             model.moment = .answering(reply: nil, yourTurnAgain: false)
         case .scored where room.event == "coach", .declined where room.event == "coach", .skipped where room.event == "coach":
-            let reply = battle.score(for: turn.id)?.verdict
-            model.moment = .answering(reply: reply?.isEmpty == false ? reply : nil, yourTurnAgain: false)
+            let row = battle.score(for: turn.id)
+            let reply = row?.verdict
+            let scored = coachScore(battle, before: turn, mine: me.id)
+            model.moment = .answering(reply: reply?.isEmpty == false ? reply : nil, yourTurnAgain: false,
+                                      score: scored.score, change: scored.change, axes: scored.axes)
         case .waiting:
             model.moment = .onDeck(hand: hand, autoReady: room.autoReady)
         case .speaking where recorder?.phase == .closing:
