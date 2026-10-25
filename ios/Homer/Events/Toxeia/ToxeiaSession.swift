@@ -105,8 +105,9 @@ final class ToxeiaSession {
         guard station == .arrow, on != nocked else { return }
         nocked = on
         if on {
+            // No haptic here: the buzz is the first strong movement ArrowMotion sees, so it would
+            // set the pull axis and the real pull back would barely count (MYWH: draws of 0.37).
             arrow.nock()
-            haptics.hit()  // nocked: felt at once
             Self.log.info("nock \(self.arrowKey ?? "-", privacy: .public)")
         } else {
             let shot = arrow.loose()

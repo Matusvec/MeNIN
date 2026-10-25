@@ -107,17 +107,27 @@ final class BowMotion: @unchecked Sendable {
 }
 
 final class ArrowMotion: @unchecked Sendable {
-    static let fullPull = 0.45  // m back toward the face for a full draw
-    static let fullHold = 1.2  // s held for the hold half of the draw
+    /// A pull of this much toward the face is a full draw (0.75 of it; the hold gives the rest).
+    /// Generous on purpose: a natural pull from the bow hand to the cheek is 0.3–0.5 m.
+    static let fullPull = 0.2
+    static let fullHold = 1.2  // s held for the hold quarter of the draw
+    /// The thumb's own press jolts the phone: the first 0.1 s after the nock never counts.
+    static let settle = 0.1
+    static let leak = 0.995  // per 100 Hz sample, a ~2 s time constant: a 1 s pull integrates fully
+    static let axisAccel = 0.8  // m/s², smoothed: the first real movement picks the pull's direction
+    static let stillAccel = 0.2  // m/s², smoothed, for 0.25 s: the hand is still, so the speed is 0
+    static let stillFor = 0.25
 
     private let manager = CMMotionManager()
     private let queue = OperationQueue()
     private let lock = NSLock()
     private var nockedAt: TimeInterval?
+    private var nockedT: TimeInterval?  // the motion clock at the nock
     private var velocity = 0.0  // m/s along the pull
     private var pulled = 0.0  // m
-    private var lastT: TimeInterval?
-    private var pullAxis: SIMD3<Double>?  // world frame, set by the first strong movement after nocking
+    private var smoothed = SIMD3<Double>(repeating: 0)  // world, m/s², ~100 ms low-pass
+    private var stillSince: TimeInterval?
+    private var pullAxis: SIMD3<Double>?  // world frame
 
     var available: Bool { manager.isDeviceMotionAvailable }
 
@@ -136,8 +146,11 @@ final class ArrowMotion: @unchecked Sendable {
     func nock() {
         lock.withLock {
             nockedAt = Date().timeIntervalSinceReferenceDate
+            nockedT = nil
             velocity = 0
             pulled = 0
+            smoothed = .zero
+            stillSince = nil
             pullAxis = nil
         }
     }
@@ -158,17 +171,26 @@ final class ArrowMotion: @unchecked Sendable {
         return d
     }
 
+    /// Speed integrated from the acceleration along the pull, with a mild leak; zeroed whenever the
+    /// hand is still, so a resting phone's sensor bias never adds draw (a hold alone stays near 0.45).
     private func step(_ m: CMDeviceMotion) {
-        let dt = lastT.map { min(0.05, max(0, m.timestamp - $0)) } ?? 0.01
-        lastT = m.timestamp
         guard nockedAt != nil else { return }
+        let t0 = nockedT ?? m.timestamp
+        nockedT = t0
+        guard m.timestamp - t0 >= Self.settle else { return }
+        let dt = 0.01
         let a = MotionFrame.deviceToWorld(m) * SIMD3(m.userAcceleration.x, m.userAcceleration.y, m.userAcceleration.z) * 9.81
-        // The pull's direction is whatever way the first real movement goes; only motion along it
-        // counts, so a wobble sideways doesn't add draw.
-        if pullAxis == nil, simd_length(a) > 1.5 { pullAxis = simd_normalize(a) }
+        smoothed += (a - smoothed) * 0.1
+        if pullAxis == nil, simd_length(smoothed) > Self.axisAccel { pullAxis = simd_normalize(smoothed) }
         guard let axis = pullAxis else { return }
-        let along = simd_dot(a, axis)
-        velocity = (velocity + along * dt) * 0.97  // a leak, so drift can't run away
+        if simd_length(smoothed) < Self.stillAccel {
+            let since = stillSince ?? m.timestamp
+            stillSince = since
+            if m.timestamp - since >= Self.stillFor { velocity = 0 }
+        } else {
+            stillSince = nil
+        }
+        velocity = (velocity + simd_dot(a, axis) * dt) * Self.leak
         if velocity > 0 { pulled = min(Self.fullPull * 1.5, pulled + velocity * dt) }
     }
 }
