@@ -99,7 +99,7 @@ For our web designer, from Matus. As of Sun Oct 25, ~12:55 AM. Every line below 
 ## 4. Links
 
 - **The website:** https://play.206.189.237.157.sslip.io (the Poets' Hall). **The arena is https://play.206.189.237.157.sslip.io/homer** → "Host a battle" → the Poetry battle card. Phones join with the iPhone app.
-- **The iPhone app (TestFlight):** **build 45** (0.1.0, `202610242325`) is the judging-build candidate, and leader confirms it. The public TestFlight link works only after Apple's Beta App Review, which is pending; Matus submits the judging build for external review.
+- **The iPhone app (TestFlight):** **build 45** (0.1.0, `202610242325`) is the confirmed judging build. Matus submits it to External Testing. The public TestFlight link works only after Apple's Beta App Review, which is pending; Matus submits the judging build for external review.
 - **The Apify Actor:** https://apify.com/matusnator/epithet-miner · Actor ID `v4i7ItNXjHMmnKzfo` (Apify staff want both in the submission).
 - **The repo:** https://github.com/sunya-afrasiabi/MeNIN. Public from 8:00 AM; MIT license.
 
