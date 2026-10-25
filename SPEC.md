@@ -52,7 +52,7 @@ MeNIN is ancient Greek Wii Sports: party games from the Greek *agon* (contest), 
 
 ## Music
 
-MeNIN has an original soundtrack composed by a teammate: a hall and menu theme, an intro per event, the discus throw and fanfare, a champion sting, and training ambience. Music never plays while any mic in the room is open; no sound effects beyond the beat and a soft strike on a hit (Matus: weird effects are worse than silence); battle turns are silent apart from the poet's voice, Homer's stitched song keeps its beat, and music ducks under Homer's and Socrates' voices. In a hall, only the arena plays music. In demo mode the hall theme stays ducked, and an operator key mutes all music. The brief for the composer (cue list, lengths, formats, loudness, loop points) is `docs/audio.md`.
+MeNIN has an original soundtrack composed by a teammate: a hall and menu theme, an intro per event, the discus throw and fanfare, a champion sting, and training ambience. Music never plays while any mic in the room is open; no sound effects beyond the beat and a soft strike on a hit (Matus: weird effects are worse than silence); battle turns are silent apart from the poet's voice, Homer's stitched song keeps its beat, and music ducks under Homer's and Socrates' voices. In a hall, only the arena plays music. In demo mode the hall theme stays ducked, and an operator key mutes all music. The brief for the composer (cue list, lengths, formats, loudness, loop points) is `docs/audio.md`. **The hall theme is in** (Matus, Sat 8:15 PM): `homer/web/public/audio/menin-theme.m4a` (3:38). The website loops it in the menu, the lobby, the results and under the motion games, starts it on the first click, and has a speaker toggle in the header.
 
 ## First open
 
