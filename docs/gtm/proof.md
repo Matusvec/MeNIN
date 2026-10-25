@@ -80,7 +80,7 @@ Judged on workflow design, adoptability, output quality, presentation and innova
 
 | Need | Status | Receipt or gap |
 | --- | --- | --- |
-| Ideation entries | ⚠️ | 3 entries in `figma-stage-log.md`; the first is still `TODO(Matus)` (lines ~65–67). |
+| Ideation entries | ✅ | 3 entries in `figma-stage-log.md`. The first is now filled from Sunya's stage-log deck: the Figma AI agent in Figma Design turned the app description into a screen per part of the iOS experience (~45 min, 5/5; leader, Sun ~3:25 AM). |
 | Prototyping entries | ✅ | 8 entries with tools, minutes, a 1–5 rating, the output and the friction. The clickable prototypes are linked. |
 | **Handoff** entries | ✅ | Two entries (artist, committed 17:23): the Swift tokens, then Figma variables named after them, and the same tokens handed to the website team. Times checked against git and the session transcript. |
 | **Code generation** entries | ✅ | Two entries: Matus's concept frame to SwiftUI (9 minutes from frame to `HomeView`, checked against git), and the icons and Homer's portrait pulled straight from the file. |

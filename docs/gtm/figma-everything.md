@@ -121,7 +121,7 @@ https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=13-102. It has 16 n
 | ★ **MeNIN · Stage log (Figma track)** (Slides) | https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm | The ten-slide deck, drafted Sat 17:40 | Matus still has to add the live embeds and the sharing |
 | ★ **MeNIN · Discus (Make)** | https://www.figma.com/make/MexcUVEohKsNVAw5pHh596 | A Make file seeded with the discus phone and arena on our tokens (Sat 09:00–09:15) | Make's own AI was never prompted: the MCP can import into Make but can't prompt it |
 | Figma's example stage-log deck | https://www.figma.com/slides/hViyGFvaHxTBqzYKkaYPho | Figma's own template from the track brief | **Not ours**. Listed only because `tracks.md` cites it |
-| The website's original Figma Make app | (the web designer's own file) | The Make app the website began as, committed at 12:33 PM Sat | Not linked anywhere in the repo or in any session, so only the web designer has the link |
+| The website's original Figma Make app | https://www.figma.com/make/0o7GzG4KEQejktGJeUuNbt/MeNIN | The Make app the website began as, committed at 12:33 PM Sat | Found in Sunya's stage-log deck (leader, Sun ~3:25 AM). Matus confirms it's shared "Anyone with the link" |
 
 No FigJam boards were made. No other Figma file key appears in the repo or in any session's transcript.
 

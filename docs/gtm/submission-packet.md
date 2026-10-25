@@ -41,6 +41,7 @@ For our web designer, from Matus. As of Sun Oct 25, ~12:55 AM. Every line below 
 | **How it works** (FigJam board) | https://www.figma.com/board/c8DkYceOjp3OJ7PPLeYUcn | The diagram: iPhone mic → Cartesia → SpacetimeDB → the website arena + Claude → Cartesia voice | The video's diagram card; the deck's workflow slide. **Sharing: Matus sets "Anyone with the link → can view"** |
 | Prototype flow 1 | https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102 | Clickable: first open → event menu → Poetry → practice turn → verdict | Deck slide 8 (embed) |
 | Prototype flow 2 | https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364 | Clickable: join → arena turn → carved line → champion | Deck slide 8 (embed) |
+| **MeNIN (Make): the website** | https://www.figma.com/make/0o7GzG4KEQejktGJeUuNbt/MeNIN | The Figma Make app the website began as (Paul's), committed Sat 12:33 PM | The Ideation and Code generation slides; the Devpost Figma paragraph. **Sharing: confirm "Anyone with the link"** |
 | **MeNIN · Discus (Make)** | https://www.figma.com/make/MexcUVEohKsNVAw5pHh596 | Figma Make seeded with the discus screens on our tokens (Sat 9:00 AM) | It counts as an embed; optional slide |
 
 **PNG copies in the repo** (they survive any change to the files; drop one in if an embed won't load):
@@ -112,6 +113,6 @@ For our web designer, from Matus. As of Sun Oct 25, ~12:55 AM. Every line below 
 
 ## 6. What could be yours (suggestions)
 
-- **The website's own Figma Make file:** the link, sharing set to "Anyone", plus one stage-log entry in `docs/gtm/figma-stage-log.md` on how you built the website in Make (the tool and why, the minutes, a 1–5 rating, what made it in, the friction). It's the one Figma file only you have, and it makes "two designers" visible to Figma's judges.
+- **The website's own Figma Make file** (found: https://www.figma.com/make/0o7GzG4KEQejktGJeUuNbt/MeNIN): check its sharing is "Anyone", plus one stage-log entry in `docs/gtm/figma-stage-log.md` on how you built the website in Make (the tool and why, the minutes, a 1–5 rating, what made it in, the friction). It's the one Figma file only you have, and it makes "two designers" visible to Figma's judges.
 - **Website screenshots for the Devpost gallery and the deck:** the Poets' Hall, Homer's hall, the event board, and the arena mid-battle with the carved gold line. The Devpost cover image is an arena frame with the gold line: matte, no neon.
 - **A logged-out check from your laptop:** open /homer in a private window, click "Host a battle" and the Poetry battle card, and confirm Homer speaks.

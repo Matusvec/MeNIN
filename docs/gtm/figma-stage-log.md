@@ -18,6 +18,7 @@ Share column: "anonymous embed OK" means Figma's public oEmbed endpoint returns 
 | Flip, Atelier → Hall: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=36-128 | One prototype frame twice, side by side; only the variable mode differs (for the deck) | same file |
 | Prototype flow 1 (first open → event menu → Poetry → Practice turn → verdict): https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102 | Clickable Atelier prototype | same file |
 | Prototype flow 2 (join → arena turn → carved line → champion): https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364 | Clickable Atelier prototype | same file |
+| **MeNIN (Make): the website**: https://www.figma.com/make/0o7GzG4KEQejktGJeUuNbt/MeNIN | The Figma Make app the website began as (committed Sat 12:33 PM); found in Sunya's stage-log deck | Matus to confirm "Anyone with the link" |
 | **MeNIN · Discus (Make)**: https://www.figma.com/make/MexcUVEohKsNVAw5pHh596 | Figma Make seeded with the live discus screens (Sat 09:00) | anonymous embed OK |
 | **MeNIN · Stage log (Figma track)** (Slides): https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm | The ten-slide deck | anonymous embed OK; Matus to confirm "can view" in Share |
 
@@ -152,9 +153,9 @@ Figma's four stages are **Ideation, Prototyping, Handoff, Code generation**. Giv
 ## Entries
 
 ### Ideation · Project plan and spec · Fri Oct 23, evening
-- Tool(s): TODO(Matus): say whether any Figma tool (FigJam or Design) was used for the idea, the moodboard or the palette. If none was, write "none; ideation happened in docs" and say so honestly.
-- Minutes: TODO
-- Worked (1-5): TODO
+- Tool(s): **the Figma AI agent in Figma Design** (Sunya). It turned the app description into one screen for each part of the iOS experience, so the team had a first screen set to react to before any code (from Sunya's stage-log deck; leader, Sun ~3:25 AM).
+- Minutes: about 45
+- Worked (1-5): 5
 - What made it into the project: `Homer Cal Hacks 13.0 Project Plan.md`, `SPEC.md`, `docs/ux-flow.md` (the flow, states and screen inventory to design against)
 - Friction: the plan's prize table and pitch length were wrong and were corrected from the Hacker Guide (see `docs/gtm/README.md`)
 
