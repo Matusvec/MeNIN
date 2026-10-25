@@ -301,6 +301,7 @@ function HomerHall({ joinCode, onBack }: { joinCode: string | null; onBack: () =
   const [selectedMode, setSelectedMode] = useState<HomerMode | null>(null)
   const [activeMode, setActiveMode] = useState<HomerMode | null>(null)
   const selected = modes.find((mode) => mode.id === selectedMode)
+  const onlyMode = modes.length === 1 ? modes[0] : null
   const fullMessage =
     selected?.response ??
     'I’m Homer. I made the Iliad up out loud. Your turn.'
@@ -367,51 +368,64 @@ function HomerHall({ joinCode, onBack }: { joinCode: string | null; onBack: () =
           <h1 id="dialogue-title">{spokenMessage}<span className="typing-cursor" /></h1>
         </div>
 
-        <div className="mode-select">
-          <button
-            className="select-trigger"
-            type="button"
-            aria-haspopup="listbox"
-            aria-expanded={isOpen}
-            onClick={() => setIsOpen((open) => !open)}
-          >
-            <span>
-              <small>Choose your path</small>
-              <strong>{selected?.label ?? 'Select a mode'}</strong>
-            </span>
-            <span className={`select-arrow ${isOpen ? 'open' : ''}`} aria-hidden="true" />
-          </button>
+        {/* One path: a direct button, no dropdown. The dropdown comes back once there are more. */}
+        {onlyMode ? (
+          <div className="mode-select">
+            <button className="select-trigger single" type="button" onClick={() => setActiveMode(onlyMode.id)}>
+              <span>
+                <small>Your path</small>
+                <strong>{onlyMode.label}</strong>
+              </span>
+              <span className="path-go" aria-hidden="true">›</span>
+            </button>
+          </div>
+        ) : (
+          <div className="mode-select">
+            <button
+              className="select-trigger"
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded={isOpen}
+              onClick={() => setIsOpen((open) => !open)}
+            >
+              <span>
+                <small>Choose your path</small>
+                <strong>{selected?.label ?? 'Select a mode'}</strong>
+              </span>
+              <span className={`select-arrow ${isOpen ? 'open' : ''}`} aria-hidden="true" />
+            </button>
 
-          {isOpen && (
-            <div className="dropdown" role="listbox" aria-label="Homer mode">
-              {modes.map((mode) => (
-                <button
-                  key={mode.id}
-                  className={selectedMode === mode.id ? 'selected' : ''}
-                  type="button"
-                  role="option"
-                  aria-selected={selectedMode === mode.id}
-                  onClick={() => {
-                    setSelectedMode(mode.id)
-                    setIsOpen(false)
-                  }}
-                >
-                  <span className="option-mark" aria-hidden="true" />
-                  <span>
-                    <strong>{mode.label}</strong>
-                    <small>{mode.description}</small>
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+            {isOpen && (
+              <div className="dropdown" role="listbox" aria-label="Homer mode">
+                {modes.map((mode) => (
+                  <button
+                    key={mode.id}
+                    className={selectedMode === mode.id ? 'selected' : ''}
+                    type="button"
+                    role="option"
+                    aria-selected={selectedMode === mode.id}
+                    onClick={() => {
+                      setSelectedMode(mode.id)
+                      setIsOpen(false)
+                    }}
+                  >
+                    <span className="option-mark" aria-hidden="true" />
+                    <span>
+                      <strong>{mode.label}</strong>
+                      <small>{mode.description}</small>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <button
           className="continue-button"
           type="button"
-          aria-label={selected ? `Continue to ${selected.label}` : 'Select a mode'}
-          onClick={() => selected ? setActiveMode(selected.id) : setIsOpen(true)}
+          aria-label={onlyMode ? onlyMode.label : selected ? `Continue to ${selected.label}` : 'Select a mode'}
+          onClick={() => (onlyMode ? setActiveMode(onlyMode.id) : selected ? setActiveMode(selected.id) : setIsOpen(true))}
         >
           A
         </button>

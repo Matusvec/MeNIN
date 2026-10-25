@@ -297,3 +297,26 @@
     margin: 2rem 0 1.5rem;
   }
 }
+
+/* The hall's single path (no dropdown when there is only one): the trigger's look, with a go arrow. */
+.select-trigger.single {
+  cursor: pointer;
+}
+
+.path-go {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(180deg, #5bb3d6, #2f8bb4);
+  transition: transform 0.18s ease;
+}
+
+.select-trigger.single:hover .path-go,
+.select-trigger.single:focus-visible .path-go {
+  transform: translateX(3px);
+}
