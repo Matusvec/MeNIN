@@ -2,7 +2,7 @@
 FINAL draft of the public repo README (gtm, Sun ~2:40 AM), for leader to copy into /README.md before the repo goes public at 8 AM.
 Brackets left on purpose: [video link] and [Devpost link] (each fills in when it exists; the TestFlight link is filled) and [ASI:One link] (only if someone gets a real reply from homer-bard in ASI:One; otherwise delete that sentence).
 The study: Matus's score sheet never came, so the no-study version is written in. If the numbers arrive, add one sentence under "Impact": "At Cal Hacks, N people who'd never freestyled took the beat-scored version of lesson one (build 18), and their Beat score went from X to Y out of 10."
-Credits: the "Paul" vs "Paulo" spelling is pending Matus.
+Credits: "Paul" is confirmed (Matus, Sun ~3:40 AM).
 -->
 
 # MeNIN
@@ -157,7 +157,7 @@ The optional app key goes in `ios/Homer/Support/Secrets.xcconfig` (gitignored).
 
 ## Credits
 
-- **Matus, Sunya and Paul** built MeNIN at Cal Hacks 13.0. Matus designed the app; Paul made the website in Figma Make.
+- **Matus, Sunya and Paul** built MeNIN at Cal Hacks 13.0. Matus designed the app; Paul made the website in Figma Make and ran the Figma AI agent that drew the first screens.
 - **Original score by Paul.**
 - **A team of Claude Code sessions** co-authored more than 95% of the commits, working from one spec.
 - The Iliad and Odyssey lines in the lessons are from public-domain translations: Lang, Leaf and Myers (1883) and Butcher and Lang (1879). The Epithet Miner reads public-domain translations from Project Gutenberg.

@@ -141,8 +141,8 @@ builder renders these through Cartesia, which doubles as the Cartesia showcase. 
 
 | # | At | Answer | Covers |
 | --- | --- | --- | --- |
-| M1 | 0:20–0:25 | "MeNIN is a live voice poetry battle. You speak. Homer judges you out loud." | What it is |
-| M2 | 0:25–0:33 | "Open mics come once a week. MeNIN gives you a room, a judge and a crowd any night. Nobody practices alone again." | The value |
+| M1 | 0:20–0:31 (~11 s) | "MeNIN is ancient Greek party games, hosted by Homer himself. Poetry battles, Socratic debates, archery, boxing, a footrace. You play with your voice and your body, on your phone, and Homer judges you live, out loud." | What it is (Matus's bigger version, Sun ~3:40 AM) |
+| M2 | 0:31–0:39 | "Open mics come once a week. MeNIN gives you a room, a judge and a crowd any night. Nobody practices alone again." | The value |
 | M3 | 1:12–1:21 | "In one weekend: the battle, Talk to Homer, six lessons, four motion games, a website arena, and a server that judges even when the arena dies. Nothing is mocked." | What we built |
 | M4 | 2:29–2:50 (~18 s) | "We're not stopping Monday. TestFlight this week, the App Store after. Every open mic, every classroom reading Homer, every party is a hall. One SpacetimeDB module runs every room, so adding a hall is adding a row. And our Swift SDK fixes go upstream, maintained, so any iPhone game can run on SpacetimeDB." | What's next, and that we keep going |
 
@@ -154,7 +154,9 @@ builder renders these through Cartesia, which doubles as the Cartesia showcase. 
 
 ### (b) Cards and lower thirds (word for word, for artist)
 
-**Type:** cards in Bodoni Moda, big and centered; lower thirds in Inter only; the Greek at **90 px or more**. Names: Matus, Sunya and Paul. The Paul/Paulo spelling is still pending Matus, so fix the score credit and the team together.
+**Sponsor logos** (Matus, Sun ~3:40 AM) go on the lower thirds and cards where each sponsor's part appears: Cartesia on L3, L4 and C3; Claude (Anthropic) on L4 and C2; SpacetimeDB on L10 and C2; Figma on L14; and all of them (SpacetimeDB, Cartesia, Claude, Figma, Apify, Moss) on the C6 end card's "Built with" line. Use each sponsor's official logo file, small and in one cream tone to match the grade, always as "built with", never implying the sponsor made the video.
+
+**Type:** cards in Bodoni Moda, big and centered; lower thirds in Inter only; the Greek at **90 px or more**. Names: Matus, Sunya and Paul ("Paul" confirmed, Matus, Sun ~3:40 AM).
 
 | # | At | Type | Text |
 | --- | --- | --- | --- |
@@ -162,13 +164,13 @@ builder renders these through Cartesia, which doubles as the Cartesia showcase. 
 | L2 | 0:02.5–0:04 | Lower third | Homer deals you three phrases |
 | L3 | 0:04–0:11 | Lower third | Your words, live on the big screen · Cartesia speech-to-text |
 | L4 | 0:11.5–0:16 | Lower third | Judged by Claude · Homer's voice by Cartesia |
-| C1 | 0:16–0:17.5 | Title card, on the theme's hit | **μῆνιν · MeNIN** / A live poetry battle, hosted by Homer |
+| C1 | 0:16–0:17.5 | Title card, on the theme's hit | **μῆνιν · MeNIN** / Ancient Greek party games, hosted by Homer |
 | L1 | 0:17.5–0:20 | Lower third | Matus · Sunya · Paul / Cal Hacks 13.0 |
-| LM | 0:20–0:23 | Lower third, Matus's first answer only | Matus · MeNIN |
-| L5 | 0:33–1:12 | Lower third (the battle gets 4 at most) | Answer your opponent: it's 40 of the 100 points |
-| L6 | 0:33–1:12 | Lower third | Freeze, and Homer whispers you a phrase |
-| L7 | 0:33–1:12 | Lower third | Image ×4 · Answer ×4 · Craft ×2 = /100 |
-| L8 | 0:33–1:12 | Lower third | The best line, carved in gold |
+| LM | 0:20–0:23 | Lower third, Matus's first answer only | A live voice poetry battle · Matus, MeNIN |
+| L5 | 0:39–1:12 | Lower third (the battle gets 4 at most) | Answer your opponent: it's 40 of the 100 points |
+| L6 | 0:39–1:12 | Lower third | Freeze, and Homer whispers you a phrase |
+| L7 | 0:39–1:12 | Lower third | Image ×4 · Answer ×4 · Craft ×2 = /100 |
+| L8 | 0:39–1:12 | Lower third | The best line, carved in gold |
 | L9 | 1:12–1:21 | Lower third, over the website B-roll cut into Matus's M3 | The arena is a website: open it on any laptop. No install. |
 | L10 | 1:21–1:27 | Lower third, over the SpacetimeDB moment | SpacetimeDB ends the turn. Every screen flips in the same frame. |
 | C2 | 1:27–1:31 | Diagram card (FigJam), 4 s | iPhone mic → Cartesia speech-to-text (Homer's phrases as keyterms) → SpacetimeDB → the website arena + Claude, the judge → Cartesia, Homer's voice |
@@ -191,8 +193,8 @@ builder renders these through Cartesia, which doubles as the Cartesia showcase. 
 | 0:11.5–0:16 | **Homer's real verdict**, quoting the line, and the score lands (L4). | Homer |
 | 0:16–0:17.5 | **The theme hits** with C1. *(The theme file opens with 59.8 s of silence; the hit is at 59.83 s, so start A2 there.)* | The theme |
 | 0:17.5–0:20 | **The room reacting**, then the names (L1). | The theme, ducked |
-| 0:20–0:33 | **Matus to camera: M1, then M2** (LM on M1). | Matus, the theme ducked |
-| 0:33–1:12 | **The rest of the battle, with no re-explaining.** Poet B's answer (L5); both scores side by side; **the freeze rescue uncut at 1×** (Matus goes silent about 3 s on purpose, the phrase rises, Homer whispers; L6); the scores (L7); the gold line (L8) with line 4 before it. **Hold 1.5 s on faces after every score.** | The room and Homer; the music is hard-muted from every 3-2-1 and slams back on the score |
+| 0:20–0:39 | **Matus to camera: M1, then M2** (LM on M1). Cut 1 s game glimpses (archery, boxing, the Stadion) under M1's list of games. | Matus, the theme ducked |
+| 0:39–1:12 | **The rest of the battle, with no re-explaining** (it gave 6 s to M1). Poet B's answer (L5); both scores side by side; **the freeze rescue uncut at 1×** (Matus goes silent about 3 s on purpose, the phrase rises, Homer whispers; L6); the scores (L7); the gold line (L8) with line 4 before it. **Hold 1.5 s on faces after every score.** | The room and Homer; the music is hard-muted from every 3-2-1 and slams back on the score |
 | 1:12–1:21 | **Matus to camera: M3, "what we built"**, the top of "How it works". Cut in 2–3 s of website B-roll under his voice: the arena scene, or the hall **cropped and desaturated**, never the 3D hall full-frame (L9). | Matus, the theme ducked |
 | 1:21–1:27 | **The SpacetimeDB moment, 6 s:** the turn timer hits 0 and every screen (the arena and both phones) flips in the same frame, next to the real timeline rows rendered by multiplayer from the battle's log (L10). | The room |
 | 1:27–1:31 | C2, the diagram, 4 s, with line 6. | Homer, the theme ducked |
@@ -225,7 +227,7 @@ builder renders these through Cartesia, which doubles as the Cartesia showcase. 
 | --- | --- | --- | --- |
 | 1 | **One full poetry battle**, through the stitched song and the crown. **Three must-haves:** (a) poet B answers poet A; (b) Matus **goes silent for about 3 s on purpose** in one turn, so the freeze rescue fires; (c) **one turn runs out to 0** (nobody taps "I'm done"), with the arena and both phones in the wide frame, for the SpacetimeDB moment | The arena Mac's picture with **⌘⇧5** (Record Entire Screen, the browser full screen). **Both phones screen-recording** (Control Center, Do Not Disturb on). **One phone camera wide** on a stand, landscape, 1080p 60 fps, with the poets and the screen in frame; it carries the **room audio**. **One clap** in view of the wide camera before the first 3-2-1 | 0:00–1:55 |
 | 2 | **A ~10-minute montage on phone cameras:** archery in camera mode, the Stadion, boxing, discus. Every teammate on every game. **Get at least one clean miss and a laugh** for the ending. Slo-mo for the arrow release and the discus swing | Phone cameras, 60 fps landscape (plus Slo-mo) | 2:00–2:30 |
-| 3 | **Matus's four answers to camera (M1–M4)**, each its own clip, word for word from the table above; 3 takes each (M4 runs ~18 s, so say it with energy: it's the "we keep going" moment) | Phone camera on a stand at eye level, landscape, 1080p; a lamp or window lighting his face; the quietest corner; EarPods or the phone close for clean sound | 0:20, 0:25, 1:12, 2:29 |
+| 3 | **Matus's four answers to camera (M1–M4)**, each its own clip, word for word from the table above; 3 takes each (M4 runs ~18 s, so say it with energy: it's the "we keep going" moment) | Phone camera on a stand at eye level, landscape, 1080p; a lamp or window lighting his face; the quietest corner; EarPods or the phone close for clean sound | 0:20, 0:31, 1:12, 2:29 |
 | 4 | *(Optional, Matus, in the morning)* **15–30 s of the Figma variable mode switching Atelier → Hall**, with the variables panel open so the Swift names show | ⌘⇧5 on Figma (Record Selected Portion) | 2:30–2:50 |
 
 **Safety for the montage:** a grippy case or a wrist strap on every swung phone, arm room all around, and nobody next to the laptops.
@@ -261,7 +263,7 @@ builder renders these through Cartesia, which doubles as the Cartesia showcase. 
 
 ### (e) YouTube
 
-**Title:** MeNIN: a live voice poetry battle, judged by Homer (Cal Hacks 13.0)
+**Title:** MeNIN: ancient Greek party games, hosted by Homer (Cal Hacks 13.0)
 
 **Description:**
 
@@ -273,7 +275,7 @@ builder renders these through Cartesia, which doubles as the Cartesia showcase. 
 >
 > 0:00 A turn, start to finish
 > 0:20 What MeNIN is
-> 0:33 The battle
+> 0:39 The battle
 > 1:12 What we built, and how it works
 > 1:34 The song
 > 2:00 The games
