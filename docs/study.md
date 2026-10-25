@@ -5,7 +5,7 @@ Five people who have never freestyled take MeNIN's first lesson, and we write do
 - **Who runs it:** the poet (`docs/gtm/README.md`, step 8). One person can run it alone.
 - **When:** Saturday, 6 to 8 PM. It takes about 45 minutes for five people, including finding them.
 - **Where:** anywhere at the venue with a little less noise. It doesn't need to be quiet.
-- **The study build:** **build 18, which TestFlight shows as 0.1.0 (202610241606).** It's the build the judges will see, and at 5:30 it should be the newest build TestFlight offers.
+- **The study build:** **build 18, which TestFlight shows as 0.1.0 (202610241606).** At 5:30 it should be the newest build TestFlight offers.
   - **If TestFlight offers a build newer than 18,** don't install it, because nobody has checked its lesson 1 yet. Install build 18 from Previous Builds (below) and tell the leader.
   - **If build 18 isn't there,** use the newest of these that is: build 14, 0.1.0 (202610241531); build 11, 0.1.0 (202610241510); build 4, 0.1.0 (202610240956).
   - **To install an older build:** in TestFlight, tap MeNIN, then **Previous Builds**, and tap Install next to its number.
@@ -34,7 +34,7 @@ Five people who have never freestyled take MeNIN's first lesson, and we write do
 
   If any of these fails, message the leader before you start. Don't run the study on another build or in a different mode on your own.
 
-**Why the build matters:** since build 4, the beat is judged more strictly than in build 3. A hit has to land closer to the drum, and each drum beat counts one hit at most. Every person in the study has to be on the same build, or their numbers can't be compared. It should also be the build the judges will see. Builds 4, 11, 14 and 18 score lesson 1 exactly the same (swift confirmed), so if the phone moves between them partway through, keep going and write it in Notes. Any other build change: stop and message the leader.
+**Why the build matters:** since build 4, the beat is judged more strictly than in build 3. A hit has to land closer to the drum, and each drum beat counts one hit at most. Every person in the study has to be on the same build, or their numbers can't be compared. Judges get build 25 or later, so the study's number holds only if that build scores lesson 1 the same way (swift checks when build 25 is cut). Builds 4, 11, 14 and 18 score lesson 1 exactly the same (swift confirmed), so if the phone moves between them partway through, keep going and write it in Notes. Any other build change: stop and message the leader.
 
 ## Who counts
 
