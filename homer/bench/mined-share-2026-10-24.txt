@@ -1,0 +1,5 @@
+machine: Matus's MacBook Air, local Python, Moss index menin-formulas-ab3f77eff1 (the live 180 bank), 2026-10-24 ~17:30 PT
+method: every written theme (16) x 25 seeds = 400 five-card hands per dealer; 'mined' = the 55 bank entries with source and count (Apify, public-domain translations)
+bank 180 formulas, 55 mined from public-domain translations (Apify)
+moss: 297/400 hands (74%) carry at least one mined phrase; 440/2000 cards (22%) are mined
+tags: 290/400 hands (72%) carry at least one mined phrase; 485/2000 cards (24%) are mined

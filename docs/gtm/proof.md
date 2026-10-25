@@ -25,12 +25,12 @@ gtm swaps each bracket for its real number as the receipts land.
 | **Claude** | Judges every verse, writes every theme, call, epithet, verdict and the song; a team of Claude Code sessions built the app (232 of 245 commits) | No judge, no host, no game, and no app | "Homer is a live agent doing real work." |
 | **Figma** | The design system: variables carry their Swift names, so one mode switch in Figma is one launch flag in the app; Matus picked the look by flipping modes on the same frames | The look would have been picked from screenshots, and the app's tokens wouldn't trace back to a design | "We designed in Figma, and the code reads it." |
 | **Moss** | Deals phrases that fit a theme nobody has seen | Fresh themes would get cards matched by tags, which can't know the theme | "Fresh themes only work because of Moss." |
-| **Apify** | Mined nearly a third of the phrase bank (55 of 180) | A third fewer cards to play with [plus builder's share of hands with a mined card] | "Nearly a third of what you play with was mined by our Actor." |
+| **Apify** | Mined nearly a third of the phrase bank (55 of 180); in play, 22% of dealt cards are mined, and 74% of five-phrase deals carry at least one (`homer/bench/mined-share-2026-10-24.txt`, 400 deals) | About one card in five would be gone, and most hands would lose a phrase | "Nearly a third of Homer's bank was mined by our Actor, and about one in five cards you're dealt comes from it." |
 | **Meta** | The point of the product: two people answering each other, scored on how well they answer (Answer ×4), and one song made from everyone's lines | — | "You leave having made something together." |
 | **Fetch.ai** | Homer outside the hall: the same judge, as an agent anyone can use in ASI:One | Homer only exists in a room with a big screen | "Homer goes where you are." |
 | **DigitalOcean** (MLH) | Hosts the agent service and the website | No judge, no arena | — |
 
-**Honest weak spot:** Fetch.ai is a second surface, not part of the battle. Pitch it only to Fetch judges and in the Fetch cut of the video, never in the main 2:00. Apify works at build time; its vitality is the share of the bank, so lead with that number. The main pitch and the main video name only SpacetimeDB, Cartesia and Claude, plus Figma as how we built it.
+**Honest weak spot:** Fetch.ai is a second surface, not part of the battle. Pitch it only to Fetch judges and in the Fetch cut of the video, never in the main 2:00. Apify works at build time; its vitality is the share of the bank (31%) and of the cards in play (22%), so lead with those. Never say "a third of what you're dealt": that mixes the two. The main pitch and the main video name only SpacetimeDB, Cartesia and Claude, plus Figma as how we built it.
 
 ## The three that have to be rock solid
 
