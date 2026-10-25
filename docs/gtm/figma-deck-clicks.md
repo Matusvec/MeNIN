@@ -18,7 +18,7 @@ It has 21 slides and is cleaned up. Every Figma file in it passes the logged-out
 3. **Slide 10, "The website, as Paul built it in Figma Make": embed the Make file** over the website screenshot: https://www.figma.com/make/0o7GzG4KEQejktGJeUuNbt/MeNIN
    Then delete the "[Make embed goes here]" chip and the screenshot under it. The slide's title, description and "Open the Make file ↗" link are already in place.
 
-4. **Slide 3, "The demo · 2:41": the video.** It's live at https://youtu.be/vazDlqfDaUs. The slide already has a hyperlinked line under the poster ("Watch the demo (2:41) ↗ youtu.be/vazDlqfDaUs"), and in Present mode a click on the poster opens the video. To embed it:
+4. **Slide 3, "The demo · 2:41": the video.** It's live at https://youtu.be/gvGEeuahLdE. The slide already has a hyperlinked line under the poster ("Watch the demo (2:41) ↗ youtu.be/gvGEeuahLdE"), and in Present mode a click on the poster opens the video. To embed it:
    - Copy the link. On slide 3, click an empty part of the slide so nothing is selected, and paste (⌘V).
    - If Slides offers **Embed**, take it. If the paste only makes a text link, delete that and use the toolbar's **Insert → Embed** with the same link.
    - Drag the embed over the poster (1280×720, centred) and delete the "Paste the link here for the embed" chip. Once the embed plays in Present mode, delete the poster too. Keep the link line under it.

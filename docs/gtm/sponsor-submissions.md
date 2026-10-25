@@ -38,7 +38,7 @@ For Matus, Sun ~3:20 AM. Every line is a paste or a click. The repo goes public 
 3. Tick **"[Figma] Best Figma Workflow Hack"**. It "will also opt you into the Figma Best Design, Most Creative, and Best Stage Log!"
 4. In the deck: embed both prototype flows on slide 8 and the Directions file on slide 9, put the team's names on slide 1, and add the two Hall slides from `docs/gtm/figma-stage-log.md` ("Deck text for Matus").
 5. Check every Figma file opens logged out: the deck, "MeNIN · Directions", the concept-art file, the FigJam board and the Make files.
-6. **The demo video** Figma asks for (3 minutes max) is our Devpost video, https://youtu.be/vazDlqfDaUs (2:41). It "does not have to be the same video", but it can be (Figma staff, Sun 12:23 AM). It also goes on slide 3 of the deck.
+6. **The demo video** Figma asks for (3 minutes max) is our Devpost video, https://youtu.be/gvGEeuahLdE (2:41). It "does not have to be the same video", but it can be (Figma staff, Sun 12:23 AM). It also goes on slide 3 of the deck.
 
 ## 4. SpacetimeDB: the Swift SDK fixes
 
@@ -47,6 +47,6 @@ The fork is public (Sun ~4:25 AM), so the SpacetimeDB story now has two links a 
 - **Fork:** https://github.com/Matusvec/spacetimedb-swift, a fork of avias8/spacetimedb-swift v0.23.0 with our three fixes, their tests and a FORK.md on how they were tested. BSL 1.1 kept.
 - **Draft PR upstream:** https://github.com/avias8/spacetimedb-swift/pull/3, five commits (three fixes, tests, FORK.md); `swift test`: 86 passed, 0 failures.
 - **Devpost:** tick "[Spacetime] Best Use of Spacetime" and paste the SpacetimeDB blurb from `docs/gtm/devpost.md` ("Sponsor-track blurbs"). Its "We fixed the Swift SDK to ship" bullet carries both links.
-- **The video** (2:41), which shows the SpacetimeDB flip: https://youtu.be/vazDlqfDaUs. Judges at the table won't have seen it (MLH staff, Sun 6:07 AM), so the live flip on the second desktop still has to happen there.
+- **The video** (2:41), which shows the SpacetimeDB flip: https://youtu.be/gvGEeuahLdE. Judges at the table won't have seen it (MLH staff, Sun 6:07 AM), so the live flip on the second desktop still has to happen there.
 - **The README's SpacetimeDB section** carries both links too: https://github.com/sunya-afrasiabi/MeNIN#spacetimedb-the-hall (public from 8:00 AM).
 - **Say it exactly like this:** "a public fork with fixes sent upstream". Clockwork Labs has no official Swift SDK; avias8's is a community SDK; ours is a fork with fixes, not a new SDK. The license is BSL 1.1, unchanged, so never "open-sourced" and never "MIT".
