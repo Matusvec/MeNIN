@@ -1122,7 +1122,7 @@ Archery has two modes (SPEC, Sat 7:20 PM). **Camera mode is the main one:** the 
 
 ### Visual pass (the 1 AM fix build)
 
-One pass through every phone screen on the 1 AM fix build (leader: build 44, plus the second Practice cancel fix and the "Socrates is silent" match). pm diffs that build for the runs rule first. The pass covers the Hall reskin with the final scene colours, the button system and Homer's labels (SPEC "The look", Sat 8:40 PM). It runs once, on the newest build, to save Matus installs (leader). It isn't a 5-run series. Fix what fails, and check again on the next build.
+One pass through every phone screen on the 1 AM fix build: build 45 (0.1.0, 202610242325), which is build 44 plus the Practice judge in its own task, the "Socrates is silent" match and the faster reconnect. pm diffed it for the runs rule: the runs carry if the reconnect check below passes (leader). The slot opened at 00:38. Matus does three build 45 checks first: lesson 1's beat (the baked Iliad demo lands on the staff pulse and the lane dots match it), Practice under a slow judge (the wait shows, then a verdict or "Homer is silent on this one.", never stuck), and the reconnect check. The pass covers the Hall reskin with the final scene colours, the button system and Homer's labels (SPEC "The look", Sat 8:40 PM). It runs once, on the newest build, to save Matus installs (leader). It isn't a 5-run series. Fix what fails, and check again on the next build.
 
 - **Phones:** two real phones and one render.
   - **Matus's iPhone 16 Plus** (430 pt wide, the Pro Max class): Matus walks the list. Each time he says MeNIN is on screen, pm takes one capture over the cable, reads it, then deletes it. Never a capture loop.
