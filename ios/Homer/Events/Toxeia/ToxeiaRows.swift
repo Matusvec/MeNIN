@@ -15,6 +15,31 @@ struct RangeRow: Codable, Sendable, Equatable {
     var openedAt: SpacetimeTimestamp
     var endsAt: SpacetimeTimestamp  // the arrow's window
     var updatedAt: SpacetimeTimestamp
+    /// Camera archery (SPEC 2256b58): the website's webcam aims and draws, the archer's own phone
+    /// looses. Appended last; a row from before it has no such column.
+    var camera = false
+
+    enum CodingKeys: String, CodingKey {
+        case roomId, bowId, arrowId, archerId, arrowNo, wind, aimYaw, aimPitch, draw, openedAt, endsAt, updatedAt, camera
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        roomId = try c.decode(UInt64.self, forKey: .roomId)
+        bowId = try c.decode(UInt64.self, forKey: .bowId)
+        arrowId = try c.decode(UInt64.self, forKey: .arrowId)
+        archerId = try c.decode(UInt64.self, forKey: .archerId)
+        arrowNo = try c.decode(UInt32.self, forKey: .arrowNo)
+        wind = try c.decode(Float.self, forKey: .wind)
+        aimYaw = try c.decode(Float.self, forKey: .aimYaw)
+        aimPitch = try c.decode(Float.self, forKey: .aimPitch)
+        draw = try c.decode(Float.self, forKey: .draw)
+        openedAt = try c.decode(SpacetimeTimestamp.self, forKey: .openedAt)
+        endsAt = try c.decode(SpacetimeTimestamp.self, forKey: .endsAt)
+        updatedAt = try c.decode(SpacetimeTimestamp.self, forKey: .updatedAt)
+        // BSATN rows are positional: a row from before the camera simply ends here.
+        camera = (try? c.decode(Bool.self, forKey: .camera)) ?? false
+    }
 }
 
 struct ArcherRow: Codable, Sendable, Equatable, Identifiable {

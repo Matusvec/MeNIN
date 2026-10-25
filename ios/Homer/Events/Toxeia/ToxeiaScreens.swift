@@ -11,7 +11,8 @@ struct ToxeiaPhoneRoot: View {
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.1)) { _ in
-            if let session, session.station == .arrow {
+            // With the camera every phone is an arrow: the archer's own phone looses, the rest wait.
+            if let session, session.station == .arrow || session.camera {
                 ArrowView(model: arrowModel(session), actions: ArrowActions(nock: { session.setNocked($0) }, back: onBack))
             } else {
                 BowView(model: bowModel(session), actions: BowActions(
@@ -64,6 +65,7 @@ struct ToxeiaPhoneRoot: View {
     }
 
     private func arrowModel(_ s: ToxeiaSession) -> ArrowModel {
+        if s.camera { return cameraArrowModel(s) }
         var m = ArrowModel()
         m.nocked = s.nocked
         m.draw = s.draw
@@ -77,6 +79,29 @@ struct ToxeiaPhoneRoot: View {
             m.phase = s.archers.isEmpty ? .role : .passing
         } else {
             m.phase = .waiting(waitLine(s))
+        }
+        return m
+    }
+
+    /// Camera archery: the archer up gets the pad, and its meter is the camera's draw.
+    private func cameraArrowModel(_ s: ToxeiaSession) -> ArrowModel {
+        var m = ArrowModel()
+        m.camera = true
+        m.draw = Double(s.range?.draw ?? 0)
+        m.nocked = s.nocked
+        m.shot = Int(s.range?.arrowNo ?? 0)
+        m.total = s.mine.map { Int($0.total) }
+        if s.arrowUp, s.station == .arrow {
+            m.phase = .drawing
+            if let shot = s.lastShot, shot.archerId == s.range?.archerId { m.lastScore = Int(shot.ring) }
+        } else {
+            switch battle.room?.phaseValue {
+            case .lobby: m.phase = .waiting("Waiting for the host to open the range")
+            case .speaking: m.phase = .waiting(s.archer.map { "\($0.name) is shooting" })
+            case .scored: m.phase = .waiting("Homer is scoring the arrow…")
+            case .finale, .finished: m.phase = .waiting("The range is closed")
+            default: m.phase = .waiting("Wait for Homer to call you up")
+            }
         }
         return m
     }

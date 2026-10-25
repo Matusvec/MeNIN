@@ -233,12 +233,16 @@ struct ArrowModel: Equatable {
     var phase: Phase = .role
     /// The thumb is down on the pad.
     var nocked = false
-    /// 0…1: the iOS lead computes it from the pull back and the hold.
+    /// 0…1: the iOS lead computes it from the pull back and the hold (by camera:
+    /// the webcam's draw).
     var draw: Double = 0
     var shot: Int = 0
     var arrows: Int = 3
     var lastScore: Int?
     var total: Int?
+    /// Archery by camera: the webcam aims and draws, and this phone, in the drawing
+    /// hand, only nocks and looses with the thumb.
+    var camera = false
 }
 
 struct ArrowActions {
@@ -284,7 +288,9 @@ struct ArrowView: View {
         case .role:
             VStack(spacing: Metrics.s5) {
                 RoleMark(role: .arrow)
-                Text("Hold the button to nock, pull back toward your face, let go to shoot.")
+                Text(model.camera
+                     ? "Hold me in your drawing hand. Draw with your arm. Let go with your thumb."
+                     : "Hold the button to nock, pull back toward your face, let go to shoot.")
                     .font(Typeface.text(19, weight: 600))
                     .foregroundStyle(StadionPalette.figure)
                     .multilineTextAlignment(.center)
@@ -337,7 +343,9 @@ struct ArrowView: View {
             Text(nocked ? (model.draw >= 0.85 ? "Full draw. Let go!" : "Nocked ✓") : "Hold to nock")
                 .font(Typeface.display(30, weight: 800))
                 .foregroundStyle(nocked ? StadionPalette.slip : StadionPalette.figure)
-            Text(nocked ? "Pull back toward your face, then let go" : "Then pull the phone back toward your face")
+            Text(model.camera
+                 ? (nocked ? "Draw back with your arm, then lift your thumb" : "Draw with your arm. Let go with your thumb.")
+                 : (nocked ? "Pull back toward your face, then let go" : "Then pull the phone back toward your face"))
                 .font(Typeface.text(15, weight: 600))
                 .foregroundStyle((nocked ? StadionPalette.slip : StadionPalette.figure).opacity(0.75))
         }
@@ -350,7 +358,7 @@ struct ArrowView: View {
         .defersSystemGestures(on: .bottom)  // pulling back mustn't swipe home and steal the touch
         .animation(.easeOut(duration: 0.12), value: nocked)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(nocked ? "Drawing, \(Int(model.draw * 100)) percent. Let go to shoot." : "Hold to nock the arrow")
+        .accessibilityLabel(nocked ? "Drawing, \(Int(model.draw * 100)) percent. \(model.camera ? "Lift your thumb" : "Let go") to shoot." : "Hold to nock the arrow")
         .accessibilityAddTraits(.isButton)
     }
 }
@@ -644,4 +652,8 @@ private struct MeanderRing: Shape {
 
 #Preview("Arrow · drawing") {
     ArrowView(model: ArrowModel(phase: .drawing, nocked: true, draw: 0.7, shot: 1, lastScore: 8, total: 8))
+}
+
+#Preview("Arrow · camera") {
+    ArrowView(model: ArrowModel(phase: .drawing, nocked: false, draw: 0, shot: 1, lastScore: 8, total: 8, camera: true))
 }

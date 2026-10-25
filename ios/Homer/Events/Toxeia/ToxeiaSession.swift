@@ -45,6 +45,13 @@ final class ToxeiaSession {
     var archers: [ArcherRow] { ToxeiaTables.archer.rows.filter { $0.roomId == battle.roomId } }
     var needsName: Bool { station == .bow && battle.room?.phaseValue == .ready && (range?.archerId ?? 0) == 0 }
     var arrowUp: Bool { battle.room?.phaseValue == .speaking && (range?.archerId ?? 0) != 0 }
+    /// Camera archery: the webcam aims and draws; whoever's up looses with their own phone.
+    var camera: Bool { range?.camera ?? false }
+    /// My own archer row (camera mode shows each phone its own total).
+    var mine: ArcherRow? {
+        guard let me = battle.me?.name.lowercased() else { return nil }
+        return archers.first { $0.name.lowercased() == me }
+    }
 
     /// No names to type: the archers are the room's players in join order (seat), each once. Whoever
     /// has shot already is skipped by name, counted so two of the same name both get their turn.
@@ -116,8 +123,11 @@ final class ToxeiaSession {
             if arrowUp, let room = battle.room, let key = arrowKey {
                 // The module counts a loose only once this arrow's draw is above 0, so the lift
                 // sends its draw first (in order, one socket) even if no stream got through. The
-                // resends below are loose alone: a late pair must never arm the next arrow.
-                battle.call(Reducer.SetDraw.name, Reducer.SetDraw(roomId: room.id, draw: Float(max(shot, 0.01))))
+                // resends below are loose alone: a late pair must never arm the next arrow. With
+                // the camera, the draw is the camera's and the loose's own is ignored.
+                if !camera {
+                    battle.call(Reducer.SetDraw.name, Reducer.SetDraw(roomId: room.id, draw: Float(max(shot, 0.01))))
+                }
                 battle.call(Reducer.Loose.name, Reducer.Loose(roomId: room.id, draw: Float(shot)))
                 pendingLoose = (key, Float(shot), Date(), Date())
                 haptics.hit()  // the string snaps
@@ -129,7 +139,7 @@ final class ToxeiaSession {
 
     private func tick() {
         guard let room = battle.room, room.event == "toxeia", let me = battle.me else { return }
-        if !claimed, range != nil { claim("") }  // first come gets the bow
+        if !claimed, let r = range, !r.camera { claim("") }  // first come gets the bow (no stations with the camera)
         let next: Station = range?.bowId == me.id ? .bow : range?.arrowId == me.id ? .arrow : .unknown
         if next != station {
             station = next
@@ -179,7 +189,7 @@ final class ToxeiaSession {
             aim = bow.current
             battle.call(Reducer.SetBowAim.name, Reducer.SetBowAim(roomId: room.id, yaw: Float(aim.yaw), pitch: Float(aim.pitch)))
         case .arrow:
-            guard nocked else { return }
+            guard nocked, !camera else { return }  // the camera's draw needs no stream
             draw = arrow.draw
             battle.call(Reducer.SetDraw.name, Reducer.SetDraw(roomId: room.id, draw: Float(draw)))
         case .unknown:
