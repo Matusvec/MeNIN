@@ -34,6 +34,7 @@ Logistics for judging day, Sunday Oct 25: what goes where, what gets charged, ho
 | 8:45 | Devpost submitted, every track tagged. The hard deadline is 9:00. | Matus |
 | 9:00–9:20 | **Get our judging table number and move there.** The Hacker Guide: "Shortly after the 9:00 AM submission deadline, all projects will be assigned a table number. You will need to move to your assigned table by 10:30 AM." Watch #0-announcements and the app. The table may not be where we hacked. | Matus |
 | 9:20–10:00 | Hall check **at the assigned table**: find the nearest hardline switch (there's one every 3 tables, per the announcements), plug in ethernet, and **run the demo check until it says GO with no no-go warnings** (see Before each judge). Then set sound at demo volume, run the noise test, and do two full warm-up runs. If no switch reaches, tell a director immediately. Two teams had dead table ethernet on Friday night: one got no DHCP address, and one had a tripped cable. If the Mac shows no IP address on ethernet, tell a director right away and use venue Wi-Fi meanwhile. | All |
+| 10:10 | **Start the live SpacetimeDB timeline** on the Mac's second desktop, once, and leave it running (see "The SpacetimeDB flip" below). | Operator |
 | 10:15 | Table set: demo config loaded, the main room open, the website's hall open ("Open the hall" clicked, Homer heard), and the backup video cued. | Operator |
 | 10:30–12:30 | Judging. The whole team stays at the table. The guide: "If your entire team is not present while a judge comes, you will not be judged!" Take bathroom breaks one at a time, never two at once. Reset with the rematch drill between judges. | All |
 
@@ -94,10 +95,22 @@ Rough table layout, with the judges in front. There's no external screen, so the
 - **Cables** are taped down where people step.
 - **Optional:** a small card on the table with MeNIN, its pronunciation (MAY-nin), and the Devpost QR code.
 
+## The SpacetimeDB flip (leader, Sat ~10:50 PM)
+
+The SpacetimeDB judges want "something that's hard to build without Spacetime". This shows the server running the battle, live, for about 5 seconds.
+
+- **Start it once in the morning (10:10),** in a Terminal on the Mac's **second desktop**, from the repo root:
+  `cd spacetime && STDB_URL=https://maincloud.spacetimedb.com STDB_DB=homer-calhacks npx tsx scripts/watch.ts`
+  **[multiplayer confirms the exact command.]** This skips `npm run watch`'s `spacetime generate` step, which needs the CLI on PATH, and uses the committed bindings. It's a read-only, anonymous subscriber that never calls a reducer (`spacetime/scripts/watch.ts`), and multiplayer confirms its CPU is about zero. It prints one line per change: phases, joins, turns, deals, scores and verdicts.
+- **The flip, during Matus's sponsor line (demo script 1:10–1:26):** on "SpacetimeDB runs the hall", the operator swipes to desktop 2 (three fingers, or Ctrl+→). The judges see the timeline. Matus: "That's the server running the battle: every turn, every score, every timer." After about 5 s, swipe back.
+- **Rehearse the flip twice in the warm-up runs** (9:20–10:00). Never flip while a poet is speaking or the verdict is on screen.
+- **If it has stopped or errors:** don't flip. Say the line without it, then restart the timeline between judges.
+
 ## Before each judge (about 2 minutes)
 
 Before every run:
 
+- [ ] **The live SpacetimeDB timeline is still running on desktop 2** (it's the flip at 1:10–1:26).
 - [ ] **Keep the arena Mac awake** (leader, Sat 4:24 PM: both phones and the arena dropped in the same second). **A network blip self-recovers:** the arena shows "Reconnecting…" and finishes the battle (builder killed the database mid-battle to test it). **Only a sleeping Mac or a closed tab kills the battle,** because the arena drives it:
   - [ ] In a Terminal, run `caffeinate -dims` and leave it running for the whole session. Or set System Settings → Battery → Options → prevent automatic sleeping on power adapter, plus Lock Screen → turn display off → Never.
   - [ ] **The Mac is plugged in if the table has power.** On battery, `caffeinate`'s `-i` still stops idle sleep (`-s` only adds AC-only protection), so a charged Air stays awake either way. Some mezzanine and top-floor tables had no power on Saturday (#0-general, Sat 5:43–5:50 PM, hackers).

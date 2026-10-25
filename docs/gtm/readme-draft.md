@@ -74,6 +74,13 @@ Voice is the whole game: you play by speaking, and Homer answers out loud.
 
 ## SpacetimeDB: the hall
 
+**The server runs the game, so every phone is just a screen.** One module (`spacetime/src/index.ts`, 2,070 lines of TypeScript) runs all seven games. It has 26 tables (20 public), 45 reducers and four scheduled timers, and it's live on Maincloud as `homer-calhacks`.
+
+- **The server decides, so nobody can fake a score.** Phones send only inputs. An arrow's landing (the drop from a soft draw, the wind drift, the 10 rings) and a punch's damage, stamina and counters are computed in the module. Only Homer's agent identity can post a poetry score (`post_score` and 6 other reducers check a service identity).
+- **Live input at 10–20 Hz through reducers:** the speaking poet's voice, Stadion strides, boxing fists, and archery's bow aim, draw and webcam pose tracking (about 40 updates a second in archery).
+- **Three kinds of client on one module:** the iPhone app (Swift SDK), the website arena (TypeScript SDK 2.13) and the Python agent (HTTP API, its own identity).
+- **Tested like a backend:** `npm run smoke` runs 232 checks across all seven games, `scripts/hall-soak.ts` plays five battles on real websockets with drops and rejoins, and `npm run watch` prints the live timeline from Maincloud.
+
 - **The battle is a phase machine in reducers**, server-side: lobby → theme → dealing → ready → speaking → judging → scored → round end → finale → finished. A scheduled reducer closes each turn on time. The rules are in [`spacetime/CONTRACT.md`](spacetime/CONTRACT.md).
 - **Row-level security guards your cards:** a client visibility filter on the `hand` table means only your phone can read the phrases Homer dealt you.
 - **The speaking phone streams loudness and pitch about 20 times a second** into one row per room that the arena subscribes to, so the scene moves with whoever is speaking.

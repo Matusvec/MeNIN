@@ -116,6 +116,7 @@ Answer in one breath, then stop.
 | Why Homer and not Shakespeare? | "Shakespeare wrote. Homer improvised. Improvising is the skill." |
 | Is Homer an agent? | "Yes, a live one. Every round he writes a fresh theme and deals you phrases for it, then hears you through Cartesia, scores you with Claude plus our scanner, and speaks the verdict. Then he writes the round into a song. Every step writes to SpacetimeDB, so the whole room sees it." |
 | What's AI and what isn't? | "Deterministic: the beat count, the scoring math and the discus physics. Claude: the judgment, the coaching, Homer's and Socrates' lines and the stitched song. Cartesia: ears and voice. Nothing is mocked." |
+| *(For SpacetimeDB judges, after midnight only if scrabble confirms our bot played)* | "Our bot played in your Scrabblebot finals too." *(Use it only if the bot actually played; scrabble confirms after midnight.)* |
 | Why iPhone only? | "Your phone is the mic, the controller and the discus, and your turn starts with a thump in your palm. That needs native. The big screen is our website, so any laptop at the table becomes the arena." |
 | What happens Monday? | "Tap the TestFlight link on your iPhone. No account, open a room, play." *(Only if the public link is approved. Otherwise: "TestFlight now, App Store next.")* |
 | How fast is the verdict? | "About [turn-to-voice p50] seconds from your last word to Homer's voice, and most of that is Claude judging." *(Quote the p50 measured at the evening shoot, never a guess.)* |
