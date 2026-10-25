@@ -188,14 +188,14 @@ These are the only operator steps for Talk to Homer, the Stadion, boxing (Pygmac
 | Who | Step |
 | --- | --- |
 | **Everyone who'll shoot** | **Joins with the code before Begin, on their own phone.** |
-| Operator | **New event → Toxeia (beta)** (or Open the hall: Toxeia (beta)). Until two phones are in, Begin reads "Waiting for the bow and the arrow". **Begin.** |
-| Operator | Press **Camera on** (in the button row). The judging hall starts with the camera off. The first time, allow the browser's camera prompt. A small camera view with the tracked skeleton appears in a corner of the range. |
+| Operator | **New event → Toxeia (beta)** (or Open the hall: Toxeia (beta)). Until two phones are in, Begin reads "Waiting for the bow and the arrow". |
+| Operator | Press **Camera on** (in the button row; it works in the lobby too, so turn it on as soon as the archery hall opens). The judging hall starts with the camera off. The first time, allow the browser's camera prompt. A small camera view with the tracked skeleton appears in a corner of the range. Then **Begin**. |
 | Homer, automatic | "Toxeia. Face the target and raise your bow arm. Phone in the other hand: thumb down, draw it back to your face, lift your thumb to loose." Then "{name}, step up to the line." and "{name} steps to the line." |
 | Each archer, 3 arrows | Stand facing the target, **where the camera sees your whole upper body**. Raise the bow arm: the aim dot follows it, and it zeroes at the start of each arrow once the arm is still. Thumb down on your own phone, bring the drawing hand back to your jaw while the draw meter fills, and **lift your thumb to loose**. 45 s an arrow before it's lost. |
 | Between archers, automatic | "{name} finishes on {total}." then "{next}, step up to the line." No phones change hands. |
 | The end, automatic | After the last joined player's third arrow: "The bow goes to {name}, with {total}." |
 | Operator | Press nothing while arrows fly. **"Next" during an arrow's score skips its reveal**, so it counts as a fallback. **Rematch** or **New event** at the end. |
-| **If the camera loses the archer, automatic** | **Changing (builder, Sat ~8:30 PM).** Today: after about 1 s the arena says "Step into view: phones meanwhile", the two station phones take that arrow (the two-phone steps below), and the camera comes back on the next one. After builder's change, the arrow holds with "Step into view" until the archer is back, and the phones take over only if the camera is off or fails. The final wording comes from pm. |
+| **If the camera loses the archer, automatic** (they lean or step out of view) | The aim dot freezes, the corner says "Step into view", and **the arrow's clock keeps running** (45 s). Step back in, and the arrow resumes on the same aim. The phones take over only if the camera is switched off or fails: the corner then says "Camera denied: phones" or "No camera: phones", and the two-phone fallback below applies (builder, a040a40, Sat 8:18 PM). Every camera run stages one 2 s step-out as a pass/fail check (`docs/ux-flow.md`). |
 | **If the camera can't work at all** | The operator presses **Camera off**. It stays in two-phone mode for good, with the steps below. That counts as a fallback. |
 
 #### Fallback: two-phone mode
