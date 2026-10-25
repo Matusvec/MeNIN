@@ -31,7 +31,7 @@ The table demo is in [demo-script.md](demo-script.md). This file holds everythin
   - Two sentences of vision, then the demo proves it. A thesis without the battle is a TED talk.
   - Say "move people" or "change minds", never "persuade" or "influence", which sound like manipulation.
   - Never claim "a totally new way of thinking". Show it.
-  - The proof: **[A: the study ran]** the study number (a first lesson measurably improved how first-timers speak). **[B: no study]** the measurement itself: every lesson try gets a Beat score from a deterministic scanner, so improvement is first try vs last, then Beat accuracy across a poet's first five sessions. Never imply a result we didn't get.
+  - The proof: **[A: the study ran]** the study number, scoped to "beat-scored lesson one" (build 18): a first lesson measurably improved how first-timers speak. **[B: no study]** the measurement itself: every lesson try gets a Beat score from a deterministic scanner, so improvement is first try vs last, then Beat accuracy across a poet's first five sessions. Never imply a result we didn't get.
 
 ## The lines
 
@@ -105,7 +105,7 @@ Answer in one breath, then stop.
 | Why poetry in a games app? | "The Greeks didn't separate them. At the Panathenaic Games, poets competed next to the athletes." |
 | How is the AI judge not arbitrary? | "It judges content only: Image, Answer and Craft, on an anchored scale where a typical first verse is a 4 to 6, with the phrases Homer dealt you and the verse you answered in front of it. You always see all three scores and the line it quoted. The emotion read paints the scene but never scores you. In the lessons, the beat is counted by a stress scanner, not the model." |
 | Why several events? | "One engine. Each event is a config: who hosts, what cards you get, how it's judged, beat on or off. Poetry came first; the debate took [hours] on the same engine." *(Only if debate shipped.)* |
-| Isn't this just a game? | "The games are why you come back. Bard mode is where you get good." Then **[A: the study ran]** "Last night, five first-timers went from [first] to [last] out of 10 on Beat, in one lesson." *(The study's real numbers and pm's wording in docs/study.md.)* **[B: no study]** "Every lesson try gets a Beat score from a scanner, not the AI, so you can see yourself improve from the first try to the last." |
+| Isn't this just a game? | "The games are why you come back. Bard mode is where you get good." Then **[A: the study ran]** "Last night, five first-timers went from [first] to [last] out of 10 on Beat, in one beat-scored lesson." *(The study's real numbers and pm's wording in docs/study.md. Follow-up, if asked why the lesson feels gentler: "We measured the strict beat version. Tonight we made the lesson forgive timing, so beginners spend their effort on what they say.")* **[B: no study]** "Every lesson try gets a Beat score from a scanner, not the AI, so you can see yourself improve from the first try to the last." |
 | Does it work in this noise? | "Headset mic, a mic that opens only on your turn, captions, and the transcript is always on screen so you can see what Homer heard." *(Only say it if Saturday's hall test passed.)* |
 | How does it hear you in this noise? | "We feed Homer's phrases to the recognizer as keyterms. Cartesia ink-2: in our tests, with a drum at full volume as test noise, 3% word error. Without them, 20%." |
 | Where's the beat? | "The beat is how Homer trains you; in battle you spit free." (Leader's line.) "It comes back under Homer's song at the end." |

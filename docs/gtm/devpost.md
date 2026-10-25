@@ -134,7 +134,7 @@ The total is out of 100. Clichés and dodging the theme cost. In the lessons, **
 
 ## Accomplishments that we're proud of
 
-- **[A: the study ran]** [N] people who'd never freestyled took lesson one at Cal Hacks. Their Beat score went from **[first] to [last]** out of 10, in about [time] minutes. *(Beat only, first try vs last. If fewer than three landed, drop the time.)* **[B: no study]** *(Delete this bullet.)*
+- **[A: the study ran]** [N] people who'd never freestyled took lesson one at Cal Hacks. On its beat-scored version (build 18), their Beat score went from **[first] to [last]** out of 10, in about [time] minutes. Since then the lesson forgives timing and asks for content, so beginners spend their effort on what they say. *(Beat only, first try vs last. If fewer than three landed, drop the time. Leader may cut the number instead.)* **[B: no study]** *(Delete this bullet.)*
 - A live battle on iPhones, with Homer's spoken verdict [turn-to-voice p50] s after the last word.
 - 3% word error rate in our tests, with a drum at full volume as test noise, down from 20%, by feeding the phrases Homer dealt each poet to the recognizer.
 - The stitched song: the room leaves with one poem it made together.
@@ -159,7 +159,7 @@ The total is out of 100. Clichés and dodging the theme cost. In the lessons, **
 
 *(For Microsoft's track. Each line answers one of their five capabilities.)*
 - **Customer understanding:** we started from one community, spoken-word and slam poets in [the poet's scene], and tested on people who'd never freestyled.
-- **Measurable usefulness:** the stress scanner's Beat score is an objective measure, and every lesson try gets one, so a poet sees their first try against their last. **[A: the study ran]** [N] first-timers went from [first] to [last] out of 10 in one lesson. **[B: no study]** *(End the bullet after "their last".)*
+- **Measurable usefulness:** the stress scanner's Beat score is an objective measure, and every lesson try gets one, so a poet sees their first try against their last. **[A: the study ran]** [N] first-timers went from [first] to [last] out of 10 in one beat-scored lesson (build 18). **[B: no study]** *(End the bullet after "their last".)*
 - **A path from prototype to production:** TestFlight now, then the App Store. The website is live at https://play.206.189.237.157.sslip.io, served from the same DigitalOcean droplet as the agent service (Docker), and SpacetimeDB runs on Maincloud.
 - **Responsible design:** captions, a hands-free mic that opens only on your turn, no audio through our server, gentle roasts, and the content and name filters (below).
 - **End-to-end functionality:** the live battle runs on real services, with nothing mocked.
