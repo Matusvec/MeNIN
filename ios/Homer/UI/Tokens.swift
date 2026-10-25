@@ -96,8 +96,9 @@ enum Palette {
     /// One ink per poet seat, so a poet keeps their color all battle.
     static var seats: [Color] {
         Direction.current == .atelier
-            // Wine is the hero surface in Atelier, so no seat wears it.
-            ? [0x2D5C66, 0xB5832F, 0x6E7A2E, 0xC8452C, 0x5B3F73].map { Color(hex: $0) }
+            // Wine is the hero surface in Atelier, so no seat wears it. The first four (a
+            // full room) are four plainly different hues from 2 m: sea, vermilion, gold, plum.
+            ? [0x2D5C66, 0xC8452C, 0xA8741F, 0x5B3F73, 0x6E7A2E].map { Color(hex: $0) }
             : [0xEC4A1C, 0x2C6FD6, 0xE8B73A, 0x2E9C7A, 0xC2569A].map { Color(hex: $0) }
     }
 }

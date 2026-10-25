@@ -185,6 +185,8 @@
   color: #fff;
   font: 700 1rem/1 Georgia, serif;
   background: var(--seat, var(--figure));
+  /* A black rim, so every seat color reads on the terracotta. */
+  border: 2px solid var(--figure);
   border-radius: 99rem;
 }
 

@@ -57,7 +57,8 @@
 
 .stadion .lane {
   position: relative;
-  height: clamp(4.2rem, 9vh, 6rem);
+  /* Four lanes (a full room) plus the order fit a 900 px laptop screen. */
+  height: clamp(3.6rem, 8vh, 5rem);
   border-bottom: 2px solid rgb(31 22 18 / 55%);
 }
 
@@ -75,7 +76,20 @@
   color: #fff;
   font: 700 clamp(1rem, 1.6vw, 1.3rem)/1 Georgia, serif;
   background: var(--seat, var(--figure));
+  /* A black rim, so every seat color reads on the terracotta (vermilion and gold included). */
+  border: 2px solid var(--figure);
   border-radius: 99rem;
+}
+
+/* The lane's start, in the runner's seat color: the black figures are told apart by their lane. */
+.stadion .lane::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0.55rem;
+  background: var(--seat, var(--figure));
 }
 
 /* A black-figure runner: two painted frames stepping on the live speed. It
