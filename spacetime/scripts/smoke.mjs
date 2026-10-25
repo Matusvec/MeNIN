@@ -671,16 +671,48 @@ await call(arena, 'advance', Tx.id);
 st = await range();
 check((await room(Tx.id)).phase === 'speaking' && st.arrow_no === 2 && st.draw === 0, `arrow 2: fresh wind (${st.wind.toFixed(1)} m/s)`);
 await call(ada, 'set_bow_aim', Tx.id, 0, 0);
+await call(bo, 'loose', Tx.id, 1);
+check((await shots()).length === 1 && (await room(Tx.id)).phase === 'speaking', 'a loose before this arrow is drawn is ignored: a resend for the last arrow cannot shoot the next');
+await call(bo, 'set_draw', Tx.id, 0.45);
 await call(bo, 'loose', Tx.id, 0.45);
 shot = (await shots()).at(-1);
 let want = fly(0, 0, 0.45, st.wind);
 check(shot.ring === 0 && shot.y < -0.6 && Math.abs(shot.y - want.y) < 0.002 && Math.abs(shot.x - want.x) < 0.002 && Math.abs(shot.flight - 0.6) < 0.001,
   `a half draw flies slow (0.6 s) and drops under the face: ${shot.y} m`);
 await call(arena, 'advance', Tx.id);
+// Meanwhile in a second range, an arrow drawn to 0.6 whose loose never comes (a stuck thumb).
+await call(arena, 'create_room', 'toxeia', 1, 2, 2, 80, 'four_beat', false, false, true);
+const Ty = (await sql(null, 'SELECT * FROM room')).filter(x => x.host[0] === `0x${arena.hex}`).sort((a, b) => b.id - a.id)[0];
+await call(ada, 'join_room', Ty.code, 'Ada', '', []);
+await call(bo, 'join_room', Ty.code, 'Bo', '', []);
+await call(arena, 'start_battle', Ty.id);
+await call(ada, 'next_archer', Ty.id, 'Ada');
+await call(ada, 'set_bow_aim', Ty.id, 0.1, 0);
+await call(bo, 'set_draw', Ty.id, 0.6);
+// And a verse nobody judges (the arena's tab closed mid-judging): the module skips it at 60 s.
+await call(arena, 'create_room', 'coach', 1, 2, 2, 80, 'four_beat', false, false, true);
+const Cj = (await sql(null, 'SELECT * FROM room')).filter(x => x.host[0] === `0x${arena.hex}`).sort((a, b) => b.id - a.id)[0];
+await call(ada, 'join_room', Cj.code, 'Ada', '', []);
+await call(arena, 'start_battle', Cj.id);
+await call(agent, 'deal_round', Cj.id, 1, 'The wine-dark sea', []);
+const Tj = (await room(Cj.id)).current_turn_id;
+await call(arena, 'start_turn', Tj);
+await call(ada, 'end_turn', Tj, 'The sea took the ship.');
+const judgingSince = Date.now();
+check((await turn(Tj)).status === 'judging', 'a verse goes to the judge, who never answers');
 console.log('     waiting 46 s for the third arrow\'s time to run out...');
 await sleep(46_000);
 shot = (await shots()).at(-1);
-check((await room(Tx.id)).phase === 'scored' && shot.arrow_no === 3 && shot.flight === 0 && shot.ring === 0, 'time runs out: the arrow is lost (flight 0, no rings)');
+check((await room(Tx.id)).phase === 'scored' && shot.arrow_no === 3 && shot.flight === 0 && shot.ring === 0, 'time runs out undrawn: the arrow is lost (flight 0, no rings)');
+const stuck = (await sql(null, `SELECT * FROM arrow_shot WHERE room_id = ${Ty.id}`))[0];
+check((await room(Ty.id)).phase === 'scored' && stuck && Math.abs(stuck.draw - 0.6) < 1e-6 && stuck.flight > 0 && Math.abs(stuck.aim_yaw - 0.1) < 1e-6,
+  `time runs out drawn (a stuck thumb): it flies from the draw (0.6) and the aim, ring ${stuck?.ring}`);
+await call(arena, 'end_battle', Ty.id);
+check((await turn(Tj)).status === 'judging', 'still judging after 46 s');
+console.log('     waiting for the 60 s judging cap...');
+await sleep(Math.max(0, judgingSince + 61_000 - Date.now()));
+check((await turn(Tj)).status === 'skipped' && (await room(Cj.id)).phase === 'scored', 'unjudged for 60 s: the module skips the verse, so no room is ever stuck in judging');
+await call(arena, 'end_battle', Cj.id);
 check((await archers())[0].arrows === 3 && (await archers())[0].total === 10, 'three arrows: Odysseus finishes on 10');
 await call(arena, 'advance', Tx.id);
 st = await range();
@@ -690,6 +722,7 @@ await call(ada, 'next_archer', Tx.id, 'Penelope');
 for (let i = 1; i <= 3; i++) {
   st = await range();
   await call(ada, 'set_bow_aim', Tx.id, 0.1, 0.05);
+  await call(bo, 'set_draw', Tx.id, 0.9);
   await call(bo, 'loose', Tx.id, 0.95);
   shot = (await shots()).at(-1);
   want = fly(0.1, 0.05, 0.95, st.wind);
@@ -720,6 +753,7 @@ await call(arena, 'start_battle', Tx.id);
 for (const [n, who] of [['Ada', 1], ['Cy', 2]]) {
   await call(ada, 'next_archer', Tx.id, n);
   for (let i = 1; i <= 3; i++) {
+    await call(cy, 'set_draw', Tx.id, 0.9);
     await call(cy, 'loose', Tx.id, 1);
     await call(arena, 'advance', Tx.id);
   }

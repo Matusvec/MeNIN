@@ -77,7 +77,7 @@ toxeia:  lobby ─start_battle─▶ ready (the bow names an archer) ─next_arc
 | `dealing` | Waiting for the agent to set the theme and deal hands. | agent: `deal_round` |
 | `ready` | `current_turn_id` is up. The poet steps up and taps Ready (or the arena auto-starts). | phone or arena: `start_turn` |
 | `speaking` | The verse is live: transcript, prosody and scene stream. | phone: `end_turn`, or the scheduler at `ends_at` + 2 s |
-| `judging` | The verse is with the judge. | agent: `post_score` or `decline_turn`; arena: `skip_turn` |
+| `judging` | The verse is with the judge. | agent: `post_score` or `decline_turn`; arena: `skip_turn`; the scheduler skips it if no answer comes within 60 s (so a closed arena tab can't leave a room stuck) |
 | `scored` | The verdict and scores are shown. | arena: `advance` |
 | `round_end` | The round verdict and the carved line are shown. | arena: `advance` |
 | `finale` | The stitched song, then the crown. | arena: `advance` |
@@ -283,7 +283,7 @@ Every `set_scene` also appends `id, room_id, turn_id, ms` (milliseconds since `s
 | `next_archer` | room_id, name String | Toxeia: the bow phone (or the arena) in `ready` | A new `archer` and its first arrow (`speaking`). '' means that's everyone: `finale`. Errors: `only the bow names the archer`, `not waiting for an archer`, `<name> has shot: another name`, `the range is full` (12). |
 | `set_bow_aim` | room_id, yaw f32, pitch f32 | Toxeia: the bow phone, about 20 Hz while an arrow is up | The aim, clamped to −1…1. Silent unless you're the bow and an arrow is up. |
 | `set_draw` | room_id, draw f32 | Toxeia: the arrow phone, about 20 Hz while nocked | The draw, clamped to 0…1. Silent unless you're the arrow and an arrow is up. |
-| `loose` | room_id, draw f32 | Toxeia: the arrow phone, on the thumb lift | The arrow flies from the bow's latest aim at this draw through this arrow's wind; the `arrow_shot` row, the archer's total, `scored`. Silent unless you're the arrow and an arrow is up (so a second loose is ignored). |
+| `loose` | room_id, draw f32 | Toxeia: the arrow phone, on the thumb lift (phones may resend it until the arrow lands) | The arrow flies from the bow's latest aim at this draw through this arrow's wind; the `arrow_shot` row, the archer's total, `scored`. Silent unless you're the arrow, an arrow is up, and you've drawn it (a `set_draw` above 0 since it went up: each arrow starts at 0). So a second loose is ignored, and a resend for the last arrow can't shoot the next one before it's touched; phones still stop resending when `archer_id`/`arrow_no` change. |
 | `throw_discus` | turn_id, speed f32, angle f32, timing f32, distance f32, foul bool | Discus: once, when the thrower's thumb lifts | Thrower only, while the turn is `speaking`. Refused out of range (speed 0–60, angle −90–90, timing 0–1, distance 0–100). Inserts a `discus_throw` (distance 0 if foul), marks the turn `scored`, raises `player.total` to the best throw in tenths of a metre, and moves to `scored`. |
 
 ### Agent service
@@ -386,7 +386,7 @@ Boxing (SPEC "The games"), v2: health and stamina, combos and counters, 60 s or 
 Archery (SPEC "The games"): one archer at a time holds two phones, the bow (it aims) and the arrow (it draws and looses). No turns, no Claude.
 
 - Both phones join the room as players and take a station with `claim_station` (first come gets the bow). `start_battle` needs both filled (it fills unclaimed ones in seat order) and goes to `ready`. No names are typed (SPEC): the archers are the room's players in join order (seat order), so on Ready the bow phone calls `next_archer` with the first player who has no `archer` row yet. More phones can join; each player shoots in turn, but only the two stations act.
-- Each arrow (`speaking`) rolls its own wind and opens a 45 s window. The bow streams `set_bow_aim` and the arrow streams `set_draw` (for the screen's draw meter); `loose` shoots. No loose in 45 s and the arrow is lost (`flight` 0, ring 0).
+- Each arrow (`speaking`) rolls its own wind and opens a 45 s window. The bow streams `set_bow_aim` and the arrow streams `set_draw` (for the screen's draw meter); `loose` shoots. No loose in 45 s: an arrow still drawn (the last `set_draw` was 0.2 or more, say a stuck thumb) flies from that draw and the bow's current aim; otherwise it's lost (`flight` 0, ring 0).
 - Where it lands: the arrow flies 30 m at 30 m/s off a bare draw up to 70 m/s at a draw of 0.9 or more (full). The sight is set for full, so a slower arrow drops by its extra fall: ½·g·(t² − t_full²) (a 0.45 draw drops 0.86 m, off the face). The wind drifts it 0.18 × wind × flight sideways (6 m/s at full draw is 0.46 m). x = yaw + drift, y = pitch − drop (metres; the aim is ±1 m). The face has ten 6.1 cm rings: ring = 10 − floor(r / 0.061) for r < 0.61 m, else 0.
 - `advance` after each arrow's reveal: the archer's next arrow; after 3, `finale` once every player has an archer row with 3 arrows (names matched case-insensitively), else back to `ready` for the next. A name already used is refused; `next_archer('')` (or the host's `advance` in `ready`) closes the range early: `finale`, then `finished`. The champion is the best `archer.total` (clients break ties: more 10s, then who shot first). `player.total` stays 0: the players are phones.
 - `rematch` keeps the stations and clears the archers and arrows.
@@ -423,7 +423,7 @@ cd spacetime && npm install
 npm run typecheck
 npm run publish:local                    # keeps data; publish:local:reset wipes it
 npm run publish:test                     # the isolated test database `homer-test` (no dev-agent, no shared key)
-npm run smoke                            # poetry, discus, set_event, debate, coach, stadion, pygmachia and toxeia over HTTP against homer-test, 209 checks (~5 min)
+npm run smoke                            # poetry, discus, set_event, debate, coach, stadion, pygmachia and toxeia over HTTP against homer-test, 214 checks (~6 min)
 npm run logs
 ```
 

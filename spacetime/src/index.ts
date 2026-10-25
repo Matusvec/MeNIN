@@ -483,6 +483,7 @@ const MIN_PLAYERS = 2;
 const MAX_PLAYERS = 5;
 const DEMO_PLAYERS = 4; // up to four on the big screen
 const GRACE_MICROS = 2_000_000n; // the final transcript can land this late
+const JUDGE_MICROS = 60_000_000n; // a verse still unjudged this long after it closed is skipped
 const CODE_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // no I or O
 const FORMS = ['four_beat', 'hexameter'];
 const EPOCH = Timestamp.UNIX_EPOCH;
@@ -522,6 +523,7 @@ const MAX_ARCHERS = 12;
 const RANGE_METRES = 30; // the line to the target
 const MAX_WIND = 6; // m/s
 const FULL_DRAW = 0.9; // drawn this far back counts as full
+const AUTO_LOOSE_DRAW = 0.2; // drawn at least this far when the window runs out: it flies anyway
 const SLOW_ARROW = 30; // m/s off a bare draw
 const FAST_ARROW = 70; // m/s off a full one
 const GRAVITY = 9.81;
@@ -1018,6 +1020,9 @@ function closeTurn(ctx: Ctx, r: Room, tr: Turn, transcript: string): void {
   } else {
     ctx.db.turn.id.update({ ...tr, status: 'judging', transcript });
     setPhase(ctx, r, 'judging');
+    // If no judge ever answers (the arena's tab closed mid-judging, say), the turn is skipped.
+    const at = after(ctx.timestamp, JUDGE_MICROS);
+    ctx.db.turnTimer.insert({ scheduledId: 0n, scheduledAt: ScheduleAt.time(at.microsSinceUnixEpoch), turnId: tr.id });
   }
 }
 
@@ -1658,12 +1663,17 @@ export const setDraw = spacetimedb.reducer({ roomId: t.u64(), draw: t.f32() }, (
 });
 
 // The arrow phone lets go: the arrow flies from the bow's latest aim, at this draw, through
-// this arrow's wind (see landing). Silent unless it's the arrow and an arrow is up.
+// this arrow's wind (see landing). Silent unless it's the arrow and an arrow is up, and the
+// arrow phone has drawn this arrow: each new arrow starts at draw 0, so a loose resent for the
+// last arrow (phones resend until it lands) can't shoot this one before the archer touches it.
 export const loose = spacetimedb.reducer({ roomId: t.u64(), draw: t.f32() }, (ctx, { roomId, draw }) => {
   const st = onRange(ctx, roomId, 'arrow');
-  if (st) recordArrow(ctx, roomId, st, clamp01(draw));
+  if (st && st.draw > 0) recordArrow(ctx, roomId, st, clamp01(draw));
 });
 
+// The window runs out. An arrow still drawn (the arrow phone streamed a draw of 0.2 or more and
+// its loose never came, say a stuck thumb) flies from that draw and the bow's current aim;
+// otherwise it's lost.
 export const arrowTimeout = spacetimedb.reducer(
   { onSchedule: arrowTimer },
   { timer: arrowTimer.rowType },
@@ -1672,7 +1682,7 @@ export const arrowTimeout = spacetimedb.reducer(
     const st = ctx.db.range.roomId.find(timer.roomId);
     if (!r || !st || !isToxeia(r) || r.phase !== 'speaking') return;
     if (st.archerId !== timer.archerId || st.arrowNo !== timer.arrowNo) return;
-    recordArrow(ctx, r.id, st, null);
+    recordArrow(ctx, r.id, st, st.draw >= AUTO_LOOSE_DRAW ? st.draw : null);
   }
 );
 
@@ -1781,9 +1791,15 @@ export const turnTimeout = spacetimedb.reducer(
   { timer: turnTimer.rowType },
   (ctx, { timer }) => {
     const tr = ctx.db.turn.id.find(timer.turnId);
-    if (!tr || tr.status !== 'speaking') return;
-    const r = ctx.db.room.id.find(tr.roomId);
-    if (!r || r.currentTurnId !== tr.id) return;
+    const r = tr ? ctx.db.room.id.find(tr.roomId) : undefined;
+    if (!tr || !r || r.currentTurnId !== tr.id) return;
+    if (tr.status === 'judging' && r.phase === 'judging') {
+      // The judge never answered (see closeTurn): skipped, as the arena's skip_turn would.
+      ctx.db.turn.id.update({ ...tr, status: 'skipped' });
+      setPhase(ctx, r, 'scored');
+      return;
+    }
+    if (tr.status !== 'speaking') return;
     if (isDiscus(r)) {
       // The thrower never let go: no throw this round.
       ctx.db.turn.id.update({ ...tr, status: 'skipped' });

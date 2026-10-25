@@ -8,6 +8,7 @@
 //
 // An anonymous subscriber: it never calls a reducer.
 
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { DbConnection } from './bindings/index';
 
 const URI = (process.env.STDB_URL ?? 'http://127.0.0.1:3000').replace(/^http/, 'ws');
@@ -41,8 +42,26 @@ const cleared = new Map<bigint, number>();
 type Bout = { go: number; aims: Map<bigint, number[]>; punches: { playerId: bigint; result: string; damage: number; counter: boolean; lat: number }[] };
 const bouts = new Map<bigint, Bout>();
 const strides = new Map<bigint, Map<bigint, number[]>>();
-// The arrow on the string per room: when it went up, and the bow's aim and the arrow's draw updates.
-const arrows = new Map<bigint, { up: number; aims: number[]; draws: number[] }>();
+// The arrow on the string per room: when it went up, and every aim and draw sample (local ms).
+// With AIM_DIR set, each arrow's samples are also written there as a CSV (t_ms, kind, a, b).
+type Sample = { t: number; yaw: number; pitch: number };
+const arrows = new Map<bigint, { up: number; aims: number[]; draws: number[]; aim: Sample[]; draw: { t: number; d: number }[] }>();
+const AIM_DIR = process.env.AIM_DIR ?? '';
+// The bow's aim over one arrow: how much sat at the clamp, its range, the sample-to-sample
+// jitter (median step), and the drift (the last second's mean minus the first second's).
+function aimSummary(aim: Sample[]): string {
+  const pct = (f: (s: Sample) => boolean) => `${Math.round((100 * aim.filter(f).length) / aim.length)}%`;
+  const steps = (k: 'yaw' | 'pitch') => aim.slice(1).map((s, i) => Math.abs(s[k] - aim[i][k])).sort((p, q) => p - q);
+  const median = (xs: number[]) => (xs.length ? xs[Math.floor(xs.length / 2)] : 0);
+  const mean = (xs: Sample[], k: 'yaw' | 'pitch') => xs.reduce((t, s) => t + s[k], 0) / Math.max(1, xs.length);
+  const t0 = aim[0].t, t1 = aim[aim.length - 1].t;
+  const first = aim.filter(s => s.t - t0 <= 1000), last = aim.filter(s => t1 - s.t <= 1000);
+  const span = (k: 'yaw' | 'pitch') => `${Math.min(...aim.map(s => s[k])).toFixed(2)}..${Math.max(...aim.map(s => s[k])).toFixed(2)}`;
+  return `${aim.length} samples; clamped yaw ${pct(s => Math.abs(s.yaw) >= 0.999)}, pitch ${pct(s => Math.abs(s.pitch) >= 0.999)}; ` +
+    `yaw ${span('yaw')}, pitch ${span('pitch')}; jitter ${median(steps('yaw')).toFixed(3)}/${median(steps('pitch')).toFixed(3)} a step; ` +
+    `drift ${(mean(last, 'yaw') - mean(first, 'yaw')).toFixed(2)}/${(mean(last, 'pitch') - mean(first, 'pitch')).toFixed(2)}`;
+}
+
 const rate = (ts: number[]) => {
   const span = ts.length > 1 ? (ts[ts.length - 1] - ts[0]) / 1000 : 0;
   let gap = 0;
@@ -223,13 +242,19 @@ function wire() {
       say(`${c} stations: bow ${b.bowId ? poet(b.bowId) : '-'}, arrow ${b.arrowId ? poet(b.arrowId) : '-'}`);
     }
     if (b.archerId && (a.archerId !== b.archerId || a.arrowNo !== b.arrowNo)) {
-      arrows.set(b.roomId, { up: Date.now(), aims: [], draws: [] });
+      arrows.set(b.roomId, { up: Date.now(), aims: [], draws: [], aim: [{ t: Date.now(), yaw: b.aimYaw, pitch: b.aimPitch }], draw: [] });
       say(`${c} ${archerName(b.archerId)}, arrow ${b.arrowNo}: wind ${b.wind >= 0 ? '→' : '←'} ${Math.abs(b.wind).toFixed(1)} m/s`);
       return;
     }
     const m = arrows.get(b.roomId);
-    if (m && (a.aimYaw !== b.aimYaw || a.aimPitch !== b.aimPitch)) m.aims.push(Date.now());
-    if (m && a.draw !== b.draw) m.draws.push(Date.now());
+    if (m && (a.aimYaw !== b.aimYaw || a.aimPitch !== b.aimPitch)) {
+      m.aims.push(Date.now());
+      m.aim.push({ t: Date.now(), yaw: b.aimYaw, pitch: b.aimPitch });
+    }
+    if (m && a.draw !== b.draw) {
+      m.draws.push(Date.now());
+      m.draw.push({ t: Date.now(), d: b.draw });
+    }
   });
   conn.db.archer.onInsert((_c, x) => {
     if (live) say(`${code(x.roomId)} next archer: ${x.name}`);
@@ -243,6 +268,14 @@ function wire() {
     if (x.flight === 0) say(`${c}   time ran out: arrow ${x.arrowNo} lost`);
     else say(`${c}   loosed at draw ${x.draw.toFixed(2)}: ring ${x.ring} at (${x.x.toFixed(2)}, ${x.y.toFixed(2)}) m, ${x.flight.toFixed(2)} s in the air; pushed in ${Date.now() - micros(x.at)} ms`);
     if (m) say(`${c}   ${secs(micros(x.at) - m.up)} on the string; bow aim ${rate(m.aims)}, draw ${rate(m.draws)}; ${archerName(x.archerId)} has ${total}`);
+    if (m && m.aim.length > 1) say(`${c}   aim: ${aimSummary(m.aim)}; draw peak ${Math.max(0, ...m.draw.map(d => d.d)).toFixed(2)}`);
+    if (m && AIM_DIR) {
+      const file = `${AIM_DIR}/${c}-${archerName(x.archerId)}-${x.arrowNo}.csv`;
+      const rows = [...m.aim.map(s => `${s.t - m.up},aim,${s.yaw.toFixed(4)},${s.pitch.toFixed(4)}`), ...m.draw.map(d => `${d.t - m.up},draw,${d.d.toFixed(4)},`)];
+      mkdirSync(AIM_DIR, { recursive: true });
+      writeFileSync(file, ['t_ms,kind,a,b', ...rows.sort((p, q) => Number(p.split(',')[0]) - Number(q.split(',')[0]))].join('\n') + '\n');
+      say(`${c}   samples: ${file}`);
+    }
   });
 
   let songTimer: ReturnType<typeof setTimeout> | undefined;
