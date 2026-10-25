@@ -1,7 +1,8 @@
 import Foundation
 import Observation
+import os
 
-/// Toxeia on a phone: it's either the archer's BOW (streams aim, asks each archer's name) or the
+/// Toxeia on a phone: it's either the archer's BOW (streams aim, calls up each archer) or the
 /// ARROW (nock, pull, loose). The station comes from the range row once claimed.
 @Observable
 @MainActor
@@ -14,6 +15,10 @@ final class ToxeiaSession {
     private(set) var aim = BowMotion.Aim()
     /// The newest arrow_shot in this room (the bow shows where it hit; the arrow thunks once).
     private(set) var lastShot: ArrowShotRow?
+    /// The bow's arrow is up but it hasn't been held still yet, so the aim isn't zeroed.
+    private(set) var steadying = false
+
+    private static let log = Logger(subsystem: "com.matusvec.homer", category: "toxeia")
 
     @ObservationIgnored private let battle: BattleClient
     @ObservationIgnored private let bow = BowMotion()
@@ -23,6 +28,12 @@ final class ToxeiaSession {
     @ObservationIgnored private var claimed = false
     @ObservationIgnored private var seenShot: UInt64 = 0
     @ObservationIgnored private var ended = false
+    /// "archer-arrow" of the arrow up, nil between arrows.
+    @ObservationIgnored private var arrowKey: String?
+    @ObservationIgnored private var arrowSince = Date.distantPast
+    /// A loose not yet answered by an arrow_shot: resent until it lands (the module ignores a second).
+    @ObservationIgnored private var pendingLoose: (key: String, draw: Float, at: Date)?
+    @ObservationIgnored private var lastTick: Date?
 
     init(battle: BattleClient) {
         self.battle = battle
@@ -49,9 +60,14 @@ final class ToxeiaSession {
         haptics.prepare()
         follower?.cancel()
         follower = Task { [weak self] in
+            // 20 Hz on a fixed grid: the sleep is to the next 50 ms mark, not 50 ms after a busy tick.
+            let clock = ContinuousClock()
+            var next = clock.now
             while !Task.isCancelled {
                 self?.tick()
-                try? await Task.sleep(for: .milliseconds(50))  // 20 Hz: aim and draw
+                next += .milliseconds(50)
+                if next < clock.now { next = clock.now }  // fell behind: carry on, don't burst
+                try? await Task.sleep(until: next, clock: clock)
             }
         }
     }
@@ -77,10 +93,9 @@ final class ToxeiaSession {
         battle.call(Reducer.NextArcher.name, Reducer.NextArcher(roomId: room.id, name: name))
     }
 
-    /// The bow's "Ready", tapped by the archer up at arm's length: where it points now is the centre,
-    /// and the next player in join order is the archer.
+    /// The bow's "Ready": the next player in join order is the archer. Each arrow zeroes the aim
+    /// itself once the bow is held still.
     func ready() {
-        bow.zero()
         if needsName, let next = nextArcher { name(next.name) }
     }
 
@@ -90,11 +105,15 @@ final class ToxeiaSession {
         nocked = on
         if on {
             arrow.nock()
+            haptics.hit()  // nocked: felt at once
+            Self.log.info("nock \(self.arrowKey ?? "-", privacy: .public)")
         } else {
             let shot = arrow.loose()
             draw = 0
-            if arrowUp, let room = battle.room {
+            Self.log.info("loose \(self.arrowKey ?? "-", privacy: .public) draw \(shot)")
+            if arrowUp, let room = battle.room, let key = arrowKey {
                 battle.call(Reducer.Loose.name, Reducer.Loose(roomId: room.id, draw: Float(shot)))
+                pendingLoose = (key, Float(shot), Date())
                 haptics.hit()  // the string snaps
             }
         }
@@ -114,6 +133,33 @@ final class ToxeiaSession {
             if next == .arrow { arrow.start() }
         }
         trackShots()
+        let now = Date()
+        if let lastTick, now.timeIntervalSince(lastTick) > 0.25 {
+            Self.log.info("tick gap \(Int(now.timeIntervalSince(lastTick) * 1000)) ms")
+        }
+        lastTick = now
+        let key = arrowUp ? range.map { "\($0.archerId)-\($0.arrowNo)" } : nil
+        if key != arrowKey {
+            arrowKey = key
+            pendingLoose = nil
+            // A lift we never heard (a cancelled touch) never carries into the next arrow.
+            if nocked { nocked = false; draw = 0; _ = arrow.loose() }
+            if key != nil, station == .bow {
+                bow.zeroWhenSteady()
+                steadying = true
+                arrowSince = now
+            }
+        }
+        if steadying {
+            // Held still, or 3 s on: zero where it points.
+            if bow.zeroed { steadying = false }
+            else if now.timeIntervalSince(arrowSince) > 3 { bow.zero(); steadying = false }
+        }
+        if let p = pendingLoose, p.key == arrowKey, now.timeIntervalSince(p.at) >= 0.5, let room = battle.room {
+            battle.call(Reducer.Loose.name, Reducer.Loose(roomId: room.id, draw: p.draw))
+            pendingLoose = (p.key, p.draw, now)
+            Self.log.info("loose resent \(p.key, privacy: .public)")
+        }
         // Everyone has shot: the range closes by itself (no "That's everyone" to tap).
         if archers.isEmpty { ended = false }
         if station == .bow, needsName, !ended, !archers.isEmpty, nextArcher == nil {

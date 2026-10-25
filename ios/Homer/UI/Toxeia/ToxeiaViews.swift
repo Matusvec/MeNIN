@@ -239,7 +239,9 @@ struct ArrowView: View {
     let model: ArrowModel
     var actions = ArrowActions()
 
-    @State private var down = false
+    /// The thumb on the pad. A gesture state resets when the touch ends *or is cancelled* (a
+    /// system swipe from the edge), so a cancelled hold still looses instead of sticking nocked.
+    @GestureState private var pressing = false
 
     var body: some View {
         ZStack {
@@ -313,17 +315,17 @@ struct ArrowView: View {
     /// The whole lower screen is the nocking point: thumb down to nock, pull the
     /// phone back toward your face, lift to loose.
     private var holdPad: some View {
-        let nocked = model.nocked
+        let nocked = model.nocked || pressing  // the pad answers the thumb at once
         return VStack(spacing: Metrics.s2) {
             ArrowGlyph()
                 .fill(nocked ? StadionPalette.slip : StadionPalette.figure)
                 .frame(width: 170, height: 44)
                 .rotationEffect(.degrees(nocked ? 90 : 0))
                 .offset(y: nocked ? CGFloat(model.draw) * 40 : 0)
-            Text(nocked ? (model.draw >= 0.85 ? "Full draw. Let go!" : "Pull back…") : "Hold to nock")
+            Text(nocked ? (model.draw >= 0.85 ? "Full draw. Let go!" : "Nocked ✓") : "Hold to nock")
                 .font(Typeface.display(30, weight: 800))
                 .foregroundStyle(nocked ? StadionPalette.slip : StadionPalette.figure)
-            Text(nocked ? "Let go to shoot" : "Then pull the phone back toward your face")
+            Text(nocked ? "Pull back toward your face, then let go" : "Then pull the phone back toward your face")
                 .font(Typeface.text(15, weight: 600))
                 .foregroundStyle((nocked ? StadionPalette.slip : StadionPalette.figure).opacity(0.75))
         }
@@ -331,16 +333,9 @@ struct ArrowView: View {
         .background(nocked ? StadionPalette.figure : StadionPalette.clay, in: RoundedRectangle(cornerRadius: Metrics.radiusL, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: Metrics.radiusL, style: .continuous).strokeBorder(StadionPalette.figure, lineWidth: 3))
         .contentShape(Rectangle())
-        .gesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    if !down { down = true; actions.nock?(true) }
-                }
-                .onEnded { _ in
-                    down = false
-                    actions.nock?(false)
-                }
-        )
+        .gesture(DragGesture(minimumDistance: 0).updating($pressing) { _, on, _ in on = true })
+        .onChange(of: pressing) { _, on in actions.nock?(on) }
+        .defersSystemGestures(on: .bottom)  // pulling back mustn't swipe home and steal the touch
         .animation(.easeOut(duration: 0.12), value: nocked)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(nocked ? "Drawing, \(Int(model.draw * 100)) percent. Let go to shoot." : "Hold to nock the arrow")

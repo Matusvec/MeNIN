@@ -4,9 +4,12 @@ import simd
 
 /// Toxeia (archery): one archer, two phones.
 ///
-/// The BOW phone is held out at arm's length and pointed at the target, like the boxing fist: its
-/// aim is where the back of the phone points, against the pose held at "Ready" (gimbal-free, see
-/// MotionFrame). A steady hand matters, so the aim is only lightly smoothed.
+/// The BOW phone is held out and pointed at the target. Its aim is how far the phone as a whole
+/// has turned since the zero, whatever the grip (Matus: "the center of the iPhone is all that
+/// matters"): the world-frame rotation since the zero, as a rotation vector, read about gravity
+/// (left/right) and about the horizontal axis across the archer's facing (up/down). Portrait,
+/// landscape, upright or flat all aim the same, and nothing breaks with the back pointing down.
+/// Each arrow zeroes itself once the bow is held still (see `zeroWhenSteady`).
 ///
 /// The ARROW phone is the string: the thumb holds the pad to nock, the hand pulls back toward the
 /// face, and the thumb lifts to loose. The draw (0...1) comes mostly from how far it was pulled
@@ -18,20 +21,28 @@ final class BowMotion: @unchecked Sendable {
         var pitch = 0.0  // -1 (low) ... 1 (high)
     }
 
-    /// ±12° of turn = ±1, which the module maps to ±1 m on the face (radius 0.61 m), so the gold
-    /// (6.1 cm) is about ±0.7° of aim: steadiness matters (multiplayer's calibration).
-    static let yawRange = 12 * Double.pi / 180
-    static let pitchRange = 12 * Double.pi / 180
-    static let smoothing = 0.35  // one-pole per sample at 100 Hz: steady, not sluggish
+    /// ±33° of turn = ±1, which the module maps to ±1 m on the face (radius 0.61 m): the rim is
+    /// about ±20° and the gold (6.1 cm) about ±2°, so tremor and the other hand's pull stay on it.
+    static let yawRange = 33 * Double.pi / 180
+    static let pitchRange = 33 * Double.pi / 180
+    static let smoothing = 0.07  // one-pole per sample at 100 Hz: ~140 ms, tremor settles
+    /// The per-arrow zero waits for the bow held this still (rotation rate, rad/s) this long (s).
+    static let stillRate = 0.35
+    static let stillFor = 0.4
 
     private let manager = CMMotionManager()
     private let queue = OperationQueue()
     private let lock = NSLock()
-    private var reference: SIMD3<Double>?
+    private var reference: simd_double3x3?  // device → world at the zero
+    private var right = SIMD3<Double>(1, 0, 0)  // world, horizontal, across the facing at the zero
     private var aim = Aim()
+    private var waitingForStill = false
+    private var stillSince: TimeInterval?
 
     var available: Bool { manager.isDeviceMotionAvailable }
     var current: Aim { lock.withLock { aim } }
+    /// False while a per-arrow zero is still waiting for the bow to be held still.
+    var zeroed: Bool { lock.withLock { !waitingForStill } }
 
     func start() {
         guard manager.isDeviceMotionAvailable else { return }
@@ -42,20 +53,54 @@ final class BowMotion: @unchecked Sendable {
         }
     }
 
-    /// "Ready": wherever the bow points now is the centre of the target.
-    func zero() { lock.withLock { reference = nil; aim = Aim() } }
+    /// Zero now: wherever the bow points at the next sample is the centre of the target.
+    func zero() { lock.withLock { reference = nil; waitingForStill = false; aim = Aim() } }
+
+    /// Zero once the bow is held still (each arrow, so a re-grip or the gyro's drift never carries
+    /// over). The aim stays centred until then.
+    func zeroWhenSteady() { lock.withLock { waitingForStill = true; stillSince = nil; aim = Aim() } }
 
     func stop() { manager.stopDeviceMotionUpdates() }
 
     private func step(_ m: CMDeviceMotion) {
-        let pointing = MotionFrame.deviceToWorld(m) * SIMD3(0, 0, -1)
-        if reference == nil { reference = pointing }
+        let now = MotionFrame.deviceToWorld(m)
+        if waitingForStill {
+            let rate = simd_length(SIMD3(m.rotationRate.x, m.rotationRate.y, m.rotationRate.z))
+            if rate > Self.stillRate { stillSince = nil; return }
+            let since = stillSince ?? m.timestamp
+            stillSince = since
+            guard m.timestamp - since >= Self.stillFor else { return }
+            waitingForStill = false
+            reference = nil
+        }
+        if reference == nil { setReference(now) }
         guard let reference else { return }
-        let now = MotionFrame.headingElevation(pointing), zero = MotionFrame.headingElevation(reference)
-        let yaw = clamp(-MotionFrame.wrap(now.heading - zero.heading) / Self.yawRange)
-        let pitch = clamp((now.elevation - zero.elevation) / Self.pitchRange)
+        let w = Self.rotationVector(now * reference.transpose)
+        let yaw = clamp(-w.z / Self.yawRange)  // turning right is clockwise seen from above
+        let pitch = clamp(simd_dot(w, right) / Self.pitchRange)
         aim.yaw += (yaw - aim.yaw) * Self.smoothing
         aim.pitch += (pitch - aim.pitch) * Self.smoothing
+    }
+
+    /// The facing only says which horizontal axis is "across": the flatter of the back (−Z) and
+    /// the top edge (+Y), so a bow held upright or flat both tip up about the right axis.
+    private func setReference(_ r: simd_double3x3) {
+        reference = r
+        let flat = { (v: SIMD3<Double>) in SIMD3(v.x, v.y, 0) }
+        let back = flat(r * SIMD3(0, 0, -1)), top = flat(r * SIMD3(0, 1, 0))
+        let facing = simd_length(back) >= simd_length(top) ? back : top
+        let f = simd_length(facing) > 1e-6 ? simd_normalize(facing) : SIMD3(0, 1, 0)
+        right = simd_cross(f, SIMD3(0, 0, 1))
+        aim = Aim()
+    }
+
+    /// Axis × angle (radians) of a rotation matrix, the short way round.
+    static func rotationVector(_ m: simd_double3x3) -> SIMD3<Double> {
+        var q = simd_quatd(m)
+        if q.real < 0 { q = simd_quatd(real: -q.real, imag: -q.imag) }
+        let s = simd_length(q.imag)
+        guard s > 1e-9 else { return .zero }
+        return q.imag / s * (2 * atan2(s, q.real))
     }
 
     private func clamp(_ v: Double) -> Double { min(1, max(-1, v)) }

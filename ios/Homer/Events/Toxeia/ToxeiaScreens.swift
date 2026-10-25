@@ -55,7 +55,8 @@ struct ToxeiaPhoneRoot: View {
                 m.phase = .waiting(s.archers.isEmpty ? "Waiting for the archers" : "That's everyone")
             }
         } else if s.arrowUp {
-            m.phase = .aiming
+            // Each arrow zeroes once the bow is held still on the target.
+            m.phase = s.steadying ? .waiting("Point at the target and hold still") : .aiming
         } else {
             m.phase = .waiting(waitLine(s))
         }
