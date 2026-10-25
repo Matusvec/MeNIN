@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import GameStrip from './GameStrip'
 import ArenaPanel from './Arena'
 import Homer3D from './Homer3D'
+import World3D from './world/World3D'
 import JoinCard from './JoinCard'
 import { hasTestFlight, joinCodeFromPath, TESTFLIGHT_URL } from './lib/links'
 import MusicToggle from './MusicToggle'
@@ -220,7 +221,7 @@ function ModePage({
 
   return (
     <main className={`mode-screen ${mode}`}>
-      <div className="mode-scene" aria-hidden="true"><AegeanScene /></div>
+      <div className="mode-scene" aria-hidden="true"><World3D speaking={isSpeaking} fallback={<AegeanScene />} /></div>
       <header className="mode-topbar">
         <button className="mode-back" onClick={onBack}>‹ Main menu</button>
         <div><span>MeNIN</span><strong>{info.label}</strong></div>
@@ -272,14 +273,7 @@ export default function App() {
     return (
       <main className="scene">
         <div className="animated-background" aria-hidden="true">
-          <div className="scene-artboard">
-            <AegeanScene />
-            <span className="sun-haze" />
-            <span className="cloud cloud-one" />
-            <span className="cloud cloud-two" />
-            <span className="sea-light sea-light-one" />
-            <span className="sea-light sea-light-two" />
-          </div>
+          <World3D fallback={<div className="scene-artboard"><AegeanScene /></div>} />
         </div>
         <header className="nameplate" aria-label="Homer">
           <span>Homer</span>
@@ -301,17 +295,8 @@ export default function App() {
   return (
     <main className="scene">
       <div className="animated-background" aria-hidden="true">
-        <div className="scene-artboard">
-          <AegeanScene />
-          <span className="sun-haze" />
-          <span className="cloud cloud-one" />
-          <span className="cloud cloud-two" />
-          <span className="cloud cloud-three" />
-          <span className="sea-light sea-light-one" />
-          <span className="sea-light sea-light-two" />
-          <span className="sea-light sea-light-three" />
-          <span className="gull gull-one" />
-          <span className="gull gull-two" />
+        <World3D speaking={isSpeaking} fallback={<div className="scene-artboard"><AegeanScene /></div>} />
+        <div className="scene-artboard homer-stage">
           <Homer3D speaking={isSpeaking} mode={selectedMode} />
         </div>
       </div>

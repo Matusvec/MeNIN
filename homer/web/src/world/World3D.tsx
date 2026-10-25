@@ -1,0 +1,491 @@
+// The hall's 3D world behind Homer: a bright, toy-like Greek island in the spirit of
+// Wii Sports (rounded hills, a stadion with a cheering crowd, a temple, the sea).
+// It is interactive: the camera follows the pointer, a click on the sea sends a ripple,
+// a click on the crowd makes it cheer, and the crowd bounces while Homer speaks.
+// No WebGL: the caller's fallback (the painted SVG) is shown instead.
+
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import * as THREE from 'three'
+
+type World3DProps = {
+  /** Homer is talking: the crowd gets livelier. */
+  speaking?: boolean
+  /** Shown when WebGL isn't available. */
+  fallback?: ReactNode
+}
+
+const SKY_TOP = new THREE.Color(0x2f8fe8)
+const SKY_HORIZON = new THREE.Color(0xc6ecff)
+const GRASS = 0x7cc35a
+const GRASS_DARK = 0x58a845
+const MARBLE = 0xf6f0e2
+const MARBLE_SHADE = 0xe2d6bd
+const TRACK = 0xd9824f
+const SEA = 0x1f9be0
+const CYPRESS = 0x2f7a46
+const OLIVE = 0x6aa84f
+const CROWD = [0xe94b3c, 0xf5a623, 0x4a90e2, 0x7ed321, 0x9b59b6, 0xf8e71c, 0x50e3c2, 0xff6fa8, 0xffffff, 0x1abc9c]
+
+const mat = (color: number, roughness = 0.85) => new THREE.MeshStandardMaterial({ color, roughness, metalness: 0 })
+
+/** Smooth rolling hills: a few sine waves, gentle like Wii Sports Resort's fields. */
+const hill = (x: number, z: number) =>
+  Math.sin(x * 0.045) * 1.6 + Math.cos(z * 0.06 + x * 0.02) * 1.3 + Math.sin((x + z) * 0.11) * 0.4
+
+export default function World3D({ speaking = false, fallback = null }: World3DProps) {
+  const mountRef = useRef<HTMLDivElement>(null)
+  const speakingRef = useRef(speaking)
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    speakingRef.current = speaking
+  }, [speaking])
+
+  useEffect(() => {
+    const mount = mountRef.current
+    if (!mount) return
+
+    let renderer: THREE.WebGLRenderer
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'low-power' })
+    } catch (error) {
+      console.warn('MeNIN world off:', error)
+      setFailed(true)
+      return
+    }
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25))
+    renderer.outputColorSpace = THREE.SRGBColorSpace
+    renderer.toneMapping = THREE.ACESFilmicToneMapping
+    renderer.toneMappingExposure = 1.05
+    renderer.shadowMap.enabled = true
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap
+    mount.appendChild(renderer.domElement)
+
+    const scene = new THREE.Scene()
+    scene.fog = new THREE.Fog(0xd4efff, 90, 300)
+    const camera = new THREE.PerspectiveCamera(38, 1, 0.5, 600)
+    const cameraHome = new THREE.Vector3(0, 6.2, 26)
+    const lookAt = new THREE.Vector3(0, 4.2, -20)
+    camera.position.copy(cameraHome)
+
+    // Sky dome: a vertical gradient, brightest at the horizon.
+    const sky = new THREE.Mesh(
+      new THREE.SphereGeometry(400, 32, 16),
+      new THREE.ShaderMaterial({
+        side: THREE.BackSide,
+        depthWrite: false,
+        fog: false,
+        uniforms: { top: { value: SKY_TOP }, horizon: { value: SKY_HORIZON } },
+        vertexShader: 'varying vec3 vPos; void main(){ vPos = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+        fragmentShader:
+          'uniform vec3 top; uniform vec3 horizon; varying vec3 vPos; void main(){ float h = clamp(normalize(vPos).y * 1.8, 0.0, 1.0); gl_FragColor = vec4(mix(horizon, top, pow(h, 0.7)), 1.0); }',
+      }),
+    )
+    scene.add(sky)
+
+    // Sun: a soft disc with a glow, top right like the painted scene.
+    const sunGlow = new THREE.Mesh(
+      new THREE.CircleGeometry(26, 32),
+      new THREE.MeshBasicMaterial({ color: 0xfff6d2, transparent: true, opacity: 0.35, fog: false, depthWrite: false }),
+    )
+    sunGlow.position.set(120, 95, -330)
+    scene.add(sunGlow)
+    const sunDisc = new THREE.Mesh(new THREE.CircleGeometry(11, 32), new THREE.MeshBasicMaterial({ color: 0xfffbe8, fog: false }))
+    sunDisc.position.set(120, 95, -329)
+    scene.add(sunDisc)
+
+    scene.add(new THREE.HemisphereLight(0xd7f0ff, 0x6f9a4a, 1.9))
+    const sun = new THREE.DirectionalLight(0xfff0d4, 2.6)
+    sun.position.set(30, 45, 20)
+    sun.castShadow = true
+    sun.shadow.mapSize.set(1024, 1024)
+    Object.assign(sun.shadow.camera, { left: -40, right: 40, top: 30, bottom: -30, near: 1, far: 140 })
+    sun.shadow.bias = -0.0008
+    scene.add(sun)
+
+    const add = <T extends THREE.Object3D>(object: T, parent: THREE.Object3D = scene, shadows = true): T => {
+      object.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.castShadow = shadows
+          child.receiveShadow = true
+        }
+      })
+      parent.add(object)
+      return object
+    }
+
+    // Ground: rolling green hills with light and dark patches.
+    const groundGeometry = new THREE.PlaneGeometry(260, 160, 90, 60)
+    groundGeometry.rotateX(-Math.PI / 2)
+    const groundColors: number[] = []
+    const light = new THREE.Color(GRASS)
+    const darkGrass = new THREE.Color(GRASS_DARK)
+    const tint = new THREE.Color()
+    const sand = new THREE.Color(0xf1dfa8)
+    const gPos = groundGeometry.attributes.position
+    for (let i = 0; i < gPos.count; i++) {
+      const x = gPos.getX(i)
+      const z = gPos.getZ(i) - 40
+      // Flat around the plaza and the stadion, hilly further out.
+      const flat = Math.min(1, Math.max(0, (Math.hypot(x * 0.8, z + 22) - 28) / 30))
+      // Toward the far edge the land slopes under the sea, leaving a sandy shore.
+      const shore = Math.min(1, Math.max(0, (-z - 70) / 30))
+      gPos.setY(i, hill(x, z) * flat * (1 - shore) - 0.4 - shore * 2.2)
+      tint.copy(light).lerp(darkGrass, 0.5 + 0.5 * Math.sin(x * 0.17 + Math.cos(z * 0.13) * 2))
+      if (shore > 0.45) tint.lerp(sand, Math.min(1, (shore - 0.45) * 4))
+      groundColors.push(tint.r, tint.g, tint.b)
+    }
+    groundGeometry.setAttribute('color', new THREE.Float32BufferAttribute(groundColors, 3))
+    groundGeometry.computeVertexNormals()
+    const ground = add(new THREE.Mesh(groundGeometry, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95 })))
+    ground.position.z = -40
+    ground.castShadow = false
+
+    // The sea beyond the land, gently waving.
+    const seaGeometry = new THREE.PlaneGeometry(700, 260, 70, 26)
+    seaGeometry.rotateX(-Math.PI / 2)
+    const seaBase = Float32Array.from(seaGeometry.attributes.position.array)
+    const sea = new THREE.Mesh(seaGeometry, new THREE.MeshStandardMaterial({ color: SEA, roughness: 0.35, metalness: 0.05 }))
+    sea.position.set(0, -1.1, -225)
+    sea.receiveShadow = true
+    scene.add(sea)
+
+    // The marble plaza Homer stands on, front and centre.
+    const plaza = new THREE.Group()
+    add(new THREE.Mesh(new THREE.CylinderGeometry(9, 9.6, 0.8, 64), mat(MARBLE, 0.6)), plaza)
+    add(new THREE.Mesh(new THREE.CylinderGeometry(10.4, 11, 0.5, 64), mat(MARBLE_SHADE, 0.7)), plaza).position.y = -0.5
+    const inlay = add(new THREE.Mesh(new THREE.RingGeometry(5.6, 6.1, 64), mat(0xd7b46a, 0.5)), plaza, false)
+    inlay.rotation.x = -Math.PI / 2
+    inlay.position.y = 0.41
+    plaza.position.set(0, 0, 4)
+    scene.add(plaza)
+
+    // The stadion: a running track with white lanes, a green infield and tiered stands.
+    const stadion = new THREE.Group()
+    stadion.position.set(-6, 0, -34)
+    const oval = (rx: number, rz: number) => {
+      const shape = new THREE.Shape()
+      shape.absellipse(0, 0, rx, rz, 0, Math.PI * 2, false, 0)
+      return shape
+    }
+    const trackShape = oval(30, 13)
+    trackShape.holes.push(oval(24, 8.5) as unknown as THREE.Path)
+    const track = add(new THREE.Mesh(new THREE.ShapeGeometry(trackShape, 64), mat(TRACK, 0.9)), stadion, false)
+    track.rotation.x = -Math.PI / 2
+    track.position.y = 0.05
+    const infield = add(new THREE.Mesh(new THREE.ShapeGeometry(oval(24, 8.5), 64), mat(0x8fd067, 0.95)), stadion, false)
+    infield.rotation.x = -Math.PI / 2
+    infield.position.y = 0.06
+    for (let lane = 1; lane < 4; lane++) {
+      const f = lane / 4
+      const lineShape = oval(24 + 6 * f + 0.12, 8.5 + 4.5 * f + 0.12)
+      lineShape.holes.push(oval(24 + 6 * f - 0.12, 8.5 + 4.5 * f - 0.12) as unknown as THREE.Path)
+      const line = add(new THREE.Mesh(new THREE.ShapeGeometry(lineShape, 64), mat(0xffffff, 0.8)), stadion, false)
+      line.rotation.x = -Math.PI / 2
+      line.position.y = 0.08
+    }
+    // Stands: three marble tiers around the far half of the track.
+    const tiers = 3
+    for (let t = 0; t < tiers; t++) {
+      const tier = add(
+        new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 64, 1, false, Math.PI * 0.5, Math.PI), new THREE.MeshStandardMaterial({ color: t % 2 ? MARBLE_SHADE : MARBLE, roughness: 0.7, side: THREE.DoubleSide })),
+        stadion,
+      )
+      tier.scale.set(32 + t * 2.2, 1.1 + t * 1.1, 15 + t * 2.2)
+      tier.position.y = (1.1 + t * 1.1) / 2
+      tier.position.z = -0.5
+    }
+    scene.add(stadion)
+
+    // The crowd: Mii-like spectators (a bright body and a skin head) on the stands.
+    const crowdCount = 150
+    const crowdBody = new THREE.InstancedMesh(new THREE.CapsuleGeometry(0.32, 0.45, 4, 8), mat(0xffffff, 0.75), crowdCount)
+    const crowdHead = new THREE.InstancedMesh(new THREE.SphereGeometry(0.3, 12, 8), mat(0xf3c097, 0.7), crowdCount)
+    const crowdSeats: Array<{ x: number; y: number; z: number; phase: number; jump: number }> = []
+    const crowdColor = new THREE.Color()
+    for (let i = 0; i < crowdCount; i++) {
+      const t = i % tiers
+      const a = Math.PI * (0.06 + 0.88 * Math.random())
+      const rx = 32 + t * 2.2 - 1, rz = 15 + t * 2.2 - 1
+      crowdSeats.push({ x: Math.cos(a) * rx, y: 1.1 + t * 1.1 + 0.55, z: -Math.sin(a) * rz - 0.5, phase: Math.random() * Math.PI * 2, jump: 0 })
+      crowdBody.setColorAt(i, crowdColor.setHex(CROWD[i % CROWD.length]))
+    }
+    crowdBody.castShadow = true
+    stadion.add(crowdBody, crowdHead)
+    const crowdMatrix = new THREE.Matrix4()
+
+    // A temple on the hill to the right, and a smaller one far left.
+    const temple = (columns: number) => {
+      const group = new THREE.Group()
+      const width = columns * 1.6
+      add(new THREE.Mesh(new THREE.BoxGeometry(width + 1.6, 0.6, 6.4), mat(MARBLE_SHADE)), group).position.y = 0.3
+      add(new THREE.Mesh(new THREE.BoxGeometry(width + 0.9, 0.5, 5.8), mat(MARBLE)), group).position.y = 0.85
+      const column = new THREE.CylinderGeometry(0.32, 0.38, 4.2, 16)
+      for (let c = 0; c < columns; c++) {
+        for (const z of [-2.2, 2.2]) {
+          add(new THREE.Mesh(column, mat(MARBLE, 0.6)), group).position.set(-width / 2 + 0.8 + c * 1.6, 3.2, z)
+        }
+      }
+      add(new THREE.Mesh(new THREE.BoxGeometry(width + 0.9, 0.6, 5.8), mat(MARBLE)), group).position.y = 5.6
+      const pediment = new THREE.Shape()
+      pediment.moveTo(-(width + 1.2) / 2, 0)
+      pediment.lineTo((width + 1.2) / 2, 0)
+      pediment.lineTo(0, 1.6)
+      pediment.closePath()
+      const roof = add(new THREE.Mesh(new THREE.ExtrudeGeometry(pediment, { depth: 6, bevelEnabled: false }), mat(0xd96c4a, 0.8)), group)
+      roof.position.set(0, 5.9, -3)
+      return group
+    }
+    const bigTemple = add(temple(6))
+    bigTemple.position.set(30, hill(30, -28) - 0.2, -50)
+    bigTemple.rotation.y = -0.35
+    const smallTemple = add(temple(4))
+    smallTemple.position.set(-58, hill(-58, -40) + 1.2, -78)
+    smallTemple.rotation.y = 0.5
+    smallTemple.scale.setScalar(0.9)
+
+    // Trees: tall cypresses and round olives, each swaying a little.
+    const trees: THREE.Object3D[] = []
+    const trunkGeometry = new THREE.CylinderGeometry(0.22, 0.3, 1.6, 8)
+    const cypress = (x: number, z: number, h = 6) => {
+      const tree = new THREE.Group()
+      add(new THREE.Mesh(trunkGeometry, mat(0x7a5634)), tree).position.y = 0.8
+      const crown = add(new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), mat(CYPRESS, 0.9)), tree)
+      crown.scale.set(1.1, h / 2, 1.1)
+      crown.position.y = h / 2 + 1
+      tree.position.set(x, hill(x, z) - 0.5, z)
+      trees.push(add(tree))
+    }
+    const olive = (x: number, z: number, s = 1) => {
+      const tree = new THREE.Group()
+      add(new THREE.Mesh(trunkGeometry, mat(0x8a6a44)), tree).position.y = 0.8
+      ;[[0, 2.4, 0, 1.6], [-1, 2.1, 0.4, 1.1], [1.05, 2.2, -0.3, 1.2], [0.2, 3.1, -0.4, 1.1]].forEach(([px, py, pz, r]) => {
+        add(new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), mat(OLIVE, 0.9)), tree).position.set(px, py, pz)
+      })
+      tree.scale.setScalar(s)
+      tree.position.set(x, hill(x, z) - 0.5, z)
+      trees.push(add(tree))
+    }
+    ;[[-16, -10], [-19, -16], [16, -12], [19, -18], [38, -40], [24, -44], [-44, -30], [-36, -52]].forEach(([x, z]) => cypress(x, z, 5 + ((x + z) & 3)))
+    ;[[-22, 2], [21, 0], [-28, -6], [27, -8], [12, -48], [-30, -60], [46, -30], [-50, -16]].forEach(([x, z], i) => olive(x, z, 0.9 + (i % 3) * 0.2))
+
+    // Islands and mountains out at sea, softened by the fog.
+    const islandMaterial = new THREE.MeshStandardMaterial({ color: 0x4f9a63, roughness: 0.95 })
+    ;[[-80, -150, 20, 9], [60, -165, 26, 12], [130, -190, 34, 16], [-150, -200, 30, 13]].forEach(([x, z, r, h]) => {
+      const island = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), islandMaterial)
+      island.scale.set(r, h, r * 0.6)
+      island.position.set(x, -1, z)
+      scene.add(island)
+    })
+
+    // Sailboats bobbing on the sea.
+    const boats: Array<{ group: THREE.Group; speed: number; base: number }> = []
+    const boat = (x: number, z: number, speed: number) => {
+      const group = new THREE.Group()
+      const hull = add(new THREE.Mesh(new THREE.CapsuleGeometry(0.9, 3.2, 4, 12), mat(0x8b5a35)), group)
+      hull.rotation.z = Math.PI / 2
+      hull.scale.set(1, 1, 0.55)
+      add(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 6, 6), mat(0x6b4a2e)), group).position.y = 3
+      const sailShape = new THREE.Shape()
+      sailShape.moveTo(0, 0)
+      sailShape.lineTo(2.8, 0)
+      sailShape.lineTo(0, 5)
+      sailShape.closePath()
+      const sail = add(new THREE.Mesh(new THREE.ShapeGeometry(sailShape), new THREE.MeshStandardMaterial({ color: 0xfff6dd, side: THREE.DoubleSide, roughness: 0.8 })), group)
+      sail.position.set(0.15, 0.8, 0)
+      group.position.set(x, -0.4, z)
+      scene.add(group)
+      boats.push({ group, speed, base: x })
+    }
+    boat(46, -130, 1.2)
+    boat(-60, -150, -0.8)
+    boat(110, -170, 0.6)
+
+    // Puffy clouds made of spheres, drifting across.
+    const clouds: THREE.Group[] = []
+    const cloudMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, emissive: 0xffffff, emissiveIntensity: 0.25, fog: false })
+    const puff = new THREE.SphereGeometry(1, 16, 12)
+    for (let i = 0; i < 9; i++) {
+      const group = new THREE.Group()
+      const n = 4 + (i % 3)
+      for (let p = 0; p < n; p++) {
+        const m = new THREE.Mesh(puff, cloudMaterial)
+        const r = 3 + Math.random() * 3
+        m.scale.set(r * 1.3, r, r)
+        m.position.set(p * 4 - n * 2 + Math.random(), Math.random() * 2, Math.random() * 2)
+        group.add(m)
+      }
+      group.position.set(-220 + i * 55 + Math.random() * 20, 45 + Math.random() * 30, -160 - Math.random() * 120)
+      scene.add(group)
+      clouds.push(group)
+    }
+
+    // Gulls: little Vs that circle, and scatter when the sea is clicked.
+    const gullMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
+    const gulls = Array.from({ length: 6 }, (_, i) => {
+      const group = new THREE.Group()
+      const wing = new THREE.PlaneGeometry(1.4, 0.25)
+      wing.translate(0.7, 0, 0)
+      const left = new THREE.Mesh(wing, gullMaterial)
+      const right = new THREE.Mesh(wing, gullMaterial)
+      right.rotation.y = Math.PI
+      group.add(left, right)
+      scene.add(group)
+      return { group, left, right, radius: 18 + i * 6, height: 22 + (i % 3) * 5, speed: 0.12 + i * 0.02, angle: i * 1.3, scatter: 0 }
+    })
+
+    // Ripples on the sea where it's clicked.
+    const ripples: Array<{ mesh: THREE.Mesh; age: number }> = []
+    const rippleGeometry = new THREE.RingGeometry(0.85, 1, 48)
+    rippleGeometry.rotateX(-Math.PI / 2)
+
+    // Pointer: the camera leans toward it (parallax); clicks hit the sea or the crowd.
+    const pointer = new THREE.Vector2(0, 0)
+    const pointerTarget = new THREE.Vector2(0, 0)
+    const raycaster = new THREE.Raycaster()
+    const onMove = (event: PointerEvent) => {
+      pointerTarget.set((event.clientX / window.innerWidth) * 2 - 1, (event.clientY / window.innerHeight) * 2 - 1)
+      wake()
+    }
+    const crowdHitbox = new THREE.Mesh(
+      new THREE.CylinderGeometry(1, 1, 1, 32, 1, true, Math.PI * 0.5, Math.PI),
+      new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide }),
+    )
+    crowdHitbox.scale.set(36, 6, 19)
+    crowdHitbox.position.y = 3
+    stadion.add(crowdHitbox)
+    const cheer = (strength = 1) => crowdSeats.forEach((seat) => (seat.jump = Math.max(seat.jump, strength * (0.6 + Math.random() * 0.4))))
+    const onClick = (event: MouseEvent) => {
+      const target = event.target as Element | null
+      if (target?.closest('button, a, input, select, textarea, [role="listbox"], .dialogue, .workspace, .game-strip, .mode-topbar')) return
+      const rect = renderer.domElement.getBoundingClientRect()
+      if (!rect.width) return
+      const ndc = new THREE.Vector2(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1)
+      raycaster.setFromCamera(ndc, camera)
+      if (raycaster.intersectObject(crowdHitbox).length) {
+        cheer(1.3)
+      } else {
+        const hit = raycaster.intersectObject(sea)[0]
+        if (hit) {
+          const mesh = new THREE.Mesh(rippleGeometry, new THREE.MeshBasicMaterial({ color: 0xe8f8ff, transparent: true, opacity: 0.9, depthWrite: false }))
+          mesh.position.copy(hit.point).setY(-0.2)
+          scene.add(mesh)
+          ripples.push({ mesh, age: 0 })
+          gulls.forEach((gull) => (gull.scatter = 1))
+        }
+      }
+      wake()
+    }
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('click', onClick)
+
+    const resize = () => {
+      const { clientWidth, clientHeight } = mount
+      if (!clientWidth || !clientHeight) return
+      renderer.setSize(clientWidth, clientHeight, false)
+      camera.aspect = clientWidth / clientHeight
+      // Narrow (portrait) screens: pull back so the plaza and stands still fit.
+      camera.fov = camera.aspect < 1 ? 52 : 38
+      camera.updateProjectionMatrix()
+    }
+    resize()
+    const resizeObserver = new ResizeObserver(resize)
+    resizeObserver.observe(mount)
+
+    // Render at full rate while something moves because of the user; otherwise 30 fps is plenty.
+    let awakeUntil = 0
+    const wake = () => (awakeUntil = performance.now() + 1500)
+    const clock = new THREE.Clock()
+    let frame = 0
+    let last = -1
+    const seaPos = seaGeometry.attributes.position
+    const animate = () => {
+      frame = requestAnimationFrame(animate)
+      if (document.hidden || !mount.offsetWidth) return
+      const time = clock.getElapsedTime()
+      const live = performance.now() < awakeUntil || speakingRef.current || ripples.length > 0
+      if (!live && time - last < 1 / 30) return
+      const dt = last < 0 ? 0 : Math.min(time - last, 0.1)
+      last = time
+      const motion = reducedMotion ? 0.15 : 1
+
+      pointer.lerp(pointerTarget, 1 - Math.exp(-dt * 3))
+      camera.position.set(cameraHome.x + pointer.x * 2.4, cameraHome.y - pointer.y * 1.1 + Math.sin(time * 0.2) * 0.15 * motion, cameraHome.z)
+      camera.lookAt(lookAt.x + pointer.x * 1.2, lookAt.y - pointer.y * 0.5, lookAt.z)
+
+      for (let i = 0; i < seaPos.count; i++) {
+        const x = seaBase[i * 3], z = seaBase[i * 3 + 2]
+        seaPos.setY(i, (Math.sin(x * 0.05 + time * 0.9) + Math.cos(z * 0.08 + time * 0.7)) * 0.35 * motion)
+      }
+      seaPos.needsUpdate = true
+      seaGeometry.computeVertexNormals()
+
+      const lively = speakingRef.current ? 1 : 0
+      crowdSeats.forEach((seat, i) => {
+        seat.jump = Math.max(0, seat.jump - dt * 0.6)
+        const bounce = Math.max(0, Math.sin(time * (6 + lively * 4) + seat.phase)) * (0.08 + lively * 0.25 + seat.jump * 0.9) * motion
+        crowdMatrix.makeTranslation(seat.x, seat.y + bounce, seat.z)
+        crowdBody.setMatrixAt(i, crowdMatrix)
+        crowdMatrix.makeTranslation(seat.x, seat.y + bounce + 0.72, seat.z)
+        crowdHead.setMatrixAt(i, crowdMatrix)
+      })
+      crowdBody.instanceMatrix.needsUpdate = true
+      crowdHead.instanceMatrix.needsUpdate = true
+
+      trees.forEach((tree, i) => (tree.rotation.z = Math.sin(time * 0.8 + i) * 0.02 * motion))
+      boats.forEach((b, i) => {
+        b.group.position.x = b.base + Math.sin(time * 0.02 * b.speed + i) * 40 * motion
+        b.group.position.y = -0.5 + Math.sin(time * 1.1 + i) * 0.25 * motion
+        b.group.rotation.z = Math.sin(time * 0.9 + i) * 0.05 * motion
+      })
+      clouds.forEach((cloud) => {
+        cloud.position.x += dt * 1.6 * motion
+        if (cloud.position.x > 260) cloud.position.x = -260
+      })
+      gulls.forEach((gull) => {
+        gull.scatter = Math.max(0, gull.scatter - dt * 0.35)
+        gull.angle += dt * (gull.speed + gull.scatter * 0.9) * motion
+        const r = gull.radius + gull.scatter * 25
+        gull.group.position.set(Math.cos(gull.angle) * r, gull.height + gull.scatter * 10, -60 + Math.sin(gull.angle) * r * 0.5)
+        gull.group.rotation.y = -gull.angle
+        const flap = Math.sin(time * (5 + gull.scatter * 8) + gull.radius) * 0.5
+        gull.left.rotation.z = flap
+        gull.right.rotation.z = -flap
+      })
+      for (let i = ripples.length - 1; i >= 0; i--) {
+        const ripple = ripples[i]
+        ripple.age += dt
+        ripple.mesh.scale.setScalar(1 + ripple.age * 9)
+        ;(ripple.mesh.material as THREE.MeshBasicMaterial).opacity = Math.max(0, 0.9 - ripple.age * 0.45)
+        if (ripple.age > 2) {
+          scene.remove(ripple.mesh)
+          ;(ripple.mesh.material as THREE.Material).dispose()
+          ripples.splice(i, 1)
+        }
+      }
+
+      renderer.render(scene, camera)
+    }
+    animate()
+
+    return () => {
+      cancelAnimationFrame(frame)
+      resizeObserver.disconnect()
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('click', onClick)
+      scene.traverse((object) => {
+        if (object instanceof THREE.Mesh) {
+          object.geometry.dispose()
+          const materials = Array.isArray(object.material) ? object.material : [object.material]
+          materials.forEach((entry) => entry.dispose())
+        }
+      })
+      renderer.dispose()
+      renderer.domElement.remove()
+    }
+  }, [])
+
+  if (failed) return <>{fallback}</>
+  return <div className="world-3d" ref={mountRef} aria-hidden="true" />
+}
