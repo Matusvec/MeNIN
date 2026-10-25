@@ -211,7 +211,7 @@ It's published on the Apify Store: https://apify.com/matusnator/epithet-miner (A
 - [ ] **[Cartesia] Best Use of Cartesia**: Meta glasses. Voice is the whole game.
 - [ ] **[Anthropic] Claude for Public Benefit**: $5,000 in Claude credits, a year of Max 20x and office hours. Claude judges and hosts; Claude Code built it.
 - [ ] **[Meta] Meta/Facebook: Bringing People Closer Together with AI**: a Round 2 invite at Menlo Park.
-- [ ] **[Figma] Best Figma Workflow Hack**: $1,000 on Devpost ($2,000 + $2,000 + $500 + $500 in Figma's brief). The Slides link goes in "Try it Out links".
+- [ ] **[Figma] Best Figma Workflow Hack**: $1,000 on Devpost ($2,000 + $2,000 + $500 + $500 in Figma's brief). **Ticking it "will also opt you into the Figma Best Design, Most Creative, and Best Stage Log!"** (#spons-figma, Sat 9:33 PM, Figma staff), so one tick covers all four. The Slides link goes in "Try it Out links".
 - [ ] **[Apify] Best Use of Apify**: $2,000 / $1,000 / $800 / $400 / $400.
 - [ ] **[Apify] Best Actor sponsored by Apify**: $400. Give the Store link and the Actor ID.
 - [ ] **[Moss] Best Use of Moss**: AirPods, 2 winners. It's live in the dealer, with a droplet bench.
@@ -250,4 +250,6 @@ It's published on the Apify Store: https://apify.com/matusnator/epithet-miner (A
 - [ ] **The website opens at https://play.206.189.237.157.sslip.io** in a private window on a laptop, and on a phone on cellular with Wi-Fi off, so we know it works off our network. Then an iPhone joins its room
 - [ ] Cover image: an arena frame with the carved gold line, matte, no neon
 - [ ] Every `[bracket]` filled or deleted. Search the page for `[` before submitting.
+- [ ] **Everyone at the venue and checked in by 8 AM Sunday.** The Devpost page says: "Get to the venue by October 25th @ 8 AM PST. You must've had been accepted and checked in as a hacker to submit." A hacker asked whether it's required (#0-ask-directors, Sat 10:04 PM), with no answer yet, so treat it as required.
+- [ ] **Apify, as their staff asked** (#spons-apify, Sat 9:12 PM): list Apify among the sponsor tools used (done in "Built with"), give the Actor ID (done), and say how we used it. "Capture the judges attention in the first 10 seconds", "Show don't just tell".
 - [ ] Submitted by **8:45 AM Sunday** (hard deadline 9:00)
