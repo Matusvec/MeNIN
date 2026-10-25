@@ -99,9 +99,10 @@ Rough table layout, with the judges in front. There's no external screen, so the
 
 The SpacetimeDB judges want "something that's hard to build without Spacetime". This shows the server running the battle, live, for about 5 seconds.
 
-- **Start it once in the morning (10:10),** in a Terminal on the Mac's **second desktop**, from the repo root:
-  `cd spacetime && STDB_URL=https://maincloud.spacetimedb.com STDB_DB=homer-calhacks npx tsx scripts/watch.ts`
-  **[multiplayer confirms the exact command.]** This skips `npm run watch`'s `spacetime generate` step, which needs the CLI on PATH, and uses the committed bindings. It's a read-only, anonymous subscriber that never calls a reducer (`spacetime/scripts/watch.ts`), and multiplayer confirms its CPU is about zero. It prints one line per change: phases, joins, turns, deals, scores and verdicts.
+- **Start it once in the morning (10:10),** in a Terminal on the Mac's **second desktop**, from the repo root (multiplayer, Sat ~11 PM):
+  `cd spacetime && export PATH="$HOME/.local/bin:$PATH" && npm run -s bindings && while true; do STDB_URL=https://maincloud.spacetimedb.com STDB_DB=homer-calhacks npx tsx scripts/watch.ts; sleep 2; done`
+  It regenerates the bindings from the committed module (the `spacetime` CLI is in `~/.local/bin`, not on PATH), then restarts itself if it ever exits. It's read-only and anonymous: a fresh identity each connect, no reducer calls, subscriptions only. On prod since 7:30 PM it has used 0.0% CPU and about 25 MB, and it writes nothing to disk (leave `AIM_DIR` unset). As a separate client, it can't touch the arena tab's one-tab lock or host identity. **Nobody publishes to homer-calhacks during judging** (leader has frozen publishes); a schema change would need `npm run -s bindings` and a restart.
+- **The first line lists every room on prod (~50), a long wrapped line.** Flip only once it has scrolled away. The lines worth showing are the live ones: joins, phases, scores, arrows (with push latency in ms), punches and heats. [multiplayer can trim the start line Sunday morning, after quiet hours, if leader wants it.]
 - **The flip, during Matus's sponsor line (demo script 1:10–1:26):** on "SpacetimeDB runs the hall", the operator swipes to desktop 2 (three fingers, or Ctrl+→). The judges see the timeline. Matus: "That's the server running the battle: every turn, every score, every timer." After about 5 s, swipe back.
 - **Rehearse the flip twice in the warm-up runs** (9:20–10:00). Never flip while a poet is speaking or the verdict is on screen.
 - **If it has stopped or errors:** don't flip. Say the line without it, then restart the timeline between judges.
