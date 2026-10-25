@@ -91,7 +91,7 @@ For our web designer, from Matus. As of Sun Oct 25, ~12:55 AM. Every line below 
 | `[turn-to-voice p50]` | Read off the latency HUD at the video shoot |
 | `[real-mic WER]` | swift (if it isn't run, keep the 3%/20% numbers as they are) |
 | `[If debate passed]`, `[If discus passes on 31]`, `[If archery passes on 31]` | leader, from the clean-run counts; delete the line if the event didn't pass |
-| `[Video]` | The video link (section 5) |
+| ~~`[Video]`~~ | Filled: https://youtu.be/vazDlqfDaUs (2:41, Unlisted) |
 | ~~`[TestFlight public link]`~~ | Filled: https://testflight.apple.com/join/r9KCHkhc (live once Apple approves the beta; submitted Sun 3:27 AM) |
 | `[ASI:One link]` | Whoever tests homer-bard in ASI:One; otherwise untick Fetch.ai and delete its blurb |
 | `[playmenin.tech, if registered]` | Matus; delete it if not registered |
@@ -109,7 +109,7 @@ For our web designer, from Matus. As of Sun Oct 25, ~12:55 AM. Every line below 
 - **Length:** 3 minutes at most (MLH: "3 min", and it's required on Devpost). Our final cut is **2:41** (`menin-demo-3min-final.mp4`, Sun 5:55 AM). A **1:56** cut (`menin-demo-2min-final.mp4`), ending on the "Built responsibly" card, stands alone for Cartesia, and the rest of the 2:41 is the games and the Figma workflow. It's the same video for Figma.
 - **What it opens on:** the live poetry battle, from the first second. 0:00–0:10 is a poet speaking with the scene moving, no narration. At 0:16–0:20 Homer's verdict lands, with Matus's voiceover: "MeNIN. A live poetry battle. You speak, and Homer judges you out loud."
 - **The plan and shot list:** `docs/gtm/video.md`, with every shot, who records it, and the 3–4 s SpacetimeDB timeline split-screen.
-- It's shot on the judging build, on both phones. The link goes into Devpost's video field and into the `[Video]` bracket.
+- It's shot on the judging build, on both phones. The link is **https://youtu.be/vazDlqfDaUs** (Unlisted, 2:41). It goes into Devpost's video field, and it's already in the README.
 
 ## 6. What could be yours (suggestions)
 
