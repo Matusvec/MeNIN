@@ -151,6 +151,7 @@ export default function ArenaPanel({
   const verseWindow = useCallback(() => arena.current?.verseWindow() ?? null, [])
   const subscribe = useCallback((listener: () => void) => arena.current?.onProsody(listener) ?? (() => {}), [])
   const [word, setWord] = useState<WordMark | null>(null)
+  const [picking, setPicking] = useState(false) // "New event": the event picker is open
   const onWord = useCallback((next: WordMark | null) => {
     setWord((was) => (was === next || (was && next && was.n === next.n && was.x === next.x && was.y === next.y) ? was : next))
   }, [])
@@ -376,7 +377,7 @@ export default function ArenaPanel({
 
         {discus && <DiscusPanel view={view} />}
         {stadion && <StadionPanel view={view} />}
-        {boxing && view.bout && <BoxingPanel bout={view.bout} live={room.phase === 'speaking'} />}
+        {boxing && begun && view.bout && <BoxingPanel bout={view.bout} live={room.phase === 'speaking'} />}
         {archery && <ToxeiaPanel view={view} />}
 
         {room.phase === 'scored' && score && !field && !coach && (
@@ -441,6 +442,11 @@ export default function ArenaPanel({
               {coach ? 'New conversation' : 'Rematch'}
             </button>
           )}
+          {['lobby', 'finished'].includes(room.phase) && (
+            <button className="secondary-action new-event" onClick={() => setPicking(!picking)}>
+              {picking ? 'Cancel' : 'New event'}
+            </button>
+          )}
           {view.comeback && (
           <button className="secondary-action operator" onClick={() => arena.current?.skipComeback()}>
             Skip
@@ -457,6 +463,24 @@ export default function ArenaPanel({
             </button>
           )}
         </div>
+
+        {/* New event: another game in the same hall; every phone stays joined (set_event → lobby → Begin). */}
+        {picking && ['lobby', 'finished'].includes(room.phase) && (
+          <div className="wired-actions open-choices event-picker">
+            {GAMES.filter(([event]) => event !== room.event).map(([event, label]) => (
+              <button
+                key={event}
+                className="secondary-action"
+                onClick={() => {
+                  setPicking(false)
+                  arena.current?.setEvent(event)
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Nothing is judged after the crown: the warning goes, the connection and sound notes stay. */}
         {(room.phase !== 'finished' || view.status === 'offline' || !view.sound || view.voiceNote || glNote) && (

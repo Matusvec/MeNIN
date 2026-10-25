@@ -5,7 +5,7 @@
 
 import { useEffect, useState, type CSSProperties } from 'react'
 import type { ArenaView } from './lib/arena'
-import { AIM_SPAN, ARROWS, arrowsOf, newest, onFace, order, seenAt, windOf, type ToxeiaFeed } from './lib/toxeia'
+import { AIM_SPAN, ARROWS, arrowsOf, newest, nextUp, onFace, order, seenAt, standings, windOf, type ToxeiaFeed } from './lib/toxeia'
 import Range, { FLIGHT_S, type ToxShot } from './toxeia/Range'
 import WindVane from './toxeia/WindVane'
 import './toxeia.css'
@@ -42,26 +42,30 @@ export default function ToxeiaPanel({ view }: { view: ArenaView & ToxeiaFeed }) 
   const archers = order(view.archers)
   const ink = (id: bigint) => SEATS[Math.max(0, archers.findIndex((a) => a.id === id)) % SEATS.length]
   const last = newest(view.arrows)
-  // On the line: the archer up, or between arrows the one who just shot.
-  const shooter = archers.find((a) => a.id === (range?.archerId || last?.archerId))
-  const mine = shooter ? arrowsOf(view.arrows, shooter.id) : []
-  const shot = room.phase === 'scored' ? last : null
-  const since = shot ? now - seenAt(shot) : Infinity
-  const toShot = (s: (typeof mine)[number]): ToxShot => ({ id: s.id.toString(), x: onFace(s.x), y: onFace(s.y), score: s.ring })
   const phase =
     room.phase === 'speaking' ? 'aim'
     : room.phase === 'scored' ? 'flight'
     : room.phase === 'finale' || room.phase === 'finished' ? 'done'
     : 'pass'
+  // At the end the board reads as standings, the champion first and featured.
+  const board = phase === 'done' ? standings(archers, view.arrows) : archers
+  const champ = phase === 'done' ? board[0] : undefined
+  // On the line: the archer up, or between arrows the one who just shot; at the end, the champion.
+  const shooter = champ ?? archers.find((a) => a.id === (range?.archerId || last?.archerId))
+  const mine = shooter ? arrowsOf(view.arrows, shooter.id) : []
+  const shot = room.phase === 'scored' ? last : null
+  const since = shot ? now - seenAt(shot) : Infinity
+  const toShot = (s: (typeof mine)[number]): ToxShot => ({ id: s.id.toString(), x: onFace(s.x), y: onFace(s.y), score: s.ring })
   const aiming = room.phase === 'speaking' && range
   const arrowNo = range?.arrowNo || shot?.arrowNo || 0
+  const next = phase === 'pass' ? nextUp(view.poets, archers) : null
 
   return (
     <section className="toxeia" data-phase={phase}>
       <header className="tox-top">
         <div className="tox-archer" style={{ '--seat': shooter ? ink(shooter.id) : SEATS[0] } as CSSProperties}>
           <b>{shooter?.name ?? 'Toxeia'}</b>
-          <span>{shooter && arrowNo ? `Arrow ${arrowNo} of ${ARROWS}` : 'The archery'}</span>
+          <span>{phase === 'done' && shooter ? 'Champion' : shooter && arrowNo ? `Arrow ${arrowNo} of ${ARROWS}` : 'The archery'}</span>
         </div>
         <WindVane wind={windOf(range)} />
         <div className="tox-total">
@@ -85,15 +89,14 @@ export default function ToxeiaPanel({ view }: { view: ArenaView & ToxeiaFeed }) 
             {shot.ring}
           </div>
         )}
-        {phase === 'pass' && (
-          <div className="tox-pass">{archers.length ? 'Pass both phones on' : 'Name the first archer on the bow'}</div>
-        )}
+        {next && <div className="tox-pass">{archers.length ? `Pass both phones to ${next.name}` : `${next.name}, take both phones`}</div>}
       </div>
       <ol className="tox-board">
-        {archers.map((a) => {
+        {board.map((a) => {
           const rings = arrowsOf(view.arrows, a.id)
+          const mark = a.id === champ?.id ? 'champ' : a.id === range?.archerId ? 'up' : ''
           return (
-            <li key={a.id.toString()} className={a.id === range?.archerId ? 'up' : ''} style={{ '--seat': ink(a.id) } as CSSProperties}>
+            <li key={a.id.toString()} className={mark} style={{ '--seat': ink(a.id) } as CSSProperties}>
               <b>{a.name}</b>
               <span>
                 {Array.from({ length: ARROWS }, (_, i) => (

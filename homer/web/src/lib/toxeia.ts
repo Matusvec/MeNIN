@@ -9,7 +9,7 @@
 // archer's next arrow, or back to the bow phone for the next name.
 
 import type { Conductor } from './arena'
-import type { Archer, ArrowShot, Range } from '../stdb/types'
+import type { Archer, ArrowShot, Player, Range } from '../stdb/types'
 import { FLIGHT_S } from '../toxeia/Range'
 
 /** The module's numbers (spacetime/src/index.ts): aim ±1 is AIM_SPAN metres from the gold. */
@@ -52,6 +52,12 @@ export function order(archers: Archer[]): Archer[] {
   return [...archers].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
 }
 
+/** Archers go in join order (SPEC): the first player who hasn't shot yet, or null when all have. */
+export function nextUp(poets: Player[], archers: Archer[]): Player | null {
+  const shot = new Set(archers.map((a) => a.name.toLowerCase()))
+  return [...poets].sort((a, b) => a.seat - b.seat).find((p) => !shot.has(p.name.toLowerCase())) ?? null
+}
+
 /** The arrows of one archer, in order. */
 export function arrowsOf(shots: ArrowShot[], archerId: bigint): ArrowShot[] {
   return shots.filter((s) => s.archerId === archerId).sort((a, b) => a.arrowNo - b.arrowNo)
@@ -62,13 +68,17 @@ export function newest(shots: ArrowShot[]): ArrowShot | null {
   return shots.reduce<ArrowShot | null>((top, s) => (!top || s.id > top.id ? s : top), null)
 }
 
-/** The best total; a tie goes to more golds, then to whoever shot first. */
-export function champion(archers: Archer[], shots: ArrowShot[]): Archer | null {
+/** The standings: the best total first; a tie goes to more golds, then to whoever shot first. */
+export function standings(archers: Archer[], shots: ArrowShot[]): Archer[] {
   const golds = (a: Archer) => shots.filter((s) => s.archerId === a.id && s.ring === 10).length
-  return order(archers).reduce<Archer | null>((top, a) => {
-    if (!top || a.total > top.total || (a.total === top.total && golds(a) > golds(top))) return a
-    return top
-  }, null)
+  return order(archers)
+    .map((a, i) => ({ a, i, golds: golds(a) }))
+    .sort((x, y) => y.a.total - x.a.total || y.golds - x.golds || x.i - y.i)
+    .map((x) => x.a)
+}
+
+export function champion(archers: Archer[], shots: ArrowShot[]): Archer | null {
+  return standings(archers, shots)[0] ?? null
 }
 
 /** Homer's word on an arrow, or null for a middling one (the stamp says it). */
@@ -93,10 +103,13 @@ export function conductToxeia(c: Conductor & ToxeiaFeed): void {
   const archers = order(c.archers)
   const up = range && range.archerId ? archers.find((a) => a.id === range.archerId) : undefined
   switch (room.phase) {
-    case 'ready':
-      // The rules once per hall, then the bow phone names each archer.
+    case 'ready': {
+      // The rules once per hall, then whoever's next in join order; Ready on the bow starts them.
       if (!archers.length) c.say(`toxeia rules ${room.id}`, RULES)
+      const next = nextUp(c.poets, archers)
+      if (next) c.say(`toxeia next ${c.battleKey} ${next.id}`, archers.length ? `Pass both phones to ${next.name}.` : `${next.name}, take both phones.`)
       return
+    }
     case 'speaking': {
       if (!range || !up) return
       if (range.arrowNo === 1) c.say(`toxeia up ${up.id}`, `${up.name} steps to the line.`)

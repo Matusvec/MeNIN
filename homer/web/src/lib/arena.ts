@@ -378,6 +378,13 @@ export class Arena {
     this.call(() => this.conn!.reducers.endBattle({ roomId: this.roomId }))
   }
 
+  /** "New event" (SPEC: the hall stays open): the room switches games and returns to the lobby with the poets
+   *  still joined (set_event, from lobby or finished). The phones follow room.event; the conductors and the
+   *  archery subscription follow it on the next tick. */
+  setEvent(event: GameEvent): void {
+    this.call(() => this.conn!.reducers.setEvent({ roomId: this.roomId, event, rounds: PRESETS[event].rounds }))
+  }
+
   rematch(): void {
     this.newBattle()
     this.lastPhaseSeen = null // already counted; don't count finished → dealing again
