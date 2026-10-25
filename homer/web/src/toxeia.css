@@ -1,0 +1,424 @@
+/* Toxeia, the archery (artist). White-ground, like a lekythos: black figures and a
+   Greek target on cream, a terracotta ground band, meander borders. Matte: flat
+   fills, no glow. Multiplayer's Toxeia.tsx sets the hooks:
+
+   <section class="toxeia" data-phase="aim | flight | pass | done">
+     <header class="tox-top">
+       <div class="tox-archer" style="--seat: …"><b>Ada</b><span>Arrow 2 of 3</span></div>
+       <WindVane wind={…} />                                  (src/toxeia/WindVane.tsx)
+       <div class="tox-total"><strong>18</strong><small>points</small></div>
+     </header>
+     <div class="range">
+       <Range … />                                            (src/toxeia/Range.tsx: archer, target, pennants, aim, flight, draw)
+       <div class="tox-stamp" key={shot.id}>10</div>          the score, stamped as the arrow lands (.bull for the gold)
+       <div class="tox-pass">Pass both phones to Bo</div>     between archers
+     </div>
+     <ol class="tox-board">                                   every archer, in shooting order
+       <li class="up?" style="--seat: …"><b>Ada</b><span><i>8</i><i>10</i><i></i></span><strong>18</strong></li>
+     </ol>
+   </section> */
+
+.toxeia {
+  --figure: #1f1612;
+  --clay: #c96b3c;
+  --slip: #f1dfc4;
+  --gold: #e2bd6c;
+  --meander: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M0 18 H18 V2 H4 V14 H14 V6 H8 V10' fill='none' stroke='%231f1612' stroke-width='2.4'/%3E%3C/svg%3E");
+  position: relative;
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  color: var(--figure);
+}
+
+/* An archery room takes the width, like a fight. */
+@media (min-width: 901px) {
+  .mode-layout:has(.arena:not([data-phase='none']) .toxeia) {
+    grid-template-columns: minmax(12rem, 0.3fr) minmax(0, 1.7fr);
+  }
+
+  .mode-layout:has(.arena:not([data-phase='none']) .toxeia) .workspace {
+    width: min(97%, 92rem);
+  }
+}
+
+.arena:not([data-phase='none']):has(.toxeia) {
+  display: block;
+}
+
+/* ── The top: who's shooting, the wind, the score ─────────────────────────── */
+
+.tox-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 1.2rem;
+  align-items: center;
+}
+
+.toxeia .tox-archer {
+  display: grid;
+  gap: 0.35rem;
+  justify-items: start;
+  min-width: 0;
+}
+
+.toxeia .tox-archer b {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0.25rem 0.9rem;
+  color: #fff;
+  font: 700 clamp(1.5rem, 2.4vw, 2.1rem)/1.15 Georgia, serif;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background: var(--seat, var(--figure));
+  border: 3px solid var(--figure);
+  border-radius: 99rem;
+}
+
+.toxeia .tox-archer span {
+  font: 700 clamp(1rem, 1.4vw, 1.25rem)/1 system-ui, sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.toxeia .tox-total {
+  display: grid;
+  justify-items: end;
+}
+
+.toxeia .tox-total strong {
+  font: 800 clamp(2.6rem, 4.6vw, 4rem)/1 Georgia, serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.toxeia .tox-total small {
+  font: 700 0.9rem/1 system-ui, sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* The wind: a dial with a big arrow that turns to the wind, and the speed. */
+.toxeia .tox-wind {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  grid-template-rows: auto auto;
+  column-gap: 0.6rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.toxeia .tox-wind-label {
+  grid-column: 1 / -1;
+  justify-self: center;
+  font: 700 0.9rem/1 system-ui, sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.toxeia .vane {
+  width: clamp(4.5rem, 7vw, 6rem);
+  height: auto;
+}
+
+.toxeia .vane-dial {
+  fill: var(--slip);
+  stroke: var(--figure);
+  stroke-width: 5;
+}
+
+.toxeia .vane-arrow {
+  fill: var(--figure);
+  transform-box: view-box;
+  transform-origin: 0 0;
+  rotate: var(--toward, 0deg);
+  transition: rotate 0.7s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.toxeia .tox-wind.still .vane-arrow {
+  opacity: 0.25;
+}
+
+.toxeia .tox-wind b {
+  font: 800 clamp(2.6rem, 4.6vw, 4rem)/1 Georgia, serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.toxeia .tox-wind small {
+  align-self: end;
+  padding-bottom: 0.45rem;
+  font: 700 clamp(1rem, 1.5vw, 1.3rem)/1 system-ui, sans-serif;
+}
+
+/* ── The range: the white-ground frieze ───────────────────────────────────── */
+
+.toxeia .range {
+  position: relative;
+  padding: 1.9rem clamp(0.6rem, 2vw, 1.4rem) 0;
+  overflow: hidden;
+  background:
+    var(--meander) 0 0.4rem / 1.4rem 1.4rem repeat-x,
+    var(--slip);
+  border: 3px solid var(--figure);
+  border-radius: 1.2rem;
+}
+
+.toxeia .range-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 62vh;
+  overflow: visible;
+}
+
+/* The pennants stream the way the wind blows and flutter faster in a strong one. */
+.toxeia .range-art .flag {
+  transform-origin: 0 0;
+  animation: tox-flutter var(--flutter, 1.2s) ease-in-out infinite alternate;
+}
+
+.toxeia .range-art .ribbon {
+  transform-origin: 0 34px;
+  animation: tox-ribbon var(--flutter, 1.2s) ease-in-out infinite alternate;
+}
+
+/* The aim ring: it follows the bow at ~20 Hz, eased between updates. */
+.toxeia .range-art .aim {
+  transition: transform 0.06s linear;
+}
+
+.toxeia[data-phase='flight'] .range-art .aim,
+.toxeia[data-phase='pass'] .range-art .aim {
+  opacity: 0.35;
+}
+
+/* The draw meter: slip while weak, terracotta when good, gold at a full draw. */
+.toxeia .draw-label {
+  fill: var(--figure);
+  font: 800 34px Georgia, serif;
+  letter-spacing: 0.08em;
+}
+
+.toxeia .draw-fill {
+  fill: var(--slip);
+  transition: width 0.08s linear;
+}
+
+.toxeia .draw-meter.good .draw-fill {
+  fill: #f6c79a;
+}
+
+.toxeia .draw-meter.full .draw-fill {
+  fill: var(--gold);
+}
+
+/* The archer: the bow and string bend as he draws (the art does it); on the loose
+   the string thrums and the bow kicks. */
+.toxeia .archer.loosed .string {
+  animation: tox-thrum 0.3s ease-out;
+}
+
+.toxeia .archer.loosed .bow {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: tox-kick 0.3s ease-out;
+}
+
+/* The flight, the thunk, the arrow in the face. The arrow appears and the target
+   jolts when the flight lands (--flight after the loose). */
+.toxeia .range-art .stuck.fresh {
+  animation: tox-stick 0.01s linear var(--flight, 0.55s) both;
+}
+
+.toxeia .range-art .target.thunk {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: tox-jolt 0.4s ease-out var(--flight, 0.55s);
+}
+
+.toxeia .range-art .thunk-spark {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: tox-thunk 0.45s ease-out var(--flight, 0.55s) forwards;
+}
+
+.toxeia .range-art .thunk-spark .shock {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: tox-shock 0.5s ease-out var(--flight, 0.55s) both;
+}
+
+/* The score, stamped as the arrow lands: big, by the target. The gold is gold. */
+.toxeia .tox-stamp {
+  position: absolute;
+  top: 8%;
+  right: 2.5%;
+  z-index: 3;
+  min-width: 1.6em;
+  padding: 0.05em 0.3em 0.12em;
+  color: var(--slip);
+  font: 900 clamp(4rem, 9vw, 7rem)/1 Georgia, serif;
+  text-align: center;
+  background: var(--figure);
+  border-radius: 0.2em;
+  rotate: 6deg;
+  pointer-events: none;
+  animation:
+    tox-stamp 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2) 0.55s both,
+    tox-out 0.4s ease-in 2.6s forwards;
+}
+
+.toxeia .tox-stamp.bull {
+  color: var(--figure);
+  background: var(--gold);
+  border: 4px solid var(--figure);
+}
+
+/* Between archers: pass both phones on, big across the range. */
+.toxeia .tox-pass {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  color: var(--slip);
+  font: 900 clamp(2.6rem, 6vw, 5rem)/1.05 Georgia, serif;
+  text-align: center;
+  text-shadow: 0.06em 0.06em 0 var(--figure);
+  background: rgb(31 22 18 / 72%);
+  animation: tox-stamp 0.4s ease-out both;
+}
+
+/* ── The board: every archer's three arrows and total ─────────────────────── */
+
+.toxeia .tox-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.toxeia .tox-board li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.5rem 0.9rem;
+  background: var(--slip);
+  border: 3px solid var(--figure);
+  border-left: 0.6rem solid var(--seat, var(--figure));
+  border-radius: 0.6rem;
+}
+
+.toxeia .tox-board li.up {
+  background: var(--gold);
+}
+
+.toxeia .tox-board b {
+  overflow: hidden;
+  font: 700 clamp(1.2rem, 1.8vw, 1.5rem)/1.1 Georgia, serif;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.toxeia .tox-board span {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.toxeia .tox-board span i {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  font: 700 1rem/1 Georgia, serif;
+  font-style: normal;
+  border: 2px solid var(--figure);
+  border-radius: 50%;
+}
+
+.toxeia .tox-board span i:empty {
+  opacity: 0.3;
+}
+
+.toxeia .tox-board strong {
+  font: 800 clamp(1.6rem, 2.4vw, 2rem)/1 Georgia, serif;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Keyframes ───────────────────────────────────────────────────────────── */
+
+@keyframes tox-flutter {
+  from { transform: skewY(-5deg) scaleX(0.94); }
+  to { transform: skewY(6deg) scaleX(1.03); }
+}
+
+@keyframes tox-ribbon {
+  from { transform: skewY(-9deg); }
+  to { transform: skewY(9deg); }
+}
+
+@keyframes tox-thrum {
+  0%, 100% { transform: none; }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(2px); }
+  60% { transform: translateX(-1px); }
+}
+
+@keyframes tox-kick {
+  0% { transform: none; }
+  30% { transform: translateX(5px) rotate(-3deg); }
+  100% { transform: none; }
+}
+
+@keyframes tox-stick {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes tox-jolt {
+  0% { transform: none; }
+  20% { transform: translateX(10px) rotate(1.5deg); }
+  50% { transform: translateX(-4px) rotate(-0.6deg); }
+  100% { transform: none; }
+}
+
+@keyframes tox-thunk {
+  0% { opacity: 1; transform: scale(0.3); }
+  45% { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 0; transform: scale(1.35) rotate(18deg); }
+}
+
+@keyframes tox-shock {
+  0% { opacity: 1; scale: 0.5; }
+  100% { opacity: 0; scale: 3; }
+}
+
+@keyframes tox-stamp {
+  0% { opacity: 0; scale: 1.8; }
+  60% { opacity: 1; scale: 0.94; }
+  100% { opacity: 1; scale: 1; }
+}
+
+@keyframes tox-out {
+  to { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toxeia .range-art .flag,
+  .toxeia .range-art .ribbon,
+  .toxeia .archer.loosed .string,
+  .toxeia .archer.loosed .bow,
+  .toxeia .range-art .target.thunk,
+  .toxeia .range-art .thunk-spark .shock {
+    animation: none;
+  }
+
+  .toxeia .tox-stamp,
+  .toxeia .tox-pass {
+    animation-duration: 0.01s;
+  }
+}

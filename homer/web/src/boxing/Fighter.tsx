@@ -7,7 +7,7 @@
 // the lean, the hit and the KO.
 
 import type { CSSProperties } from 'react'
-import { BEARD, FORE, HEAD, HIP_PIVOT, HIPS, INCISIONS_LEGS, INCISIONS_UPPER, KNOT, KO_FISTS, LEAD_SHOULDER, LEGS, NECK_PIVOT, REAR_SHOULDER, TORSO, UPPER, armAngles, fists, type Aim, type Hand, type Punch, type ThrowPhase } from './rig'
+import { BEARD, FORE, HEAD, HIP_PIVOT, HIPS, INCISIONS_LEGS, INCISIONS_UPPER, KNOT, KO_FISTS, KO_LEGS, LEAD_SHOULDER, LEGS, NECK_PIVOT, REAR_SHOULDER, TORSO, UPPER, armAngles, fists, type Aim, type Hand, type Punch, type ThrowPhase } from './rig'
 
 const INK = '#1f1612'
 const CLAY = '#c96b3c'
@@ -43,12 +43,12 @@ export default function Fighter({ side, aim, hand = null, punch = 'straight', th
         <svg className="figure" viewBox="0 0 200 240" aria-hidden="true">
           <g className="f-legs">
             <g stroke={INK} strokeLinecap="round">
-              {LEGS.map(([x1, y1, x2, y2, w], i) => (
+              {(state === 'ko' ? KO_LEGS : LEGS).map(([x1, y1, x2, y2, w], i) => (
                 <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} strokeWidth={w} />
               ))}
             </g>
             <ellipse {...HIPS} fill={INK} />
-            <Incisions paths={INCISIONS_LEGS} />
+            {state !== 'ko' && <Incisions paths={INCISIONS_LEGS} />}
           </g>
           <g className="upper" style={pivot(HIP_PIVOT)}>
             <Arm at={REAR_SHOULDER} angles={rear} className="arm rear" />

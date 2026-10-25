@@ -108,6 +108,16 @@ export const LEGS: Seg[] = [
   [122, 180, 116, 226, 12],
   [116, 226, 134, 229, 8],
 ]
+/** The legs of a fighter going down: straight and together, so he falls like a
+ *  plank and nothing swings under him when he lands on his back. */
+export const KO_LEGS: Seg[] = [
+  [90, 140, 87, 184, 18],
+  [87, 184, 86, 226, 12],
+  [86, 226, 100, 229, 8],
+  [99, 140, 102, 184, 18],
+  [102, 184, 104, 226, 12],
+  [104, 226, 118, 229, 8],
+]
 export const TORSO = '82,70 119,74 105,136 84,134'
 export const HIPS = { cx: 94, cy: 138, rx: 17, ry: 12 }
 export const HEAD = { cx: 117, cy: 52, r: 13 }
