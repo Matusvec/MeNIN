@@ -33,7 +33,7 @@ The six lesson scripts for Bard mode. The flow they run in is in `docs/ux-flow.m
 - **id:** `beat`
 - **The move:** four hits a line, a break in the middle.
 - **Trains:** Beat and Craft.
-- **Lands when:** both lines have three to five hits (four is the aim; scanner), and the verse says something: Craft 6 or more from the judge's craft check. The break, where the hits fall and the timing never fail it.
+- **Lands when:** both lines have three to five hits (four is the aim; scanner), and the verse says something: the judge weighs it at 40/100 or more. The break, where the hits fall and the timing never fail it.
 - **Unlocks:** the beat, which every mode is built on. Homer points to lesson 2.
 
 **Demo verse**
