@@ -4,6 +4,7 @@ import ArenaPanel from './Arena'
 import Homer3D from './Homer3D'
 import JoinCard from './JoinCard'
 import { hasTestFlight, joinCodeFromPath, TESTFLIGHT_URL } from './lib/links'
+import MusicToggle from './MusicToggle'
 
 
 type HomerMode = 'bard' | 'judge' | 'battle'
@@ -223,6 +224,7 @@ function ModePage({
       <header className="mode-topbar">
         <button className="mode-back" onClick={onBack}>‹ Main menu</button>
         <div><span>MeNIN</span><strong>{info.label}</strong></div>
+        <MusicToggle hush={mode === 'bard'} />
       </header>
       <div className="mode-layout">
         <aside className="coach-stage" data-waiting={hallStatus ? 'true' : undefined}>
@@ -315,6 +317,7 @@ export default function App() {
       </div>
 
       <GameStrip />
+      <MusicToggle className="floating" />
 
       <header className="nameplate" aria-label="Homer">
         <span>Homer</span>

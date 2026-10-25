@@ -1,0 +1,43 @@
+/* The music toggle (artist): a round speaker button, like the Main menu pill. In the
+   mode top bar it takes the empty right column; on the menu it sits just right of
+   Homer's nameplate (the game strip holds the top right). */
+
+.music-toggle {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  color: #47748a;
+  background: linear-gradient(#fff, #edf6f8);
+  border: 1px solid rgb(87 151 175 / 25%);
+  border-radius: 50%;
+  box-shadow: 0 0.16rem 0 rgb(78 139 161 / 22%);
+  cursor: pointer;
+}
+
+.music-toggle svg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.music-toggle.off {
+  color: #9ab0ba;
+}
+
+.music-toggle:focus-visible {
+  outline: 3px solid #328eaf;
+  outline-offset: 2px;
+}
+
+.mode-topbar > .music-toggle {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.music-toggle.floating {
+  position: absolute;
+  top: calc(clamp(1.7rem, 4.2vh, 3.2rem) + (clamp(4rem, 8vh, 5rem) - 2.75rem) / 2);
+  left: calc(min(28rem, 54vw) + 0.8rem);
+  z-index: 5;
+}

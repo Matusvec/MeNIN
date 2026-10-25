@@ -16,6 +16,7 @@ import type { SceneTheme } from './scene/moods'
 import SceneBackdrop from './scene/SceneBackdrop'
 import TailVerse, { type WordMark } from './TailVerse'
 import './wired.css'
+import { useMusic } from './music'
 
 const FEED_MS = 50 // the phones send prosody at ~20 Hz
 
@@ -199,6 +200,13 @@ export default function ArenaPanel({
   useEffect(() => {
     onSpeaking(Boolean(view?.speaking))
   }, [view?.speaking, onSpeaking])
+  // Matus's theme (src/music.ts): ducked under Homer's voice; in the spoken games, out from the
+  // count-in through the verdict, so the Mac's speakers never reach a phone's mic.
+  const spokenGame = ['poetry', 'debate', 'coach'].includes(view?.room?.event ?? '')
+  useMusic({
+    hush: spokenGame && ['ready', 'speaking', 'judging', 'scored'].includes(view?.room?.phase ?? ''),
+    duck: Boolean(view?.speaking || view?.room?.demo), // SPEC "Music": in demo mode the hall theme stays ducked
+  })
   // A poet's phone that drops for a moment shows nothing; "away" only after 3 s gone.
   const anyGone = Boolean(view?.poets.some((p) => !p.connected))
   useEffect(() => {
