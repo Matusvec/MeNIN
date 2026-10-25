@@ -74,7 +74,7 @@ Voice is the whole game: you play by speaking, and Homer answers out loud.
 
 ## SpacetimeDB: the hall
 
-**The server runs the game, so every phone is just a screen.** One module (`spacetime/src/index.ts`, 2,070 lines of TypeScript) runs all seven games. It has 26 tables (20 public), 45 reducers and four scheduled timers, and it's live on Maincloud as `homer-calhacks`.
+**The server runs the game, so every phone is just a screen.** One module (`spacetime/src/index.ts`, 2,070 lines of TypeScript) runs all seven games. It has 27 tables (20 public), 45 reducers and four scheduled timers, and it's live on Maincloud as `homer-calhacks`.
 
 - **The server decides, so nobody can fake a score.** Phones send only inputs. An arrow's landing (the drop from a soft draw, the wind drift, the 10 rings) and a punch's damage, stamina and counters are computed in the module. Only Homer's agent identity can post a poetry score (`post_score` and 6 other reducers check a service identity).
 - **Live input at 10–20 Hz through reducers:** the speaking poet's voice, Stadion strides, boxing fists, and archery's bow aim, draw and webcam pose tracking (about 40 updates a second in archery).

@@ -48,7 +48,7 @@ gtm swaps each bracket for its real number as the receipts land.
 | iOS uses the community Swift SDK with two patches | ✅ | `ios/Vendor/SpacetimeDB/README.md`; `grep -rn "HOMER PATCH" ios/Vendor` |
 | The website is a second client of the same module (TypeScript SDK), and it auto-reconnects | ✅ | `homer/web/src/lib/arena.ts` (`withAutomaticReconnect`, the one-tab lock), `Arena.tsx` ("Reconnecting…", "Resume") |
 | It's tested | ✅, and say it | `npm run smoke` (about 118 checks: hand privacy, seat takeover, the turn timer, scoring, the song, rematch, discus, debate, coach); `hall-soak.ts` (five battles on real websockets, with drops and rejoins). **Put both in the README.** |
-| One module runs seven games: 26 tables (20 public), 45 reducers, 4 scheduled timers | ✅ | `spacetime/src/index.ts` (2,070 lines); `spacetime/CONTRACT.md` (the event table, line 243 for the private tables) |
+| One module runs seven games: 27 tables (20 public), 45 reducers, 4 scheduled timers | ✅ | `spacetime/src/index.ts` (2,070 lines); `spacetime/CONTRACT.md` (the event table, line 243 for the private tables) |
 | The server decides: archery's landing, boxing's damage and counters are computed in the module; only the agent's identity can post a poetry score | ✅ | `index.ts` `landing()` (~833), the `fighter` stamina and `punch` damage columns (~316–337), `requireService` (~890) on `post_score` and 6 other reducers |
 | Live input streams at 10–20 Hz through reducers (voice, strides, fists, bow, draw, webcam aim) | ✅ | `CONTRACT.md` lines ~276–287 and 413–415 |
 | Three kinds of client on one module (Swift app, TypeScript website, Python agent over HTTP) | ✅ | `CONTRACT.md` "Who's who"; `ios/Vendor/SpacetimeDB`; `homer/web/src/lib/arena.ts` |

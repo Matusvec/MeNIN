@@ -91,7 +91,7 @@ Other events show as locked tiles, because we only unlock what's solid: an event
   - Metal shaders render the scene.
   - In lessons, syllable onsets detected on the phone itself drive the beat lane, so a hit never waits for the transcript.
   - Views take plain value models and never touch state, so the design could change twice without rewriting the logic.
-- **SpacetimeDB** runs every game: one module of 26 tables and 45 reducers, with scheduled timers, row-level security on your cards, server-side physics for archery and boxing, and 10–20 Hz live streams from every phone (the full list is in the SpacetimeDB blurb below).
+- **SpacetimeDB** runs every game: one module of 27 tables and 45 reducers, with scheduled timers, row-level security on your cards, server-side physics for archery and boxing, and 10–20 Hz live streams from every phone (the full list is in the SpacetimeDB blurb below).
   - The whole battle is a phase machine in **reducers**, server-side, from lobby to theme, dealing, speaking, judging, round end, finale and champion. A scheduled reducer closes each turn on time.
   - The phrases Homer deals you are guarded by **row-level security** (a client visibility filter in the module), so only your phone can read your cards.
   - The speaking phone streams its loudness and pitch about 20 times a second into the room's live row, which the arena subscribes to, so the scene moves with whoever is speaking.
@@ -190,7 +190,7 @@ swift · swiftui · metal · core-motion · core-haptics · avfoundation · spac
 *(gtm note, don't paste: each blurb opens with the job that sponsor's tech does in MeNIN and what breaks without it, never "we also used". Fill each bracket with what's true, or delete the blurb.)*
 
 **SpacetimeDB: the server runs the game, so every phone is just a screen.** Every MeNIN game is one SpacetimeDB module (`spacetime/src/index.ts`, 2,070 lines of TypeScript), and the clients only send inputs and draw what the tables say.
-- **One module, seven games.** The poetry battle, Socratic debate, Talk to Homer, discus, the Stadion, boxing and archery are each a config on one phase machine. It has **26 tables** (20 public, plus private config, service identities and 4 timer tables) and **45 reducers**. `set_event` switches games live in an open hall, and every phone stays joined.
+- **One module, seven games.** The poetry battle, Socratic debate, Talk to Homer, discus, the Stadion, boxing and archery are each a config on one phase machine. It has **27 tables** (20 public; 7 private, including config, the agent's service identities and 4 timer tables) and **45 reducers**. `set_event` switches games live in an open hall, and every phone stays joined.
 - **The server keeps time.** Four scheduled reducers (`turn_timer`, `race_timer`, `fight_timer`, `arrow_timer`) end turns, races, fights and arrows on time, so a phone that drops can't stall a battle.
 - **The server decides, so nobody can fake a score.** Phones send only inputs. An arrow's landing is computed in the module from the bow's aim, the draw and that arrow's wind (`landing()`: the drop from a soft draw, the wind drift, the 10 rings). A punch's damage, stamina and counters are resolved on the server too. Poetry scores can only be written by Homer's agent: `post_score` and 6 other reducers check a service identity ("only the agent service can do that").
 - **Your cards are yours.** Row-level security (`clientVisibilityFilter` on `hand`) means a phone can read only its own phrases, and an anonymous client sees none.
