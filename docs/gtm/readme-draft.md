@@ -1,6 +1,6 @@
 <!--
 FINAL draft of the public repo README (gtm, Sun ~2:40 AM), for leader to copy into /README.md before the repo goes public at 8 AM.
-Brackets left on purpose: [video link], [Devpost link], [TestFlight link] (each fills in when it exists) and [ASI:One link] (only if someone gets a real reply from homer-bard in ASI:One; otherwise delete that sentence).
+Brackets left on purpose: [video link] and [Devpost link] (each fills in when it exists; the TestFlight link is filled) and [ASI:One link] (only if someone gets a real reply from homer-bard in ASI:One; otherwise delete that sentence).
 The study: Matus's score sheet never came, so the no-study version is written in. If the numbers arrive, add one sentence under "Impact": "At Cal Hacks, N people who'd never freestyled took the beat-scored version of lesson one (build 18), and their Beat score went from X to Y out of 10."
 Credits: the "Paul" vs "Paulo" spelling is pending Matus.
 -->
@@ -11,7 +11,7 @@ Credits: the "Paul" vs "Paulo" spelling is pending Matus.
 
 μῆνιν (*mēnin*, "MAY-nin") means **rage**. It's the first word of the Iliad.
 
-**Try it: https://play.206.189.237.157.sslip.io** (open it on a laptop, choose Homer, and "Host a battle" makes it the arena; https://play.206.189.237.157.sslip.io/homer goes straight in) · **iPhone app:** [TestFlight link] · **Video:** [video link] · **Devpost:** [Devpost link] · **Figma:** [stage log deck](https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm), [design file](https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv) · prototypes: [first open → practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102), [a full battle](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364)
+**Try it: https://play.206.189.237.157.sslip.io** (open it on a laptop, choose Homer, and "Host a battle" makes it the arena; https://play.206.189.237.157.sslip.io/homer goes straight in) · **iPhone app:** https://testflight.apple.com/join/r9KCHkhc (live once Apple approves the beta; submitted Sun 3:27 AM) · **Video:** [video link] · **Devpost:** [Devpost link] · **Figma:** [stage log deck](https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm), [design file](https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv) · prototypes: [first open → practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102), [a full battle](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364)
 
 Built at Cal Hacks 13.0 by Matus, Sunya and Paul, with a team of Claude Code sessions. Original score by Paul. (See Credits.)
 

@@ -92,7 +92,7 @@ For our web designer, from Matus. As of Sun Oct 25, ~12:55 AM. Every line below 
 | `[real-mic WER]` | swift (if it isn't run, keep the 3%/20% numbers as they are) |
 | `[If debate passed]`, `[If discus passes on 31]`, `[If archery passes on 31]` | leader, from the clean-run counts; delete the line if the event didn't pass |
 | `[Video]` | The video link (section 5) |
-| `[TestFlight public link]` | Matus, after Beta App Review |
+| ~~`[TestFlight public link]`~~ | Filled: https://testflight.apple.com/join/r9KCHkhc (live once Apple approves the beta; submitted Sun 3:27 AM) |
 | `[ASI:One link]` | Whoever tests homer-bard in ASI:One; otherwise untick Fetch.ai and delete its blurb |
 | `[playmenin.tech, if registered]` | Matus; delete it if not registered |
 | `[Matus: add "and Matus checked them" only if true]` (Apify blurb) | Matus |
@@ -100,7 +100,7 @@ For our web designer, from Matus. As of Sun Oct 25, ~12:55 AM. Every line below 
 ## 4. Links
 
 - **The website:** https://play.206.189.237.157.sslip.io (the Poets' Hall). **The arena is https://play.206.189.237.157.sslip.io/homer** → "Host a battle" → the Poetry battle card. Phones join with the iPhone app.
-- **The iPhone app (TestFlight):** **build 45** (0.1.0, `202610242325`) is the confirmed judging build. Matus submits it to External Testing. The public TestFlight link works only after Apple's Beta App Review, which is pending; Matus submits the judging build for external review.
+- **The iPhone app (TestFlight):** **build 45** (0.1.0, `202610242325`) is the confirmed judging build. Matus submits it to External Testing. The public TestFlight link is https://testflight.apple.com/join/r9KCHkhc (live once Apple approves the beta; submitted Sun 3:27 AM). It works only after Apple's Beta App Review, which is pending; Matus submits the judging build for external review.
 - **The Apify Actor:** https://apify.com/matusnator/epithet-miner · Actor ID `v4i7ItNXjHMmnKzfo` (Apify staff want both in the submission).
 - **The repo:** https://github.com/sunya-afrasiabi/MeNIN. Public from 8:00 AM; MIT license.
 

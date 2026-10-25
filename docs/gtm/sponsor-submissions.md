@@ -5,7 +5,7 @@ For Matus, Sun ~3:20 AM. Every line is a paste or a click. The repo goes public 
 ## 1. Cartesia: "FINAL MATERIALS - CARTESIA" (their shared doc)
 
 **Working Demo:**
-> https://play.206.189.237.157.sslip.io/homer: open it on a laptop, click "Host a battle", then the Poetry battle card. Players join from the MeNIN iPhone app: [TestFlight link] (the public link is pending Apple's Beta App Review; build 45).
+> https://play.206.189.237.157.sslip.io/homer: open it on a laptop, click "Host a battle", then the Poetry battle card. Players join from the MeNIN iPhone app: https://testflight.apple.com/join/r9KCHkhc (live once Apple approves the beta; submitted Sun 3:27 AM); build 45. Until then, a judge can try the experimental browser play: /join/CODE?web=1 → "Play in your browser" (poetry and Talk to Homer only).
 
 **Demo-First Presentation:**
 > [2:00 cut link]: the first 2:00 of our Devpost video, exported on its own. One complete battle turn first (a poet speaks, Cartesia transcribes it live, Homer judges it out loud in his Cartesia voice), then the problem and how we built it.

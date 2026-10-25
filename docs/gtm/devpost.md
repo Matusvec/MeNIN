@@ -12,7 +12,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 | `[poet's name]`, `[the poet's scene]`, `[poet quote]`, `[how the score was made]` (~~`[composer's name]`~~ filled: Paul; ~~`[team]`~~ filled: Matus, Sunya and Paul; leader, Sun ~1:50 AM, **spelling of Paul/Paulo pending Matus**) | **A fact only Matus has** | Matus (the list went to leader) | Today |
 | `[If debate passed]` | Checkpoint | The Sat 8 PM check: 5 runs in a row without a failure. Delete the section if it failed. **`[If discus passes on 31]`** works the same way: discus needs 5 clean real-phone runs on build 31 (leader and pm, Sat ~8:25 PM: the build-18 pass came before discus v2 shipped in build 21). Its earlier 5 of 5 on build 18 no longer counts. | Sat 8 PM, and the 31 runs |
 | ~~`[URL]`~~ | Link | **Filled: https://play.206.189.237.157.sslip.io** (`homer/DEPLOY.md`; it answered HTTP 200 at Sat 5:50 PM). Still open it on a phone on cellular before submitting. | Done |
-| `[TestFlight public link]`, `[Video]`, `[ASI:One link]` (the Figma Slides link is filled: https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm) | Link | Apple's Beta App Review; [video.md](video.md); the Slides deck; builder | As each lands |
+| ~~`[TestFlight public link]`~~ (filled: https://testflight.apple.com/join/r9KCHkhc, live once Apple approves; build 45 submitted to External Testing, group "Judges", Sun 3:27 AM), `[Video]`, `[ASI:One link]` (the Figma Slides link is filled: https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm) | Link | Apple's Beta App Review; [video.md](video.md); the Slides deck; builder | As each lands |
 
 ---
 
@@ -24,7 +24,7 @@ Paste this into Devpost. **Never submit a claim that isn't true on Sunday mornin
 
 *Trademarks: no "Wii", "Wii Sports", "Guitar Hero" or "Olympic" anywhere in this page.*
 
-**Try it:** **https://play.206.189.237.157.sslip.io**: open it on a laptop, choose Homer in the Poets' Hall (or go straight to https://play.206.189.237.157.sslip.io/homer), click "Host a battle", and that screen becomes the arena; then join from your iPhone · iPhone app: [TestFlight public link] · [playmenin.tech, if registered] · Video: [Video] · Figma Slides (the stage log): https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm · Clickable prototypes: [first open → practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102) · [a full battle](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364)
+**Try it:** **https://play.206.189.237.157.sslip.io**: open it on a laptop, choose Homer in the Poets' Hall (or go straight to https://play.206.189.237.157.sslip.io/homer), click "Host a battle", and that screen becomes the arena; then join from your iPhone · iPhone app: https://testflight.apple.com/join/r9KCHkhc (live once Apple approves the beta; submitted Sun 3:27 AM) · [playmenin.tech, if registered] · Video: [Video] · Figma Slides (the stage log): https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm · Clickable prototypes: [first open → practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102) · [a full battle](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364)
 
 ---
 
