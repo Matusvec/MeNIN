@@ -167,6 +167,7 @@ The total is out of 100. Clichés and dodging the theme cost. In the lessons, **
 ## Where it can go wrong (and what we do about it)
 
 - **Speech recognition misses in noisy rooms.** Keyterms from Homer's phrases cut word errors from 20% to 3% in our tests, with a drum at full volume as test noise, but those were recorded test mixes, and a loud hall with a real phone mic is harder. The live transcript is always on screen, so you see what Homer heard, and the hands-free mic opens only on your turn.
+- **The arena's browser tab dies mid-verdict.** The server still judges: a turn that sits in judging for 6 s with no request from the arena is judged by the agent straight from SpacetimeDB, so the verdict lands within about 6 s anyway. We built it after a stalled tab cost three Talk to Homer turns their verdicts (commit 7ef1c5f).
 - **Taste is contestable.** Every verdict shows all three scores and the quoted line, so you can see why you lost, and the scale is anchored, so a 5 means the same thing every time.
 - **Emotion reading is approximate.** The scene is art, not a diagnosis, and Homer never names your emotion.
 - **English stress has edge cases** with names, slang and loanwords. The scanner flags uncertain syllables instead of marking them wrong.
@@ -197,6 +198,7 @@ swift · swiftui · metal · core-motion · core-haptics · avfoundation · spac
 - **Live at 10–20 Hz.** The speaking poet's voice (loudness, pitch, stressed syllables) streams into one `prosody` row that the arena's scene reads. The Stadion streams strides, boxing streams fist aim and guard, and archery streams the bow's aim, the draw and the webcam's pose tracking, all through reducers. Archery alone is about 40 updates a second.
 - **Three kinds of client on one module.** The iPhone app (the community Swift SDK, vendored with two patches; `ios/Vendor/SpacetimeDB`), the website arena (the TypeScript SDK 2.13, with auto-reconnect and "Resume") and the Python agent (the HTTP API, with its own identity). Live on Maincloud as `homer-calhacks`.
 - **A dropped phone loses nothing.** Lose the network mid-battle, and the phone comes back by itself on the right screen, with everyone listed and no relaunch (a real iPhone in airplane mode, Sat 10:49 PM, build 31's reconnect fix). And a new connection with the same name takes a disconnected seat back, with its score (`join_room`). [The kill-the-app seat takeover is shown live only if take 2 of the shoot or multiplayer's runs pass it.]
+- **The verdict doesn't depend on the arena.** If the arena's tab stalls, Homer's agent reads the turn's transcript, theme and dealt hand from the database itself and judges it after 6 s, so the battle carries on.
 - **Tested like a backend.** `npm run smoke` runs **232 checks** over all seven games against a local server (hand privacy, seat takeover, the timers, scoring, the song, rematch). `scripts/hall-soak.ts` runs five battles on real websockets, with drops and rejoins. `npm run watch` prints a live timeline of every phase, join, score and throw from Maincloud.
 
 Each of these does a job MeNIN needs, and each one has a fallback, so a battle never stalls on a third-party call.
