@@ -1,8 +1,10 @@
 """The turn verdict: code scores what code can, then one streamed Claude call.
 
-SPEC "Judge axes": Beat comes from the scanner and Range from the emotion
-engine, both before Claude is called. Claude scores Craft, Image and Answer,
-quotes the best line, and writes the spoken verdict, all in one call:
+SPEC "Judge axes": Flow (key `beat`) comes from the scanner and Range from the
+emotion engine, both before Claude is called. Claude scores Craft, Image and
+Answer, quotes the best line, and writes the spoken verdict, all in one call.
+A battle verse counts content only: Image x4, Answer x4, Craft x2, out of 100;
+Flow and Range are computed but weigh 0 (events.py, the module's post_score):
 
 - No tool loop. The scanner's output is inlined in the prompt.
 - Strict JSON through structured outputs, with `verdict` near the front so
@@ -11,9 +13,10 @@ quotes the best line, and writes the spoken verdict, all in one call:
   is cached.
 - Model, effort, speed and the timeout come from settings.
 
-When Claude fails or runs past the timeout, the turn still scores: Beat and
-Range stand, and Craft, Image and Answer are 0 ("Homer is silent on this
-one"). There is never a canned verdict.
+When Claude fails or runs past the timeout, the turn still scores: Flow and
+Range stand, Craft, Image and Answer take the neutral SILENT_SCORE (4, so 40/100),
+and the verdict is SILENT_VERDICT, "Homer is silent on this one.", which every
+client shows as a neutral fallback. There is never an invented verdict.
 """
 
 from __future__ import annotations
@@ -80,7 +83,7 @@ class Judgment:
     best_line: str = ""
     coined: str = ""
     declined: bool = False  # not fit for the hall
-    silent: bool = False  # Claude didn't answer in time: Craft, Image and Answer are 0
+    silent: bool = False  # Claude didn't answer in time: Craft, Image and Answer are SILENT_SCORE
     error: str = ""
     scan: VerseScan | None = None
     delivery: Delivery | None = None  # debate: what Poise was measured from
@@ -94,7 +97,7 @@ class Judgment:
 
     @property
     def total(self) -> int:
-        """Weighted like the module's post_score: a poetry verse is out of 100 (Image, Answer x3, Craft x2)."""
+        """Weighted like the module's post_score: a poetry verse is out of 100 (Image, Answer x4, Craft x2; Flow, Range 0)."""
         return sum(v * self.weights.get(k, 1) for k, v in self.scores.items())
 
 

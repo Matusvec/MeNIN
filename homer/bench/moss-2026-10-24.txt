@@ -1,0 +1,19 @@
+bank: 180 formulas, index menin-formulas-ab3f77eff1, loaded in 2593 ms
+
+40 runs over 16 themes
+ranked lookup  p50 1.55 ms  p95 1.93 ms  max 4.23 ms
+whole deal     p50 1.87 ms  p95 2.24 ms  max 2.34 ms
+
+The demo themes, one hand each (same seed): the tag dealer, then Moss
+
+A ship that never came home
+  tags: and the sea kept them | the wine-dark sea | the whale-road | the salt sea | far from my home
+  moss: and the ships went down | sea-girt island | the sea-steed | the one who stayed | the swift ships
+
+The night before the battle
+  tags: as the sun went down | the sleepless one | the sea-wolf | the holy night | till the light went out
+  moss: through the dark night | black night | the battle-sweat | as the sun went down | the last to leave
+
+The war between two brothers
+  tags: with blood in my eye | the well-built wall | the sea-wolf | murderous Ares | the unbroken
+  moss: as the spears flew | the black ships | the battle-light | the unbroken | three-barbed arrow

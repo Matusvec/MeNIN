@@ -1,0 +1,14 @@
+claude-opus-5-5:low:fast
+  claude-opus-5-5:low:fast     verdict     883 ms  done    1003 ms  cache_read  3125  out   92  Salt in my teeth. That one bites; give the brother one like it.
+  claude-opus-5-5:low:fast     verdict    1864 ms  done    2024 ms  cache_read  3125  out  367  Breaker of deadlines. A fine title, but his sea went unanswered.
+  claude-opus-5-5:low:fast     verdict     832 ms  done     909 ms  cache_read  3125  out   96  My bag on the rack. Sharp ride, but where are the warring brothers?
+  claude-opus-5-5:low:fast     verdict    1704 ms  done    1800 ms  cache_read  3125  out  243  Till the blade beats back. A fine forge, but the city burned without you.
+  claude-opus-5-5:low:fast     verdict    1128 ms  done    1278 ms  cache_read  3125  out  106  The crowd sea moved. Strong city, but where's the ship that left you?
+  claude-opus-5-5:low:fast     verdict     904 ms  done    1017 ms  cache_read  3125  out   93  The wall is a wave. Strong turn, but where did the ship sail?
+  claude-opus-5-5:low:fast     verdict     893 ms  done     981 ms  cache_read  3125  out   97  The salt in my teeth. Now tie that shore to tomorrow's fight.
+  claude-opus-5-5:low:fast     verdict     973 ms  done    1122 ms  cache_read  3125  out   98  Breaker of deadlines. Sharp name, but where are the warring brothers?
+  claude-opus-5-5:low:fast     verdict     940 ms  done    1057 ms  cache_read  3125  out   96  My bag on the rack. Real stuff sells it, now bring the hand in.
+  claude-opus-5-5:low:fast     verdict     824 ms  done     923 ms  cache_read  3125  out   94  Till the blade beats back. Fine steel, but your ship sailed without it.
+
+config                        ok  verdict p50  p95   done p50  p95   first p50  out  cached
+claude-opus-5-5:low:fast      10/10     904    1864    1017    2024     729   138  10

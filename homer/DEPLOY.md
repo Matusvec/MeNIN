@@ -112,6 +112,8 @@ Caddy keeps its certificate in a volume, so restarts don't ask Let's Encrypt aga
 
 ## The website
 
+Live at **https://play.206.189.237.157.sslip.io** (the agent behind it: https://206.189.237.157.sslip.io; SpacetimeDB: Maincloud `homer-calhacks`).
+
 SPEC "The website": static files on the droplet, at their own HTTPS name. Caddy serves `/srv/menin-web` at `WEB_HOST` (for example `play.<ip>.sslip.io`) with its own Let's Encrypt certificate, and unknown paths fall back to `index.html` for client-side routes.
 
 ```bash

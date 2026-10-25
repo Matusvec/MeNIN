@@ -1,0 +1,15 @@
+[
+  {
+    "config": "claude-opus-5-5:low:fast",
+    "n": 10,
+    "ok": 10,
+    "silent": 0,
+    "first_token_p50": 729,
+    "verdict_p50": 904,
+    "verdict_p95": 1864,
+    "done_p50": 1017,
+    "done_p95": 2024,
+    "output_tokens_mean": 138,
+    "cache_hits": 10
+  }
+]

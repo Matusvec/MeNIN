@@ -25,8 +25,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from homer.config import settings  # noqa: E402
 from homer.judge import Judge, Turn  # noqa: E402
+from homer.deal import DEFAULT_THEMES  # noqa: E402
 
-THEMES = ["A ship that never came home", "The last train out", "A city that never sleeps", "The forge", "Deadline night"]
+THEMES = list(DEFAULT_THEMES[:5])  # the written themes in Homer's world (deal.py)
 VERSES = [
     "the wine dark sea took my brother's ship\nhe sailed at dawn and never came back\nI stand on the shore with the salt in my teeth\nthe whale road keeps what the whale road takes",
     "the night was long and the screen was bright\nthe coffee went cold by the second hour\nthe code compiled when the sun came up\nbreaker of deadlines rose from the chair",
