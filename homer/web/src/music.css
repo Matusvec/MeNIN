@@ -41,3 +41,10 @@
   left: calc(min(28rem, 54vw) + 0.8rem);
   z-index: 5;
 }
+
+/* Phones: the nameplate is min(24rem, 72vw) wide there, so sit just after it. */
+@media (max-width: 760px) {
+  .music-toggle.floating {
+    left: calc(min(24rem, 72vw) + 0.6rem);
+  }
+}

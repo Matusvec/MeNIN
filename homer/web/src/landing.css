@@ -204,9 +204,10 @@
 .landing-footnote {
   grid-area: foot;
   margin: 1.5rem 0 0;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
+  font-style: italic;
   text-align: center;
-  color: #557689;
+  color: #3f6478;
 }
 
 /* The hall's way back to the landing page, under Homer's nameplate. */
@@ -229,6 +230,15 @@
 .back-to-poets:hover,
 .back-to-poets:focus-visible {
   background: rgb(36 64 86 / 75%);
+}
+
+@media (max-width: 720px) {
+  .back-to-poets {
+    top: calc(max(1.25rem, env(safe-area-inset-top)) + 4.9rem);
+    left: 1rem;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+  }
 }
 
 @media (max-width: 860px) {

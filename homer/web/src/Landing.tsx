@@ -26,7 +26,7 @@ export default function Landing({ onChoose }: { onChoose: (poet: PoetId) => void
   return (
     <main className="landing">
       <div className="landing-world" aria-hidden="true">
-        <World3D />
+        <World3D view="vista" />
       </div>
 
       <header className="landing-header">

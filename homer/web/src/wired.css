@@ -170,11 +170,32 @@
     grid-template-columns: 1fr;
   }
 
+  /* Phones: one swipeable row of compact chips under the nameplate and the "All poets" pill,
+     so the tiles never cover the nameplate or the sound button. */
   .game-strip {
+    top: calc(max(1.25rem, env(safe-area-inset-top)) + 7.6rem);
     left: 1rem;
-    right: 1rem;
+    right: 0;
     max-width: none;
-    justify-content: center;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    padding-right: 1rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .game-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .game-tile {
+    flex: 0 0 auto;
+    padding: 0.4rem 0.8rem;
+    border-width: 0.15rem;
+  }
+
+  .game-tile small {
+    display: none;
   }
 }
 

@@ -12,6 +12,8 @@ type World3DProps = {
   speaking?: boolean
   /** Shown when WebGL isn't available. */
   fallback?: ReactNode
+  /** 'hall' (default): low, behind Homer on his plaza. 'vista': high over the whole island (the landing page). */
+  view?: 'hall' | 'vista'
 }
 
 const SKY_TOP = new THREE.Color(0x2f8fe8)
@@ -24,6 +26,7 @@ const TRACK = 0xd9824f
 const SEA = 0x1f9be0
 const CYPRESS = 0x2f7a46
 const OLIVE = 0x6aa84f
+const SKIN = [0xf6d2b3, 0xeab68e, 0xd39a6c, 0xb07650, 0x8a5636, 0x5e3a23]
 const CROWD = [0xe94b3c, 0xf5a623, 0x4a90e2, 0x7ed321, 0x9b59b6, 0xf8e71c, 0x50e3c2, 0xff6fa8, 0xffffff, 0x1abc9c]
 
 const mat = (color: number, roughness = 0.85) => new THREE.MeshStandardMaterial({ color, roughness, metalness: 0 })
@@ -32,7 +35,7 @@ const mat = (color: number, roughness = 0.85) => new THREE.MeshStandardMaterial(
 const hill = (x: number, z: number) =>
   Math.sin(x * 0.045) * 1.6 + Math.cos(z * 0.06 + x * 0.02) * 1.3 + Math.sin((x + z) * 0.11) * 0.4
 
-export default function World3D({ speaking = false, fallback = null }: World3DProps) {
+export default function World3D({ speaking = false, fallback = null, view = 'hall' }: World3DProps) {
   const mountRef = useRef<HTMLDivElement>(null)
   const speakingRef = useRef(speaking)
   const [failed, setFailed] = useState(false)
@@ -65,8 +68,9 @@ export default function World3D({ speaking = false, fallback = null }: World3DPr
     const scene = new THREE.Scene()
     scene.fog = new THREE.Fog(0xd4efff, 90, 300)
     const camera = new THREE.PerspectiveCamera(38, 1, 0.5, 600)
-    const cameraHome = new THREE.Vector3(0, 6.2, 26)
-    const lookAt = new THREE.Vector3(0, 4.2, -20)
+    const vista = view === 'vista'
+    const cameraHome = vista ? new THREE.Vector3(-10, 22, 46) : new THREE.Vector3(0, 6.2, 26)
+    const lookAt = vista ? new THREE.Vector3(8, 0, -45) : new THREE.Vector3(0, 4.2, -20)
     camera.position.copy(cameraHome)
 
     // Sky dome: a vertical gradient, brightest at the horizon.
@@ -85,10 +89,19 @@ export default function World3D({ speaking = false, fallback = null }: World3DPr
     scene.add(sky)
 
     // Sun: a soft disc with a glow, top right like the painted scene.
-    const sunGlow = new THREE.Mesh(
-      new THREE.CircleGeometry(26, 32),
-      new THREE.MeshBasicMaterial({ color: 0xfff6d2, transparent: true, opacity: 0.35, fog: false, depthWrite: false }),
-    )
+    const glowCanvas = document.createElement('canvas')
+    glowCanvas.width = glowCanvas.height = 128
+    const glowPaint = glowCanvas.getContext('2d')!
+    const glowGradient = glowPaint.createRadialGradient(64, 64, 0, 64, 64, 64)
+    glowGradient.addColorStop(0, 'rgba(255, 249, 220, 0.9)')
+    glowGradient.addColorStop(0.25, 'rgba(255, 246, 210, 0.45)')
+    glowGradient.addColorStop(1, 'rgba(255, 246, 210, 0)')
+    glowPaint.fillStyle = glowGradient
+    glowPaint.fillRect(0, 0, 128, 128)
+    const glowTexture = new THREE.CanvasTexture(glowCanvas)
+    glowTexture.colorSpace = THREE.SRGBColorSpace
+    const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture, fog: false, depthWrite: false, transparent: true }))
+    sunGlow.scale.setScalar(90)
     sunGlow.position.set(120, 95, -330)
     scene.add(sunGlow)
     const sunDisc = new THREE.Mesh(new THREE.CircleGeometry(11, 32), new THREE.MeshBasicMaterial({ color: 0xfffbe8, fog: false }))
@@ -153,12 +166,13 @@ export default function World3D({ speaking = false, fallback = null }: World3DPr
 
     // The marble plaza Homer stands on, front and centre.
     const plaza = new THREE.Group()
-    add(new THREE.Mesh(new THREE.CylinderGeometry(9, 9.6, 0.8, 64), mat(MARBLE, 0.6)), plaza)
-    add(new THREE.Mesh(new THREE.CylinderGeometry(10.4, 11, 0.5, 64), mat(MARBLE_SHADE, 0.7)), plaza).position.y = -0.5
-    const inlay = add(new THREE.Mesh(new THREE.RingGeometry(5.6, 6.1, 64), mat(0xd7b46a, 0.5)), plaza, false)
+    add(new THREE.Mesh(new THREE.CylinderGeometry(11.5, 12, 0.8, 72), mat(MARBLE, 0.6)), plaza)
+    add(new THREE.Mesh(new THREE.CylinderGeometry(12.9, 13.5, 0.5, 72), mat(MARBLE_SHADE, 0.7)), plaza).position.y = -0.5
+    const inlay = add(new THREE.Mesh(new THREE.RingGeometry(7.4, 7.9, 72), mat(0xd7b46a, 0.5)), plaza, false)
     inlay.rotation.x = -Math.PI / 2
     inlay.position.y = 0.41
-    plaza.position.set(0, 0, 4)
+    // Placed so Homer's feet (his own canvas) land on the marble, not on the grass behind it.
+    plaza.position.set(0, 0, -5)
     scene.add(plaza)
 
     // The stadion: a running track with white lanes, a green infield and tiered stands.
@@ -234,7 +248,7 @@ export default function World3D({ speaking = false, fallback = null }: World3DPr
     const crowdCount = ROWS * SEATS_PER_ROW
     const BODY_HALF = 0.32 + 0.45 / 2 // capsule radius + half its straight length
     const crowdBody = new THREE.InstancedMesh(new THREE.CapsuleGeometry(0.32, 0.45, 4, 8), mat(0xffffff, 0.75), crowdCount)
-    const crowdHead = new THREE.InstancedMesh(new THREE.SphereGeometry(0.3, 12, 8), mat(0xf3c097, 0.7), crowdCount)
+    const crowdHead = new THREE.InstancedMesh(new THREE.SphereGeometry(0.3, 12, 8), mat(0xffffff, 0.7), crowdCount)
     const crowdSeats: Array<{ x: number; y: number; z: number; phase: number; jump: number }> = []
     const crowdColor = new THREE.Color()
     for (let i = 0; i < crowdCount; i++) {
@@ -251,6 +265,7 @@ export default function World3D({ speaking = false, fallback = null }: World3DPr
         jump: 0,
       })
       crowdBody.setColorAt(i, crowdColor.setHex(CROWD[(i * 7) % CROWD.length]))
+      crowdHead.setColorAt(i, crowdColor.setHex(SKIN[(i * 5 + row) % SKIN.length]))
     }
     crowdBody.castShadow = true
     stadion.add(crowdBody, crowdHead)
@@ -309,7 +324,7 @@ export default function World3D({ speaking = false, fallback = null }: World3DPr
       trees.push(add(tree))
     }
     ;[[-16, -10], [-19, -16], [16, -12], [19, -18], [38, -40], [24, -44], [-44, -30], [-36, -52]].forEach(([x, z]) => cypress(x, z, 5 + ((x + z) & 3)))
-    ;[[-22, 2], [21, 0], [-28, -6], [27, -8], [12, -48], [-30, -60], [46, -30], [-50, -16]].forEach(([x, z], i) => olive(x, z, 0.9 + (i % 3) * 0.2))
+    ;[[-22, 2], [21, 0], [-28, -6], [27, -8], [44, -62], [-30, -60], [46, -30], [-50, -16]].forEach(([x, z], i) => olive(x, z, 0.9 + (i % 3) * 0.2))
 
     // Islands and mountains out at sea, softened by the fog.
     const islandMaterial = new THREE.MeshStandardMaterial({ color: 0x4f9a63, roughness: 0.95 })
@@ -529,7 +544,7 @@ export default function World3D({ speaking = false, fallback = null }: World3DPr
       renderer.dispose()
       renderer.domElement.remove()
     }
-  }, [])
+  }, [view])
 
   if (failed) return <>{fallback}</>
   return <div className="world-3d" ref={mountRef} aria-hidden="true" />

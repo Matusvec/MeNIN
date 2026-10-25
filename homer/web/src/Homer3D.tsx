@@ -262,6 +262,26 @@ export default function Homer3D({ speaking, mode, action: actionProp, framing = 
     ]
     beardCurls.forEach(([x, y, z, size]) => addMesh(sphere, white, jaw, [x, y, z], [size, size * 1.16, size * 0.72]))
 
+    // A soft contact shadow under his feet, so he stands on whatever is behind his canvas.
+    const shadowCanvas = document.createElement('canvas')
+    shadowCanvas.width = shadowCanvas.height = 64
+    const shadowPaint = shadowCanvas.getContext('2d')!
+    const shadowGradient = shadowPaint.createRadialGradient(32, 32, 0, 32, 32, 32)
+    shadowGradient.addColorStop(0, 'rgba(20, 40, 50, 0.75)')
+    shadowGradient.addColorStop(0.5, 'rgba(20, 40, 50, 0.35)')
+    shadowGradient.addColorStop(1, 'rgba(20, 40, 50, 0)')
+    shadowPaint.fillStyle = shadowGradient
+    shadowPaint.fillRect(0, 0, 64, 64)
+    const contactShadow = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 1),
+      new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(shadowCanvas), transparent: true, depthWrite: false }),
+    )
+    contactShadow.rotation.x = -Math.PI / 2
+    contactShadow.position.set(0, -2.17, 0.05)
+    contactShadow.scale.set(2.6, 1.7, 1)
+    contactShadow.renderOrder = -1
+    homer.add(contactShadow)
+
     // The judge's throne: marble, gold trim. It rises into place when he sits.
     const throne = group(homer, [0, -2.16, 0])
     const seatTop = HIPS_Y - THIGH - 0.13 + 2.16
@@ -290,6 +310,12 @@ export default function Homer3D({ speaking, mode, action: actionProp, framing = 
       const { clientWidth, clientHeight } = mount
       renderer.setSize(clientWidth, clientHeight, false)
       camera.aspect = clientWidth / Math.max(clientHeight, 1)
+      if (framing === 'hall') {
+        // Portrait (phones): step back, so he stands whole between the game chips and the dialogue.
+        const portrait = camera.aspect < 0.8
+        camera.position.set(0, portrait ? 1.1 : 1.0, portrait ? 15.5 : 10.8)
+        camera.lookAt(0, portrait ? 1.0 : 0.85, 0)
+      }
       camera.updateProjectionMatrix()
     }
     resize()
@@ -384,6 +410,8 @@ export default function Homer3D({ speaking, mode, action: actionProp, framing = 
         knee.rotation.x = pose.kneeX
       })
       const throneScale = THREE.MathUtils.smoothstep(pose.sit, 0.05, 0.6)
+      // Seated, the throne's base widens the shadow.
+      contactShadow.scale.set(2.6 + throneScale * 0.9, 1.7 + throneScale * 0.6, 1)
       throne.visible = throneScale > 0.01
       throne.scale.setScalar(Math.max(0.001, throneScale))
       wreath.visible = pose.wreath > 0.02
