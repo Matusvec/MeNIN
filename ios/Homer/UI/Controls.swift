@@ -222,12 +222,15 @@ struct PhoneScaffold<Trailing: View, Middle: View, Action: View>: View {
                 }
             }
             // On an SE the middle can be taller than the room left: it scrolls, so the top band
-            // stays under the status bar and the action stays in the thumb zone.
-            ViewThatFits(in: .vertical) {
-                middle()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                ScrollView(showsIndicators: false) { middle() }
-                    .scrollBounceBehavior(.basedOnSize)
+            // stays under the status bar and the action stays in the thumb zone. Always the same
+            // ScrollView (never a ViewThatFits swap): the keyboard shrinking the room must not
+            // rebuild a focused text field, or the keyboard drops the moment it rises (build 34).
+            GeometryReader { geo in
+                ScrollView(showsIndicators: false) {
+                    middle()
+                        .frame(maxWidth: .infinity, minHeight: geo.size.height)
+                }
+                .scrollBounceBehavior(.basedOnSize)
             }
             action()
                 .frame(maxWidth: .infinity)

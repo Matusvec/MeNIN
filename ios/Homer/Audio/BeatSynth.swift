@@ -4,7 +4,8 @@ import AVFoundation
 /// a bar). Rendered once per turn into buffers, so playback costs nothing per frame.
 ///   count-in: four rim clicks and a lyre strum on one
 ///   speaking bar: kick on 1 and 3, soft rim on 2 and 4, ducked so the poet sits on top
-///   rest bar: full drums and a four-note lyre phrase, the bar to think in
+///   rest bar: full drums, the bar to think in (no lyre phrase: Matus, Sat 9:40 PM, "get rid of
+///   the ding dong between lines, keep the beats")
 enum BeatSynth {
     /// Ducking level of the speaking bar relative to the rest bar (SPEC: the arena ducks its drum).
     static let speakingGain: Float = 0.35
@@ -26,7 +27,8 @@ enum BeatSynth {
         }
     }
 
-    /// One line: a speaking bar, then (with barsPerLine 2) a rest bar. `line` varies the lyre phrase.
+    /// One line: a speaking bar, then (with barsPerLine 2) a rest bar of drums. `line` is unused
+    /// since the rest bar's lyre phrase went; kept so callers and the timing don't change.
     static func line(bpm: Double, barsPerLine: Int, line: Int, sampleRate: Double) -> AVAudioPCMBuffer {
         render(beats: 4 * barsPerLine, bpm: bpm, sampleRate: sampleRate) { mix, beatFrames in
             for bar in 0..<barsPerLine {
@@ -37,13 +39,6 @@ enum BeatSynth {
                 add(rim(sampleRate, gain: 0.45 * g), into: &mix, at: start + beatFrames)
                 add(kick(sampleRate, gain: 0.7 * g), into: &mix, at: start + 2 * beatFrames)
                 add(rim(sampleRate, gain: 0.45 * g), into: &mix, at: start + 3 * beatFrames)
-                if !speaking {
-                    // The lyre answers in the rest bar, never under the voice.
-                    let phrases = [[0, 2, 4, 3], [5, 4, 2, 1], [0, 3, 4, 2], [4, 5, 3, 0]]
-                    for (k, degree) in phrases[line % phrases.count].enumerated() {
-                        add(pluck(scale[degree], sampleRate: sampleRate, seconds: 1.4, gain: 0.32), into: &mix, at: start + k * beatFrames)
-                    }
-                }
             }
         }
     }
