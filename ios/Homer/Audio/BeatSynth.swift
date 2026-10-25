@@ -1,9 +1,11 @@
 import AVFoundation
 
-/// Procedural drum-and-lyre beat (SPEC "The turn": a slow drum-and-lyre loop, four beats
-/// a bar). Rendered once per turn into buffers, so playback costs nothing per frame.
-///   count-in: four rim clicks and a lyre strum on one
-///   speaking bar: kick on 1 and 3, soft rim on 2 and 4, ducked so the poet sits on top
+/// Procedural beat for the Bard (SPEC "The turn": four beats a bar). Rendered once per turn into
+/// buffers, so playback costs nothing per frame. Matus, Sat 10:07 PM: "don't make the Bard a
+/// beatbox". So no kick, no rim, no backbeat: the rhapsode's staff on a stone floor, one low woody
+/// strike on every beat, the downbeat a touch heavier.
+///   count-in: four staff strikes and a lyre strum on one
+///   speaking bar: the staff on every beat, ducked so the poet sits on top
 ///   rest bar: full drums, the bar to think in (no lyre phrase: Matus, Sat 9:40 PM, "get rid of
 ///   the ding dong between lines, keep the beats")
 enum BeatSynth {
@@ -20,7 +22,7 @@ enum BeatSynth {
     /// One bar of four rim clicks plus a strum on one.
     static func countIn(bpm: Double, sampleRate: Double) -> AVAudioPCMBuffer {
         render(beats: 4, bpm: bpm, sampleRate: sampleRate) { mix, beatFrames in
-            for k in 0..<4 { add(rim(sampleRate, gain: k == 0 ? 0.9 : 0.6), into: &mix, at: k * beatFrames) }
+            for k in 0..<4 { add(staff(sampleRate, gain: k == 0 ? 0.55 : 0.4), into: &mix, at: k * beatFrames) }
             for (i, note) in [scale[0], scale[2], scale[4]].enumerated() {
                 add(pluck(note, sampleRate: sampleRate, seconds: 1.6, gain: 0.25), into: &mix, at: i * Int(0.03 * sampleRate))
             }
@@ -35,22 +37,16 @@ enum BeatSynth {
                 let speaking = bar == 0
                 let g: Float = speaking ? speakingGain : 1
                 let start = bar * 4 * beatFrames
-                add(kick(sampleRate, gain: 0.9 * g), into: &mix, at: start)
-                add(rim(sampleRate, gain: 0.45 * g), into: &mix, at: start + beatFrames)
-                add(kick(sampleRate, gain: 0.7 * g), into: &mix, at: start + 2 * beatFrames)
-                add(rim(sampleRate, gain: 0.45 * g), into: &mix, at: start + 3 * beatFrames)
+                for k in 0..<4 {
+                    add(staff(sampleRate, gain: (k == 0 ? 0.55 : 0.4) * g), into: &mix, at: start + k * beatFrames)
+                }
             }
         }
     }
 
-    /// The drum strike when a stressed syllable lands on the beat.
+    /// The strike when a stressed syllable lands on the beat: the staff, struck harder.
     static func strike(sampleRate: Double) -> AVAudioPCMBuffer {
-        let k = kick(sampleRate, gain: 1)
-        let r = rim(sampleRate, gain: 0.7)
-        var mix = [Float](repeating: 0, count: max(k.count, r.count))
-        add(k, into: &mix, at: 0)
-        add(r, into: &mix, at: 0)
-        return buffer(mix, sampleRate: sampleRate)
+        buffer(staff(sampleRate, gain: 0.8), sampleRate: sampleRate)
     }
 
     /// The arena's reveal sounds (ArenaCue), procedural until the composer's files land.
@@ -131,6 +127,19 @@ enum BeatSynth {
             samples[name] = Array(UnsafeBufferPointer(start: data, count: Int(buffer.frameLength)))
         }
         return samples[name].map { $0.map { $0 * gain } }
+    }
+
+    /// The rhapsode's staff on a stone floor: a low woody thud (a pitch falling 140 → 82 Hz), the
+    /// knock of the wood, and a breath of grit where it meets the stone. A recorded
+    /// `staff-strike` replaces it when bundled.
+    static func staff(_ sr: Double, gain: Float) -> [Float] {
+        if let recorded = sample("staff-strike", sampleRate: sr, gain: gain) { return recorded }
+        let body = thump(sr, from: 140, to: 82, seconds: 0.32, decay: 0.075, gain: 0.85)
+        var mix = [Float](repeating: 0, count: body.count)
+        add(body, into: &mix, at: 0)
+        add(woodKnock(sr, hz: 310, gain: 0.3), into: &mix, at: 0)
+        add(noiseTick(sr, seconds: 0.03, decay: 0.004, tone: 900, gain: 0.1), into: &mix, at: 0)
+        return mix.map { $0 * gain }
     }
 
     static func kick(_ sr: Double, gain: Float) -> [Float] {
