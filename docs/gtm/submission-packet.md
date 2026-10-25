@@ -104,7 +104,7 @@ For our web designer, from Matus. As of Sun Oct 25, ~12:55 AM. Every line below 
 
 ## 5. The video
 
-- **Length:** 3 minutes at most (MLH: "3 min", and it's required on Devpost). Our cut is about 2:00, and it's the same video for Figma.
+- **Length:** 3 minutes at most (MLH: "3 min", and it's required on Devpost). Our cut is 3:00: the first 2:00 stands alone, and the last minute is the games and the Figma workflow. It's the same video for Figma.
 - **What it opens on:** the live poetry battle, from the first second. 0:00–0:10 is a poet speaking with the scene moving, no narration. At 0:16–0:20 Homer's verdict lands, with Matus's voiceover: "MeNIN. A live poetry battle. You speak, and Homer judges you out loud."
 - **The plan and shot list:** `docs/gtm/video.md`, with every shot, who records it, and the 3–4 s SpacetimeDB timeline split-screen.
 - It's shot on the judging build, on both phones. The link goes into Devpost's video field and into the `[Video]` bracket.

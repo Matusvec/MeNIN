@@ -4,9 +4,9 @@ Two videos, both from real takes. Nothing is mocked, and nothing is shown as liv
 
 | | The Devpost video | The backup video |
 | --- | --- | --- |
-| Length | **2:00** | **90 s** |
+| Length | **3:00** (the first 2:00 stands alone) | **90 s** |
 | For | Devpost, plus Cartesia ("2-minute, demo-first") and Figma (3 minutes max) | The judging table, when the network is down ([run-sheet.md](run-sheet.md)) |
-| Narration | Two short voiceover lines | None |
+| Narration | Homer, in his Cartesia voice (9 lines), and one line from Matus | None |
 | Edit | Cut between camera, arena and phone footage | One battle take, trimmed only |
 | Where it lives | YouTube, linked on Devpost | On the Mac and all three iPhones, **offline** |
 
@@ -106,34 +106,150 @@ If OBS misbehaves, fall back to ⌘⇧5 for the picture and use iPhone C's audio
 
 **Syncing:** start every take with one clap in view of iPhone C. Line up the camera and OBS on the first "3" of the 3, 2, 1, and the phone recordings on the moment SPEAK fills the phone.
 
-## The Devpost video: shot list (2:00)
+## The Devpost video (3:00)
 
-**The limit is 3 minutes, and the video is required** (MLH staff, #0-ask-directors and #0-general, Sat 6:29 PM: "3 min"; "you also need to include a 3 min video in your Devpost"). Our 2:00 cut fits. **The video may be the first round.** MLH and organizers (#0-ask-directors, Sat 2:56–3:40 PM): "3 minutes for the video demo", "you can make your video demo more demo-focused and your live demo more pitch-focused", and "depending on track popularity, some categories may need to do a virtual first pass." The 2:00 cut fits. If Matus extends it toward 3:00, the extra time should be demo (a second full turn, or debate and discus if they pass at 8 PM), not talk.
+**Rewritten Sun ~1:40 AM for a 3:00 cut** (leader, for Matus: "looks great, with clips of the team, the app and the website"). The limit is 3 minutes, and the video is required (MLH, Sat 6:29 PM). **The first 2:00 stands alone** as Cartesia's "2-minute, demo-first" cut and ends on the responsible card. Figma gets its own minute after it (their brief: "Demo video (3 minutes maximum)").
 
-**Built for judges who aren't in the room.** Devpost says the video is for "sponsors evaluating asynchronously", and Cartesia's staff have been hard to find. So the video has to carry each sponsor alone: name every sponsor on screen, show the keyterm numbers with how we measured them, and give responsibility its own card.
+**The rules for this video:**
+- **Real takes only.** Nothing is mocked, and nothing is shown as live when it isn't.
+- **No "Wii"** anywhere, spoken or written.
+- **No music under a verse:** the theme drops out whenever a poet speaks.
+- **Captions** on every spoken line.
+- **Beta labels:** any game that hasn't passed its runs on build 31 or later wears a "beta" lower third.
+- **Judges watch on mute,** so the cards carry the story alone.
 
-The video uses **only our original score** under the narration, and nothing under a verse (battles are free verse; the beat returns only under the stitched song and in the lesson clip). Because we own the music, YouTube won't mute or claim it. **No "Wii" anywhere in the video, not even in the voiceover.** It's published and permanent, so the spoken comparison stays at the table.
+### (a) The narration: Homer, in his own Cartesia voice (Carl), and one line from Matus
 
-| Time | Shot | Source | Sound |
+Ten lines, each 14 words or fewer. builder renders Homer's nine lines through Cartesia, which doubles as the Cartesia showcase. Matus records his own line on a phone, close to the mic, in a quiet corner.
+
+| # | At | Who | Line (word for word) | Words |
+| --- | --- | --- | --- | --- |
+| 1 | 0:09 | Homer | "Rage. The first word of Western literature. Sing it back to me." | 12 |
+| 2 | 0:15 | **Matus** | "AI can write anything now. It can't stand up and move a room." | 13 |
+| 3 | 0:26 | Homer | "One screen is my hall. Your phone is your voice. Step up." | 12 |
+| 4 | 1:02 | Homer | "The best line gets carved in gold. Then I sing the room back." | 13 |
+| 5 | 1:16 | Homer | "Between battles, I teach. Lesson one is my own first line." | 11 |
+| 6 | 1:36 | Homer | "Cartesia hears every word. SpacetimeDB runs the hall. Claude judges what you said." | 13 |
+| 7 | 1:49 | Homer | "Nothing here is mocked. Every verdict you saw was live." | 10 |
+| 8 | 2:01 | Homer | "Then the games. Throw, run, box, draw the bow. The contest never ends." | 13 |
+| 9 | 2:31 | Homer | "Two designers, one set of Figma variables. A new look is one mode." | 13 |
+| 10 | 2:53 | Homer | "Most AI talks for you. I make you talk. Come battle." | 11 |
+
+Every line sits over footage, never over a live verse or Homer's live verdict. If line 8 runs over a game that's cut from the montage, drop that game's word ("Throw, run, box" etc.).
+
+### (b) On-screen cards and lower thirds (word for word, for artist)
+
+Cards (**C**) are full-screen; lower thirds (**L**) sit bottom-left over footage. Use the app's own type: Bodoni Moda for titles and Inter for everything else, matte, in the Hall palette. **[Brackets] are for Matus.**
+
+| # | At | Type | Text |
 | --- | --- | --- | --- |
-| 0:00–0:10 | **Cold open.** The poet, EarPods in, spits two lines. The scene moves with the voice, its color fields shift, the countdown ring runs, a phrase pops "+Craft". No narration. | Camera wide, cut to the OBS close-up | Room mix |
-| 0:10–0:16 | Title card **μῆνιν · MeNIN**, with "Rage. The first word of Western literature." underneath. Homer's first-open line plays under it. | Editor, plus the OBS first-open take | Homer's first-open line and its music bed |
-| 0:16–0:20 | **The voice battle leads** (leader, Sat ~8:45 PM: organizers shortlist each project for its best-fit track, so the first 20 s show the live poetry battle). Homer's verdict lands on the arena, scores counting up to a total out of 100. Matus's voiceover: "MeNIN. A live poetry battle. You speak, and Homer judges you out loud." | OBS | Hall theme, ducked |
-| 0:20–0:50 | **The battle.** Homer's fresh theme lands; Homer's three phrases on a phone; 3, 2, 1, SPEAK filling the screen in the poet's color; the countdown ring; a used phrase popping "+Craft"; Homer's verdict with three scores counting up to a total out of 100. **The freeze rescue:** Homer's phrases come forward, the one that fits raised, and Homer whispers it. | OBS, phone recordings, B-roll | The poet's voice, Homer and the room mix (no beat in battle) |
-| 0:50–1:00 | The round verdict: the best line carved in gold | OBS | Homer, then the round-end cue |
-| 1:00–1:15 | *(Build 40+: Homer speaks his own Iliad opening naturally, on purpose, not locked to the pulse, so filming his demo is fine.)* **[A: the study ran]** **Bard lesson 1 with a first-timer** from the study: a miss, one note from Homer, then they land it. On screen: "Beat [first] → [last] · beat-scored lesson one (build 18)". Screen and voice only, no face. *(The study measured the strict beat version; tonight's lesson forgives timing, so the clip must come from the study's build.)* **[B: no study]** **Bard lesson 1 with a teammate**, labelled as a teammate, never as a first-timer: a miss, Homer's note, the landed line, with their own Beat scores on screen. Or give the 15 s to the battle. | The lesson recording | The lesson's own sound |
-| 1:15–1:25 | Open on a 1 s flash of the event menu (the poetry battle lit, every event that passed on 31 lit, the rest locked). Then 5 s of a **discus throw** (only if it passed its 5 runs on 31; if not, the poetry battle keeps these 10 s): the swing (camera), the angle display and the silent flight on the arena (OBS), the distance and the fanfare. Then 5 s of **either** Socrates opening a debate (only if debate passed at 8 PM; a different voice) **or** a boxing exchange (only if it's clean). If neither, the discus gets the full 10 s. | Camera, OBS | Their cues |
-| *(optional)* | *Only if it's clean:* 5 s of **Talk to Homer**: a poet speaks, Homer answers in two sentences on the screen, quoting them. It adds about 5 s, still well under MLH's 3:00. | OBS | Homer's reply |
-| 1:25–1:36 | **How it's built, in one frame:** iPhone mic → Cartesia STT with Homer's phrases as keyterms → SpacetimeDB → the website arena and its live scene, plus Homer the live agent on Claude, judging only what you said. **Then 3–4 s split-screen: the arena on one side and the live SpacetimeDB timeline (`spacetime/scripts/watch.ts`) on the other, scrolling as the verdict lands** (leader, Sat ~10:50 PM). Record it at the shoot: run the timeline during take 1 and screen-record the Terminal alongside OBS. **Name each sponsor on screen** (Spacetime, Cartesia, Claude, Figma), since a sponsor judge may only ever see this video. Caption: "3% word error in our tests, with a drum at full volume as the noise (20% without keyterms)". Under it, smaller: "Test recordings: recorded verse with our drum mixed in at 0 dB." Use the real-mic number if swift's rerun replaced it. Voiceover: "Nothing here is mocked." | A diagram. **Make it in FigJam** and log it in the Figma stage log, since that's real Figma work. | Voiceover over the hall theme, ducked |
-| 1:36–1:40 | **Built responsibly**, one card: "Captions on everything Homer says · The mic opens only on your turn · No audio passes through our server · Homer never names your emotion · No account needed". It answers Cartesia's 25% on impact and responsibility, and Anthropic's "where it could go wrong". | Editor | Hall theme, ducked |
-| 1:40–1:55 | The stitched song over the battle's colors, each line with its poet's name | OBS | Homer and the beat |
-| 1:55–2:00 | The champion. End card: [TestFlight link] or playmenin.tech, "Original score by [composer's name]", and the team | OBS, editor | Champion cue |
+| C1 | 0:08–0:14 | Title card, on a hit from Matus's theme | **μῆνιν · MeNIN** / Ancient Greek party games, hosted by Homer |
+| L1 | 0:14–0:20 | Lower third | [Name] · [Name] · [Name] · [Name] / Cal Hacks 13.0 |
+| L2 | 0:25 | Lower third | Join with a code. No account. |
+| L3 | 0:29 | Lower third | A fresh theme from Homer, every round |
+| L4 | 0:33 | Lower third | Three of Homer's phrases, dealt to your phone |
+| L5 | 0:38 | Lower third | Free verse. 20 seconds. Your words, live on the big screen. |
+| L6 | 0:46 | Lower third | Freeze, and Homer whispers you a phrase |
+| L7 | 0:52 | Lower third | Judged on Image, Answer and Craft · out of 100 |
+| L8 | 1:00 | Lower third | The best line, carved in gold |
+| L9 | 1:06 | Lower third | The finale: the room's best lines, stitched into one song |
+| L10 | 1:15 | Lower third | Talk to Homer: he quotes you, then gives one fix |
+| L11 | 1:25 | Lower third | Bard lesson one: the first line of the Iliad |
+| C2 | 1:35–1:43 | Diagram card (FigJam) | iPhone mic → Cartesia speech-to-text, with Homer's phrases as keyterms → SpacetimeDB → the website arena + Claude, the judge → Cartesia, Homer's voice |
+| L12 | 1:43 | Lower third, over the split-screen | Live: the SpacetimeDB timeline. The server runs the battle. |
+| C3 | 1:47–1:50 | Number card | Word errors, with a drum at full volume: **20% → 3%** with keyterms / *Synthetic test clips · method in docs/voice-wer* |
+| C4 | 1:50–1:55 | Card | **Nothing is mocked.** |
+| C5 | 1:55–2:00 | Responsible card | Built responsibly / Captions on everything Homer says · The mic opens only on your turn · No audio passes through our server · Homer never names your emotion · No account needed |
+| L13 | 2:00–2:30 | One per game, as each clip starts | Discus / Stadion / Pygmachia (boxing) / Toxeia (archery): the webcam tracks your bow arm / Socratic debate, hosted by Socrates. **Add "· beta" to every game that hasn't passed its runs on 31+.** |
+| L14 | 2:31 | Lower third | Atelier → Hall: the same frame, one variable mode |
+| L15 | 2:36 | Lower third | 128 hard-coded colors → 37 tokens · 119 views restyled, untouched |
+| L16 | 2:41 | Lower third | The scene: 4 rounds of designer feedback in 17 minutes |
+| L17 | 2:45 | Lower third | One button system, 12 variants · the icon: μ, from μῆνιν |
+| C6 | 2:50–3:00 | End card | **MeNIN** / play.206.189.237.157.sslip.io/homer · github.com/sunya-afrasiabi/MeNIN / Original score by [composer's name] / Built with SpacetimeDB · Cartesia · Claude · Figma · Apify · Moss / [Name] · [Name] · [Name] · [Name] / Cal Hacks 13.0 |
 
-**Captions:** burn them in for every spoken line, Homer's and the poets', in the app's own type style. Judges often watch on mute.
+### Timeline (what's on screen)
 
-**Export:** 1080p, H.264, AAC, under 2:00 exactly.
+| Time | Shot | Sound |
+| --- | --- | --- |
+| 0:00–0:08 | **Cold open on a real battle, no narration.** A poet speaking (phone camera, close), the scene erupting in color (arena), Homer's spoken verdict landing. | The room and Homer |
+| 0:08–0:14 | C1 title, with Homer's line 1 | A hit from the theme |
+| 0:14–0:25 | **The hook:** the team at the table, the laptop arena, phones in hand (L1). Matus's line 2. | The theme, ducked |
+| 0:25–1:15 | **The full poetry battle:** join by code (L2); the theme and three phrases (L3, L4); 3-2-1, SPEAK (L5); live words on the big screen; the freeze rescue whisper (L6); Homer's spoken verdict with scores (L7); the carved gold line (L8); the stitched song (L9). Homer's line 3 at the start and line 4 before the carved line. | The room and Homer; no music under any verse. The beat returns under the stitched song |
+| 1:15–1:35 | **Talk to Homer** (L10), then **Bard lesson one**: Homer speaks the Iliad's first line over the staff strike (L11). Line 5. | Homer |
+| 1:35–1:55 | **How it works:** C2, the diagram (line 6); then a 3–4 s split-screen of the arena and the live SpacetimeDB timeline (L12); C3, the word-error card; C4 (line 7). | The theme, ducked |
+| 1:55–2:00 | C5, the responsible card. **The 2:00 cut ends here.** | The theme |
+| 2:00–2:30 | **The games montage, 4–5 s each, real team clips:** discus (on the website only; it has no phone screen now), the Stadion, boxing (on the big screen), camera archery (the webcam view and the arena), and Socrates opening the debate. L13 on each. Line 8. | The theme, up |
+| 2:30–2:50 | **The Figma workflow:** the Atelier → Hall flip, the four background rounds, the button system, the μ icon (L14–L17). Line 9. | The theme, ducked |
+| 2:50–3:00 | The team, then C6, the end card. Line 10. | The champion sting |
 
-**Upload:** YouTube, titled **"MeNIN: Ancient Greek Party Games, Hosted by Homer (Cal Hacks 13.0)"**. The description gets the Devpost tagline, the repo link and "Original score by [composer's name]". The Devpost page says submissions "should also include a clear, meaningful video demo on devpost **for sponsors evaluating asynchronously**". So the video is effectively required, and **some sponsor judges may score us from the video alone**: it has to carry every sponsor's story without us in the room. No length limit is stated. Devpost's video field generally takes YouTube or Vimeo links, so upload as **unlisted** unless the form says otherwise. Cartesia's 2-minute brief and Figma's 3-minute cap are confirmed.
+### (c) The shot list: what to film
+
+**Each clip is 6 s or less, with 3 takes at most.** Shoot it all on build 45 (or the judging build). Film the arena with **Screen Studio** on the Mac (1080p, 60 fps, the browser full screen, the cursor hidden; if it can't capture the browser's sound, use OBS as in "Capture settings" above). Film the phones with **Control Center → Screen Recording** (Do Not Disturb on), and film people with a phone camera (1080p, 60 fps, landscape, AE/AF lock on a face).
+
+**Prep (Matus, 2 minutes):** on each phone, long-press the home screen for 3 s → Dev. Check "Voice diagnostics" is **off** and the server says **Maincloud (homer-calhacks)**. Build 45 has no other debug UI.
+
+| # | Clip | Device | For |
+| --- | --- | --- | --- |
+| 1 | A poet speaking, close, EarPods in | Phone camera | 0:00 cold open |
+| 2 | The scene erupting in color mid-verse | Screen Studio | 0:00 cold open |
+| 3 | Homer's verdict landing on the arena | Screen Studio | 0:00, 0:52 |
+| 4 | The team at the table, the laptop arena, phones in hand (wide; 3 short takes) | Phone camera | 0:14 hook, 2:50 end |
+| 5 | Typing the room code → "Enter the hall" | Phone screen recording | 0:25 |
+| 6 | The theme landing, with three phrases on a phone | Screen Studio + phone screen recording | 0:29–0:33 |
+| 7 | **The hero shot: the poet's TURN.** Big SPEAK, the 20 s ring, live italic words, blue and emotion colors moving behind | Phone screen recording | 0:38 |
+| 8 | Live words on the big screen | Screen Studio | 0:40 |
+| 9 | The freeze rescue: the raised phrase on the arena and Homer's whisper | Screen Studio | 0:46 |
+| 10 | **The VERDICT card:** frosted Image/Answer/Craft bars and /100 over the voice-colored sea while Homer reads | Phone screen recording | 0:52 |
+| 11 | The carved gold line | Screen Studio | 1:00 |
+| 12 | The stitched song (two clips of 6 s) | Screen Studio | 1:06 |
+| 13 | One Talk to Homer exchange | Screen Studio | 1:15 |
+| 14 | Bard lesson one: Homer speaking the Iliad's first line | Phone screen recording, mic on | 1:25 |
+| 15 | The SpacetimeDB timeline next to the arena, as a verdict lands | Screen Studio (Terminal + browser side by side) | 1:43 |
+| 16 | Discus: the swing (person) and the flight on the website | Phone camera + Screen Studio | 2:00 |
+| 17 | The Stadion: arms pumping, the race on the arena | Phone camera + Screen Studio | 2:05 |
+| 18 | Boxing: two fighters on the big screen | Screen Studio (+ a camera wide) | 2:10 |
+| 19 | Camera archery: the webcam view and the arrow landing. Optional close-up: the two-phone BOW screen, the aim circle steadying on the gold next to the arrow pad's "Nocked ✓" pull | Screen Studio (+ phone screen recording) | 2:15 |
+| 20 | Socrates opening the debate | Screen Studio | 2:22 |
+| 21 | Figma: the Directions file flipping Atelier → Hall (node 36-128); the scene-round renders (34-179, 31-179); the button sheet (48-216); the μ icon (54-142) | Screen Studio on Figma | 2:30–2:50 |
+
+**Safety for the motion clips:** a grippy case or a wrist strap on every swung phone, arm room all around, and nobody next to the laptops.
+
+### (d) The CapCut track layout
+
+| Track | What's on it |
+| --- | --- |
+| **V1** | All footage, in timeline order. Hard cuts on the beat of the theme; no transitions except one fade into C6 |
+| **V2** | Cards C1–C6 and lower thirds L1–L17, as PNGs from artist (transparent background for the lower thirds) |
+| **Captions** | Burned in (CapCut → Text → Auto captions, then corrected word for word against the narration table and the real transcripts). Inter, white with a thin dark shadow, bottom-center, above the lower-third zone |
+| **A1** | The room and Homer: camera sound, the arena's audio, Homer's live lines, and the nine rendered narration lines plus Matus's line. Normalize to about −14 LUFS |
+| **A2** | Matus's theme at **−18 dB**, ducked a further ~10 dB under any voice (CapCut → Audio → Ducking on A2, keyed to A1). **Mute A2 completely under every poet's verse.** |
+
+**Export:** 1080p, 30 or 60 fps, H.264, AAC 48 kHz, **2:59 at most**. Also export the first 2:00 on its own (it ends on C5) for Cartesia.
+
+### (e) YouTube
+
+**Title:** MeNIN: Ancient Greek Party Games, Hosted by Homer (Cal Hacks 13.0)
+
+**Description:**
+
+> A live voice poetry battle: speak a verse into your iPhone, and Homer judges it out loud within seconds. The big screen is a website; your phone is your mic and your hand of Homer's phrases.
+>
+> Try it: https://play.206.189.237.157.sslip.io/homer
+> Code: https://github.com/sunya-afrasiabi/MeNIN
+> Figma stage log: https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm
+>
+> 0:00 Cold open
+> 0:25 The poetry battle
+> 1:15 Talk to Homer and Bard lesson one
+> 1:35 How it works
+> 2:00 The games
+> 2:30 The Figma workflow
+> 2:50 Team
+>
+> Built with SpacetimeDB, Cartesia, Claude, Figma, Apify and Moss at Cal Hacks 13.0.
+> Original score by [composer's name]. Nothing in this video is mocked.
+
+Upload it as **Unlisted** or Public (Matus's call), and check it plays in a logged-out window before pasting the link into Devpost.
 
 ## The Fetch.ai cut (3:00, only if Homer on Agentverse ships)
 
@@ -141,9 +257,9 @@ Fetch.ai requires "a demo video (3–5 minutes)", longer than our 2:00 Devpost v
 
 | Time | Shot |
 | --- | --- |
-| 0:00–2:00 | The Devpost video as it is |
-| 2:00–2:50 | **A screen recording of ASI:One on the Mac:** find Homer, ask for a theme, get five formulas, type a verse with two of them, and get Homer's verdict: five scores, the best line, a one-line roast. Narration: "The same judge, as an agent on Agentverse, usable from ASI:One." |
-| 2:50–3:00 | End card: the agent's name and address, plus "Built with Fetch.ai Agentverse and the Agent Chat Protocol" |
+| 0:00–3:00 | The Devpost video as it is |
+| 3:00–3:50 | **A screen recording of ASI:One on the Mac:** find Homer, ask for a theme, get five formulas, type a verse with two of them, and get Homer's verdict: five scores, the best line, a one-line roast. Narration: "The same judge, as an agent on Agentverse, usable from ASI:One." |
+| 3:50–4:00 | End card: the agent's name and address, plus "Built with Fetch.ai Agentverse and the Agent Chat Protocol" |
 
 Export it the same way as the Devpost video. Upload it unlisted as its own YouTube video.
 
