@@ -961,7 +961,7 @@ One pass through every phone screen on build 33, the Hall reskin with the final 
 - **Phones:** two real phones and one render.
   - **Matus's iPhone 16 Plus** (430 pt wide, the Pro Max class): Matus walks the list. Each time he says MeNIN is on screen, pm takes one capture over the cable, reads it, then deletes it. Never a capture loop.
   - **The team's iPhone 12** (390 pt): whoever holds it walks the same list.
-  - **The SE size** (375 × 667): no SE is in hand, so swift renders the key screens at SE size through the design gallery with ImageRenderer, not a simulator. Those are join, a turn, the wait, the verdict, the arrow pad and lesson 1.
+  - **The SE size** (375 × 667): no SE is in hand. ImageRenderer can't draw the Metal scene, so swift takes the key screens in **one** headless SE simulator instead, with simctl screenshots through the design gallery and the worst strings. That's about 4 minutes, before 10:45 PM, approved by the leader as the one exception to real phones. The screens are join, a turn, the wait, the verdict, the arrow pad and lesson 1. swift sends pm the file paths.
 - **The screens, on every phone:**
   - first open (F0 to F4) and the event menu
   - join, the mic check and the wait (J1 to J3)
