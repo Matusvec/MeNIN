@@ -249,7 +249,6 @@ export class Arena {
   private mapper = new ArcheryMapper()
   private cameraSentAt = 0
   private rangeCameraAt = 0 // when set_range_camera was last called
-  private phonesSince: string | null = null // the arrow the phones took over on: the camera waits for the next
   private poseLog: ((row: Record<string, number>) => void) | null = null // test halls: per-frame tuning log
 
   constructor(private onView: (view: ArenaView) => void) {}
@@ -621,16 +620,14 @@ export class Arena {
     }
     const arrow = range?.archerId ? `${range.archerId}.${range.arrowNo}` : ''
     this.mapper.newArrow(arrow)
-    const live = this.poseCam.status === 'live'
-    const lost = this.mapper.reading.lostMs > LOST_MS
+    // In camera mode each archer holds only their own phone, so losing sight of them never hands the arrow to two
+    // phones (pm, leader): the arrow holds (no aim is sent, the dot freezes, "Step into view", the clock runs) and
+    // resumes when they're back. Only a camera that fails outright (denied, no device, a model error) or the
+    // operator's switch gives the range back to the phones.
+    const failed = this.poseCam.status === 'denied' || this.poseCam.status === 'failed'
     const camera = Boolean(range?.camera)
-    if (camera && (!live || lost)) {
-      this.phonesSince = arrow // the phones take this arrow; the camera waits for the next
-      this.rangeCamera(room, false)
-    } else if (!camera && live && !lost && this.mapper.reading.state !== 'searching' && (this.phonesSince === null || this.phonesSince !== arrow)) {
-      this.phonesSince = null
-      this.rangeCamera(room, true)
-    }
+    if (camera && failed) this.rangeCamera(room, false)
+    else if (!camera && this.poseCam.status === 'live' && this.mapper.reading.state !== 'searching') this.rangeCamera(room, true)
   }
 
   private rangeCamera(room: Room, on: boolean): void {
@@ -672,7 +669,7 @@ export class Arena {
       pose: r.pose,
       state: starting ? 'starting' : r.state,
       draw: r.draw,
-      note: !starting && r.lostMs > LOST_MS ? 'Step into view: phones meanwhile' : '',
+      note: !starting && r.lostMs > LOST_MS ? 'Step into view' : '',
     }
   }
 

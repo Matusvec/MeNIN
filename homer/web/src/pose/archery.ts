@@ -20,15 +20,18 @@ const L_SHOULDER = 11, R_SHOULDER = 12, L_ELBOW = 13, R_ELBOW = 14, L_WRIST = 15
 const AIM_SW = 0.8 // bow-wrist travel from the zero, in shoulder widths, that reaches the rim (~20° of swing)
 const RIM_M = 0.61 // the rim in the module's aim units (±1 = ±1 m on the face; the face is 0.61 m)
 const NOCK_Y = 0.35 // the drawing wrist this far below its shoulder (shoulder widths): draw 0
-const FULL_Y = -0.2 // …this far above (at the jaw): draw 1
+const FULL_Y = -0.1 // …at about shoulder height (the jaw, seen from below): draw 1
 const NOCK_GAP = 0.75 // the wrists this far apart (shoulder widths): draw 0
-const FULL_GAP = 1.45 // …this far: draw 1
+const FULL_GAP = 1.3 // …this far: draw 1
 const HAND_SPLIT = 0.35 // one wrist this much lower than the other (shoulder widths) says which arm is the bow
 const VISIBLE = 0.5 // the shoulders and wrists must be at least this visible
-const STEADY_SW = 0.06 // the bow wrist counts as still while it moves less than this…
-const STEADY_MS = 400 // …for this long: then the arrow's zero is taken
+const STEADY_SW = 0.1 // the bow wrist counts as still while it moves less than this…
+const STEADY_MS = 300 // …for this long: then the arrow's zero is taken
+const ZERO_CAP_MS = 1200 // …or at most this long into the arrow, still or not (DWUX: a hold of 9.7 s froze the aim)
 const LOST_MS = 1000 // no archer this long: the phones take over (the caller decides)
-const SMOOTH_MS = 70 // time constant of the aim and draw smoothing (~2 frames at 30 fps)
+const AIM_SMOOTH_MS = 120 // aim smoothing: the pose jitters ~5-10x the phone's (DWUX)
+const DRAW_SMOOTH_MS = 70 // draw smoothing
+const DRAW_HOLD_MS = 800 // the draw sent is the peak of this long: the hand moves forward as the thumb looses
 
 export type ArcheryReading = {
   state: CameraState // searching (nobody), steadying (zeroing the arrow), tracking (live)
@@ -55,6 +58,8 @@ export class ArcheryMapper {
   private zero: { x: number; y: number } | null = null
   private still: { at: number; x: number; y: number } | null = null
   private smooth: { x: number; y: number; draw: number; at: number } | null = null
+  private arrowAt: number | null = null // the first frame of this arrow (its zero is due by ZERO_CAP_MS)
+  private draws: { at: number; draw: number }[] = [] // the last DRAW_HOLD_MS of draws, for the peak
   private seenAt = -Infinity
   private last: ArcheryReading = { state: 'searching', pose: null, yaw: 0, pitch: 0, draw: 0, lostMs: 0 }
   /** Test halls: the raw signals of the last frame, for tuning against a recording. */
@@ -66,6 +71,7 @@ export class ArcheryMapper {
     this.arrow = key
     this.zero = null
     this.still = null
+    this.arrowAt = null
     const archer = key.split('.')[0]
     if (archer !== this.archer) {
       this.archer = archer
@@ -80,7 +86,7 @@ export class ArcheryMapper {
     if (!seen) {
       const lostMs = Number.isFinite(this.seenAt) ? at - this.seenAt : Infinity
       this.last = { ...this.last, state: 'searching', pose: null, lostMs }
-      if (lostMs > LOST_MS) this.zero = this.still = this.smooth = null // back in view: zero again
+      if (lostMs > LOST_MS) this.smooth = null // back in view: the arrow resumes on its zero, unsmoothed from there
       return this.last
     }
     this.seenAt = at
@@ -106,20 +112,26 @@ export class ArcheryMapper {
 
     // Smooth (an exponential filter on the frame clock), so a jittery landmark doesn't shake the aim.
     const s = this.smooth
-    const k = s ? 1 - Math.exp(-(at - s.at) / SMOOTH_MS) : 1
+    const ease = (ms: number) => (s ? 1 - Math.exp(-(at - s.at) / ms) : 1)
+    const ka = ease(AIM_SMOOTH_MS), kd = ease(DRAW_SMOOTH_MS)
     const next = {
-      x: s ? s.x + (aim.x - s.x) * k : aim.x,
-      y: s ? s.y + (aim.y - s.y) * k : aim.y,
-      draw: s ? s.draw + (rawDraw - s.draw) * k : rawDraw,
+      x: s ? s.x + (aim.x - s.x) * ka : aim.x,
+      y: s ? s.y + (aim.y - s.y) * ka : aim.y,
+      draw: s ? s.draw + (rawDraw - s.draw) * kd : rawDraw,
       at,
     }
     this.smooth = next
+    this.draws = this.draws.filter((d) => at - d.at <= DRAW_HOLD_MS)
+    this.draws.push({ at, draw: next.draw })
+    const heldDraw = Math.max(...this.draws.map((d) => d.draw))
 
-    // The arrow's zero: the bow wrist held still for STEADY_MS, as the phone zeroes at each arrow.
+    // The arrow's zero: the bow wrist held still for STEADY_MS (as the phone zeroes at each arrow), and taken
+    // anyway ZERO_CAP_MS into the arrow, so the aim never sits frozen at the centre.
     if (!this.zero) {
+      this.arrowAt ??= at
       const st = this.still
       if (!st || Math.hypot(next.x - st.x, next.y - st.y) > STEADY_SW) this.still = { at, x: next.x, y: next.y }
-      else if (at - st.at >= STEADY_MS) this.zero = { x: next.x, y: next.y }
+      if ((this.still && at - this.still.at >= STEADY_MS) || at - this.arrowAt >= ZERO_CAP_MS) this.zero = { x: next.x, y: next.y }
     }
 
     const pose: ArcherPose = {
@@ -139,7 +151,7 @@ export class ArcheryMapper {
       pose,
       yaw: this.zero ? toFace(-(next.x - this.zero.x)) : 0,
       pitch: this.zero ? toFace(-(next.y - this.zero.y)) : 0,
-      draw: next.draw,
+      draw: heldDraw,
       lostMs: 0,
     }
     return this.last
