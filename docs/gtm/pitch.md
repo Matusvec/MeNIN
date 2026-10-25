@@ -42,6 +42,7 @@ The table demo is in [demo-script.md](demo-script.md). This file holds everythin
 | The second history line (only for Q&A or Devpost, never in the opener) | "The Greeks didn't separate sport and poetry: at the Panathenaic Games, poets competed reciting Homer right next to the athletes." |
 | The hand, in one line (mechanics, not history) | "You're dealt phrases that already fit the beat. That's how Homer improvised, and how freestyle works." |
 | The agent line (once per pitch) | "Homer is a live agent doing real work: he listens, judges, coaches, hosts and writes the song from the room, out loud within seconds." *(Only say a number once the shoot measures turn-to-voice: "[turn-to-voice p50] seconds from your last word to his voice".)* Most Cal Hacks judges are agent engineers (#1-introductions). Say it once; more than once and it sounds like buzzwords. |
+| The lesson hook (Q&A, or when you show Bard mode) | "Lesson one opens with the first line of the Iliad. Its first word in Greek is *mēnin*, our name. Homer teaches you the beat with his own opening." *(True since Sat 10:16 PM: Lang, Leaf and Myers, 1883, public domain; attribution in `content/lessons.md`.)* |
 | Finale | "A rhapsode was a song-stitcher. So Homer stitches your battle into one song." |
 | Close | "**Most AI talks for you. Homer makes you talk.** That's MeNIN." Then the invitation: [If discus passes on 31: "Want to throw the discus?" or] "Want to battle us?" |
 
