@@ -159,7 +159,10 @@ enum PlayerMoment: Equatable {
     case closing(transcript: [String])
     /// Talk to Homer, after your turn: nil while he's answering ("Homer is
     /// answering…"), then his reply; `yourTurnAgain` once the next turn is waiting.
-    case answering(reply: String?, yourTurnAgain: Bool)
+    /// A verse attempt also carries its score out of 100, the change since your
+    /// last scored attempt (nil on the first) and its content axes (Image, Answer,
+    /// Craft). A talk-back has no score, so all three stay nil.
+    case answering(reply: String?, yourTurnAgain: Bool, score: Int? = nil, change: Int? = nil, axes: [AxisScore]? = nil)
     /// T5–T8 · Your scores (`reveal` 0...1) and anything coined into your hoard.
     case result(card: Scorecard, reveal: Double, coined: String?)
     /// B7 · Where you placed.

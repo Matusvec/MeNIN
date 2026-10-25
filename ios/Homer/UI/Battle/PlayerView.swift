@@ -28,7 +28,7 @@ struct PlayerView: View {
         case .speaking: "speak"
         case .weighing: "weigh"
         case .closing: "closing"
-        case .answering(let reply, _): reply == nil ? "answering" : "reply"
+        case .answering(let reply, _, _, _, _): reply == nil ? "answering" : "reply"
         case .result: "result"
         case .final: "final"
         case .debating: "debate"
@@ -223,40 +223,17 @@ struct PlayerView: View {
                 EmptyView()
             }
 
-        case .answering(let reply, let yourTurnAgain):
+        case .answering(let reply, let yourTurnAgain, let score, let change, let axes):
             PhoneScaffold(eyebrow: "Talk to Homer", title: model.theme, onBack: actions.leave,
                           homer: nil, host: model.event.host.name, wait: model.wait) {
-                VStack(spacing: Metrics.s4) {
-                    if let reply, !reply.isEmpty {
-                        // His answer, as a card: the coach, not a judge. No scores.
-                        VStack(alignment: .leading, spacing: Metrics.s2) {
-                            Text("Homer").tracked(10, color: Palette.gold)
-                            Text(reply)
-                                .font(Typeface.display(22, italic: true))
-                                .displayLeading(22, 1.25)
-                                .foregroundStyle(Palette.onHero)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        .padding(Metrics.s5)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .paper(Palette.hero, radius: Metrics.radiusL)
-                        .transition(.scale(scale: 0.96).combined(with: .opacity))
-                    } else {
-                        WaitLine(state: .custom("Homer is answering…"))
-                    }
-                    if yourTurnAgain {
-                        Text("Your turn again. Get ready to speak.")
-                            .font(Typeface.text(15, weight: 600))
-                            .foregroundStyle(Palette.cream)
-                            .padding(.horizontal, Metrics.s4)
-                            .padding(.vertical, Metrics.s3)
-                            .frame(maxWidth: .infinity)
-                            .paper(Palette.sea, radius: Metrics.radiusM)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                    }
-                    Spacer(minLength: 0)
+                ViewThatFits(in: .vertical) {
+                    answer(reply: reply, yourTurnAgain: yourTurnAgain, score: score, change: change, axes: axes)
+                    ScrollView { answer(reply: reply, yourTurnAgain: yourTurnAgain, score: score, change: change, axes: axes) }
+                        .scrollIndicators(.hidden)
                 }
+                .frame(maxHeight: .infinity, alignment: .top)
                 .animation(Motion.slide, value: reply)
+                .animation(Motion.slide, value: score)
                 .animation(Motion.slide, value: yourTurnAgain)
             } action: {
                 EmptyView()
@@ -353,6 +330,93 @@ struct PlayerView: View {
             card
             if let coined { Text("Into your hoard · \(coined)").chip(11, fill: Palette.gold, color: Palette.ink) }
         }
+    }
+
+    /// Talk to Homer, after your turn: a verse's score and how it moved since your
+    /// last (so you see yourself improving), then Homer's reply. A talk-back has
+    /// no score and shows only the reply.
+    private func answer(reply: String?, yourTurnAgain: Bool, score: Int?, change: Int?, axes: [AxisScore]?) -> some View {
+        VStack(spacing: Metrics.s3) {
+            if let reply, !reply.isEmpty {
+                let neutral = reply == ScorecardView.neutralVerdict
+                if let score {
+                    VStack(alignment: .leading, spacing: Metrics.s3) {
+                        HStack(alignment: .firstTextBaseline, spacing: Metrics.s1) {
+                            Text("\(score)")
+                                .font(Typeface.display(52, weight: 600))
+                                .foregroundStyle(neutral ? Palette.ink3 : Palette.ink)
+                                .contentTransition(.numericText(value: Double(score)))
+                            Text("/100").font(Typeface.text(15, weight: 600)).foregroundStyle(Palette.ink2)
+                            Spacer(minLength: Metrics.s2)
+                            changeChip(neutral ? nil : change, neutral: neutral)
+                        }
+                        if let axes, !axes.isEmpty {
+                            VStack(spacing: Metrics.s2) {
+                                ForEach(axes) { AxisRow(name: $0.name, value: $0.value, landed: true, k: 1, muted: neutral) }
+                            }
+                        }
+                    }
+                    .padding(Metrics.s5)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .paper()
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(scoreLabel(score, change: change, axes: axes, neutral: neutral))
+                    .transition(.scale(scale: 0.96).combined(with: .opacity))
+                }
+                // His answer, as a card: the coach first, the judge second.
+                VStack(alignment: .leading, spacing: Metrics.s2) {
+                    Text("Homer").tracked(10, color: Palette.gold)
+                    Text(reply)
+                        .font(Typeface.display(22, italic: true))
+                        .displayLeading(22, 1.25)
+                        .foregroundStyle(Palette.onHero)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(Metrics.s5)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .paper(Palette.hero, radius: Metrics.radiusL)
+                .transition(.scale(scale: 0.96).combined(with: .opacity))
+            } else {
+                WaitLine(state: .custom("Homer is answering…"))
+            }
+            if yourTurnAgain {
+                Text("Your turn again. Get ready to speak.")
+                    .font(Typeface.text(15, weight: 600))
+                    .foregroundStyle(Palette.cream)
+                    .padding(.horizontal, Metrics.s4)
+                    .padding(.vertical, Metrics.s3)
+                    .frame(maxWidth: .infinity)
+                    .paper(Palette.sea, radius: Metrics.radiusM)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+    }
+
+    /// "↑ 7 from your last": gold when you climbed, quiet when you didn't.
+    @ViewBuilder
+    private func changeChip(_ change: Int?, neutral: Bool) -> some View {
+        if neutral {
+            Text("Neutral: the judge timed out").chip(10, fill: Palette.paper2, color: Palette.ink2)
+        } else if let change, change > 0 {
+            Text("↑ \(change) from your last").chip(11, fill: Palette.gold, color: Palette.ink)
+        } else if let change, change < 0 {
+            Text("↓ \(-change) from your last").chip(11, fill: Palette.paper2, color: Palette.ink2)
+        } else if change != nil {
+            Text("Same as your last").chip(11, fill: Palette.paper2, color: Palette.ink2)
+        } else {
+            Text("Your first score").chip(11, fill: Palette.paper2, color: Palette.ink2)
+        }
+    }
+
+    private func scoreLabel(_ score: Int, change: Int?, axes: [AxisScore]?, neutral: Bool) -> String {
+        var parts = ["Score \(score) out of 100"]
+        if neutral {
+            parts.append("a neutral score, the judge timed out")
+        } else if let change {
+            parts.append(change > 0 ? "up \(change) from your last" : change < 0 ? "down \(-change) from your last" : "the same as your last")
+        }
+        parts += (axes ?? []).map { "\($0.name) \($0.value)" }
+        return parts.joined(separator: ", ")
     }
 
     private func movesCard(_ moves: [FormulaCard], whisperedId: String?) -> some View {

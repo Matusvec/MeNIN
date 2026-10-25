@@ -140,7 +140,7 @@ struct ScorecardView: View {
     }
 }
 
-private struct AxisRow: View {
+struct AxisRow: View {
     let name: String
     let value: Int
     /// Flips true when the axis finishes counting: the row takes the knock.
