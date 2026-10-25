@@ -160,7 +160,7 @@ Cards (**C**) are full-screen; lower thirds (**L**) sit bottom-left over footage
 | C3 | 1:47–1:50 | Number card | Word errors, with a drum at full volume: **20% → 3%** with keyterms / *Synthetic test clips · method in docs/voice-wer* |
 | C4 | 1:50–1:55 | Card | **Nothing is mocked.** |
 | C5 | 1:55–2:00 | Responsible card | Built responsibly / Captions on everything Homer says · The mic opens only on your turn · No audio passes through our server · Homer never names your emotion · No account needed |
-| L13 | 2:00–2:30 | One per game, as each clip starts | Discus / Stadion / Pygmachia (boxing) / Toxeia (archery): the webcam tracks your bow arm / Socratic debate, hosted by Socrates. **Add "· beta" to every game that hasn't passed its runs on 31+.** |
+| L13 | 2:00–2:30 | One per game, at that game's first clip in the montage | Stadion / Toxeia (archery): the webcam tracks your bow arm / Pygmachia (boxing) / Discus / Poetry battle. **Add "· beta" to every game that hasn't passed its runs on 31+.** |
 | L14 | 2:31 | Lower third | Atelier → Hall: the same frame, one variable mode |
 | L15 | 2:36 | Lower third | 128 hard-coded colors → 37 tokens · 119 views restyled, untouched |
 | L16 | 2:41 | Lower third | The scene: 4 rounds of designer feedback in 17 minutes |
@@ -178,13 +178,13 @@ Cards (**C**) are full-screen; lower thirds (**L**) sit bottom-left over footage
 | 1:15–1:35 | **Talk to Homer** (L10), then **Bard lesson one**: Homer speaks the Iliad's first line over the staff strike (L11). Line 5. | Homer |
 | 1:35–1:55 | **How it works:** C2, the diagram (line 6); then a 3–4 s split-screen of the arena and the live SpacetimeDB timeline (L12); C3, the word-error card; C4 (line 7). | The theme, ducked |
 | 1:55–2:00 | C5, the responsible card. **The 2:00 cut ends here.** | The theme |
-| 2:00–2:30 | **The games montage, 4–5 s each, real team clips:** discus (on the website only; it has no phone screen now), the Stadion, boxing (on the big screen), camera archery (the webcam view and the arena), and Socrates opening the debate. L13 on each. Line 8. | The theme, up |
+| 2:00–2:30 | **The training montage** (Matus's idea): **every teammate on every game.** Running the Stadion, drawing the camera bow, boxing, a discus swing, spitting a verse. The raw clips are 10–20 s each, sped up 2–4×, with **speed ramps back to 1× on the hero beats**: the arrow release, the discus swing, a verdict reaction. Keep the misses, the reactions and the high-fives. Each game's name goes up as a lower third at that game's first clip (L13). Homer's line 8 opens it; no other narration. | **The theme at full volume.** The clips' own audio is off, so nothing plays under an audible verse |
 | 2:30–2:50 | **The Figma workflow:** the Atelier → Hall flip, the four background rounds, the button system, the μ icon (L14–L17). Line 9. | The theme, ducked |
 | 2:50–3:00 | The team, then C6, the end card. Line 10. | The champion sting |
 
 ### (c) The shot list: what to film
 
-**Each clip is 6 s or less, with 3 takes at most.** Shoot it all on build 45 (or the judging build). Film the arena with **Screen Studio** on the Mac (1080p, 60 fps, the browser full screen, the cursor hidden; if it can't capture the browser's sound, use OBS as in "Capture settings" above). Film the phones with **Control Center → Screen Recording** (Do Not Disturb on), and film people with a phone camera (1080p, 60 fps, landscape, AE/AF lock on a face).
+**Each clip is 6 s or less, with 3 takes at most** (except the montage's raw clips, 10–20 s each, which the edit speeds up). Shoot it all on build 45 (or the judging build). Film the arena with **Screen Studio** on the Mac (1080p, 60 fps, the browser full screen, the cursor hidden; if it can't capture the browser's sound, use OBS as in "Capture settings" above). Film the phones with **Control Center → Screen Recording** (Do Not Disturb on), and film people with a phone camera (1080p, 60 fps, landscape, AE/AF lock on a face).
 
 **Prep (Matus, 2 minutes):** on each phone, long-press the home screen for 3 s → Dev. Check "Voice diagnostics" is **off** and the server says **Maincloud (homer-calhacks)**. Build 45 has no other debug UI.
 
@@ -205,11 +205,11 @@ Cards (**C**) are full-screen; lower thirds (**L**) sit bottom-left over footage
 | 13 | One Talk to Homer exchange | Screen Studio | 1:15 |
 | 14 | Bard lesson one: Homer speaking the Iliad's first line | Phone screen recording, mic on | 1:25 |
 | 15 | The SpacetimeDB timeline next to the arena, as a verdict lands | Screen Studio (Terminal + browser side by side) | 1:43 |
-| 16 | Discus: the swing (person) and the flight on the website | Phone camera + Screen Studio | 2:00 |
-| 17 | The Stadion: arms pumping, the race on the arena | Phone camera + Screen Studio | 2:05 |
-| 18 | Boxing: two fighters on the big screen | Screen Studio (+ a camera wide) | 2:10 |
-| 19 | Camera archery: the webcam view and the arrow landing. Optional close-up: the two-phone BOW screen, the aim circle steadying on the gold next to the arrow pad's "Nocked ✓" pull | Screen Studio (+ phone screen recording) | 2:15 |
-| 20 | Socrates opening the debate | Screen Studio | 2:22 |
+| 16 | **Montage: each teammate × each game** (the Stadion, camera archery, boxing, discus, a verse). Raw clips of 10–20 s, which the edit speeds up 2–4×. Film the people, not the screens: misses, reactions and high-fives count | Phone camera, **60 fps**, landscape | 2:00–2:30 |
+| 17 | **Slow-mo hero beats** for the 1× ramps: the arrow release, the discus swing and release, a punch landing, a verdict reaction | Phone camera, **120 fps slow-mo** (Camera → Slo-mo) | 2:00–2:30 |
+| 18 | One wide of the arena for each game, so the montage shows what the screen does (discus has no phone screen; boxing reads best on the big screen) | Screen Studio | 2:00–2:30 |
+| 19 | *(Optional)* the two-phone archery BOW screen: the aim circle steadying on the gold next to the arrow pad's "Nocked ✓" pull | Phone screen recording | 2:00–2:30 |
+| 20 | *(Spare)* any extra reaction or high-five from the shoot | Phone camera | 2:00–2:30 |
 | 21 | Figma: the Directions file flipping Atelier → Hall (node 36-128); the scene-round renders (34-179, 31-179); the button sheet (48-216); the μ icon (54-142) | Screen Studio on Figma | 2:30–2:50 |
 
 **Safety for the motion clips:** a grippy case or a wrist strap on every swung phone, arm room all around, and nobody next to the laptops.
@@ -218,11 +218,11 @@ Cards (**C**) are full-screen; lower thirds (**L**) sit bottom-left over footage
 
 | Track | What's on it |
 | --- | --- |
-| **V1** | All footage, in timeline order. Hard cuts on the beat of the theme; no transitions except one fade into C6 |
+| **V1** | All footage, in timeline order. Hard cuts on the beat of the theme; no transitions except one fade into C6. **The training montage (2:00–2:30):** CapCut → Speed → **Curve** on each clip, 2–4× through the run-up, and a ramp back to 1× (or the 120 fps slow-mo at 0.25×) on the hero beat: the release, the swing, the reaction. Mute each montage clip's own audio. |
 | **V2** | Cards C1–C6 and lower thirds L1–L17, as PNGs from artist (transparent background for the lower thirds) |
 | **Captions** | Burned in (CapCut → Text → Auto captions, then corrected word for word against the narration table and the real transcripts). Inter, white with a thin dark shadow, bottom-center, above the lower-third zone |
 | **A1** | The room and Homer: camera sound, the arena's audio, Homer's live lines, and the nine rendered narration lines plus Matus's line. Normalize to about −14 LUFS |
-| **A2** | Matus's theme at **−18 dB**, ducked a further ~10 dB under any voice (CapCut → Audio → Ducking on A2, keyed to A1). **Mute A2 completely under every poet's verse.** |
+| **A2** | Matus's theme at **−18 dB**, ducked a further ~10 dB under any voice (CapCut → Audio → Ducking on A2, keyed to A1). **Mute A2 completely under every poet's verse.** **From 2:00 to 2:30 the theme comes up to full volume** (about −6 dB), ducked only under Homer's line 8, and drops back to −18 dB at the Figma section. |
 
 **Export:** 1080p, 30 or 60 fps, H.264, AAC 48 kHz, **2:59 at most**. Also export the first 2:00 on its own (it ends on C5) for Cartesia.
 
