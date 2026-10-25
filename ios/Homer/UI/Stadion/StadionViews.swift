@@ -1,3 +1,4 @@
+import CoreHaptics
 import SwiftUI
 
 // The Stadion: the footrace. Everyone pumps their arms with the phone in hand
@@ -258,12 +259,18 @@ struct FightModel: Equatable {
         case ko(won: Bool)
     }
 
-    /// One hit, as the phone shows it: `landed` when you hit them, else you took it.
+    /// One punch that reached its target, as the phone shows it. `landed` when it
+    /// was your punch, else theirs. `blocked` when the guard took it.
     struct Hit: Equatable {
         var id: Int
         var landed: Bool
         /// "JAB!", "HOOK!", "UPPERCUT!", "BODY!".
         var label: String
+        var blocked = false
+        /// Thrown right after a block: double damage (SPEC, Pygmachia).
+        var counter = false
+        /// The punch's place in a run of quick punches (2, 3, …); nil outside a combo.
+        var combo: Int? = nil
     }
 
     var phase: Phase = .waiting(nil)
@@ -272,6 +279,9 @@ struct FightModel: Equatable {
     /// 0...1.
     var myHealth: Double = 1
     var theirHealth: Double = 1
+    /// 0...1: drains with every punch, refills when you pause.
+    var myStamina: Double = 1
+    var theirStamina: Double = 1
     /// Seconds left in the bout.
     var seconds: Int?
     var hit: Hit?
@@ -282,6 +292,8 @@ struct FightView: View {
     var onBack: (() -> Void)? = nil
 
     @State private var flashes = 0
+    /// A counter's second thump, a beat after the first.
+    @State private var secondThump = 0
 
     var body: some View {
         ZStack {
@@ -304,8 +316,8 @@ struct FightView: View {
                 }
                 .padding(.horizontal, Metrics.s4)
                 HStack(spacing: Metrics.s3) {
-                    HealthBand(name: model.me?.name ?? "You", health: model.myHealth, seat: model.me?.ink, trailing: false)
-                    HealthBand(name: model.opponent?.name ?? "Them", health: model.theirHealth, seat: model.opponent?.ink, trailing: true)
+                    HealthBand(name: model.me?.name ?? "You", health: model.myHealth, stamina: model.myStamina, seat: model.me?.ink, trailing: false)
+                    HealthBand(name: model.opponent?.name ?? "Them", health: model.theirHealth, stamina: model.theirStamina, seat: model.opponent?.ink, trailing: true)
                 }
                 .padding(.horizontal, Metrics.s4)
                 Spacer(minLength: 0)
@@ -318,12 +330,26 @@ struct FightView: View {
         }
         .animation(Motion.stamp, value: model.phase)
         .onChange(of: model.hit?.id) { _, new in
-            if new != nil { flashes += 1 }
+            guard new != nil, let hit = model.hit else { return }
+            flashes += 1
+            if hit.counter, !hit.blocked {
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(120))
+                    secondThump += 1
+                }
+            }
         }
+        .onChange(of: model.phase) { _, phase in
+            if case .ko = phase { Buzz.long() }
+        }
+        // A landed punch is a sharp thump (a heavy one when you take it), a counter
+        // thumps twice, a block is a soft tap, the KO a long buzz.
         .sensoryFeedback(trigger: model.hit?.id) { _, _ in
             guard let hit = model.hit else { return nil }
-            return hit.landed ? .impact(weight: .medium) : .impact(weight: .heavy, intensity: 1)
+            if hit.blocked { return .impact(flexibility: .soft, intensity: 0.45) }
+            return hit.landed ? .impact(flexibility: .rigid, intensity: 1) : .impact(weight: .heavy, intensity: 1)
         }
+        .sensoryFeedback(.impact(flexibility: .rigid, intensity: 1), trigger: secondThump)
     }
 
     @ViewBuilder
@@ -339,6 +365,12 @@ struct FightView: View {
                     .foregroundStyle(StadionPalette.figure.opacity(0.8))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Metrics.s6)
+                Text("Keep MeNIN open during the fight.")
+                    .font(Typeface.text(14, weight: 700))
+                    .foregroundStyle(StadionPalette.figure)
+                    .padding(.horizontal, Metrics.s3)
+                    .padding(.vertical, 6)
+                    .background(StadionPalette.slip, in: Capsule())
             }
         case .countdown(let n):
             Text(n > 0 ? "\(n)" : "FIGHT")
@@ -355,15 +387,20 @@ struct FightView: View {
                     .font(Typeface.display(52, weight: 900))
                     .foregroundStyle(StadionPalette.figure)
                 if let hit = model.hit {
-                    // The last hit, stamped: gold when you landed it, vermilion when you took it.
-                    Text(hit.label)
-                        .font(Typeface.display(44, weight: 900))
-                        .foregroundStyle(hit.landed ? StadionPalette.gold : Palette.vermilion)
-                        .shadow(color: StadionPalette.figure, radius: 0, x: 4, y: 4)
+                    HitStamp(hit: hit)
                         .id(hit.id)
                         .transition(.scale(scale: 1.8).combined(with: .opacity))
                 }
+                if model.myStamina < 0.25 {
+                    Text("Winded. Ease off and your wind comes back.")
+                        .font(Typeface.text(15, weight: 700))
+                        .foregroundStyle(StadionPalette.figure)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, Metrics.s6)
+                        .transition(.opacity)
+                }
             }
+            .animation(.easeOut(duration: 0.2), value: model.myStamina < 0.25)
         case .ko(let won):
             VStack(spacing: Metrics.s3) {
                 Text("KO")
@@ -378,23 +415,126 @@ struct FightView: View {
         }
     }
 
-    /// The hit flash: the whole screen takes it, gold when you land, vermilion when you're hit.
+    /// The hit flash, one per punch: the whole screen takes it, gold when you land,
+    /// vermilion when you're hit, a faint slip when the guard takes it. A counter flashes twice.
     private var flash: some View {
-        let landed = model.hit?.landed ?? true
-        return (landed ? StadionPalette.gold : Palette.vermilion)
+        let hit = model.hit
+        let color = hit?.blocked == true ? StadionPalette.slip : (hit?.landed ?? true) ? StadionPalette.gold : Palette.vermilion
+        let peak = flashes == 0 ? 0 : hit?.blocked == true ? 0.25 : 0.6
+        let counter = hit?.counter == true && hit?.blocked != true
+        return color
             .ignoresSafeArea()
             .allowsHitTesting(false)
             .keyframeAnimator(initialValue: 0.0, trigger: flashes) { color, o in color.opacity(o) } keyframes: { _ in
-                MoveKeyframe(flashes > 0 ? 0.6 : 0)
-                CubicKeyframe(0, duration: 0.35)
+                MoveKeyframe(counter ? 0.75 : peak)
+                if counter {
+                    CubicKeyframe(0, duration: 0.12)
+                    CubicKeyframe(0.6, duration: 0.06)
+                    CubicKeyframe(0, duration: 0.4)
+                } else {
+                    CubicKeyframe(0, duration: 0.35)
+                }
             }
     }
 }
 
-/// Health as a vase band: a meander-framed strip of slip draining to black.
+/// The last punch, stamped: gold when you landed it, vermilion when you took it,
+/// slip when it was blocked. A counter gets a COUNTER! stamp over a gold burst, a
+/// combo a "3× COMBO" plate under it.
+private struct HitStamp: View {
+    let hit: FightModel.Hit
+
+    var body: some View {
+        let counter = hit.counter && !hit.blocked
+        ZStack {
+            if counter {
+                Sunburst(rays: 14)
+                    .fill(StadionPalette.gold)
+                    .frame(width: 300, height: 300)
+                    .keyframeAnimator(initialValue: 0.4, trigger: hit.id) { burst, s in
+                        burst.scaleEffect(s).rotationEffect(.degrees(Double(s) * 12))
+                    } keyframes: { _ in
+                        SpringKeyframe(1.05, duration: 0.3, spring: .snappy)
+                        CubicKeyframe(1.0, duration: 0.6)
+                    }
+            }
+            VStack(spacing: 6) {
+                if counter {
+                    Text("COUNTER!")
+                        .font(Typeface.display(50, weight: 900))
+                        .foregroundStyle(StadionPalette.slip)
+                        .shadow(color: StadionPalette.figure, radius: 0, x: 5, y: 5)
+                        .rotationEffect(.degrees(-5))
+                }
+                Text(hit.blocked ? "BLOCKED" : hit.label)
+                    .font(Typeface.display(hit.blocked ? 36 : 44, weight: 900))
+                    .foregroundStyle(hit.blocked ? StadionPalette.slip : hit.landed ? (counter ? StadionPalette.figure : StadionPalette.gold) : Palette.vermilion)
+                    .shadow(color: counter ? .clear : StadionPalette.figure, radius: 0, x: 4, y: 4)
+                if let combo = hit.combo, combo >= 2, !hit.blocked {
+                    Text("\(combo)× COMBO")
+                        .font(Typeface.display(22, weight: 900))
+                        .foregroundStyle(StadionPalette.slip)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 5)
+                        .background(StadionPalette.figure, in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+                        .rotationEffect(.degrees(4))
+                }
+            }
+        }
+        .frame(height: counter ? 240 : nil)
+    }
+}
+
+/// A burst of flat rays, for the counter: matte, like painted spokes on a shield.
+private struct Sunburst: Shape {
+    var rays: Int
+
+    func path(in rect: CGRect) -> Path {
+        let c = CGPoint(x: rect.midX, y: rect.midY)
+        let r = min(rect.width, rect.height) / 2
+        let half = Double.pi / Double(rays) * 0.55
+        var p = Path()
+        for i in 0..<rays {
+            let a = Double(i) / Double(rays) * 2 * .pi
+            p.move(to: CGPoint(x: c.x + cos(a) * r * 0.18, y: c.y + sin(a) * r * 0.18))
+            p.addLine(to: CGPoint(x: c.x + cos(a - half) * r, y: c.y + sin(a - half) * r))
+            p.addLine(to: CGPoint(x: c.x + cos(a + half) * r, y: c.y + sin(a + half) * r))
+            p.closeSubpath()
+        }
+        return p
+    }
+}
+
+/// The KO's long buzz: one continuous haptic, which sensoryFeedback can't play.
+@MainActor
+private enum Buzz {
+    private static var engine: CHHapticEngine?
+
+    static func long(_ seconds: Double = 0.9) {
+        guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return }
+        do {
+            if engine == nil {
+                engine = try CHHapticEngine()
+                engine?.isAutoShutdownEnabled = true
+            }
+            try engine?.start()
+            let event = CHHapticEvent(eventType: .hapticContinuous,
+                                      parameters: [CHHapticEventParameter(parameterID: .hapticIntensity, value: 1),
+                                                   CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.3)],
+                                      relativeTime: 0, duration: seconds)
+            try engine?.makePlayer(with: CHHapticPattern(events: [event], parameters: [])).start(atTime: CHHapticTimeImmediate)
+        } catch {
+            // No buzz is fine: the KO is on screen.
+        }
+    }
+}
+
+/// Health as a vase band: a meander-framed strip of slip draining to black, and
+/// under it stamina, a thinner gold band.
 private struct HealthBand: View {
     let name: String
     let health: Double
+    var stamina: Double? = nil
     var seat: Color?
     /// The opponent's band drains toward the center, mirroring yours.
     var trailing: Bool
@@ -423,9 +563,27 @@ private struct HealthBand: View {
             }
             .frame(height: 22)
             .animation(.easeOut(duration: 0.25), value: health)
+            if let stamina {
+                GeometryReader { geo in
+                    let w = geo.size.width * CGFloat(min(1, max(0, stamina)))
+                    ZStack(alignment: trailing ? .trailing : .leading) {
+                        Rectangle().fill(StadionPalette.figure)
+                        ZStack {
+                            Rectangle().fill(stamina < 0.25 ? StadionPalette.slip.opacity(0.55) : StadionPalette.gold)
+                            MeanderBand().stroke(StadionPalette.figure, lineWidth: 1).padding(.vertical, 2)
+                        }
+                        .frame(width: w)
+                        .clipped()
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 2, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 2, style: .continuous).strokeBorder(StadionPalette.figure, lineWidth: 2))
+                }
+                .frame(height: 11)
+                .animation(.easeOut(duration: 0.2), value: stamina)
+            }
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(name) health \(Int(health * 100)) percent")
+        .accessibilityLabel("\(name) health \(Int(health * 100)) percent" + (stamina.map { ", stamina \(Int($0 * 100)) percent" } ?? ""))
     }
 }

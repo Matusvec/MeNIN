@@ -21,9 +21,28 @@ struct FighterRow: Codable, Sendable, Equatable {
     var aimPitch: Float
     var counterUntil: SpacetimeTimestamp
     var updatedAt: SpacetimeTimestamp
+    // Boxing v2, appended columns: absent on a v1 module, so decoded only if present.
+    var stamina: Float = 100  // 0...100
+    var combo: UInt32 = 0
 
     enum CodingKeys: String, CodingKey {
-        case playerId, roomId, seat, health, guard_ = "guard", aimYaw, aimPitch, counterUntil, updatedAt
+        case playerId, roomId, seat, health, guard_ = "guard", aimYaw, aimPitch, counterUntil, updatedAt, stamina, combo
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        playerId = try c.decode(UInt64.self, forKey: .playerId)
+        roomId = try c.decode(UInt64.self, forKey: .roomId)
+        seat = try c.decode(UInt32.self, forKey: .seat)
+        health = try c.decode(Float.self, forKey: .health)
+        guard_ = try c.decode(Bool.self, forKey: .guard_)
+        aimYaw = try c.decode(Float.self, forKey: .aimYaw)
+        aimPitch = try c.decode(Float.self, forKey: .aimPitch)
+        counterUntil = try c.decode(SpacetimeTimestamp.self, forKey: .counterUntil)
+        updatedAt = try c.decode(SpacetimeTimestamp.self, forKey: .updatedAt)
+        // BSATN rows are positional: a v1 row simply ends here (the read throws end-of-data).
+        stamina = (try? c.decode(Float.self, forKey: .stamina)) ?? 100
+        combo = (try? c.decode(UInt32.self, forKey: .combo)) ?? 0
     }
 }
 
@@ -42,6 +61,30 @@ struct PunchRow: Codable, Sendable, Equatable, Identifiable {
     var at: SpacetimeTimestamp
     var t: Float
     var kind: String
+    var combo: UInt32 = 0  // v2, appended: this punch's place in a run (2, 3, ...)
+
+    enum CodingKeys: String, CodingKey {
+        case id, roomId, playerId, targetId, zone, power, aimYaw, aimPitch, result, damage, counter, at, t, kind, combo
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UInt64.self, forKey: .id)
+        roomId = try c.decode(UInt64.self, forKey: .roomId)
+        playerId = try c.decode(UInt64.self, forKey: .playerId)
+        targetId = try c.decode(UInt64.self, forKey: .targetId)
+        zone = try c.decode(String.self, forKey: .zone)
+        power = try c.decode(Float.self, forKey: .power)
+        aimYaw = try c.decode(Float.self, forKey: .aimYaw)
+        aimPitch = try c.decode(Float.self, forKey: .aimPitch)
+        result = try c.decode(String.self, forKey: .result)
+        damage = try c.decode(Float.self, forKey: .damage)
+        counter = try c.decode(Bool.self, forKey: .counter)
+        at = try c.decode(SpacetimeTimestamp.self, forKey: .at)
+        t = try c.decode(Float.self, forKey: .t)
+        kind = try c.decode(String.self, forKey: .kind)
+        combo = (try? c.decode(UInt32.self, forKey: .combo)) ?? 0
+    }
 }
 
 @MainActor

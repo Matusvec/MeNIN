@@ -30,6 +30,8 @@ struct BoxingPhoneRoot: View {
         if let opp = session.opponent, let row = battle.player(opp.playerId) { m.opponent = BattlePresenter.plate(row) }
         m.myHealth = Double(session.me?.health ?? 100) / 100
         m.theirHealth = Double(session.opponent?.health ?? 100) / 100
+        m.myStamina = Double(session.me?.stamina ?? 100) / 100
+        m.theirStamina = Double(session.opponent?.stamina ?? 100) / 100
         if let fight = session.fight, fight.endsAt.isSet {
             m.seconds = max(0, Int(fight.endsAt.date.timeIntervalSince(now).rounded(.up)))
         }
@@ -54,8 +56,10 @@ struct BoxingPhoneRoot: View {
         }
         if let hit = session.lastHit {
             let landed = hit.playerId == battle.me?.id
-            let label = hit.result == "blocked" ? "BLOCKED!" : (hit.zone == "body" ? "BODY!" : hit.kind.uppercased() + "!")
-            m.hit = .init(id: Int(hit.id), landed: landed, label: label)
+            let blocked = hit.result == "blocked"
+            let label = blocked ? "BLOCKED!" : (hit.zone == "body" ? "BODY!" : hit.kind.uppercased() + "!")
+            m.hit = .init(id: Int(hit.id), landed: landed, label: label, blocked: blocked, counter: hit.counter,
+                          combo: hit.combo >= 2 ? Int(hit.combo) : nil)
         }
         return m
     }

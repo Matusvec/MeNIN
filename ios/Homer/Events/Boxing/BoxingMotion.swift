@@ -101,8 +101,9 @@ final class BoxingMotion: @unchecked Sendable {
         recent.removeAll { t - $0.t > 0.15 }
 
         // Guard: upright (gravity down the phone's long axis), near centre, still for 150 ms.
-        let upright = m.gravity.y < -0.75
-        if upright, spin < 1.0, g < 0.3, abs(yaw) < 0.35, abs(pitch) < 0.35 {
+        // Generous on purpose (Matus: the guard must be easy): roughly upright, roughly still, roughly centred.
+        let upright = m.gravity.y < -0.6
+        if upright, spin < 1.5, g < 0.4, abs(yaw) < 0.5, abs(pitch) < 0.5 {
             if stillSince == nil { stillSince = t }
         } else {
             stillSince = nil
