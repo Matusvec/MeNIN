@@ -124,11 +124,12 @@ If OBS misbehaves, fall back to ⌘⇧5 for the picture and use iPhone C's audio
 
 ### (a) The narration: Homer, in his own Cartesia voice (Carl), and one line from Matus
 
-Nine lines now (line 5 was dropped), each 14 words or fewer. builder renders Homer's eight lines through Cartesia, which doubles as the Cartesia showcase. Matus records his own line in **Voice Memos**, close to the mic, in a quiet corner.
+Ten lines now (line 0 in Greek added, line 5 dropped), each 14 words or fewer. builder renders Homer's nine lines through Cartesia (line 0 from Paul's Easter egg, using its phonetic spelling in `iliad.ts`), which doubles as the Cartesia showcase. Matus records his own line in **Voice Memos**, close to the mic, in a quiet corner.
 
 | # | At | Who | Line (word for word) | Words |
 | --- | --- | --- | --- | --- |
-| 1 | 0:09 | Homer | "Rage. The first word of Western literature. Sing it back to me." | 12 |
+| 0 | 0:06 | Homer, **in ancient Greek** | "μῆνιν ἄειδε θεὰ Πηληϊάδεω Ἀχιλῆος" (*Iliad* 1.1, from Paul's Easter egg, `homer/web/src/poets/iliad.ts`; Homer speaks it in his own voice) | 5 |
+| 1 | 0:10 | Homer | "Rage. The first word of Western literature. Sing it back to me." | 12 |
 | 2 | 0:15 | **Matus** | "AI can write anything now. It can't stand up and move a room." | 13 |
 | 3 | 0:26 | Homer | "One screen is my hall. Your phone is your voice. Step up." | 12 |
 | 4 | 1:02 | Homer | "The best line gets carved in gold. Then I sing the room back." | 13 |
@@ -147,7 +148,8 @@ Cards (**C**) are full-screen; lower thirds (**L**) sit bottom-left over footage
 
 | # | At | Type | Text |
 | --- | --- | --- | --- |
-| C1 | 0:08–0:14 | Title card, on a hit from Matus's theme | **μῆνιν · MeNIN** / Ancient Greek party games, hosted by Homer |
+| C0 | 0:06–0:09 | Caption, centered, over the scene | **μῆνιν ἄειδε θεὰ Πηληϊάδεω Ἀχιλῆος** / *Sing, goddess, the rage of Achilles, son of Peleus* |
+| C1 | 0:09–0:14 | Title card, **slamming in on the theme's hit** | **μῆνιν · MeNIN** / Ancient Greek party games, hosted by Homer |
 | L1 | 0:14–0:20 | Lower third | Matus · Sunya · Paul / Cal Hacks 13.0 |
 | L2 | 0:25 | Lower third | Join with a code. No account. |
 | L3 | 0:29 | Lower third | A fresh theme from Homer, every round |
@@ -175,8 +177,9 @@ Cards (**C**) are full-screen; lower thirds (**L**) sit bottom-left over footage
 
 | Time | Shot | Sound |
 | --- | --- | --- |
-| 0:00–0:08 | **Cold open on a real battle, no narration.** A poet speaking (phone camera, close), the scene erupting in color (arena), Homer's spoken verdict landing. | The room and Homer |
-| 0:08–0:14 | C1 title, with Homer's line 1 | A hit from the theme |
+| 0:00–0:06 | **Cold open on a real battle, no narration.** A poet speaking (phone camera, close), the scene erupting in color (arena), Homer's spoken verdict landing. | The room and Homer |
+| 0:06–0:09 | **The title moment:** the scene alone, and Homer speaks Iliad 1.1 in ancient Greek (line 0) under the Greek caption (C0). | Homer, then silence before the hit |
+| 0:09–0:14 | C1, μῆνιν · MeNIN, **slams in on the theme's hit**; then Homer's line 1, "Rage. The first word of Western literature…" | The theme's hit, then the theme |
 | 0:14–0:25 | **The hook:** the team at the table, the laptop arena, phones in hand (L1). Matus's line 2. | The theme, ducked |
 | 0:25–1:15 | **The full poetry battle:** join by code (L2); the theme and three phrases (L3, L4); 3-2-1, SPEAK (L5); live words on the big screen; the freeze rescue whisper (L6); Homer's spoken verdict with scores (L7); the carved gold line (L8); the stitched song (L9). Homer's line 3 at the start and line 4 before the carved line. | The room and Homer; no music under any verse. The beat returns under the stitched song |
 | 1:15–1:35 | **More battle, plus builder's website B-roll:** more of the same battle take (a second verse, the scores, the room reacting), cut with builder's B-roll of the website: the Poets' Hall, Homer's hall, the event board, the arena scene moving (L10). No narration. | The room and Homer |
@@ -194,6 +197,14 @@ Cards (**C**) are full-screen; lower thirds (**L**) sit bottom-left over footage
 - **The SpacetimeDB timeline** is rendered by multiplayer from the battle's log.
 - **Builder** supplies the website B-roll.
 
+> **Make it look great at the shoot (Matus):**
+> - **Light on faces,** not the laptop's backlight: face a lamp or a window, never sit with your back to one.
+> - **Landscape, propped steady:** every phone on a stand or wedged against something. No handheld wides.
+> - **Get the reactions when verdicts land:** keep the wide rolling on the poets' faces through Homer's verdict.
+> - **Perform the verses with feeling:** stand up, look at the other poet, and mean it.
+> - **A quiet corner for the battle,** so Homer and the verses are clean.
+> - **Slow-mo** (Camera → Slo-mo) **for the arrow release and the discus swing.**
+
 **Prep (Matus, 2 minutes):** on each phone, long-press the home screen for 3 s → Dev. Check "Voice diagnostics" is **off** and the server says **Maincloud (homer-calhacks)**. Every phone is on the judging build.
 
 | # | What | How | Feeds |
@@ -210,7 +221,7 @@ Cards (**C**) are full-screen; lower thirds (**L**) sit bottom-left over footage
 
 | Track | What's on it |
 | --- | --- |
-| **V1** | All footage, in timeline order. Hard cuts on the beat of the theme; no transitions except one fade into C6. **The training montage (2:00–2:30):** CapCut → Speed → **Curve** on each clip, 2–4× through the run-up, and a ramp back to 1× (or the 120 fps slow-mo at 0.25×) on the hero beat: the release, the swing, the reaction. Mute each montage clip's own audio. |
+| **V1** | All footage, in timeline order. **builder snaps every hard cut to the theme's beats** (mark the beats on the A2 clip first, then cut to the markers); no transitions except one fade into C6. **The training montage (2:00–2:30):** CapCut → Speed → **Curve** on each clip, 2–4× through the run-up, and a ramp back to 1× (or the 120 fps slow-mo at 0.25×) on the hero beat: the release, the swing, the reaction. Mute each montage clip's own audio. |
 | **V2** | Cards C1–C6 and lower thirds L1–L17, as PNGs from artist (transparent background for the lower thirds) |
 | **Captions** | Burned in (CapCut → Text → Auto captions, then corrected word for word against the narration table and the real transcripts). Inter, white with a thin dark shadow, bottom-center, above the lower-third zone |
 | **A1** | The room and Homer: camera sound, the arena's audio, Homer's live lines, and the nine rendered narration lines plus Matus's line. Normalize to about −14 LUFS |
