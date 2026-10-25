@@ -33,13 +33,15 @@ struct PlayerScreen: View {
                     .overlay(alignment: .topLeading) {
                         if UserDefaults.standard.bool(forKey: "voiceDiagnostics"), let recorder { VoiceDiagnostics(recorder: recorder) }
                     }
-                    .confirmationDialog("Leave the battle?", isPresented: $confirmLeave, titleVisibility: .visible) {
-                        Button("Leave", role: .destructive) { leave() }
-                    } message: {
-                        Text("Your seat stays open for a while; rejoin with the same code.")
-                    }
             }
         }
+            // On the Group, so every screen's back asks (the sport screens' back set the flag with no
+            // dialog to show it, so leaving mid-event did nothing and only quitting the app got out).
+            .confirmationDialog("Leave the battle?", isPresented: $confirmLeave, titleVisibility: .visible) {
+                Button("Leave", role: .destructive) { leave() }
+            } message: {
+                Text("Your seat stays open for a while; rejoin with the same code.")
+            }
             .toolbar(.hidden, for: .navigationBar)
             .task(id: waitCandidate) {
                 // Show a wait only if it's still pending after 300 ms.

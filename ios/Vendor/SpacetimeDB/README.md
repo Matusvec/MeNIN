@@ -12,6 +12,7 @@ Each patch is marked `HOMER PATCH` in the source.
 
 1. `Network/SpacetimeClient.swift`: no implicit `SELECT * FROM <table>` for every registered table on (re)connect. Upstream subscribes to whole tables, so every phone would receive every room's rows, including prosody at 20 Hz. The app subscribes only to its own `WHERE room_id = N` queries.
 2. `Cache/TableCache.swift`: `rows` lists each distinct row once. Upstream repeats a row once per overlapping subscription, because it treats the refcount as a multiplicity.
+3. `Network/SpacetimeClient.swift` and `Cache/ClientCache.swift`: on every connect, the first subscription rows each table receives replace that table's cache (`ClientCache.clear(tables:)`). Upstream replays the subscriptions' rows on top of the old cache after a reconnect, so a row that changed or vanished while the socket was down stayed in the cache as a ghost beside the fresh one (a phone stuck on a room's old event until the app was killed).
 
 ## Known quirk, not patched
 

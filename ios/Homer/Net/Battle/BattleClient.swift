@@ -58,6 +58,8 @@ final class BattleClient: SpacetimeClientDelegate {
         client?.disconnect()
         client = nil
         connection = .idle
+        // The table cache is app-wide: leaving must not hand the next room this one's rows.
+        SpacetimeClient.clientCache.clear()
     }
 
     func onConnect() { connection = .connected }

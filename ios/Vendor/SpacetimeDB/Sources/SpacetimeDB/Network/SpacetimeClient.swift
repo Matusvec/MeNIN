@@ -184,6 +184,8 @@ public final class SpacetimeClient: @unchecked Sendable, WebSocketTransportDeleg
     // Send queue — NWWebSocketTransport handles its own internal queuing but we maintain 
     // a simplified queue to preserve ordering and handle connection lifecycle.
     private var sendQueue: [Data] = []
+    /// HOMER PATCH: tables whose cache the next subscription rows replace (set on every connect).
+    private var tablesToRefresh: Set<String> = []
     private var isTransportReady = false
     private var networkMonitor: NetworkMonitor?
     private let keepAlivePingInterval: Duration
@@ -772,6 +774,7 @@ public final class SpacetimeClient: @unchecked Sendable, WebSocketTransportDeleg
                 }
                 // HOMER PATCH: no implicit `SELECT * FROM <table>` for every registered table;
                 // the app subscribes to its own filtered queries.
+                withStateLock { tablesToRefresh = Set(Self.clientCache.registeredTableNames) }
                 resubscribeManagedSubscriptions()
                 invokeDelegateCallback(named: "delegate.on_connect") { $0.onConnect() }
             case .transactionUpdate(let update):
@@ -779,8 +782,20 @@ public final class SpacetimeClient: @unchecked Sendable, WebSocketTransportDeleg
                 notifyRawTransactionUpdateObservers()
                 notifyTransactionUpdate()
             case .subscribeApplied(let applied):
-                handleSubscribeApplied(applied)
+                let handle = handleSubscribeApplied(applied)
                 let initial = applied.asTransactionUpdate()
+                // HOMER PATCH: a (re)connect replays each subscription's rows on top of the cache,
+                // so rows that changed or vanished while away lingered beside the fresh ones (a room
+                // stuck on its old event until the app was killed). The first rows each table gets
+                // after a connect replace that table's cache, in the same pass, so nothing flickers.
+                var names = Set(initial.querySets.flatMap { $0.tables.map { $0.tableName.rawValue } })
+                if let handle { names.formUnion(Self.tableNames(in: handle.queries)) }
+                let stale = withStateLock { () -> Set<String> in
+                    let stale = names.intersection(tablesToRefresh)
+                    tablesToRefresh.subtract(stale)
+                    return stale
+                }
+                if !stale.isEmpty { Self.clientCache.clear(tables: stale) }
                 Self.clientCache.applyTransactionUpdate(initial)
                 notifyRawTransactionUpdateObservers()
                 notifyTransactionUpdate()
@@ -871,7 +886,17 @@ public final class SpacetimeClient: @unchecked Sendable, WebSocketTransportDeleg
         }
     }
 
-    func handleSubscribeApplied(_ applied: SubscribeApplied) {
+    /// HOMER PATCH: the table names in `SELECT * FROM <table> ...` queries.
+    static func tableNames(in queries: [String]) -> Set<String> {
+        Set(queries.compactMap { q -> String? in
+            let words = q.split(whereSeparator: { $0 == " " || $0 == "\n" })
+            guard let i = words.firstIndex(where: { $0.uppercased() == "FROM" }), i + 1 < words.count else { return nil }
+            return String(words[i + 1])
+        })
+    }
+
+    @discardableResult
+    func handleSubscribeApplied(_ applied: SubscribeApplied) -> SubscriptionHandle? {
         let handle = withStateLock { () -> SubscriptionHandle? in
             let handle = pendingSubscriptionByRequestId.removeValue(forKey: applied.requestId)
             if let handle {
@@ -881,6 +906,7 @@ public final class SpacetimeClient: @unchecked Sendable, WebSocketTransportDeleg
         }
         
         handle?.markApplied(querySetId: applied.querySetId)
+        return handle
     }
 
     func handleUnsubscribeApplied(_ applied: UnsubscribeApplied) {
