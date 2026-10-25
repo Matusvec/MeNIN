@@ -681,6 +681,13 @@ class LessonChecks:
         j = await judge().judge(Turn(a.transcript, mode="lesson", theme="the poet's own battle title"))
         return j.scores["craft"] if not j.silent else 10  # a silent judge doesn't fail the poet
 
+    async def content(self, a: Attempt, theme: str) -> dict | None:
+        """Lessons 1 and 2: the verse weighed the way battles weigh it, against the exercise. None if the judge is silent."""
+        j = await judge().judge(Turn(a.transcript, mode="lesson", theme=theme, hand=list(a.hand)))
+        if j.silent:
+            return None  # a silent judge doesn't fail the poet
+        return {**{k: j.scores.get(k, 0) for k in ("image", "answer", "craft")}, "verdict": j.verdict}
+
     async def emotions(self, lines: list[str]) -> list[dict[str, float] | None]:
         return list(await asyncio.gather(*(arena().classifier.classify(line) for line in lines)))
 
