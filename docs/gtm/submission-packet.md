@@ -6,7 +6,7 @@ For our web designer, from Matus. As of Sun Oct 25, ~12:55 AM. Every line below 
 
 - **Tonight:** create the MeNIN Devpost draft (cal-hacks-13-0.devpost.com → My projects), add every teammate, and tick every track in section 3 to check each one is selectable. The draft stays editable until the deadline.
 - **8:00 AM:** everyone at the venue and checked in. The Devpost page: "Get to the venue by October 25th @ 8 AM PST. You must've had been accepted and checked in as a hacker to submit."
-- **8:00 AM:** the repo goes public (Sunya flips it). Check it in a logged-out window before submitting.
+- **8:25 AM:** the public repo is the mirror https://github.com/Matusvec/MeNIN (Sunya couldn't be reached to flip the original). It loads logged out.
 - **8:45 AM:** Devpost submitted, with every track ticked. **9:00 AM is the hard deadline.**
 - **After 9:00 AM:** table numbers are assigned. Move to our table by 10:30.
 - **10:30 AM–12:30 PM:** live judging. The whole team must be at the table, or we aren't judged.
@@ -102,7 +102,7 @@ For our web designer, from Matus. As of Sun Oct 25, ~12:55 AM. Every line below 
 - **The website:** https://play.206.189.237.157.sslip.io (the Poets' Hall). **The arena is https://play.206.189.237.157.sslip.io/homer** → "Host a battle" → the Poetry battle card. Phones join with the iPhone app.
 - **The iPhone app (TestFlight):** **build 45** (0.1.0, `202610242325`) is the confirmed judging build. Matus submits it to External Testing. The public TestFlight link is https://testflight.apple.com/join/r9KCHkhc (live once Apple approves the beta; submitted Sun 3:27 AM). It works only after Apple's Beta App Review, which is pending; Matus submits the judging build for external review.
 - **The Apify Actor:** https://apify.com/matusnator/epithet-miner · Actor ID `v4i7ItNXjHMmnKzfo` (Apify staff want both in the submission).
-- **The repo:** https://github.com/sunya-afrasiabi/MeNIN. Public from 8:00 AM; MIT license.
+- **The repo:** https://github.com/Matusvec/MeNIN (the public mirror); MIT license.
 
 ## 5. The video
 

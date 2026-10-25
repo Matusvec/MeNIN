@@ -276,7 +276,7 @@ builder renders these through Cartesia, which doubles as the Cartesia showcase. 
 > A live voice poetry battle: speak a verse into your iPhone, and Homer judges it out loud within seconds. Before you battle, Homer teaches you to improvise like the Greeks, and Socrates lets you practice the art of the argument. The big screen is a website; your phone is your mic and your hand of Homer's phrases.
 >
 > Play it now: https://play.206.189.237.157.sslip.io/homer
-> Code: https://github.com/sunya-afrasiabi/MeNIN
+> Code: https://github.com/Matusvec/MeNIN
 > Figma stage log: https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm
 >
 > 0:00 A turn, start to finish

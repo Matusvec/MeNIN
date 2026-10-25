@@ -1,6 +1,6 @@
 # Sponsor submissions: paste-ready
 
-For Matus, Sun ~3:20 AM. Every line is a paste or a click. The repo goes public at 8:00 AM, so the GitHub links only work after that.
+For Matus, Sun ~3:20 AM. Every line is a paste or a click. **The public repo is the mirror https://github.com/Matusvec/MeNIN** (leader, Sun 8:25 AM: the original owner couldn't be reached to flip it public). All GitHub links below point at it.
 
 ## 1. Cartesia: "FINAL MATERIALS - CARTESIA" (their shared doc)
 
@@ -11,7 +11,7 @@ For Matus, Sun ~3:20 AM. Every line is a paste or a click. The repo goes public 
 > [2:00 cut link]: a 1:49 cut of our Devpost video, exported on its own (`menin-demo-2min-final.mp4`), ending on our "Built responsibly" card. One complete battle turn first (a poet speaks, Cartesia transcribes it live, Homer judges it out loud in his Cartesia voice), then the problem and how we built it.
 
 **Short README:**
-> https://github.com/sunya-afrasiabi/MeNIN#cartesia-ears-and-voice: the Cartesia section of our README.
+> https://github.com/Matusvec/MeNIN#cartesia-ears-and-voice: the Cartesia section of our README.
 > - **Speech-to-text:** ink-2, streaming over WebSocket. Every phrase Homer dealt the poet, plus the theme, goes in as keyterms. In our noise test (a drum at full volume, synthetic clips), the word error rate was 3% with keyterms and 20% without, and the final transcript landed 62–81 ms after the end of speech.
 > - **Text-to-speech:** sonic-3.6, voice Carl, for Homer: entrances, verdicts, the freeze whisper, the lessons and the stitched song.
 > - **Privacy:** our server mints short-lived tokens, and the phone streams straight to Cartesia, so no audio passes through our server and the API key never leaves it.
@@ -19,7 +19,7 @@ For Matus, Sun ~3:20 AM. Every line is a paste or a click. The repo goes public 
 > - **Known limitations:** loud rooms (our tests used synthetic mixes, not a real phone mic in a hall), and accents, names, slang and loanwords. The transcript is always on screen, so you see what Homer heard.
 
 **Source Access for Judges:**
-> https://github.com/sunya-afrasiabi/MeNIN (public from Sun 8:00 AM, MIT license). There are no API keys or secrets in the repo: `.env` is gitignored, `.env.example` is committed, and a full-history secret scan (gitleaks, every commit) came back clean.
+> https://github.com/Matusvec/MeNIN (public, MIT license). There are no API keys or secrets in the repo: `.env` is gitignored, `.env.example` is committed, and a full-history secret scan (gitleaks, every commit) came back clean.
 
 *gtm note: the brief said STT "ink-whisper", but the product uses **ink-2** (`homer/homer/voice.py`, `CartesiaSTT.swift`, `homer/web/src/poet/stt.ts`). ink-whisper appears only in a voiceover script. The text above says ink-2.*
 
@@ -48,5 +48,5 @@ The fork is public (Sun ~4:25 AM), so the SpacetimeDB story now has two links a 
 - **Draft PR upstream:** https://github.com/avias8/spacetimedb-swift/pull/3, five commits (three fixes, tests, FORK.md); `swift test`: 86 passed, 0 failures.
 - **Devpost:** tick "[Spacetime] Best Use of Spacetime" and paste the SpacetimeDB blurb from `docs/gtm/devpost.md` ("Sponsor-track blurbs"). Its "We fixed the Swift SDK to ship" bullet carries both links.
 - **The video** (2:41), which shows the SpacetimeDB flip: https://youtu.be/gvGEeuahLdE. Judges at the table won't have seen it (MLH staff, Sun 6:07 AM), so the live flip on the second desktop still has to happen there.
-- **The README's SpacetimeDB section** carries both links too: https://github.com/sunya-afrasiabi/MeNIN#spacetimedb-the-hall (public from 8:00 AM).
+- **The README's SpacetimeDB section** carries both links too: https://github.com/Matusvec/MeNIN#spacetimedb-the-hall.
 - **Say it exactly like this:** "a public fork with fixes sent upstream". Clockwork Labs has no official Swift SDK; avias8's is a community SDK; ours is a fork with fixes, not a new SDK. The license is BSL 1.1, unchanged, so never "open-sourced" and never "MIT".
