@@ -10,7 +10,7 @@ Five people who have never freestyled take MeNIN's first lesson, and we write do
   - **If build 18 isn't there,** use the newest of these that is: build 14, 0.1.0 (202610241531); build 11, 0.1.0 (202610241510); build 4, 0.1.0 (202610240956).
   - **To install an older build:** in TestFlight, tap MeNIN, then **Previous Builds**, and tap Install next to its number.
   - All four score lesson 1 exactly the same. On build 4, Homer's voice needs a strong connection and can sound choppy, and the app can crash if something interrupts its audio. Count those as tech fails (see "Rules while it runs").
-- **Finish by 8 PM.** The poet is Poet 1 in the Sat 8 PM poetry runs (`docs/ux-flow.md`, "Sat 8 PM runs"), which start around 8:30 after debate and discus.
+- **Finish by 8 PM.** The poet is Poet 1 in the Sat 8 PM poetry runs (`docs/ux-flow.md`, "Sat 8 PM runs"), which start around 8:20, after debate.
 
 **Before 6 PM**
 

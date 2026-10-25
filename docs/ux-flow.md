@@ -780,9 +780,11 @@ The checkpoint (`docs/gtm/reality-check.md`): an extra event that can't run **5 
 
 **Rules for every run**
 
-- **Set up as at the table:** the arena is the website, full screen in a browser on the arena Mac, on Ethernet. Phones have wired EarPods. The production agent service runs with Moss dealing, demo mode is on, and every phone is on the build we'll demo. Run it in the hacking hall, not in a quiet room.
-- **The count:** 5 clean runs in a row per event. A failure resets that event's count to 0, and you can start again right away. A new build, a redeploy or a code change also resets it. The series has to end by 9 PM, when the hall noise test starts.
-- **Order:** debate, then discus, then poetry, so the two events that might be locked go first. All three take about 45 minutes.
+- **Set up as at the table:** the arena is the website, full screen in a browser on the arena Mac, on Ethernet. Phones in poetry and debate have wired EarPods. The production agent service runs with Moss dealing, demo mode is on, and every phone is on the build we'll demo. Run it in the hacking hall, not in a quiet room.
+- **The count:** 5 clean runs in a row per event. A failure resets that event's count to 0, and you can start again right away. A new build, a redeploy or a code change also resets it.
+- **When:** debate and poetry have to finish by 9 PM, when the hall noise test starts. The motion events (discus, the Stadion, boxing and archery) use no mic, so hall noise doesn't touch them. If there are enough people, run them at the same time on a second laptop in the hall. If not, run them after 9 PM and finish by the leader's cutoff (proposed: 10:30 PM, so the tiles are settled before the 11 PM freeze).
+- **Order:** debate, then poetry, about 40 minutes for both. The motion events go in this order: the Stadion, boxing, discus, then archery, about 45 minutes for all four. Boxing comes after the Stadion because SPEC opens boxing only once the Stadion passes. Archery goes last because it's still in build: it runs only once it's in the app build we'll demo and live on the website, and until then its tile stays locked.
+- **Motion events:** play only where there's arm room, away from laptops and other people, with a firm grip on the phone. If a phone leaves anyone's hand, that's a failure, and it stops that event for the night until the leader says otherwise.
 - **Between runs:** the hall stays open. Use Rematch or New event, the way we will at the table. Never relaunch the app or restart a server.
 - **Who records:** whoever isn't playing fills in the table at the end of this section and sends it to the leader. The leader decides which tiles are unlocked.
 
@@ -794,9 +796,9 @@ The checkpoint (`docs/gtm/reality-check.md`): an extra event that can't run **5 
 - The arena or a phone shows a state that doesn't match the run, like the wrong player, a stale screen or a missing score.
 - A wait of more than a moment shows no loading mark and no line, so the screen looks frozen.
 - Music plays under an open mic.
-- Any sound effect plays. The only sounds allowed are the beat, the soft strike, the hosts' voices and the music cues: no whoosh, crowd, card flip, knock, chisel or thump.
+- Any sound effect plays. The only sounds allowed are the beat, the soft strike, the hosts' voices and the music cues: no whoosh, crowd, card flip, knock, chisel, thump, punch, bell, starting gun or bowstring. Haptic ticks and buzzes on the phones are fine.
 
-Player slips aren't failures when the app handles them as designed: a freeze gets a rescue, silence gets "Again", and a short swing counts as a drop. Handling those is part of what we're testing.
+Player slips aren't failures when the app handles them as designed: a freeze gets a rescue, silence gets "Again", a short swing counts as a drop, a runner who slows down gets placed at the 40 s cap, punches faster than four a second are dropped, a weak draw drops the arrow low, and an arrow not loosed within 45 s is lost. Handling those is part of what we're testing.
 
 ### Poetry
 
@@ -835,28 +837,100 @@ Player slips aren't failures when the app handles them as designed: a freeze get
 ### Discus
 
 - **One run:** one discus event with two throwers and three throws each. The discus tile opens, each thrower goes through the safety card on their first throw, then the throws, the flight, the distances with Homer's call, the leaderboard and "The discus goes to {name}.", and then **New event** back to the menu.
-- **Who plays:** the operator and one other person. The other thrower uses Matus's iPhone, as a judge will, and is someone who has never thrown, in at least 2 of the 5 runs. Throw only where there's arm room, away from laptops.
+- **Who plays:** the operator and one other person. The other thrower uses Matus's iPhone, as a judge will, and is someone who has never thrown, in at least 2 of the 5 runs.
 - **Also a failure:**
   - A full swing with the thumb lifted at the end gets read as a drop, or as no throw.
   - The arena shows the throw more than about 1 s after the release.
   - A distance is plainly wrong: 0 m on a full swing, over 100 m, or different on the phone and the arena.
   - Homer gives the wrong call, like "New mark" when it isn't the hall's best, or names the wrong champion.
-  - The phone leaves anyone's hand. That's a failure, and it also stops discus for the night until the leader says otherwise.
+
+### The Stadion
+
+- **One run:** one heat, the demo format. The Stadion tile opens. Homer says "One stadion. Phone in hand, pump your arms like a sprinter." and "Runners, to your marks.", then the 3-2-1 and GO show on the arena while the phones tick. Everyone races 192 m at once. Then come "{name} breaks the tape!", the winner's time, the places and "The stadion goes to {name}.", and then **New event** back to the menu.
+- **Who plays:** two or three runners on team iPhones, with three in at least 2 of the 5 runs, and someone who has never run it in at least 2. In one run, one runner only shakes the phone in place, without swinging their arms, to test the shake check.
+- **Also a failure:**
+  - The 3-2-1 on the arena and the ticks on a phone are more than a beat apart, or a runner moves before GO.
+  - A runner who pumps hard the whole way doesn't cross before the 40 s cap. A full pump takes about 14 s.
+  - A runner on the track stalls, jumps, or lags behind the arms by more than about half a second, or doesn't slow down within about a second of stopping.
+  - The runner who only shakes the phone crosses the line.
+  - The order on the arena doesn't match who crossed first, or a phone's place or time differs from the arena's.
+  - The heat doesn't end at 40 s while someone is still short of the line, or that runner gets no place.
+  - Homer names the wrong winner, or says "Nobody reached the line" when someone did.
+  - A phone's screen dims or locks during the race.
+- **Write down, but not a failure:** the winner's time, so we can tell whether the speed feels fair.
+
+### Boxing
+
+- **One run:** one bout, the demo format, on the v2 rules. The boxing tile opens. Homer says "{A} and {B}. Fists up.", the phones tick 3-2-1 to the bell, and the fight runs 60 s or to a knockout while Homer calls the big hits. Then comes "{loser} is down! The fight goes to {winner}!" or "The bell! {winner} takes it on the cards.", then "{winner}. The ring is yours.", and then **New event** back to the menu.
+- **Who plays:** two fighters on team iPhones, standing more than an arm's length apart and punching the air, never at each other. Someone who has never boxed in MeNIN fights in at least 2 of the 5 runs. At least one run has three fighters, to check that the winner stays on and that the third phone shows "Up next".
+- **Stage the v2 moves in every run,** so each run checks them:
+  - Fighter 1 throws two or three quick punches in a row while Fighter 2's guard is down (the combo).
+  - Fighter 2 holds the guard up against a head shot, then punches straight back within half a second (the counter).
+  - Each fighter throws at least one low punch to the body.
+  - One fighter punches nonstop for about 5 s, then rests for about 5 s (stamina).
+- **Also a failure:**
+  - A clear, hard punch shows no throw on the arena. Punches faster than four a second are dropped on purpose.
+  - A low punch lands on the head, or a high one on the body.
+  - A fist on the arena sticks to one side for more than a few seconds.
+  - Holding the phone upright and still doesn't raise the guard within about a second, or a head shot into a raised guard does full damage instead of showing BLOCKED.
+  - The staged counter gets no COUNTER banner and no slow-motion flash.
+  - The staged combo gets no COMBO stamp. Homer only calls a combo from the third punch, so a two-punch combo with no call is fine.
+  - The stamina bar doesn't drop as the punches come or doesn't refill within about 5 s of rest, the tired fighter doesn't sag, or the nonstop punches don't hit softer by the end.
+  - The fight stalls: the clock, a health bar or a fighter freezes, the bell doesn't end the fight at 0:00, or health reaching zero doesn't end it.
+  - The knockout doesn't fall in slow motion, or the result names the wrong fighter. At the bell, the winner is the one with more health.
+  - A phone's health or stamina doesn't match the arena's, or a hit gives no flash or buzz on the phones.
+- **Write down, but not a failure:** how each bout ended (knockout or bell) and how long it lasted. The fight is tuned to last about 30 to 50 s. If most bouts go the full 60 s or end in under 20 s, tell the leader.
+
+### Archery
+
+Archery is still in build (SPEC, Sat 6:05 PM), so this list comes from SPEC and the phone code. Before run 1, check it against the build and tell the leader about anything that doesn't match.
+
+- **One run:** two archers, three arrows each. The archery tile opens and two phones join. Each phone says in big type what it is: the **bow** or the **arrow**. The bow phone asks for the first archer's name. Before each arrow, the arena shows the wind: an arrow for its direction, its speed in m/s, and pennants blowing. The archer points the bow phone at the screen, and its aim shows as a live circle on the target. They hold the arrow phone's button to nock, pull the phone back toward their face to draw while the draw meter fills, and lift their thumb to loose. The arrow flies, drifts with the wind and scores on the rings. After three arrows, the archer passes both phones to the next archer, and the bow phone asks for that archer's name. After the last arrow come the totals and the winner, and then **New event** back to the menu.
+- **Who plays:** two archers per run, with three in at least one run, and someone who has never shot in at least 2 of the 5. The pass happens in every run, hand to hand, as it will at the table.
+- **Also a failure:**
+  - A phone doesn't say in big type which one it is, both phones say the same one, or they swap partway through.
+  - After an archer's third arrow, the bow phone doesn't ask for the next name, or the arena shows the wrong archer up.
+  - The aim circle doesn't follow the bow: it lags by more than about half a second, drifts while the bow is still, or sticks at an edge.
+  - Pulling the arrow phone back doesn't fill the draw meter, or moving it sideways does.
+  - Lifting the thumb doesn't loose the arrow, or an arrow looses while the thumb is still down.
+  - The wind isn't shown before an arrow is loosed, or the arrow drifts the opposite way from it. A calm 0 m/s is fine, as long as it shows.
+  - A weak draw doesn't drop the arrow low.
+  - The ring scored doesn't match where the arrow sits on the target, or a total is wrong.
+  - An archer gets more or fewer than three arrows.
+  - The wrong archer is named the winner.
+- **Write down, but not a failure:** a phone fumbled in the pass. If it happens twice in the series, tell the leader, since judges will pass the phones at the table.
 
 ### Results
 
-| Event | Run | Time | Pass or fail | What failed |
-| --- | --- | --- | --- | --- |
-| Debate | 1 | | | |
-| Debate | 2 | | | |
-| Debate | 3 | | | |
-| Debate | 4 | | | |
-| Debate | 5 | | | |
-| Discus | 1 | | | |
-| Discus | 2 | | | |
-| Discus | 3 | | | |
-| Discus | 4 | | | |
-| Discus | 5 | | | |
+| Event | Run | Time | Pass or fail | What failed | Notes |
+| --- | --- | --- | --- | --- | --- |
+| Debate | 1 | | | | |
+| Debate | 2 | | | | |
+| Debate | 3 | | | | |
+| Debate | 4 | | | | |
+| Debate | 5 | | | | |
+| Discus | 1 | | | | |
+| Discus | 2 | | | | |
+| Discus | 3 | | | | |
+| Discus | 4 | | | | |
+| Discus | 5 | | | | |
+| Stadion | 1 | | | | |
+| Stadion | 2 | | | | |
+| Stadion | 3 | | | | |
+| Stadion | 4 | | | | |
+| Stadion | 5 | | | | |
+| Boxing | 1 | | | | |
+| Boxing | 2 | | | | |
+| Boxing | 3 | | | | |
+| Boxing | 4 | | | | |
+| Boxing | 5 | | | | |
+| Archery | 1 | | | | |
+| Archery | 2 | | | | |
+| Archery | 3 | | | | |
+| Archery | 4 | | | | |
+| Archery | 5 | | | | |
+
+In Notes, write the winner's time for the Stadion, how each boxing bout ended and how long it lasted, and any fumbled pass in archery.
 
 | Poetry run | Time | Theme | Epithets (Poet 1, Poet 2) | Pass or fail | What failed |
 | --- | --- | --- | --- | --- | --- |
@@ -866,7 +940,7 @@ Player slips aren't failures when the app handles them as designed: a freeze get
 | 4 | | | | | |
 | 5 | | | | | |
 
-Add rows for any restarted series. If an event never gets 5 clean in a row by 9 PM, its tile stays locked, and the demo script's "If debate passed" and "If discus passed" lines don't run.
+Add rows for any restarted series. If an event never gets 5 clean in a row by its cutoff (9 PM for debate, the leader's cutoff for the motion events), its tile stays locked, and the demo script's lines for that event don't run.
 
 ---
 
