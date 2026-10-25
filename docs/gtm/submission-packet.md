@@ -27,6 +27,8 @@ For our web designer, from Matus. As of Sun Oct 25, ~12:55 AM. Every line below 
 | What | Link | What it shows | Where it goes |
 | --- | --- | --- | --- |
 | **The stage log deck** (Figma Slides) | https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm | The ten-slide stage log: problem, workflow, the four stages, prototypes, directions, before and after, demo, links | Devpost "Try it Out links" (required) |
+| **MeNIN user interface concept art** (Matus's planning file) | https://www.figma.com/design/zBILNwJB2NaVofBNJouAOW/MeNIN-user-interface-concept-art?node-id=0-1 | Matus's original concept art: where the look started | The Ideation slide; the stage log's Ideation entries. **Sharing: confirm "Anyone with the link"** |
+| "Homer · Atelier" (the concept frame) | https://www.figma.com/design/zBILNwJB2NaVofBNJouAOW/MeNIN-user-interface-concept-art?node-id=46-378 | The home-screen concept the app's Atelier look and tokens were read from through the Figma MCP (Fri 11:40 PM) | The Ideation and Code generation slides |
 | **MeNIN · Directions** (the design file) | https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv | The variable collection with three modes (Atelier, Cut paper, Hall); every variable is named after its Swift token | Deck slide 9 (embed); the Devpost Figma paragraph |
 | Hall reskin page | https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=30-102 | 12 Hall frames: Join, Turn, Wait, Verdict and the archery Arrow pad, at SE and Pro Max sizes, plus keyboard-up and held states | The "One hall, two codebases" slide |
 | The flip, Atelier → Hall | https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=36-128 | One frame twice, side by side; only the variable mode differs | The "One hall, two codebases" slide (embed) |

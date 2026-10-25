@@ -177,7 +177,11 @@ The total is out of 100. Clichés and dodging the theme cost. In the lessons, **
 
 ## Built with
 
-swift · swiftui · metal · avfoundation · core-haptics · core-motion · spacetimedb · typescript · python · fastapi · anthropic · claude · claude-code · cartesia · cmu-pronouncing-dictionary · figma · xcodegen · docker · caddy · digitalocean · apify · crawlee · moss · fetch-ai · agentverse · uagents
+**Devpost allows 25 tags at most** (the old list had 26). Paste these 25:
+
+swift · swiftui · metal · core-motion · core-haptics · avfoundation · spacetimedb · typescript · react · three.js · vite · mediapipe · python · fastapi · anthropic · claude · claude-code · cartesia · figma · figma-make · apify · moss · digitalocean · docker · cmu-pronouncing-dictionary
+
+*If Fetch.ai is confirmed in ASI:One, swap `cmu-pronouncing-dictionary` for `fetch-ai`. The website's stack (React, Three.js, Vite, MediaPipe pose tracking for archery) comes from `homer/web/package.json`.*
 
 ---
 
