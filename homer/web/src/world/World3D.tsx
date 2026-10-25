@@ -476,8 +476,9 @@ export default function World3D({ speaking = false, fallback = null, view = 'hal
       }
       wake()
     }
-    window.addEventListener('pointermove', onMove)
-    window.addEventListener('click', onClick)
+    // Capture phase: a browser extension that stops clicks at the document (seen in Chrome) can't swallow them.
+    window.addEventListener('pointermove', onMove, true)
+    window.addEventListener('click', onClick, true)
 
     const resize = () => {
       const { clientWidth, clientHeight } = mount
@@ -597,8 +598,8 @@ export default function World3D({ speaking = false, fallback = null, view = 'hal
     return () => {
       cancelAnimationFrame(frame)
       resizeObserver.disconnect()
-      window.removeEventListener('pointermove', onMove)
-      window.removeEventListener('click', onClick)
+      window.removeEventListener('pointermove', onMove, true)
+      window.removeEventListener('click', onClick, true)
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh) {
           object.geometry.dispose()
