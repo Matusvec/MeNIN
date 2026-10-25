@@ -11,8 +11,9 @@
 //   CODE=ABCD LAZY=Bo npm run phones               # Stadion: Bo jogs at 4 m/s (hits the cap)
 //   CODE=ABCD POETS=4 PACIFIST=Ada,Bo npm run phones  # boxing: Ada and Bo only guard (goes to the bell)
 //   CODE=ABCD STYLE=Ada:spam,Bo:counter npm run phones # boxing styles: spam, paced (default), counter
-//   CODE=ABCD ARCHERS=Odysseus,Penelope npm run phones # archery: the first phone is the bow, the
-//                                                      # second the arrow; these archers shoot
+//   CODE=ABCD NAMES=Ada,Bo npm run phones            # archery: the first phone is the bow, the second
+//                                                      # the arrow; the players shoot in join order
+//                                                      # (ARCHERS=Odysseus,Penelope names others)
 //
 // With HOST, it waits for that arena's newest lobby and follows it if the arena opens a
 // new room before the battle begins. It leaves the room after the last battle.
@@ -29,7 +30,8 @@ const NAMES = process.env.NAMES ? process.env.NAMES.split(',').map(n => n.trim()
 const POETS = Number(process.env.POETS ?? (process.env.NAMES ? NAMES.length : 2));
 const STAY = process.env.STAY === '1';
 const IDLE_MS = 120_000;
-const ARCHERS = (process.env.ARCHERS ?? 'Odysseus,Penelope,Telemachus').split(',').map(n => n.trim()).filter(Boolean);
+// Archers: the room's players in join order (SPEC), unless ARCHERS names others.
+const ARCHERS = (process.env.ARCHERS ?? '').split(',').map(n => n.trim()).filter(Boolean);
 const VERSES = [
   ['The sea came grey against the hull at dawn', 'and {card} carried what the wind had drawn'],
   ['We pulled the oars until the oars were bone', 'and {card} brought the long ship home alone'],
@@ -246,7 +248,8 @@ class Phone {
     console.log(`${clock()} ${this.name} (${pacifist ? 'pacifist' : style}) ${won ? 'won' : fight?.winnerId ? 'lost' : 'drew'}${fight?.ko ? ' by KO' : ' at the bell'} after ${secs} s: ${punches} punches, health ${Math.round(me?.health ?? 0)}, stamina ${Math.round(me?.stamina ?? 0)}`);
   }
 
-  // Archery. The bow phone names the next archer from ARCHERS (then '': that's everyone) and
+  // Archery. The bow phone names the next archer, the players in join order or ARCHERS (then
+  // '': that's everyone, though the module ends the range itself after the last player), and
   // aims each arrow: it swings in from off the target, settles, and holds with a tremor, aimed
   // off for a full draw's wind drift with an error that grows with each archer (the first is
   // the best). The arrow phone nocks, draws over 1.2 s streaming the draw, holds, and looses;
@@ -260,7 +263,8 @@ class Phone {
       if (this.handled.has(key)) return;
       this.handled.add(key);
       await sleep(1500);
-      const name = ARCHERS.find(n => !archers.some(a => a.name === n)) ?? '';
+      const names = ARCHERS.length ? ARCHERS : (await sql(null, `SELECT * FROM player WHERE room_id = ${RID}`)).sort((a: any, b: any) => a.seat - b.seat).map((p: any) => p.name);
+      const name = names.find((n: string) => !archers.some(a => a.name.toLowerCase() === n.toLowerCase())) ?? '';
       await this.conn.reducers.nextArcher({ roomId: RID, name })
         .then(() => console.log(`${clock()} ${this.name} (the bow): ${name ? `next archer, ${name}` : "that's everyone"}`))
         .catch(e => console.log(`${clock()} ${this.name}: ${(e as Error).message}`));

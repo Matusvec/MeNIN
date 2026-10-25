@@ -255,7 +255,7 @@ Every `set_scene` also appends `id, room_id, turn_id, ms` (milliseconds since `s
 | `advance` | room_id | After each reveal finishes (verdict TTS, round verdict, song) | `scored` → next turn's `ready`, or `round_end`; `round_end` → next round, or `finale`; `finale` → `finished` |
 | `skip_turn` | turn_id | A poet never steps up (the phone dropped: wait 10 s), or the judge never answers | The current turn is `skipped` and the phase becomes `scored` |
 | `start_race` | room_id | Stadion: after "Runners, to your marks" | From `ready`: `go_at` = now + 3 s, `cap_at` = `go_at` + 40 s, `speaking`. Errors: `not a stadion`, `the runners are not on the line`. |
-| `advance` (toxeia) | room_id | After an arrow's reveal; or in `ready` to close the range | `scored` → the archer's next arrow (`speaking`, fresh wind), or after 3 back to `ready` for the next name; `ready` with no archer up → `finale`. |
+| `advance` (toxeia) | room_id | After an arrow's reveal; or in `ready` to close the range | `scored` → the archer's next arrow (`speaking`, fresh wind); after 3, `finale` if every player has shot, else `ready` for the next; `ready` with no archer up → `finale`. |
 | `start_fight` | room_id | Pygmachia: the bell | From `ready`: `go_at` = now + 3 s, `ends_at` = `go_at` + 60 s, `speaking`. Errors: `not a fight`, `the fighters are not in their corners`. |
 | `end_battle` | room_id | The host's End button (coach has no end of its own) | Any phase but lobby or finished: `finished`. The live turn (waiting, speaking or judging) becomes `skipped` and its timer is cancelled, so a late `end_turn` or `post_score` is refused. Works for any event. |
 | `rematch` | room_id | "Rematch", or to un-wedge a demo | Any phase but lobby: clears rounds, turns, scores, samples, song, reactions and throws; zeroes totals; empties hands; goes straight to `dealing` (discus: straight to the first throw's `ready`). Poets, names, epithets and seats stay. |
@@ -385,10 +385,10 @@ Boxing (SPEC "The games"), v2: health and stamina, combos and counters, 60 s or 
 
 Archery (SPEC "The games"): one archer at a time holds two phones, the bow (it aims) and the arrow (it draws and looses). No turns, no Claude.
 
-- Both phones join the room as players and take a station with `claim_station` (first come gets the bow). `start_battle` needs both filled (it fills unclaimed ones in seat order) and goes to `ready`, where the bow phone asks for the archer's name and calls `next_archer`. More phones can join and watch; only the stations act.
+- Both phones join the room as players and take a station with `claim_station` (first come gets the bow). `start_battle` needs both filled (it fills unclaimed ones in seat order) and goes to `ready`. No names are typed (SPEC): the archers are the room's players in join order (seat order), so on Ready the bow phone calls `next_archer` with the first player who has no `archer` row yet. More phones can join; each player shoots in turn, but only the two stations act.
 - Each arrow (`speaking`) rolls its own wind and opens a 45 s window. The bow streams `set_bow_aim` and the arrow streams `set_draw` (for the screen's draw meter); `loose` shoots. No loose in 45 s and the arrow is lost (`flight` 0, ring 0).
 - Where it lands: the arrow flies 30 m at 30 m/s off a bare draw up to 70 m/s at a draw of 0.9 or more (full). The sight is set for full, so a slower arrow drops by its extra fall: ½·g·(t² − t_full²) (a 0.45 draw drops 0.86 m, off the face). The wind drifts it 0.18 × wind × flight sideways (6 m/s at full draw is 0.46 m). x = yaw + drift, y = pitch − drop (metres; the aim is ±1 m). The face has ten 6.1 cm rings: ring = 10 − floor(r / 0.061) for r < 0.61 m, else 0.
-- `advance` after each arrow's reveal: the archer's next arrow, or after 3 back to `ready` for the next name. A name already used is refused; `next_archer('')` (or the host's `advance` in `ready`) closes the range: `finale`, then `finished`. The champion is the best `archer.total` (clients break ties: more 10s, then who shot first). `player.total` stays 0: the players are phones.
+- `advance` after each arrow's reveal: the archer's next arrow; after 3, `finale` once every player has an archer row with 3 arrows (names matched case-insensitively), else back to `ready` for the next. A name already used is refused; `next_archer('')` (or the host's `advance` in `ready`) closes the range early: `finale`, then `finished`. The champion is the best `archer.total` (clients break ties: more 10s, then who shot first). `player.total` stays 0: the players are phones.
 - `rematch` keeps the stations and clears the archers and arrows.
 
 ## Discus
@@ -423,7 +423,7 @@ cd spacetime && npm install
 npm run typecheck
 npm run publish:local                    # keeps data; publish:local:reset wipes it
 npm run publish:test                     # the isolated test database `homer-test` (no dev-agent, no shared key)
-npm run smoke                            # poetry, discus, set_event, debate, coach, stadion, pygmachia and toxeia over HTTP against homer-test, 207 checks (~5 min)
+npm run smoke                            # poetry, discus, set_event, debate, coach, stadion, pygmachia and toxeia over HTTP against homer-test, 209 checks (~5 min)
 npm run logs
 ```
 

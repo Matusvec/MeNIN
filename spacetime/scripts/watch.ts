@@ -213,6 +213,10 @@ function wire() {
   // Toxeia: the stations, each archer and arrow (its wind), the aim and draw streams' rates
   // per arrow, and where it landed, with the loose's push latency.
   const archerName = (id: bigint) => all('archer').find(a => a.id === id)?.name ?? `archer ${id}`;
+  // A range's first write (a claim, or start_battle filling the stations) arrives as an insert.
+  conn.db.range.onInsert((_c, x) => {
+    if (live) say(`${code(x.roomId)} stations: bow ${x.bowId ? poet(x.bowId) : '-'}, arrow ${x.arrowId ? poet(x.arrowId) : '-'}`);
+  });
   conn.db.range.onUpdate((_c, a, b) => {
     const c = code(b.roomId);
     if (a.bowId !== b.bowId || a.arrowId !== b.arrowId) {

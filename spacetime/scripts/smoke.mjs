@@ -715,6 +715,17 @@ await call(arena, 'set_event', Tx.id, 'toxeia', 1);
 await call(bo, 'leave_room', Tx.id);
 await call(cy, 'claim_station', Tx.id, '');
 check((await range()).arrow_id === tid('Cy'), 'a phone that leaves the lobby frees its station');
+// No names to type (SPEC): the players are the archers, in join order; after the last, the results.
+await call(arena, 'start_battle', Tx.id);
+for (const [n, who] of [['Ada', 1], ['Cy', 2]]) {
+  await call(ada, 'next_archer', Tx.id, n);
+  for (let i = 1; i <= 3; i++) {
+    await call(cy, 'loose', Tx.id, 1);
+    await call(arena, 'advance', Tx.id);
+  }
+  const phase = (await room(Tx.id)).phase;
+  check(who === 1 ? phase === 'ready' : phase === 'finale', who === 1 ? 'Ada (joined first) has shot: back to the bow for Cy' : 'Cy, the last to join, has shot: straight to the results');
+}
 
 console.log(failures === 0 ? '\nall checks passed' : `\n${failures} check(s) failed`);
 process.exit(failures === 0 ? 0 : 1);

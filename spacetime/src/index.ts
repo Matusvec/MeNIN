@@ -1198,16 +1198,18 @@ export const advance = spacetimedb.reducer({ roomId: t.u64() }, (ctx, { roomId }
   requireHost(ctx, r);
 
   if (isToxeia(r) && (r.phase === 'scored' || r.phase === 'ready')) {
-    // Archery: the archer's next arrow, or back to the bow phone for a name. With no archer
-    // up, the host closes the range: the champion.
+    // Archery: the archer's next arrow, or back to the bow phone for the next archer, or once
+    // every player has shot, the results. With no archer up, the host can close the range.
     const st = rangeOf(ctx, roomId);
     const a = st.archerId ? ctx.db.archer.id.find(st.archerId) : undefined;
     if (r.phase === 'ready' && !a) setPhase(ctx, r, 'finale', 0n);
     else if (r.phase === 'ready') throw new SenderError('an archer is up');
     else if (a && a.arrows < ARROWS) nockArrow(ctx, roomId, a.id, a.arrows + 1);
     else {
+      // Archers go in join order (SPEC): once every player has shot, straight to the results.
       ctx.db.range.roomId.update({ ...st, archerId: 0n, arrowNo: 0, wind: 0, draw: 0, updatedAt: ctx.timestamp });
-      setPhase(ctx, r, 'ready', 0n);
+      const shot = new Set([...ctx.db.archer.roomId.filter(roomId)].filter(x => x.arrows >= ARROWS).map(x => x.name.toLowerCase()));
+      setPhase(ctx, r, playersOf(ctx, roomId).every(p => shot.has(p.name.toLowerCase())) ? 'finale' : 'ready', 0n);
     }
   } else if (r.phase === 'scored' && (isStadion(r) || isPygmachia(r))) {
     // The motion games have no turns: the next heat or bout, or the champion.
