@@ -67,9 +67,8 @@ const GAMES: Array<[GameEvent, string]> = [
   ['debate', 'Socratic debate'],
   ['discus', 'Discus'],
   ['stadion', 'Stadion'],
+  ['pygmachia', 'Pygmachia (beta)'], // live for Matus's first real fights (build 20); scripted runs follow
 ]
-// Boxing shows on the dev server only until it has passed a browser run with scripted fighters on homer-test.
-if (import.meta.env.DEV) GAMES.push(['pygmachia', 'Pygmachia'])
 
 const PHASES: Record<string, string> = {
   lobby: 'Scan the code with the MeNIN app, or type it in',

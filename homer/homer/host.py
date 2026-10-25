@@ -60,6 +60,15 @@ def _lines(text: str) -> list[str]:
     return [line.strip() for line in text.splitlines() if line.strip()]
 
 
+@dataclass(frozen=True)
+class Coaching:
+    """Homer's turn in Talk to Homer: his line, and the attempt's content scores when it was a verse."""
+
+    reply: str
+    attempt: bool
+    scores: dict[str, int]  # craft, image, answer (1..10); ignored unless attempt
+
+
 def _title_key(text: str) -> str:
     """An epithet or theme for comparing: lowercase letters and spaces, no leading "the"."""
     words = re.sub(r"[^a-z ]+", " ", text.lower()).split()
@@ -146,20 +155,23 @@ class Host:
 
     # ----- Talk to Homer (the coach event) -----------------------------------
 
-    async def coach(self, history: list[tuple[str, str, str]], theme: str) -> str:
-        """Homer's next line in a coach conversation: [(who, name, text)] oldest first, "homer" or "poet".
+    async def coach(self, history: list[tuple[str, str, str]], theme: str) -> Coaching:
+        """Homer's next line in a coach conversation ([(who, name, text)] oldest first, "homer" or "poet"),
+        and, when the poet's last turn was a verse attempt, its scores on the battle's content axes.
 
-        Two sentences at most, about forty words; "" if Claude failed.
+        Two sentences at most, about forty words; reply "" if Claude failed.
         """
         convo = "\n".join(
             f'<turn who="{who}"' + (f' name="{attr(name)}"' if name else "") + f">\n{quote_untrusted(text[:COACH_TEXT_MAX])}\n</turn>"
             for who, name, text in history[-COACH_TURNS:]
         )
-        data = await self._ask("coach", claude.obj({"reply": STR}), f"theme: {quote_untrusted(theme) or 'open'}\n\n{convo}", events.COACH)
-        reply = clean_verdict(str((data or {}).get("reply", "")))
+        schema = claude.obj({"attempt": {"type": "boolean"}, "image": INT, "answer": INT, "craft": INT, "reply": STR})
+        data = await self._ask("coach", schema, f"theme: {quote_untrusted(theme) or 'open'}\n\n{convo}", events.COACH) or {}
+        reply = clean_verdict(str(data.get("reply", "")))
         if len(reply.split()) > COACH_WORDS:  # the second sentence ran long: keep the first
             reply = re.findall(r"[^.!?]+[.!?]*", reply)[0].strip()
-        return reply
+        score = {k: max(1, min(10, int(data.get(k, 1) or 1))) for k in ("craft", "image", "answer")}
+        return Coaching(reply, bool(data.get("attempt")) and bool(reply), score)
 
     # ----- The theme ---------------------------------------------------------
 

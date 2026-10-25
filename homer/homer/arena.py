@@ -23,11 +23,12 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import TypeVar
 
-from . import debate, events, moss_dealer
+from . import debate, emotion, events, moss_dealer
 from .emotion import EMOTIONS, Classifier
 from .deal import CANDIDATES, call_for, deal, pick_theme
 from .host import Host, Verse
 from .lines import break_lines
+from .scanner import scan_verse
 from .judge import SILENT_VERDICT, EmptyVerse, Judge, Judgment, Turn
 from .stdb import Refused, Stdb, StdbError
 
@@ -159,9 +160,17 @@ class Arena:
             if text and replies.get(t["id"]):
                 history += [("poet", names.get(t["player_id"], ""), text), ("homer", "", replies[t["id"]])]
         history.append(("poet", names.get(live.get("player_id"), ""), said))
-        reply = await self.host.coach(history, theme) or SILENT_VERDICT  # honest, never invented
-        await self.db.call("post_score", turn_id, [], reply, "", "")
-        j = Judgment(scores={}, verdict=reply, silent=reply == SILENT_VERDICT)
+        coached = await self.host.coach(history, theme)
+        reply = coached.reply or SILENT_VERDICT  # honest, never invented
+        scores: dict[str, int] = {}
+        if coached.attempt:  # a verse: scored like a battle verse (Image x4, Answer x4, Craft x2), Flow and Range for the record
+            scan = scan_verse(said)
+            lines = [line.text for line in scan.lines]
+            scores = {"beat": scan.flow, **coached.scores, "range": emotion.range_score(self.history.get(turn_id, []), lines)}
+        axes = [scores[a.key] for a in events.POETRY.axes] if scores else []
+        await self.db.call("post_score", turn_id, axes, reply, "", "")
+        j = Judgment(scores=scores, verdict=reply, silent=reply == SILENT_VERDICT,
+                     weights={a.key: a.weight for a in events.POETRY.axes})
         return "post_score", j
 
     async def room(self, room_id: int) -> dict:

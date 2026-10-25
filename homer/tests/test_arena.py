@@ -312,3 +312,19 @@ def test_a_coach_room_is_dealt_a_theme_and_no_cards():
 
     theme, hands = asyncio.run(deal())
     assert theme == "A shield left on the beach" and hands == {5: []}
+
+
+
+def test_a_coach_verse_attempt_is_scored_like_a_battle_verse_and_talk_is_not():
+    db = CoachDb()
+    client = FakeClient({"attempt": True, "image": 6, "answer": 5, "craft": 4, "reply": "The gull came back alone. Better than your last; now the sail."})
+    arena = Arena(Judge(client=client, cfg=cfg()), Stdb(cfg(), httpx2.AsyncClient(transport=httpx2.MockTransport(db.handler))))
+    _, j = asyncio.run(arena.judge_turn(BattleTurn(turn_id=2, transcript="", event="coach")))
+    reducer, args, _ = db.calls[0]
+    assert reducer == "post_score" and len(args[1]) == 5  # poetry axes: Flow, Craft, Image, Answer, Range
+    assert args[1][1:4] == [4, 6, 5] and j.total == 2 * 4 + 4 * 6 + 4 * 5  # Flow and Range weigh 0
+    talk = CoachDb()
+    client = FakeClient({"attempt": False, "image": 1, "answer": 1, "craft": 1, "reply": "Ask me after a verse. Now try it again."})
+    arena = Arena(Judge(client=client, cfg=cfg()), Stdb(cfg(), httpx2.AsyncClient(transport=httpx2.MockTransport(talk.handler))))
+    asyncio.run(arena.judge_turn(BattleTurn(turn_id=2, transcript="", event="coach")))
+    assert talk.calls[0][1][1] == []  # talking back: no score

@@ -14,12 +14,7 @@ const modes: Array<{
   description: string
   response: string
 }> = [
-  {
-    id: 'bard',
-    label: 'Bard',
-    description: 'Learn the four-beat line from Homer',
-    response: 'Four hits a line. A breath in the middle. I’ll teach you the rest.',
-  },
+  // Bard is off the website for now (Matus: "it keeps saying do some app???"); it lives in the phone app's lessons.
   {
     id: 'battle',
     label: 'Host a battle',
