@@ -149,7 +149,10 @@ The total is out of 100. Clichés and dodging the theme cost. In the lessons, **
 
 ## What's next
 
-- Public TestFlight now, then the App Store
+- **We're not stopping Monday.** TestFlight this week, the App Store after.
+- **Every open mic, every classroom reading Homer, every party is a hall.** One SpacetimeDB module runs every room, so adding a hall is adding a row.
+- **A maintained SpacetimeDB SDK for iPhone.** We patched the community Swift SDK twice to ship MeNIN (per-room subscriptions, de-duplicated rows) and fixed its cache on reconnect. Next, we send those fixes upstream and maintain the SDK, so any iPhone game can run on SpacetimeDB. (It stays under SpacetimeDB's own Business Source License.)
+- **Homer in every language he was ever sung in.**
 - More events on the same engine: the locked tiles
 - Open-mic nights: a host runs the arena, the audience battles from their iPhones
 - Hard mode: Homer's own dactylic hexameter
@@ -198,6 +201,7 @@ swift · swiftui · metal · core-motion · core-haptics · avfoundation · spac
 - **Live at 10–20 Hz.** The speaking poet's voice (loudness, pitch, stressed syllables) streams into one `prosody` row that the arena's scene reads. The Stadion streams strides, boxing streams fist aim and guard, and archery streams the bow's aim, the draw and the webcam's pose tracking, all through reducers. Archery alone is about 40 updates a second.
 - **Three kinds of client on one module.** The iPhone app (the community Swift SDK, vendored with two patches; `ios/Vendor/SpacetimeDB`), the website arena (the TypeScript SDK 2.13, with auto-reconnect and "Resume") and the Python agent (the HTTP API, with its own identity). Live on Maincloud as `homer-calhacks`.
 - **A dropped phone loses nothing.** Lose the network mid-battle, and the phone comes back by itself on the right screen, with everyone listed and no relaunch (a real iPhone in airplane mode, Sat 10:49 PM, build 31's reconnect fix). And a new connection with the same name takes a disconnected seat back, with its score (`join_room`). [The kill-the-app seat takeover is shown live only if take 2 of the shoot or multiplayer's runs pass it.]
+- **We patched the Swift SDK to ship.** The iPhone client is the community Swift SDK, vendored with two patches (per-room subscriptions, de-duplicated rows) plus a cache fix on reconnect. Next, we send those fixes upstream and maintain it as an iPhone SDK for SpacetimeDB.
 - **The verdict doesn't depend on the arena.** If the arena's tab stalls, Homer's agent reads the turn's transcript, theme and dealt hand from the database itself and judges it after 6 s, so the battle carries on.
 - **Tested like a backend.** `npm run smoke` runs **232 checks** over all seven games against a local server (hand privacy, seat takeover, the timers, scoring, the song, rematch). `scripts/hall-soak.ts` runs five battles on real websockets, with drops and rejoins. `npm run watch` prints a live timeline of every phase, join, score and throw from Maincloud.
 

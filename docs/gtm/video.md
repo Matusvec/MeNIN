@@ -6,7 +6,7 @@ Two videos, both from real takes. Nothing is mocked, and nothing is shown as liv
 | --- | --- | --- |
 | Length | **3:00** (the first 2:00 stands alone) | **90 s** |
 | For | Devpost, plus Cartesia ("2-minute, demo-first") and Figma (3 minutes max) | The judging table, when the network is down ([run-sheet.md](run-sheet.md)) |
-| Narration | Homer only, in his Cartesia voice (8 lines, one of them the Greek) | None |
+| Narration | Homer in his Cartesia voice, plus Matus's four answers to camera | None |
 | Edit | Cut between camera, arena and phone footage | One battle take, trimmed only |
 | Where it lives | YouTube, linked on Devpost | On the Mac and all three iPhones, **offline** |
 
@@ -119,25 +119,38 @@ If OBS misbehaves, fall back to ⌘⇧5 for the picture and use iPhone C's audio
 - **No "Wii"** anywhere.
 - **Burned captions** on every spoken line.
 - **Beta labels:** any game that hasn't passed its runs on 31+ wears "· beta".
-- **Teach the turn on mute, and label the sponsors' tech by 0:15.** Judges often watch without sound.
-- **No talking head:** nobody speaks to the camera. Homer is the only narrator.
+- **Teach the turn on mute, and label the sponsors' tech by 0:15.** Judges often watch without sound, so Matus's answers are captioned too.
+- **Matus's four answers** (a SpacetimeDB sponsor told Matus the video must clearly cover what the product is, the value proposition, what we built in the time, and what's next; leader, Sun ~2:45 AM). They're four short clips to camera, each placed where it belongs, not one long opener. Homer narrates everything else.
 
-### (a) The narration: Homer only, in his own Cartesia voice (Carl)
+### (a) The narration: Homer, in his own Cartesia voice (Carl), plus Matus's four answers to camera
 
 builder renders these through Cartesia, which doubles as the Cartesia showcase. Every line sits over footage, never over a live verse or Homer's live verdict.
 
 | # | At | Line (word for word) | Words |
 | --- | --- | --- | --- |
 | G | 0:00–0:02.5 | "μῆνιν ἄειδε θεὰ" (*Iliad* 1.1, the first 2.5 s of Paul's Greek clip only; `homer/web/src/poets/iliad.ts`) | 3 |
-| A | ~0:20 | "Open mics come once a week. Between them, poets practice alone. Battle me." (It names the community, for Anthropic.) | 13 |
+| ~~A~~ | — | *Cut: Matus's M2 now names the community.* | — |
 | 4 | ~1:02 | "The best line gets carved in gold. Then I sing the room back." | 13 |
 | 6 | ~1:27 | "Cartesia hears every word. SpacetimeDB runs the hall. Claude judges what you said." | 13 |
 | 7 | ~1:31 | "Nothing here is mocked. Every verdict you saw was live." | 10 |
 | 8 | 2:01 | "Then the games. Throw, run, box, draw the bow. The contest never ends." | 13 |
-| 9 | 2:31 | "Two designers, one set of Figma variables. A new look is one mode." | 13 |
-| 10 | 2:53 | "Most AI talks for you. I make you talk. Come battle." | 11 |
+| 9 | 2:15 | "Two designers, one set of Figma variables. A new look is one mode." | 13 |
+| 10 | 2:52 | "Most AI talks for you. I make you talk. Come battle." | 11 |
 
-**Cut:** line 1 ("Rage. The first word…"), line 2 (Matus's line; the video has no talking head) and line 5. **Line 3** ("One screen is my hall…") is cut too, because 0:25 onward doesn't re-explain the battle and line A already ends on "Battle me".
+**Matus's four answers to camera (word for word; each is its own clip):**
+
+| # | At | Answer | Covers |
+| --- | --- | --- | --- |
+| M1 | 0:20–0:25 | "MeNIN is a live voice poetry battle. You speak. Homer judges you out loud." | What it is |
+| M2 | 0:25–0:33 | "Open mics come once a week. MeNIN gives you a room, a judge and a crowd any night. Nobody practices alone again." | The value |
+| M3 | 1:12–1:21 | "In one weekend: the battle, Talk to Homer, six lessons, four motion games, a website arena, and a server that judges even when the arena dies. Nothing is mocked." | What we built |
+| M4 | 2:29–2:50 (~18 s) | "We're not stopping Monday. TestFlight this week, the App Store after. Every open mic, every classroom reading Homer, every party is a hall. One SpacetimeDB module runs every room, so adding a hall is adding a row. And our Swift SDK fixes go upstream, maintained, so any iPhone game can run on SpacetimeDB." | What's next, and that we keep going |
+
+*gtm's truth fixes to leader's draft script (Sun ~2:50 AM):* M3 said "In 36 hours" (hacking ran Fri 6 PM to Sun 9 AM, 39 hours, so it's now "In one weekend"), "five motion games" (there are four: discus, the Stadion, boxing and archery) and "a server that never drops a verdict" (now what the backstop actually does). M4 said "open-sourced", but the vendored SDK is under SpacetimeDB's Business Source License 1.1, which says it "is not an Open Source license" (`ios/Vendor/SpacetimeDB/LICENSE.txt`), so it's now "sent upstream and maintained". Matus films the fixed lines.
+
+*Second pass (leader, Sun ~3:00 AM: the SpacetimeDB sponsor also wants visible enthusiasm about continuing, and about scale).* M2 and M4 are rewritten. Two truth fixes to that draft: (1) "a thousand halls cost us what one does" overclaims. Rooms are rows in one module (`spacetime/CONTRACT.md`: every public table carries `room_id`), but every verse still costs a Claude call and Cartesia audio, so it's now "adding a hall is adding a row". (2) "open-source the Swift SDK" again: the SDK is under SpacetimeDB's Business Source License, so it's now "our Swift SDK fixes go upstream, maintained" (leader's final wording, sent to Matus). There are no user numbers anywhere.
+
+**Cut:** line 1 ("Rage. The first word…"), line 2 (replaced by Matus's M1–M4), line 5 and **line A** (M2 covers the community now). **Line 3** ("One screen is my hall…") is cut too, because 0:25 onward doesn't re-explain the battle and line A already ends on "Battle me".
 
 ### (b) Cards and lower thirds (word for word, for artist)
 
@@ -151,17 +164,18 @@ builder renders these through Cartesia, which doubles as the Cartesia showcase. 
 | L4 | 0:11.5–0:16 | Lower third | Judged by Claude · Homer's voice by Cartesia |
 | C1 | 0:16–0:17.5 | Title card, on the theme's hit | **μῆνιν · MeNIN** / A live poetry battle, hosted by Homer |
 | L1 | 0:17.5–0:20 | Lower third | Matus · Sunya · Paul / Cal Hacks 13.0 |
-| L5 | 0:25–1:15 | Lower third (the battle gets 4 at most) | Answer your opponent: it's 40 of the 100 points |
-| L6 | 0:25–1:15 | Lower third | Freeze, and Homer whispers you a phrase |
-| L7 | 0:25–1:15 | Lower third | Image ×4 · Answer ×4 · Craft ×2 = /100 |
-| L8 | 0:25–1:15 | Lower third | The best line, carved in gold |
-| L9 | 1:15–1:21 | Lower third, over the website footage | The arena is a website: open it on any laptop. No install. |
+| LM | 0:20–0:23 | Lower third, Matus's first answer only | Matus · MeNIN |
+| L5 | 0:33–1:12 | Lower third (the battle gets 4 at most) | Answer your opponent: it's 40 of the 100 points |
+| L6 | 0:33–1:12 | Lower third | Freeze, and Homer whispers you a phrase |
+| L7 | 0:33–1:12 | Lower third | Image ×4 · Answer ×4 · Craft ×2 = /100 |
+| L8 | 0:33–1:12 | Lower third | The best line, carved in gold |
+| L9 | 1:12–1:21 | Lower third, over the website B-roll cut into Matus's M3 | The arena is a website: open it on any laptop. No install. |
 | L10 | 1:21–1:27 | Lower third, over the SpacetimeDB moment | SpacetimeDB ends the turn. Every screen flips in the same frame. |
 | C2 | 1:27–1:31 | Diagram card (FigJam), 4 s | iPhone mic → Cartesia speech-to-text (Homer's phrases as keyterms) → SpacetimeDB → the website arena + Claude, the judge → Cartesia, Homer's voice |
 | C3 | 1:31–1:34 | Number card | Word errors, with a drum at full volume: **20% → 3%** with keyterms / *Synthetic test clips · method in docs/voice-wer* |
 | C5 | 1:55–2:00 | Responsible card | Built responsibly / Captions on everything Homer says · The mic opens only on your turn · No audio passes through our server · Homer never names your emotion · No account needed |
-| L13 | 2:00–2:30 | One per game, at that game's first clip | Stadion / Toxeia (archery): the webcam tracks your bow arm / Pygmachia (boxing) / Discus, each with "· beta" if it hasn't passed its runs on 31+ |
-| L14 | 2:30–2:50 | One stat, over the Figma footage | 128 hard-coded colors → 37 tokens |
+| L13 | 2:00–2:14 | One per game, at that game's first clip | Stadion / Toxeia (archery): the webcam tracks your bow arm / Pygmachia (boxing) / Discus, each with "· beta" if it hasn't passed its runs on 31+ |
+| L14 | 2:14–2:29 | One stat, over the Figma footage | 128 hard-coded colors → 37 tokens |
 | C6 | 2:50–3:00 | End card; **hold "Play it now" and the URL for 5 s** | **Play it now** / play.206.189.237.157.sslip.io/homer / github.com/sunya-afrasiabi/MeNIN / Original score by Paul / Built with SpacetimeDB · Cartesia · Claude · Figma · Apify · Moss / Matus · Sunya · Paul · Cal Hacks 13.0 |
 
 *L14 uses the stat nobody can dispute (leader, Sun ~2:25 AM): builder's count of the website's CSS, `docs/hall-tokens.md`.*
@@ -177,21 +191,22 @@ builder renders these through Cartesia, which doubles as the Cartesia showcase. 
 | 0:11.5–0:16 | **Homer's real verdict**, quoting the line, and the score lands (L4). | Homer |
 | 0:16–0:17.5 | **The theme hits** with C1. *(The theme file opens with 59.8 s of silence; the hit is at 59.83 s, so start A2 there.)* | The theme |
 | 0:17.5–0:20 | **The room reacting**, then the names (L1). | The theme, ducked |
-| 0:20–0:25 | Homer's line A over the scene and the room. | Homer, the theme ducked |
-| 0:25–1:15 | **The rest of the battle, with no re-explaining.** Poet B's answer (L5); both scores side by side; **the freeze rescue uncut at 1×** (Matus goes silent about 3 s on purpose, the phrase rises, Homer whispers; L6); the scores (L7); the gold line (L8) with line 4 before it. **Hold 1.5 s on faces after every score.** | The room and Homer; the music is hard-muted from every 3-2-1 and slams back on the score |
-| 1:15–1:21 | **Website footage, 6 s at most:** the arena scene, or the hall **cropped and desaturated**. Never the 3D hall full-frame, and never first. Skip it if it doesn't look right (L9). | The theme, beat-snapped cuts |
+| 0:20–0:33 | **Matus to camera: M1, then M2** (LM on M1). | Matus, the theme ducked |
+| 0:33–1:12 | **The rest of the battle, with no re-explaining.** Poet B's answer (L5); both scores side by side; **the freeze rescue uncut at 1×** (Matus goes silent about 3 s on purpose, the phrase rises, Homer whispers; L6); the scores (L7); the gold line (L8) with line 4 before it. **Hold 1.5 s on faces after every score.** | The room and Homer; the music is hard-muted from every 3-2-1 and slams back on the score |
+| 1:12–1:21 | **Matus to camera: M3, "what we built"**, the top of "How it works". Cut in 2–3 s of website B-roll under his voice: the arena scene, or the hall **cropped and desaturated**, never the 3D hall full-frame (L9). | Matus, the theme ducked |
 | 1:21–1:27 | **The SpacetimeDB moment, 6 s:** the turn timer hits 0 and every screen (the arena and both phones) flips in the same frame, next to the real timeline rows rendered by multiplayer from the battle's log (L10). | The room |
 | 1:27–1:31 | C2, the diagram, 4 s, with line 6. | Homer, the theme ducked |
 | 1:31–1:34 | C3, the 20% → 3% card, with line 7. | Homer, the theme ducked |
 | 1:34–1:55 | **The stitched song**, each line with its poet's name, **peaking around 1:45**. | Homer singing and the beat |
 | 1:55–2:00 | C5, the responsible card, over the song's last line. **The 2:00 cut ends here.** | The song's tail |
-| 2:00–2:30 | **The training montage:** every teammate on the Stadion, camera archery, boxing and discus, sped up 2–4× with ramps to 1× on the hero beats (the arrow release, the discus swing, a reaction). Line 8 opens it. **It ends on a miss and a laugh.** L13 goes up at each game's first clip. | The theme at full volume; the clips' audio muted |
-| 2:30–2:50 | **The Figma workflow.** Best: 20 s of Matus's real screen recording of the variable mode switching Atelier → Hall, with the variables panel and the Swift names visible. Otherwise: artist's single before/after wipe. Either way, one stat (L14), not four cards. Line 9. | The theme, ducked |
+| 2:00–2:14 | **The training montage, trimmed to ~14 s** (it gave its time to M4): every teammate on the Stadion, camera archery, boxing and discus, sped up 2–4× with ramps to 1× on the hero beats (the arrow release, the discus swing, a reaction). Line 8 opens it. **It ends on a miss and a laugh.** L13 goes up at each game's first clip. | The theme at full volume; the clips' audio muted |
+| 2:14–2:29 | **The Figma workflow, ~15 s.** Best: 15 s of Matus's real screen recording of the variable mode switching Atelier → Hall, with the variables panel and the Swift names visible. Otherwise: artist's single before/after wipe. Either way, one stat (L14), not four cards. Line 9. | The theme, ducked |
+| 2:29–2:50 | **Matus to camera: M4, "we're not stopping Monday"** (~18 s). | Matus, the theme ducked |
 | 2:50–3:00 | C6, the end card, with "Play it now" and the URL held 5 s. Line 10. | The champion sting |
 
 ### (c) The shot list: the minimal shoot (the team needs sleep; builder edits overnight)
 
-**Two things get filmed tonight, plus one optional screen recording in the morning.** The rest comes from the team:
+**Three things get filmed (the battle, the montage, Matus's four answers), plus one optional screen recording in the morning.** The rest comes from the team:
 - **artist:** the Figma before/after wipe (and the PNGs in `docs/figma/`).
 - **multiplayer:** the SpacetimeDB timeline rows, rendered from the battle's log.
 - **builder:** the website footage.
@@ -210,11 +225,12 @@ builder renders these through Cartesia, which doubles as the Cartesia showcase. 
 | --- | --- | --- | --- |
 | 1 | **One full poetry battle**, through the stitched song and the crown. **Three must-haves:** (a) poet B answers poet A; (b) Matus **goes silent for about 3 s on purpose** in one turn, so the freeze rescue fires; (c) **one turn runs out to 0** (nobody taps "I'm done"), with the arena and both phones in the wide frame, for the SpacetimeDB moment | The arena Mac's picture with **⌘⇧5** (Record Entire Screen, the browser full screen). **Both phones screen-recording** (Control Center, Do Not Disturb on). **One phone camera wide** on a stand, landscape, 1080p 60 fps, with the poets and the screen in frame; it carries the **room audio**. **One clap** in view of the wide camera before the first 3-2-1 | 0:00–1:55 |
 | 2 | **A ~10-minute montage on phone cameras:** archery in camera mode, the Stadion, boxing, discus. Every teammate on every game. **Get at least one clean miss and a laugh** for the ending. Slo-mo for the arrow release and the discus swing | Phone cameras, 60 fps landscape (plus Slo-mo) | 2:00–2:30 |
-| 3 | *(Optional, Matus, in the morning)* **30 s of the Figma variable mode switching Atelier → Hall**, with the variables panel open so the Swift names show | ⌘⇧5 on Figma (Record Selected Portion) | 2:30–2:50 |
+| 3 | **Matus's four answers to camera (M1–M4)**, each its own clip, word for word from the table above; 3 takes each (M4 runs ~18 s, so say it with energy: it's the "we keep going" moment) | Phone camera on a stand at eye level, landscape, 1080p; a lamp or window lighting his face; the quietest corner; EarPods or the phone close for clean sound | 0:20, 0:25, 1:12, 2:29 |
+| 4 | *(Optional, Matus, in the morning)* **15–30 s of the Figma variable mode switching Atelier → Hall**, with the variables panel open so the Swift names show | ⌘⇧5 on Figma (Record Selected Portion) | 2:30–2:50 |
 
 **Safety for the montage:** a grippy case or a wrist strap on every swung phone, arm room all around, and nobody next to the laptops.
 
-**Hand-off:** AirDrop every file to the Mac and tell builder where they are. Name them `battle-mac.mov`, `battle-phoneA.mp4`, `battle-phoneB.mp4`, `battle-wide.mov`, `montage-*.mov` and (if made) `figma-modes.mov`.
+**Hand-off:** AirDrop every file to the Mac and tell builder where they are. Name them `battle-mac.mov`, `battle-phoneA.mp4`, `battle-phoneB.mp4`, `battle-wide.mov`, `montage-*.mov`, `answer-M1.mov` to `answer-M4.mov` and (if made) `figma-modes.mov`.
 
 ### (d) The CapCut track layout and the look
 
@@ -256,11 +272,13 @@ builder renders these through Cartesia, which doubles as the Cartesia showcase. 
 > Figma stage log: https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm
 >
 > 0:00 A turn, start to finish
-> 0:25 The battle
-> 1:15 How it works
+> 0:20 What MeNIN is
+> 0:33 The battle
+> 1:12 What we built, and how it works
 > 1:34 The song
 > 2:00 The games
-> 2:30 The Figma workflow
+> 2:14 The Figma workflow
+> 2:29 What's next: we're not stopping
 > 2:50 Play it now
 >
 > Built with SpacetimeDB, Cartesia, Claude, Figma, Apify and Moss at Cal Hacks 13.0.
