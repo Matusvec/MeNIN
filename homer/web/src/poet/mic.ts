@@ -22,15 +22,27 @@ export class BrowserMic {
     return this.ctx?.state ?? 'none'
   }
 
+  /** Live: an unmuted live track and a running graph. A locked iPhone ends the one or suspends the other. */
   get isOpen(): boolean {
-    return this.stream !== null
+    const live = this.stream?.getAudioTracks().some((t) => t.readyState === 'live' && !t.muted) ?? false
+    return live && this.ctx?.state === 'running'
+  }
+
+  /** Opened once and dead now (the screen locked, a call, another app took the mic): one tap reopens it. */
+  get lost(): boolean {
+    return this.stream !== null && !this.isOpen
   }
 
   constructor(private readonly rate = 16000) {}
 
   /** Ask for the mic and start the audio graph. Call from a tap: iOS Safari needs the gesture for both. */
   async open(): Promise<void> {
-    if (this.stream) return
+    if (this.isOpen) return
+    if (this.stream) {
+      await this.wake()
+      if (this.isOpen) return
+      this.teardown() // the track is gone: a new stream
+    }
     this.stream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 },
     })
@@ -57,11 +69,23 @@ export class BrowserMic {
     this.pending = []
   }
 
+  /** Back in front: resume the graph if only it slept (iOS may hold it until a tap; open() then rebuilds). */
+  async wake(): Promise<void> {
+    const ctx = this.ctx
+    const live = this.stream?.getAudioTracks().some((t) => t.readyState === 'live') ?? false
+    if (!live || !ctx || ctx.state === 'running' || ctx.state === 'closed') return
+    await Promise.race([ctx.resume().catch(() => {}), new Promise((r) => window.setTimeout(r, 500))])
+  }
+
   close(): void {
     this.listener = null
+    this.teardown()
+  }
+
+  private teardown(): void {
     this.node?.disconnect()
     this.stream?.getTracks().forEach((t) => t.stop())
-    void this.ctx?.close()
+    void this.ctx?.close().catch(() => {})
     this.stream = this.ctx = this.node = null
   }
 

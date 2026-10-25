@@ -51,6 +51,8 @@ export type PoetView = {
 }
 
 const PLAYED_GAMES = new Set(['poetry', 'coach'])
+const LOCK_RETRY_MS = 5000 // a refused wake lock (no gesture, not visible) is asked for again at most this often
+const MIC_LOST = 'Your mic stopped: the screen locked, or another app took it.'
 const clean = (s: string) => s.toLowerCase().replace(/-/g, ' ').replace(/[^a-z' ]/g, ' ').replace(/\s+/g, ' ').trim()
 
 type Session = {
@@ -77,6 +79,9 @@ export class PoetClient {
   private session: Session | null = null
   private error = ''
   private joining = false
+  private lock: WakeLockSentinel | null = null
+  private wantLock = false
+  private lockTriedAt = 0
 
   constructor(
     readonly code: string,
@@ -94,10 +99,12 @@ export class PoetClient {
       audio: this.mic.audioState, micFrames: this.mic.frames, level: Math.round(this.mic.level * 100) / 100,
       session: this.session?.key ?? '', streaming: this.session?.streaming ?? false, finished: this.session?.finished ?? false,
       sttOpen: Boolean(stt), sent: stt?.sent ?? 0, received: stt?.received ?? 0, last: stt?.last ?? '', closed: stt?.closed ?? '',
+      awake: Boolean(this.lock),
     }
   }
 
   connect(): void {
+    document.addEventListener('visibilitychange', this.onVisibility)
     this.conn = DbConnection.builder()
       .withUri(STDB_URI)
       .withDatabaseName(STDB_DB)
@@ -137,6 +144,8 @@ export class PoetClient {
       this.publish()
       return
     }
+    this.lockTriedAt = 0
+    this.keepAwake(true) // inside the tap, where Safari grants it
     try {
       await this.conn.reducers.joinRoom({ code: this.code, name: name.trim(), epithet: '', hoard: [] })
     } catch (e) {
@@ -152,9 +161,40 @@ export class PoetClient {
   }
 
   dispose(): void {
+    document.removeEventListener('visibilitychange', this.onVisibility)
+    this.keepAwake(false)
     this.session?.stt?.close()
     this.mic.close()
     this.conn?.disconnect()
+  }
+
+  // Back in front: wake the mic if only its graph slept; a dead track drops to Rejoin (one tap). The browser let
+  // go of the wake lock on the way out: publish() asks for it again.
+  private readonly onVisibility = (): void => {
+    if (document.visibilityState === 'visible') void this.mic.wake().then(() => this.publish())
+  }
+
+  /** Keep the screen on while the mic is live (iOS Safari 16.4+): a locked iPhone kills the mic. */
+  private keepAwake(want: boolean): void {
+    this.wantLock = want
+    if (!want) {
+      void this.lock?.release().catch(() => {})
+      this.lock = null
+      return
+    }
+    if (this.lock || !('wakeLock' in navigator) || document.visibilityState !== 'visible') return
+    if (Date.now() - this.lockTriedAt < LOCK_RETRY_MS) return
+    this.lockTriedAt = Date.now()
+    navigator.wakeLock.request('screen').then(
+      (lock) => {
+        if (!this.wantLock) return void lock.release().catch(() => {})
+        this.lock = lock
+        lock.addEventListener('release', () => {
+          if (this.lock === lock) this.lock = null
+        })
+      },
+      () => {}, // refused (Low Power Mode, no gesture): the poet keeps the page in front
+    )
   }
 
   // ----- the room ----------------------------------------------------------------
@@ -338,6 +378,7 @@ export class PoetClient {
     const me = this.me()
     const turn = room ? this.currentTurn(room) : undefined
     const stage = this.stage(room, me, turn)
+    this.keepAwake(this.mic.isOpen && stage !== 'finished')
     const s = this.session
     const offset = s?.offset ?? 0
     const mine = turn && me && turn.playerId === me.id
@@ -361,7 +402,7 @@ export class PoetClient {
       cards: this.hand().map((text) => ({ text, played: played.has(text) })),
       verdict: score?.verdict ?? '',
       total: score && score.axes.length ? score.total : null,
-      error: this.error,
+      error: this.error || (stage === 'rejoin' && this.mic.lost ? MIC_LOST : ''),
     })
   }
 }
