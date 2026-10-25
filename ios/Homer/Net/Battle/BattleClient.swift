@@ -259,8 +259,10 @@ final class BattleClient: SpacetimeClientDelegate {
         let tables: [String] = event == "stadion" ? ["heat", "runner"]
             : event == "pygmachia" ? ["fight", "fighter", "punch"]
             : event == "toxeia" ? ["range", "archer", "arrow_shot"] : []
-        guard !tables.isEmpty, roomId != 0 else { return }
+        // A hall switching events (set_event) drops the last sport's tables before taking the next.
         eventSubscription?.unsubscribe(sendDroppedRows: true)
+        eventSubscription = nil
+        guard !tables.isEmpty, roomId != 0 else { return }
         eventSubscription = client?.subscribe(queries: tables.map { "SELECT * FROM \($0) WHERE room_id = \(roomId)" })
     }
 

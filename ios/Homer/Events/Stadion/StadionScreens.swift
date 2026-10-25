@@ -18,8 +18,7 @@ struct StadionPhoneRoot: View {
             session = s
         }
         .onDisappear {
-            session?.detach()
-            UIApplication.shared.isIdleTimerDisabled = false
+            session?.detach()  // the poet screen keeps the screen awake while in the room
         }
     }
 

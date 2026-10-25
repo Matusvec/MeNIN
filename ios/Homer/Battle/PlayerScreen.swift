@@ -48,6 +48,12 @@ struct PlayerScreen: View {
                 try? await Task.sleep(for: .milliseconds(300))
                 if !Task.isCancelled, waitCandidate == wait { slowWait = wait }
             }
+            .onChange(of: battle.room?.event) { _, event in
+                // The hall switched events (set_event): the sport screens above swap themselves (each
+                // tears down its motion and takes its own tables); back in a voice event, drop the
+                // last sport's tables.
+                if !["stadion", "pygmachia", "toxeia"].contains(event ?? "") { battle.watchEventTables(event ?? "") }
+            }
             .onChange(of: recorder?.draftFromVoice) { _, heard in
                 // Voice failed mid-verse: the typed field starts with what was already heard.
                 if let heard, !heard.isEmpty, draft.isEmpty { draft = heard }
