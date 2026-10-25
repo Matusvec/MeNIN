@@ -740,7 +740,10 @@ def plan() -> dict:
         lower("L8", l8, min(4.0, B1 - l8))
     elif t < B1 and wide and faces:
         shot(t, B1 - t, wide, at(wide, faces + 8.0), "full", "the room (fill)", faces + 8.0)
-    lower("L5", B0 + 1.0, 4.0)
+    controller = card("L-controller")  # Matus (v8): the phone is the controller, the room plays on one screen
+    if controller:
+        lts.append({"id": "L-controller", "t0": B0, "dur": round(1.5 * bar_len, 3), "file": controller})
+    lower("L5", B0 + (1.5 * bar_len + 0.3 if controller else 1.0), 4.0)
     verdict_at, stab = B0, None
     for bt in beats_:
         if bt[2] == "verdict":
@@ -790,7 +793,7 @@ def plan() -> dict:
     # then the stitched song to C5 (the song gives back whatever M3 took past 1:27), C5 over its tail
     c3 = on_bar(c2 + 6.7, bar_)
     song0 = on_bar(c3 + 4.6, bar_)
-    c5 = on_bar(song0 + 7 * bar_len, bar_)  # the song: seven bars
+    c5 = on_bar(song0 + 4 * bar_len, bar_)  # the song: four bars (three went to the games, v8)
     mont0 = on_bar(c5 + 2 * bar_len, bar_)  # C5: two
     shot(c2, c3 - c2, "C2", 0, "card", "C2 the diagram (line 6)", room=False)
     shot(c3, song0 - c3, "C3", 0, "card", "C3 20% -> 3% (line 7)", room=False)
@@ -814,7 +817,7 @@ def plan() -> dict:
         shot(song0, mont0 - song0, "C5", 0, "card", "C5 (no song in the take)", room=False)
     # The training montage, cut on the bars at varied lengths (one label); then the Figma workflow, three bars centred
     # on F1's Atelier -> Hall flip (at 10 s in artist's render), L14 held over it
-    fig0 = on_bar(mont0 + 6 * bar_len, bar_)
+    fig0 = on_bar(mont0 + 9 * bar_len, bar_)  # the games: nine bars
     m4_0 = on_bar(fig0 + 3 * bar_len, bar_)
     montage(segs, lts, clips, take, grid, start=mont0, end=fig0, bars_=bar_)
     if BRAND.exists():
@@ -1215,7 +1218,7 @@ def montage(segs, lts, clips, take, grid, start: float = 120.0, end: float = 134
     picked.sort(key=lambda c: c.get("start") or 0)
     bar = (bars_[-1] - bars_[0]) / (len(bars_) - 1) if bars_ and len(bars_) > 1 else 4 * 60 / 107.666
     beat = bar / 4
-    pattern = [1.0, 0.5, 1.0, 2.0, 1.5, 0.5, 1.0]  # boxing (the 4th take) gets the two bars; Stadion a whole one
+    pattern = [1.5, 0.5, 2.0, 2.5, 2.5, 1.0, 0.5]  # discus 1½ + ½, stadion 2, boxing 2½, archery 2½ (nine bars)
     lens: list[float] = []
     while sum(lens) < end - start - 0.01:
         rest = end - start - sum(lens)
@@ -1235,6 +1238,16 @@ def montage(segs, lts, clips, take, grid, start: float = 120.0, end: float = 134
         used[c["name"]] = k + 1
         rate = 0.25 if c["kind"] == "slomo" else 1.0
         hero = length if length <= 0.6 * bar else 3 * beat
+        # a long shot whose landing the Mac also recorded (the arena, same instant) lands on two bars split: the
+        # player's phone left, the arena reacting right
+        screen = None
+        if length >= 2.4 * bar and rate == 1.0 and c.get("start"):
+            hero = 2 * bar
+            at_ = c["start"] + max(0.0, c["dur"] * (1 - k / 3) - hero - 0.3)
+            screen = next((m for m in clips if m["kind"] == "mac" and m.get("start")
+                           and m["start"] <= at_ and at_ + hero <= m["start"] + m["dur"]), None)
+            if not screen:
+                hero = 3 * beat
         run = length - hero
         # the landing: the take's end (its second shot lands a third of the way back)
         land = max(0.0, c["dur"] * (1 - k / 3) - hero * rate - (0.3 if k == 0 else 0.0))
@@ -1244,10 +1257,22 @@ def montage(segs, lts, clips, take, grid, start: float = 120.0, end: float = 134
             segs.append({"t0": round(t, 3), "dur": round(run, 3), "src": c["name"], "src_t": round(src0, 3),
                          "speed": round(speed, 2), "mode": "full", "note": f"montage {c['game']}: the run-up at {speed:.1f}x",
                          "epoch": None, "room": False})
-        segs.append({"t0": round(t + run, 3), "dur": round(hero, 3), "src": c["name"], "src_t": round(land, 3),
-                     "speed": rate, "mode": "full", "note": f"montage {c['game']}: the landing at {rate:g}x ({length / bar:g} bar)",
-                     "epoch": None, "room": False})
-        t += length  # no per-game stamps: plan() puts one label over the montage's first bar
+        landing = {"t0": round(t + run, 3), "dur": round(hero, 3), "src": c["name"], "src_t": round(land, 3),
+                   "speed": rate, "mode": "full", "note": f"montage {c['game']}: the landing at {rate:g}x ({length / bar:g} bar)",
+                   "epoch": None, "room": False}
+        if screen:
+            landing.update(beside=picture(screen), beside_t=round(c["start"] + land - screen["start"], 3),
+                           beside_crop="3000:1950:210:250", note=landing["note"] + ", split with the arena")
+        segs.append(landing)
+        if c["game"] and c["game"] not in seen:  # its controller, in Matus's caption style, for the game's shots
+            seen.add(c["game"])
+            if plate:
+                plate["dur"] = round(t - plate["t0"], 3)
+            plate = {"id": f"LG-{c['game']}", "t0": round(t, 3), "dur": round(end - t, 3),
+                     "file": brand_badges()[f"LG-{c['game']}"]} if BRAND.exists() and f"LG-{c['game']}" in BADGES else None
+            if plate:
+                lts.append(plate)
+        t += length
 
 
 def narration(cuts: dict) -> list[tuple[str, float, float | None]]:
@@ -1560,7 +1585,8 @@ def captions(cuts: dict) -> Path | None:
             continue
         for k, start in enumerate(ln["starts"]):
             until = ln["starts"][k + 1] if k + 1 < len(ln["starts"]) else ln["end"]
-            low = any(sg["mode"] == "card" and sg["t0"] <= start < sg["t0"] + sg["dur"] for sg in cuts["segments"])
+            low = (any(sg["mode"] == "card" and sg["t0"] <= start < sg["t0"] + sg["dur"] for sg in cuts["segments"])
+                   or on(plates, start, until))
             states.append({"id": f"{i:03d}-{k:02d}", "words": ln["words"], "k": k, "t0": start, "t1": until, "low": low})
     d = WORK / "captions"
     if d.exists():
@@ -1709,8 +1735,16 @@ BADGES = {  # badge id -> where it sits and which logos, in order
     "L-SDK": ("sdk", None, ["spacetimedb"]),  # L15 v2: the Swift SDK fork, the exact claim
     "N-LOG": ("label", None, []),  # over the timeline rows
     "N-MONTAGE": ("top", None, []),  # the montage's one label
+    "LG-discus": ("game", None, []),  # each game's controller (v8), in Matus's caption style
+    "LG-stadion": ("game", None, []),
+    "LG-pygmachia": ("game", None, []),
+    "LG-toxeia": ("game", None, []),
 }
-LABELS = {"N-LOG": "The hall's event log, live from SpacetimeDB", "N-MONTAGE": "Four motion games · in beta"}
+LABELS = {"N-LOG": "The hall's event log, live from SpacetimeDB", "N-MONTAGE": "Four motion games · in beta",
+          "LG-discus": "Discus: swing your phone and let go.",
+          "LG-stadion": "Stadion: pump your arms, your phone counts the strides.",
+          "LG-pygmachia": "Boxing: punch, your phone is the glove.",
+          "LG-toxeia": "Archery: the camera tracks your draw."}
 SDK_URL = "github.com/Matusvec/spacetimedb-swift"
 
 
@@ -1763,6 +1797,10 @@ def brand_badges() -> dict[str, str]:
                      + "".join(brand_logo(n, 1.6) for n in logos))
         elif where == "label":  # over the right half (the timeline rows)
             box = f"position:absolute;left:1000px;top:286px;{band}"
+            inner = LABELS[bid]
+        elif where == "game":  # as Matus's captions sit: left, above the lower-third band, two lines at most
+            box = (f"position:absolute;left:104px;bottom:280px;max-width:620px;{band};white-space:normal;"
+                   "font-size:46px;line-height:1.25")
             inner = LABELS[bid]
         elif where == "top":  # one label, top centre
             box = f"position:absolute;left:50%;transform:translateX(-50%);top:56px;{band};font-size:40px"
