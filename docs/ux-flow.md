@@ -1197,6 +1197,17 @@ Keep the screen on and the page in front throughout. If the mic was blocked once
 - **Also a fail:** music between Begin and Homer's reply. Anything on the phone clips or needs scrolling at SPEAK. "I'm done" isn't in the thumb zone. SPEAK, the ring's seconds or the live words are hard to read at arm's length.
 - **If it fails, tell builder:** the step number; the exact red line on the phone ("The mic is off…", "No live words: …", "Can't reach the hall…"); whether the bar moved in step 3 and step 4; the room code and the time. One phone screenshot of that step helps. If the phone is cabled, pm takes a single capture once Matus says the MeNIN page is on screen, the same as for the app.
 
+### Sunday morning: the verdict without the arena tab (2–3 min)
+
+The agent's backstop went live at 02:07 (7ef1c5f). If a turn sits in judging for 6 s and the arena hasn't asked for a verdict, the agent judges it straight from the database. A verdict then never depends on the hall's tab (rooms HSMJ, DQNB and JHQS got none when the tab slept or the Wi-Fi blinked). Run it in the same slot, in one Talk to Homer hall with one phone on build 45.
+
+1. **Close at judging (leader):** in a Talk to Homer hall, speak a short verse. The moment the arena shows "Homer is answering…", close the arena tab.
+   - **Pass:** the phone shows Homer's reply and a score within about 10 s (the 6 s wait plus the judge's own few seconds; up to ~15 s still passes). Then reopen /homer → **Resume**, and the log shows that verse scored.
+2. **Closed before the end (pm):** this is the case the backstop is really for. Here the arena never asks; in step 1 its request may already be out. Back in the resumed hall, start the next turn, speak a verse, close the arena tab while you're still speaking, then tap **I'm done** on the phone.
+   - **Pass:** the same as step 1. The phone gets the reply and a score, and Resume shows it scored.
+- **What to expect without the tab:** Homer's voice comes from the arena, so with the tab closed there's no voice, only the text on the phone. That's not a fail. The room waits at the score until the arena is reopened, so Resume is what moves it on.
+- **Fail:** "Homer is silent on this one.", greyed neutral 4s, or no score after 60 s (the module skips the turn then). Send builder the step number, the time and the room code.
+
 ### Results
 
 | Event | Run | Time | Pass or fail | What failed | Notes |
