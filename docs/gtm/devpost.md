@@ -93,7 +93,7 @@ Other events show as locked tiles, because we only unlock what's solid: an event
   - The speaking phone streams its loudness and pitch about 20 times a second into the room's live row, which the arena subscribes to, so the scene moves with whoever is speaking.
   - The iPhone client is the community Swift SDK (avias8/spacetimedb-swift 0.23.0), vendored with two patches. Upstream subscribes every client to whole tables, which would send every phone every room's 20 Hz voice stream, so each phone now subscribes only to its own room. The second patch lists each row once when subscriptions overlap.
 - **Cartesia** is the ears and the voice.
-  - Streaming speech-to-text (**ink-2**, over WebSocket) writes the live transcript. We send every phrase Homer dealt the poet, plus the theme, as **keyterms**, so it catches "the wine-dark sea" through the noise. In our tests, with a drum at full volume (0 dB) as the test noise, the word error rate is **3% with keyterms and 20% without**. Those tests used recorded verse with the drum mixed in digitally, and five dealt phrases as keyterms. Battles no longer play a drum, so at the table the enemy is the hall; lessons still play it, on the same phone. [real-mic WER]
+  - Streaming speech-to-text (**ink-2**, over WebSocket) writes the live transcript. We send every phrase Homer dealt the poet, plus the theme, as **keyterms**, so it catches "the wine-dark sea" through the noise. **Measured** (receipt: [`docs/voice-wer/`](docs/voice-wer/): the scripts, the raw output and the method): with a drum at full volume (0 dB) as the test noise, the word error rate is **3% with keyterms and 20% without**; clean, it's 3% vs 9%. The final transcript arrives **62–81 ms** after the phone signals the end of speech. These are synthetic test clips (a TTS voice and our drum, mixed digitally), not a real room or phone mic, so treat them as a best case. [real-mic WER] Battles no longer play a drum, so at the table the enemy is the hall; lessons still play it, on the same phone.
   - The phone streams straight to Cartesia with a short-lived token from our server, so no audio passes through us.
   - Cartesia TTS is Homer (**sonic-3.6**, the voice Carl, "Steady Storyteller"): lessons, entrances, verdicts, the freeze whisper and the stitched song.
 - **Claude (Anthropic)** is the judge, the coach and the MC.
@@ -139,7 +139,7 @@ The total is out of 100. Clichés and dodging the theme cost. In the lessons, **
 ## What we learned
 
 *(Draft. Each line is true now; reread them Sunday morning.)*
-- A recognizer does far better when you tell it what to expect. Five dealt phrases as keyterms took word errors from 20% to 3% in our tests, with a drum at full volume as test noise.
+- A recognizer does far better when you tell it what to expect. Feeding it the verse's formulas as keyterms took word errors from 20% to 3% in our tests, with a drum at full volume as test noise.
 - Keep the model away from anything you can count. The beat is arithmetic, so a scanner scores it, and Claude judges what only taste can.
 - With six-plus agent sessions building at once, one spec and one folder per session mattered more than any single prompt.
 

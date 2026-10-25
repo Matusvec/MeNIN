@@ -138,3 +138,38 @@ Figma's four stages are **Ideation, Prototyping, Handoff, Code generation**. Giv
 - Worked (1-5): 3, pending Matus's Make session
 - What made it into the project: "MeNIN · Discus (Make)" (https://www.figma.com/make/MexcUVEohKsNVAw5pHh596) holds a playable sketch of the discus phone (hold, a power ring, release) and arena (an arc over an 80 m field, the Phayllos flag, the leaderboard, Homer's caption). Its CSS variables match the Figma tokens and `Palette` in Swift, so Make's variations come back in the app's vocabulary.
 - Friction: the MCP reaches Make for import and for reading results (`get_design_context` on a Make file), not for prompting. That means a human-in-the-loop step, which matches the thesis: the designer drives the AI. Design-file code layers aren't enabled on this plan, so it had to be a standalone Make file.
+
+### Handoff · Variables with Swift names become the app's tokens · Fri Oct 23, 23:45 – Sat Oct 24, 00:10
+- Tool(s): Figma variables, read and written through the Figma MCP (get_variable_defs, use_figma). Variables were the handoff contract because each one can carry its code name: we set the iOS code syntax on every variable (`Palette.hero`, `Metrics.radiusL`, `Typeface.display`).
+- Minutes: 20
+- Worked (1-5): 4
+- What made it into the project: `ios/Homer/UI/Tokens.swift`. `Palette`, `Metrics` and `Typeface` use the same semantic names as the "MeNIN" collection, and the `Direction` enum (Atelier, Cut paper) mirrors its two modes, so a designer and the code talk about the same `Palette.hero`. Every screen in the app reads color, type and radii only through those tokens.
+- Friction: the sync is by convention, not live. A change in Figma doesn't flow into Swift on its own; the agent re-reads the variables and edits Tokens.swift. We chose that on purpose after Matus's note ("don't treat the figma as the ground truth"): Figma is where we compare and decide; the code is what runs.
+
+### Handoff · The same tokens to the website team · Sat Oct 24, 12:36
+- Tool(s): Claude Code (artist session), from `Tokens.swift` and the Figma variables, so the website had the app's vocabulary without opening Xcode.
+- Minutes: 10
+- Worked (1-5): 3
+- What made it into the project: `docs/design/atelier-tokens.css`: the Atelier palette, seats, type, radii, spacing and motion as CSS variables named after the Swift tokens (`--palette-hero`, `--metrics-radius-l`). Its rules then shaped the website's battle screen (`homer/web/src/wired.css`): the 2 m type scale, the seat colors, the matte "no glow" rule, and the carved-line and crown cards.
+- Friction: the website kept HohHamNap's own palette (Matus's call: his art is the big screen), so the CSS variables are used as a reference and for the seats, not as the site's theme. The honest rating is a 3.
+
+### Handoff · Seeding Figma Make from the app's code · Sat Oct 24, 09:00–09:15
+- Tool(s): Figma Make, filled through the MCP (`create_new_file` as figmake, then `send_code_to_figma`), going the other way: from code into Figma, so Make's AI could explore variations on our real screens and tokens.
+- Minutes: 15
+- Worked (1-5): 2
+- What made it into the project: nothing yet. The Make file "MeNIN · Discus (Make)" holds a playable discus sketch on the app's tokens. The prompting step is a human one (the MCP can import but not prompt), and the day's priorities moved to the phone and the website before anyone ran it.
+- Friction: kept because it's true. The tooling worked; the loop back into the app never ran.
+
+### Code generation · Matus's concept frame to SwiftUI · Fri Oct 23, 23:40 – Sat Oct 24, 00:40
+- Tool(s): Figma MCP `get_design_context` on "Homer · Atelier" (node 46:378) and `get_screenshot` for a visual check. It hands back reference code plus exact values, which beats rebuilding from a screenshot.
+- Minutes: 40
+- Worked (1-5): 4
+- What made it into the project: `ios/Homer/UI/Hall/HomeView.swift`, the Atelier home: greeting and Homer's portrait, the lesson card, the three modes, the hoard. Its sizes, colors, radii (12/14/18) and leading came from the frame, bound to the tokens above, not hard-coded. That home's look (paper cards, Bodoni and Inter, wine and gold, hairlines) became the visual language of every phone screen that followed.
+- Friction: the MCP's reference code is React and Tailwind, not SwiftUI, so every value was mapped by hand onto our tokens. Bodoni's natural leading is looser than the frame's 1.12 and needed iOS 26's exact line height. Later, a playtest made us rebuild the phone layouts (top band, middle, one action in the thumb zone), but the frame's styling held.
+
+### Code generation · Icons and Homer's portrait straight from the file · Fri Oct 23, 23:50
+- Tool(s): Figma MCP asset downloads from the concept frame, so the art in the app is the exact art in the file.
+- Minutes: 10
+- Worked (1-5): 5
+- What made it into the project: `ios/Homer/UI/Art.xcassets`: the Lucide-style icons (feather, arrows, book, swords) as template images and the engraved Homer portrait, used on the home, the menus and the back buttons.
+- Friction: a few downloads had layer names with mangled em dashes and had to be renamed by hand.

@@ -61,8 +61,9 @@ Voice is the whole game: you play by speaking, and Homer answers out loud.
 | --- | --- |
 | Word error rate, a drum at full volume (0 dB) as test noise, **with keyterms** | **3%** |
 | Same, **without keyterms** | 20% |
+| Final transcript after the end of speech | 62–81 ms |
 
-**How we measured:** a four-line verse spoken by a synthetic voice (macOS `say`), mixed digitally with a 90 BPM drum loop at +12, +6 and 0 dB, then run through ink-2 with and without keyterms (five dealt phrases). These are test recordings, not a real phone mic in a loud room, so treat them as a best case. Battles no longer play a drum, so at the table the noise is the hall; lessons still play it. [real-mic WER: replace or add swift's iPhone-mic numbers.]
+**How we measured** (receipt: [`docs/voice-wer/`](docs/voice-wer/), with the scripts and the raw output, Fri Oct 23): a four-line verse spoken by a synthetic voice (macOS `say`), mixed digitally with a 90 BPM drum loop at +12, +6 and 0 dB, then run through ink-2 with and without keyterms (the verse's own formulas, the way the phone sends its dealt phrases). These are test recordings, not a real phone mic in a loud room, so treat them as a best case. Battles no longer play a drum, so at the table the noise is the hall; lessons still play it. [real-mic WER: replace or add swift's iPhone-mic numbers.]
 
 **In lessons, the beat lane isn't STT.** Hits come from syllable onsets detected on the phone itself, because STT timing arrives too late to drive a live hit.
 

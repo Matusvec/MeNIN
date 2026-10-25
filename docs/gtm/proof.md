@@ -4,6 +4,16 @@ Written Sat Oct 24, ~5:30 PM, by gtm, from three read-only audits of the repo ag
 
 Status key: ✅ the receipt is in the repo · ⚠️ true, but the wording or the receipt needs fixing · ❌ no receipt yet, so fix it or cut the claim.
 
+**Routed by leader (commit 83abf4b, Sat ~5:40 PM):**
+- builder: the judge latency rerun (approved), the Moss bench on the 180 bank, the `judge.py` docstrings, and the website URL in `DEPLOY.md`.
+- swift: the keyterm WER probe and its results, plus the `CartesiaSTT.swift` comment.
+- multiplayer: `CONTRACT.md` line 16.
+- artist: the Figma Handoff and Code-generation entries, and the Slides deck.
+- leader, at the freeze: the root README and the LICENSE.
+- Matus decides: MIT, the Apify "Matus checked them" wording, and Make's AI.
+
+gtm swaps each bracket for its real number as the receipts land.
+
 ## The three that have to be rock solid
 
 ### SpacetimeDB: "something that's hard to build without Spacetime"
@@ -57,8 +67,8 @@ Judged on workflow design, adoptability, output quality, presentation and innova
 
 | Track | What holds | What to fix |
 | --- | --- | --- |
-| **Cartesia** | ink-2 over WebSocket with keyterms = the dealt phrases + the hoard + the theme (`TurnRecorder.swift`, `CartesiaSTT.swift`); sonic-3.6 (`voice.py`); short-lived tokens, no audio through our server (`voice.py`, `/voice/token`); `/voice/status` for credit outages | ❌ **The 3% vs 20% word-error test isn't in the repo** ("the probe lives in the swift session's scratchpad", `docs/voice.md`). swift commits the script and the raw results with the date; a code comment says "6–20%" and must match. ❌ **"75 ms to the final transcript" and "about 100 ms to Homer's first audio" were never measured by us** (`docs/voice.md`: "no live latency numbers yet"). Cut them, or measure them at the shoot. Voice "Carl" is set only in `.env.example`; that's fine, but name the voice id in the README. |
-| **Apify** (Best Use + Best Actor) | `apify/` (Apify SDK, Crawlee, the four Gutenberg IDs, rules with no language model, the copied scanner rule), `BUILD_LOG.md` (built by Claude Opus 5.5 in Claude Code), 55 entries with `source` and `count` in `content/formulas.json`, never called at runtime | ⚠️ "**A person** kept 55": our own notes say pm, a Claude Code session, kept them. Settle who reviewed, and say exactly that. Add the Store URL and the Actor ID to `apify/README.md`. Optionally name the Actor in each mined entry. |
+| **Cartesia** | ink-2 over WebSocket with keyterms = the dealt phrases + the hoard + the theme (`TurnRecorder.swift`, `CartesiaSTT.swift`); sonic-3.6 (`voice.py`); short-lived tokens, no audio through our server (`voice.py`, `/voice/token`); `/voice/status` for credit outages. ✅ **The WER receipt is in `docs/voice-wer/`** (swift, Sat ~5:45 PM): `probe.py`, `fixtures.py`, the raw `results.txt` and a README with the date (Fri Oct 23, ~10:59 PM PT) and method. ink-2 with keyterms: 3% on every clip, including 0 dB; without: 9% clean, 6% at +12/+6 dB, 20% at 0 dB. The final transcript arrives 62–81 ms after `finalize`. Label all of it "synthetic test clips". | ❌ "~100 ms to Homer's first audio" is still unmeasured, so it stays cut. ⚠️ The real-mic rerun hasn't happened. `docs/voice.md` still says "no live latency numbers yet" (stale), and the `CartesiaSTT.swift` comment is for swift to fix. Voice "Carl" is set only in `.env.example`; name the voice id in the README. |
+| **Apify** (Best Use + Best Actor) | `apify/` (Apify SDK, Crawlee, the four Gutenberg IDs, rules with no language model, the copied scanner rule), `BUILD_LOG.md` (built by Claude Opus 5.5 in Claude Code), 55 entries with `source` and `count` in `content/formulas.json`, never called at runtime | ⚠️ "**A person** kept 55": our own notes say pm, a Claude Code session, kept them. Settle who reviewed, and say exactly that. The Store URL and the Actor ID are now in `apify/README.md` (83abf4b). Optionally name the Actor in each mined entry. |
 | **Moss** | `HOMER_DEALER=moss`, the 500 ms fallback (`homer/homer/moss_dealer.py`) | ❌ **The 13.7 ms / 32.2 ms benchmark has no script or results**, and it was run on the 213-formula bank. Commit a bench script and its output on the 180 bank. ❌ The "breaker of horses" before/after is contradicted by our own samples (`demo-hands.md`); re-pick both examples from real output. |
 | **Fetch.ai** | `homer/fetch_agent.py` (`homer-bard`, the chat protocol), `AGENTVERSE.md`, `agentverse_connect.py` | ⚠️ It's a **sidecar container** (`docker-compose.yml`, the `fetch` profile), not "inside our agent service". Mention ASI:One in `AGENTVERSE.md`. |
 | **Meta** | The battle scores Answer (×4, how well you answered the person before you) and ends with one stitched song from everyone's lines | Its proof is the demo and the video, so the video must show two people answering each other and the song. |
@@ -69,7 +79,7 @@ Judged on workflow design, adoptability, output quality, presentation and innova
 - ❌ **The root `README.md` is just `# MeNIN`.** Paste `readme-draft.md`, fill or cut its 14 placeholders, and add a **Receipts** section linking each number to its file (below).
 - ❌ **The website's public URL is in no file** (`WEB_HOST=` is empty in `.env.example`; Devpost says `[URL]`). Deploy it, record the URL, and open it on a phone on cellular.
 - ❌ No `LICENSE`. Matus picks one (MIT is the usual hackathon default).
-- ⚠️ No root `.gitignore`. Add `.env`, `.env.*`, `.token-*` and `node_modules/` before `scrabble/` is committed (its `.env` and token files are ignored only by its own `.gitignore`).
+- ✅ A root `.gitignore` now covers `.env*`, `.token-*`, `*.p8`, `Secrets.xcconfig` and `node_modules` (83abf4b).
 - ⚠️ Stadion and boxing exist only as uncommitted changes. Claim them only once they're committed and pass 5 clean runs.
 - ⚠️ `spacetime/CONTRACT.md` line 16 still names the local database `homer`; the demo one is `homer-calhacks`.
 - ✅ No secrets are committed. The droplet IP is public in a few files, which is fine.
@@ -79,4 +89,4 @@ Judged on workflow design, adoptability, output quality, presentation and innova
 
 Paste once the ❌ rows are fixed:
 
-> **Every number here has a receipt.** Hand privacy, seat takeover and the turn timer: `spacetime/scripts/smoke.mjs` (about 118 checks; `npm run smoke`) and `spacetime/scripts/hall-soak.ts`. Judge latency: `homer/scripts/latency.py` and [its output]. Word error with keyterms: [the committed probe and results]. Moss retrieval: [the bench script and output]. The mined phrases: `apify/BUILD_LOG.md` and the `source` field in `content/formulas.json`. How the team of Claude Code sessions worked: `AGENTS.md`, `SPEC.md`, and the commit log (232 of 245 commits co-authored by Claude Opus 5.5 as of Sat 5:30 PM).
+> **Every number here has a receipt.** Hand privacy, seat takeover and the turn timer: `spacetime/scripts/smoke.mjs` (about 118 checks; `npm run smoke`) and `spacetime/scripts/hall-soak.ts`. Judge latency: `homer/scripts/latency.py` and [its output]. Word error with keyterms and the final-transcript time: `docs/voice-wer/` (scripts, raw output, method). Moss retrieval: [the bench script and output]. The mined phrases: `apify/BUILD_LOG.md` and the `source` field in `content/formulas.json`. How the team of Claude Code sessions worked: `AGENTS.md`, `SPEC.md`, and the commit log (232 of 245 commits co-authored by Claude Opus 5.5 as of Sat 5:30 PM).
