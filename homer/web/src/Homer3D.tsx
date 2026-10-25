@@ -17,8 +17,9 @@ type Homer3DProps = {
   mode: 'bard' | 'judge' | 'battle' | null
   /** Overrides the hall's default (idle, or a wave when a mode is picked). */
   action?: HomerAction
-  /** 'hall': full body, standing on the plaza above the dialogue. 'stage' (default): the arena's side panel. */
-  framing?: 'hall' | 'stage'
+  /** 'hall': full body, standing on the plaza above the dialogue. 'card': full body, centred (the
+   *  landing page's poet card). 'stage' (default): the arena's side panel. */
+  framing?: 'hall' | 'stage' | 'card'
 }
 
 const material = (color: number, roughness = 0.72) =>
@@ -106,6 +107,9 @@ export default function Homer3D({ speaking, mode, action: actionProp, framing = 
       // Whole Homer, a little above centre, so his feet land just above the dialogue panel.
       camera.position.set(0, 1.0, 10.8)
       camera.lookAt(0, 0.85, 0)
+    } else if (framing === 'card') {
+      camera.position.set(0, 1.35, 8.4)
+      camera.lookAt(0, 1.4, 0) // a little headroom under the card's badge
     } else {
       camera.position.set(0, 1.75, 10)
     }

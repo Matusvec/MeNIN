@@ -4,6 +4,7 @@ import ArenaPanel from './Arena'
 import Homer3D, { type HomerAction } from './Homer3D'
 import World3D from './world/World3D'
 import JoinCard from './JoinCard'
+import Landing from './Landing'
 import { FIELD_EVENTS } from './lib/arena'
 import { hasTestFlight, joinCodeFromPath, TESTFLIGHT_URL } from './lib/links'
 import MusicToggle from './MusicToggle'
@@ -273,7 +274,28 @@ function ModePage({
   )
 }
 
+// The landing page (the Poets' Hall) lives at /, each poet's hall at /<poet>. The server serves
+// index.html for unknown paths, so a reload on /homer stays in Homer's hall.
+const onPoetPath = () => window.location.pathname.replace(/\/+$/, '') === '/homer'
+
 export default function App() {
+  const [inHall, setInHall] = useState(onPoetPath)
+  useEffect(() => {
+    const sync = () => setInHall(onPoetPath())
+    window.addEventListener('popstate', sync)
+    return () => window.removeEventListener('popstate', sync)
+  }, [])
+  const goTo = (path: string) => {
+    window.history.pushState(null, '', path)
+    setInHall(onPoetPath())
+  }
+
+  const joinCode = joinCodeFromPath(window.location.pathname)
+  if (!joinCode && !inHall) return <Landing onChoose={(poet) => goTo(`/${poet}`)} />
+  return <HomerHall joinCode={joinCode} onBack={() => goTo('/')} />
+}
+
+function HomerHall({ joinCode, onBack }: { joinCode: string | null; onBack: () => void }) {
   const [isOpen, setIsOpen] = useState(false)
   const [selectedMode, setSelectedMode] = useState<HomerMode | null>(null)
   const [activeMode, setActiveMode] = useState<HomerMode | null>(null)
@@ -296,7 +318,6 @@ export default function App() {
   }, [fullMessage])
 
   const isSpeaking = spokenMessage.length < fullMessage.length
-  const joinCode = joinCodeFromPath(window.location.pathname)
 
   if (joinCode) {
     return (
@@ -332,6 +353,7 @@ export default function App() {
 
       <GameStrip />
       <MusicToggle className="floating" />
+      <button className="back-to-poets" type="button" onClick={onBack}>‹ All poets</button>
 
       <header className="nameplate" aria-label="Homer">
         <span>Homer</span>
