@@ -1,0 +1,31 @@
+# Sunday morning, 7:00–10:30
+
+| Time | What | Who | From |
+| --- | --- | --- | --- |
+| 7:00 | Pack from the packing list. The Mac, three iPhones and the power banks at 100%, or charging now. | All | run-sheet.md: Sunday timeline (7:00), Power, Packing list |
+| 7:00 | Watch **`~/Movies/MeNIN-video/out/rough-cut-v4.mp4`** once, start to finish, sound on (no v4 yet? `rough-cut-latest.mp4`). | **MATUS** | video.md: "Morning, 7:00" |
+| 7:20 | Any fixes go to builder, in one message. Confirm Sunya is up for the 8:00 repo flip. | **MATUS** | video.md: "Morning, 7:00"; run-sheet.md: Sat night |
+| 7:40 | **YouTube, Unlisted:** the final 3:00 cut, titled **"MeNIN: Homer teaches you to speak. Then you battle. (Cal Hacks 13.0)"**, with the description from video.md (e). Then the 2:00 export as its own Unlisted video, for Cartesia. Play both in a logged-out window. | **MATUS** | video.md: Export, (e) YouTube |
+| 7:45 | **Devpost: swap the video link** from the interim `menin-backup-90s` upload to the 3:00 YouTube link, and press Submit again. | **MATUS** | devpost.md: Submission checklist |
+| 7:45 | **Figma deck clicks (~10 min):** share as Anyone with the link → can view; slide 16, embed both prototype flows; slide 17, embed Directions; slide 3, the 3:00 YouTube link; present it logged out. | **MATUS** | figma-deck-clicks.md: steps 1–4, 7 |
+| 7:55 | **FigJam share:** board c8DkYceOjp3OJ7PPLeYUcn → Anyone with the link → can view. Confirm the concept file the same way; Paul confirms the website's Make file. | **MATUS** (Make: Paul) | video.md: Morning step 5; figma-deck-clicks.md: step 6 |
+| 7:55 | **Cartesia "FINAL MATERIALS"**: paste the four blocks; `[2:00 cut link]` is the 2:00 YouTube link. | **MATUS** | sponsor-submissions.md: §1 |
+| before 8:00 | Full-history secret scan rerun; leader says "clean" before the flip. | leader | devpost.md: Submission checklist; run-sheet.md: Sat ~11 PM |
+| 8:00 | **Sunya makes the repo public** (Settings → General → Danger Zone → Change visibility). | Sunya | run-sheet.md: 8:00 |
+| 8:00–8:40 | **Logged-out GitHub check** (private window): the repo, plus the README's #cartesia-ears-and-voice and #spacetimedb-the-hall sections. | Anyone but Sunya | run-sheet.md: 8:00–8:40; sponsor-submissions.md: §1, §4 |
+| 8:00–8:30 | **Build 45 checks, in order:** airplane reconnect → lesson 1's beat → Practice under a slow judge → visual pass → debate on Achilles' choice → verdict without the arena tab → Safari browser poet (slips first). pm captures only when Matus says "on screen". | **MATUS**, pm, a second teammate | ux-flow.md: "Visual pass" through "the verdict without the arena tab"; run-sheet.md: 8:00–8:30 |
+| 8:30 | TestFlight: is build 45 through Beta App Review? If so, install the public link on a phone that isn't a tester. If not, the browser poet is the fallback, but only if the Safari check passed. | **MATUS** | devpost.md: Submission checklist; run-sheet.md: Fallbacks |
+| 8:30–8:40 | **Only if Homer on Agentverse shipped:** the Fetch.ai Submission agent in ASI:One. Matus creates the team and enters the GitHub, Devpost and Fetch-cut video URLs; every teammate joins with the Team ID until it reads "Submitted". | **MATUS** + every teammate | opportunities.md: Fetch.ai; run-sheet.md: 8:00–8:40 |
+| 8:40 | **Devpost emails match Hive** for all three on the team page; each teammate fixes their own. | Matus checks, each fixes | devpost.md: Submission checklist; run-sheet.md: 8:45 |
+| 8:40 | Devpost final pass: every track ticked (Fetch.ai only if submitted), the Figma Slides link in "Try it out", the video is the 3:00 link, no `[` left. | **MATUS** | submission-packet.md: §3; devpost.md |
+| **8:45** | **Devpost submitted.** The hard deadline is 9:00. | **MATUS** | run-sheet.md: 8:45 |
+| **9:30** | Whole team at the Palace of Fine Arts (the official arrival). | All | run-sheet.md: 9:30 |
+| **9:45** | **Table assignment** is announced; move within 30–45 min. Add the table number on Devpost if it has a field. | All (Devpost: Matus) | run-sheet.md: 9:45; devpost.md: Submission checklist |
+| 9:50 | **Ethernet** from the nearest hardline switch into the Mac. No IP address → tell a director now. | Operator | run-sheet.md: 9:50–10:20 |
+| 9:50–10:20 | **Demo check until GO**, with no no-go warnings: `python3 homer/scripts/demo_check.py https://206.189.237.157.sslip.io`. Then sound at demo volume, the noise test and two warm-up runs. | Operator | run-sheet.md: 9:50–10:20, Before each judge |
+| **by 10:10** | **/homer loaded** (a cold load takes ~9 s) → Host a battle → the Poetry battle card, and Homer is heard. Keep the tab; never close it or clear the cache. | Operator | run-sheet.md: "Load /homer once" |
+| 10:10–10:20 | **The SpacetimeDB timeline running** on the Mac's second desktop; leave it on. | Operator | run-sheet.md: 10:10–10:20, The SpacetimeDB flip |
+| 10:20 | `caffeinate -dims` running, lid open, Mac plugged in if the table has power. Backup video on the Mac and every phone, offline. | Operator | run-sheet.md: Before each judge, Power |
+| 10:20 | **Phones charged**, every one on build 45, power banks at the table. | All | run-sheet.md: Power, Device roles |
+| 10:25 | **Personal hotspots off** on every phone (otherwise we're disqualified). | All | run-sheet.md: 10:30–12:30, Fallbacks |
+| **10:30–12:30** | **Judging. The whole team stays at the table.** | All | run-sheet.md: 10:30–12:30 |
