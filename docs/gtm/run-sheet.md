@@ -16,6 +16,8 @@ Logistics for judging day, Sunday Oct 25: what goes where, what gets charged, ho
 
 **The website (since PR #1, Sat ~10:40 PM):** "/" is now the **Poets' Hall** landing page ("Choose Homer"), and **https://play.206.189.237.157.sslip.io/homer** goes straight into Homer's hall. **On the arena Mac, always open https://play.206.189.237.157.sslip.io/homer** (bookmark it). Then click **"Host a battle"**: under the heading "Open the hall" is the board of event cards. Click the **Poetry battle** card (tagged "Start here"), or another game's card. After a reload, it's /homer → "Host a battle" → **"Resume [code]"**.
 
+**After any reload or menu trip, press "Resume [code]". Never click an event card while a battle is live: it opens a new hall and ends the old one for everyone** (a live incident, Sun 2:16 AM: a reload, then an event card clicked, and the battle lost its arena). builder is adding a confirm dialog for this, deploying after the shoot.
+
 **The hands: Moss deals them, judging included** (leader, Sat ~11 AM). `HOMER_DEALER=moss` is on in production; the old tag dealer takes over silently only if Moss stalls. So **the poets rehearse on Moss hands: start from [demo-hands.md](demo-hands.md)**, builder's sample Moss hands for the three demo themes. The Sat 1:30 PM full-battle checkpoint, the Sat 8 PM runs and every rehearsal use Moss hands. Moss ranks by meaning, so the hand for the same theme can vary a little between deals. Rehearse the theme's feel, not a fixed five.
 
 ## Sunday timeline
