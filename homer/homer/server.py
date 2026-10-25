@@ -133,6 +133,8 @@ async def lifespan(_: FastAPI):
                 except Refused as exc:  # a rotated key; we may well be registered already
                     log.warning("%s", exc)
             status["stdb"] = "claimed" if await db.is_service() else "failed"
+            if status["stdb"] == "claimed" and os.environ.get("HOMER_BACKSTOP", "1") not in ("0", "false"):
+                asyncio.get_running_loop().create_task(arena().backstop())  # verdicts never wait on the arena's tab
         except StdbError as exc:
             status["stdb"] = "unreachable"
             log.warning("spacetimedb: %s", exc)

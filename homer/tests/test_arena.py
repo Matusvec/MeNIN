@@ -380,3 +380,141 @@ def test_a_coach_turn_whose_reply_breaks_gets_homers_silence_not_a_hang():
     posted, j = asyncio.run(arena.judge_turn(BattleTurn(turn_id=2, transcript="", event="coach")))
     assert posted == "post_score" and j.silent and "overloaded" in j.error
     assert db.calls[0][:2] == ("post_score", [2, [], "Homer is silent on this one.", "", ""])
+
+
+# ----- the backstop: turns no arena asked about ----------------------------------------------------------------
+
+class FakeHall:
+    """A tiny SpacetimeDB: tables as rows, `SELECT * FROM t [WHERE col = v]`, and post_score / decline_turn moving
+    a turn out of `judging` (a second post is refused, as the module does)."""
+
+    def __init__(self, now, event="poetry", closed_ago=10.0, status="judging"):
+        ends = int((now - closed_ago) * 1e6)
+        self.tables = {
+            "room": [{"id": 1, "event": event, "lines_per_turn": 2, "turn_seconds": 20, "demo": False}],
+            "round": [{"id": 5, "room_id": 1, "theme": "achilles-choice" if event == "debate" else "the sea at night"}],
+            "player": [{"id": 7, "room_id": 1, "hoard": ["the wine-dark sea"]}],
+            "turn": [
+                {"id": 40, "room_id": 1, "round_id": 5, "player_id": 8, "turn_no": 0, "status": "scored",
+                 "transcript": "the first verse", "played": [], "rescues": 0, "ends_at": [ends]},
+                {"id": 41, "room_id": 1, "round_id": 5, "player_id": 7, "turn_no": 1, "status": status,
+                 "transcript": VERSE, "played": ["the wine-dark sea"], "rescues": 1, "ends_at": [ends]},
+            ],
+        }
+        self.calls = []
+
+    def handler(self, request: httpx2.Request) -> httpx2.Response:
+        import re
+
+        if request.url.path.endswith("/sql"):
+            m = re.match(r"SELECT \* FROM (\w+)(?: WHERE (\w+) = '?([\w-]+)'?)?$", request.content.decode())
+            rows = self.tables[m[1]]
+            if m[2]:
+                rows = [r for r in rows if str(r.get(m[2])) == m[3]]
+            cols = sorted({c for r in self.tables[m[1]] for c in r})
+            return httpx2.Response(200, json=[{"schema": {"elements": [{"name": {"some": c}} for c in cols]},
+                                               "rows": [[r.get(c) for c in cols] for r in rows]}])
+        reducer = request.url.path.rsplit("/", 1)[-1]
+        args = json.loads(request.content)
+        self.calls.append((reducer, args))
+        turn = next(t for t in self.tables["turn"] if t["id"] == args[0])
+        if turn["status"] != "judging":
+            return httpx2.Response(530, text=f"turn is {turn['status']}, not judging")
+        turn["status"] = "scored" if reducer == "post_score" else "declined"
+        return httpx2.Response(200)
+
+
+def make_hall(**kw):
+    import time
+
+    hall = FakeHall(time.time(), **kw)
+    stdb = Stdb(cfg(), httpx2.AsyncClient(transport=httpx2.MockTransport(hall.handler)))
+    return Arena(Judge(client=FakeClient(reply()), cfg=cfg()), stdb), hall
+
+
+def _waited(arena, turn_id, seconds):
+    import time
+
+    arena._judging_since[turn_id] = time.monotonic() - seconds
+
+
+def test_the_backstop_judges_a_turn_no_arena_asked_about_from_the_database():
+    arena, hall = make_hall()
+
+    async def run():
+        assert await arena.judge_orphans() == []  # first sight: the arena gets its chance
+        _waited(arena, 41, 7)
+        seen = []
+        real = arena._battle_turn
+
+        async def spy(bt, live):
+            seen.append(bt)
+            return await real(bt, live)
+
+        arena._battle_turn = spy
+        assert await arena.judge_orphans() == [41]
+        await asyncio.gather(*arena._backstopped)
+        return seen[0]
+
+    bt = asyncio.run(run())
+    assert [c[0] for c in hall.calls] == ["post_score"] and hall.calls[0][1][0] == 41
+    assert (bt.theme, bt.hoard, bt.previous, bt.lines_expected, bt.played, bt.rescues) == (
+        "the sea at night", ["the wine-dark sea"], "the first verse", 2, ["the wine-dark sea"], 1)
+
+
+def test_the_backstop_waits_six_seconds_and_skips_a_turn_already_being_judged():
+    arena, hall = make_hall()
+
+    async def run():
+        _waited(arena, 41, 3)
+        assert await arena.judge_orphans() == []  # 3 s: still the arena's
+        _waited(arena, 41, 7)
+        arena._inflight[("judge", 41)] = asyncio.ensure_future(asyncio.sleep(0))  # the arena's ask is running
+        assert await arena.judge_orphans() == []
+        arena._inflight.clear()
+
+    asyncio.run(run())
+    assert hall.calls == []
+
+
+def test_a_late_arena_ask_shares_the_backstop_judge_and_nothing_is_posted_twice():
+    arena, hall = make_hall()
+
+    async def run():
+        _waited(arena, 41, 7)
+        await arena.judge_orphans()
+        late = await arena.judge_turn(BattleTurn(turn_id=41, transcript=VERSE))  # while the backstop's runs: shared
+        await asyncio.gather(*arena._backstopped)
+        with pytest.raises(Exception, match="not judging"):  # after it posted: refused, nothing changes
+            await arena.judge_turn(BattleTurn(turn_id=41, transcript=VERSE))
+        return late
+
+    posted, _ = asyncio.run(run())
+    assert posted == "post_score" and [c[0] for c in hall.calls] == ["post_score"]
+
+
+def test_the_backstop_never_judges_an_old_rooms_leftover_or_a_field_event():
+    old, old_hall = make_hall(closed_ago=600)
+    field, field_hall = make_hall(event="discus")
+
+    async def run():
+        for arena in (old, field):
+            _waited(arena, 41, 60)
+            assert await arena.judge_orphans() == []
+
+    asyncio.run(run())
+    assert old_hall.calls == [] and field_hall.calls == []
+
+
+def test_a_backstopped_debate_turn_gets_its_side_by_turn_order():
+    from homer import debate
+
+    arena, hall = make_hall(event="debate")
+    q = debate.question("achilles-choice")
+
+    async def run():
+        bt = await arena._turn_from_sql(next(t for t in hall.tables["turn"] if t["id"] == 41))
+        return bt
+
+    bt = asyncio.run(run())
+    assert bt.event == "debate" and bt.side == q.side(1) and bt.turn_seconds == 20.0

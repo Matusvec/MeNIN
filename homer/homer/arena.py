@@ -41,6 +41,9 @@ HOSTS = frozenset({"homer", "socrates"})  # the hosts' names; a poet who types o
 RECENT_THEMES = 20  # themes a generated one may not repeat
 THEME_WAIT = 4.0  # seconds a deal waits for a theme still being coined, then takes a written one
 JUDGE_CAP = 30.0  # seconds a turn may sit with the agent; then it settles on the neutral score (never stuck in judging)
+BACKSTOP_AFTER = 6.0  # seconds a turn may sit in `judging` with no judge running before the agent judges it itself
+BACKSTOP_EVERY = 3.0  # seconds between the backstop's looks
+BACKSTOP_RECENT = 120.0  # only turns whose window closed this recently: an old room's leftover is never judged
 
 
 @dataclass
@@ -86,6 +89,8 @@ class Arena:
         self._verdicts: dict[int, tuple[str, int, str]] = {}  # round_id -> the call, worked out ahead of round_end
         self._next_theme: dict[int, asyncio.Task] = {}  # room_id -> the next round's theme, being coined
         self._calls: dict[str, str] = {}  # a coined theme (lowercase) -> the call that hands the floor over
+        self._judging_since: dict[int, float] = {}  # turn_id -> when the backstop first saw it in `judging` (monotonic)
+        self._backstopped: set[asyncio.Task] = set()
 
     async def once(self, key: tuple, work: Callable[[], Awaitable[T]]) -> T:
         """Run `work` once per key at a time; a retry while it runs shares the result."""
@@ -121,6 +126,80 @@ class Arena:
                 return await self._settle(bt, exc)
 
         return await self.once(("judge", bt.turn_id), work)
+
+    async def backstop(self) -> None:
+        """Judge the turns no arena asked about, so a verdict never depends on the hall's tab (asleep, or offline
+        on a Wi-Fi blip: HSMJ, DQNB and JHQS got none). Runs for the agent's life, one look every BACKSTOP_EVERY s."""
+        while True:
+            try:
+                await self.judge_orphans()
+            except Exception:  # a look that fails (the database unreachable) never ends the loop
+                log.exception("backstop look failed")
+            await asyncio.sleep(BACKSTOP_EVERY)
+
+    async def judge_orphans(self, now: float | None = None) -> list[int]:
+        """One look: a turn that has sat in `judging` BACKSTOP_AFTER s with no judge running is judged here, from
+        the database. It's the same per-turn lock as /battle/judge (once), so a late ask from the arena shares this
+        judge, or, once the score is posted, is refused because the turn has left `judging`. Returns the turns started."""
+        now = time.time() if now is None else now
+        rows = await self.db.sql("SELECT * FROM turn WHERE status = 'judging'")
+        mono = time.monotonic()
+        started: list[int] = []
+        for t in rows:
+            turn_id = int(t["id"])
+            if now - _seconds(t.get("ends_at")) > BACKSTOP_RECENT:
+                continue
+            first = self._judging_since.setdefault(turn_id, mono)
+            if mono - first < BACKSTOP_AFTER or ("judge", turn_id) in self._inflight:
+                continue
+            bt = await self._turn_from_sql(t)
+            if bt is None:
+                continue
+            log.warning("backstop: judging turn=%s %s, no arena asked in %.0f s", turn_id, bt.event, mono - first)
+            task = asyncio.ensure_future(self._backstop_one(bt))
+            self._backstopped.add(task)
+            task.add_done_callback(self._backstopped.discard)
+            started.append(turn_id)
+        judging = {int(t["id"]) for t in rows}
+        for turn_id in [k for k in self._judging_since if k not in judging]:
+            del self._judging_since[turn_id]
+        return started
+
+    async def _backstop_one(self, bt: BattleTurn) -> None:
+        try:
+            posted, j = await self.judge_turn(bt)
+            log.info("backstop: turn=%s %s %s%s", bt.turn_id, bt.event, posted, " SILENT " + j.error if j.silent else "")
+        except Exception as exc:  # the arena's ask won the race (Refused), or the database is gone; the next look retries
+            log.warning("backstop: turn=%s not judged: %s", bt.turn_id, exc)
+
+    async def _turn_from_sql(self, t: dict) -> BattleTurn | None:
+        """What the arena would have sent to /battle/judge for this turn, read from the database instead."""
+        room = await self.room(int(t["room_id"]))
+        event = room.get("event") or "poetry"
+        if event not in events.EVENTS:
+            return None
+        rounds = await self.db.sql(f"SELECT * FROM round WHERE id = {int(t['round_id'])}")
+        theme = (rounds[0].get("theme") if rounds else "") or ""
+        players = await self.db.sql(f"SELECT * FROM player WHERE id = {int(t['player_id'])}")
+        turn_no = int(t.get("turn_no") or 0)
+        earlier = await self.db.sql(f"SELECT * FROM turn WHERE round_id = {int(t['round_id'])}")
+        previous = next((p.get("transcript") or "" for p in earlier if int(p.get("turn_no") or 0) == turn_no - 1), "")
+        question = debate.question(theme) if event == "debate" else None
+        return BattleTurn(
+            turn_id=int(t["id"]),
+            transcript=t.get("transcript") or "",
+            event=event,
+            theme=theme,
+            played=list(t.get("played") or []),
+            rescues=int(t.get("rescues") or 0),
+            previous=previous,
+            lines_expected=room.get("lines_per_turn"),
+            player_id=int(t["player_id"]),
+            hoard=list(players[0].get("hoard") or []) if players else [],
+            demo=bool(room.get("demo")),
+            side=question.side(turn_no) if question else "",
+            turn_seconds=(float(room.get("turn_seconds") or 0) or None) if event == "debate" else None,
+        )
 
     async def _battle_turn(self, bt: BattleTurn, live: dict) -> tuple[str, Judgment]:
         """A poetry or debate verse: judged, then post_score (or decline_turn when unfit for the hall)."""
@@ -483,6 +562,13 @@ def opening_line(theme: str) -> str:
     """Homer's opening in Talk to Homer: "Give me a verse about the ship that left without you." """
     t = theme.strip().rstrip(".")
     return f"Give me a verse about {t[:1].lower() + t[1:]}." if t else "Give me a verse."
+
+
+def _seconds(stamp: object) -> float:
+    """A SpacetimeDB timestamp from SQL ([micros since the epoch]) in seconds; 0 when missing."""
+    if isinstance(stamp, list):
+        stamp = stamp[0] if stamp else 0
+    return int(stamp or 0) / 1e6
 
 
 def _failed(task: asyncio.Task) -> bool:
