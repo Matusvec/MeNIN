@@ -404,7 +404,7 @@ type Fighter = Infer<typeof fighter.rowType>;
 const HAND_SIZE = 5;
 const MIN_PLAYERS = 2;
 const MAX_PLAYERS = 5;
-const DEMO_PLAYERS = 2;
+const DEMO_PLAYERS = 4; // up to four on the big screen
 const GRACE_MICROS = 2_000_000n; // the final transcript can land this late
 const CODE_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // no I or O
 const FORMS = ['four_beat', 'hexameter'];
@@ -597,13 +597,23 @@ function endRace(ctx: Ctx, roomId: bigint): void {
 }
 
 // A bout: both fighters at full health, guards down, waiting for the arena's start_fight.
+// With three or four in the room it's winner-stays-on: bout 1 is seats 0 and 1, then the last
+// winner (the incumbent, on a draw) meets the next seat in line, so n poets fight n - 1 bouts.
 function startBout(ctx: Ctx, r: Room, boutNo: number): void {
+  const players = playersOf(ctx, r.id);
+  const last = ctx.db.fight.roomId.find(r.id);
+  const was = [...ctx.db.fighter.roomId.filter(r.id)].sort((a, b) => a.seat - b.seat);
+  let pair = players.slice(0, 2);
+  if (boutNo > 1 && last && was.length === 2) {
+    const stays = players.find(p => p.id === (last.winnerId || was[0].playerId)) ?? players[0];
+    pair = [stays, players[boutNo] ?? players.find(p => p.id !== stays.id)!];
+  }
   const row = { roomId: r.id, goAt: EPOCH, endsAt: EPOCH, endedAt: EPOCH, winnerId: 0n, ko: false };
-  if (ctx.db.fight.roomId.find(r.id)) ctx.db.fight.roomId.update(row);
+  if (last) ctx.db.fight.roomId.update(row);
   else ctx.db.fight.insert(row);
   ctx.db.fighter.roomId.delete(r.id);
   ctx.db.punch.roomId.delete(r.id);
-  playersOf(ctx, r.id).forEach((p, seat) =>
+  pair.forEach((p, seat) =>
     ctx.db.fighter.insert({
       playerId: p.id, roomId: r.id, seat, health: FIGHT_HEALTH, guard: false,
       aimYaw: 0, aimPitch: 0, counterUntil: EPOCH, updatedAt: ctx.timestamp,
@@ -765,7 +775,8 @@ function beginBattle(ctx: Ctx, r: Room): void {
     return;
   }
   if (isPygmachia(r)) {
-    if (n !== 2) throw new SenderError('a fight needs exactly two fighters');
+    if (n < 2) throw new SenderError('a fight needs two fighters');
+    ctx.db.room.id.update({ ...r, rounds: n - 1 }); // winner-stays-on: one bout per challenger
     startBout(ctx, r, 1);
     return;
   }
@@ -1530,10 +1541,14 @@ export const postScore = spacetimedb.reducer(
     if (tr.status !== 'judging') throw new SenderError(`turn is ${tr.status}, not judging`);
     const r = getRoom(ctx, tr.roomId);
     const { axes } = args;
-    const want = EVENTS[r.event].axes;
-    if (axes.length !== want) throw new SenderError(`${r.event} scores have ${want} axes`);
+    // Talk to Homer scores a verse attempt on the poetry rubric; a talk-back reply has no axes.
+    const attempt = isCoach(r) && axes.length === EVENTS.poetry.axes;
+    const want = attempt ? EVENTS.poetry.axes : EVENTS[r.event].axes;
+    if (axes.length !== want) {
+      throw new SenderError(isCoach(r) ? 'coach scores have 0 or 5 axes' : `${r.event} scores have ${want} axes`);
+    }
     if (axes.some(a => a > 10)) throw new SenderError('scores are 0 to 10');
-    const weights = EVENTS[r.event].weights;
+    const weights = attempt ? EVENTS.poetry.weights : EVENTS[r.event].weights;
     const total = axes.reduce((sum, a, i) => sum + a * (weights[i] ?? 1), 0);
 
     ctx.db.score.insert({

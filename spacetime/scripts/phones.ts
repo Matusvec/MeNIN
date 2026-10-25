@@ -9,6 +9,7 @@
 //   HOST=<identity hex> NAMES=Bo BATTLES=1 ...     # the newest lobby that arena hosts
 //   HOST=<identity hex> NAMES=Bo STAY=1 ...        # a companion: every battle, until left alone
 //   CODE=ABCD LAZY=Bo npm run phones               # Stadion: Bo jogs at 4 m/s (hits the cap)
+//   CODE=ABCD POETS=4 PACIFIST=Ada,Bo npm run phones  # boxing: Ada and Bo only guard (goes to the bell)
 //
 // With HOST, it waits for that arena's newest lobby and follows it if the arena opens a
 // new room before the battle begins. It leaves the room after the last battle.
@@ -79,7 +80,8 @@ class Phone {
           c.subscriptionBuilder()
             .onApplied(() => resolve())
             .subscribe([`SELECT * FROM room WHERE id = ${RID}`, `SELECT * FROM turn WHERE room_id = ${RID}`, 'SELECT * FROM hand',
-              `SELECT * FROM heat WHERE room_id = ${RID}`, `SELECT * FROM runner WHERE room_id = ${RID}`]);
+              `SELECT * FROM heat WHERE room_id = ${RID}`, `SELECT * FROM runner WHERE room_id = ${RID}`,
+              `SELECT * FROM fight WHERE room_id = ${RID}`, `SELECT * FROM fighter WHERE room_id = ${RID}`]);
         })
         .onConnectError((_c, e) => reject(e))
         .build();
@@ -111,6 +113,16 @@ class Phone {
       if (r.phase === 'speaking' && h && ms(h.goAt) > 0 && !this.handled.has(key)) {
         this.handled.add(key);
         await this.run(h);
+      }
+      return;
+    }
+    if (r?.event === 'pygmachia') {
+      const f = [...this.conn.db.fight.iter()][0];
+      const inBout = [...this.conn.db.fighter.iter()].some(x => x.playerId === this.me);
+      const key = f ? `bout ${r.roundNo} ${ms(f.goAt)}` : '';
+      if (r.phase === 'speaking' && f && inBout && ms(f.goAt) > 0 && !this.handled.has(key)) {
+        this.handled.add(key);
+        await this.box(f);
       }
       return;
     }
@@ -165,6 +177,39 @@ class Phone {
       }
       await sleep(100);
     }
+  }
+
+  // A bout from the bell: the fists wander (20 Hz), the guard goes up now and then, and a
+  // punch of any kind lands every 0.5–1.1 s until a knockout or the final bell. PACIFIST
+  // fighters only aim and guard, so a bout of two of them goes to the bell.
+  async box(f: any) {
+    await sleep(Math.max(0, ms(f.goAt) - Date.now()));
+    const pacifist = (process.env.PACIFIST ?? '').split(',').includes(this.name);
+    const kinds = ['jab', 'hook', 'uppercut'];
+    const seed = Math.random() * 6;
+    const t0 = Date.now();
+    let nextPunch = t0 + 500 + Math.random() * 600;
+    let punches = 0;
+    for (;;) {
+      const fight = [...this.conn.db.fight.iter()][0];
+      if (this.room()?.phase !== 'speaking' || !fight || ms(fight.endedAt) > 0) break;
+      const t = (Date.now() - t0) / 1000;
+      const yaw = 0.25 * Math.sin(t * 1.3 + seed);
+      const pitch = 0.5 * Math.sin(t * 0.7 + seed);
+      const guard = (t + seed) % 3 < 0.8;
+      await this.conn.reducers.setFistAim({ roomId: RID, yaw, pitch, guard }).catch(() => {});
+      if (!pacifist && Date.now() >= nextPunch) {
+        const kind = kinds[Math.floor(Math.random() * kinds.length)];
+        await this.conn.reducers.throwPunch({ roomId: RID, kind, power: 0.4 + Math.random() * 0.6, aimYaw: yaw, aimPitch: Math.random() * 1.4 - 0.7 }).catch(() => {});
+        punches++;
+        nextPunch = Date.now() + 500 + Math.random() * 600;
+      }
+      await sleep(50);
+    }
+    const me = [...this.conn.db.fighter.iter()].find(x => x.playerId === this.me);
+    const fight = [...this.conn.db.fight.iter()][0];
+    const won = fight && fight.winnerId === this.me;
+    console.log(`${clock()} ${this.name} ${won ? 'won' : fight?.winnerId ? 'lost' : 'drew'}${fight?.ko ? ' by KO' : ''}: ${punches} punches, health ${Math.round(me?.health ?? 0)}`);
   }
 
   async throw(turnId: bigint) {

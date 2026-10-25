@@ -373,7 +373,7 @@ await call(arena, 'start_turn', T.id);
 T = await turn(T.id);
 check(T.beat_at[0] - T.started_at[0] === 2_250_000 && T.ends_at[0] - T.beat_at[0] === 20_000_000, 'a coach turn is free verse: 3-2-1, then 20 s');
 await call(ada, 'end_turn', T.id, 'The sea took the ship.');
-check(await fails(agent, 'post_score', T.id, [5, 5, 5, 5, 5], 'x', '', ''), 'coach takes no axes');
+check(await fails(agent, 'post_score', T.id, [5, 5, 5], 'x', '', ''), 'coach takes 0 or 5 axes');
 const reply = 'Strong opening; now make the sea do something. '.repeat(11).trim(); // ~520 chars
 await call(agent, 'post_score', T.id, [], reply, '', '');
 const cScore = (await sql(null, `SELECT * FROM score WHERE turn_id = ${T.id}`))[0];
@@ -417,6 +417,11 @@ for (let i = 0; i < 3; i++) {
   await call(arena, 'advance', S.id);
 }
 check(solo.length === 3 && new Set(solo).size === 1, 'solo: one poet is enough, and gets every turn');
+T = await turn((await room(S.id)).current_turn_id);
+await call(arena, 'start_turn', T.id);
+await call(ada, 'end_turn', T.id, 'The sea took the ship and left the oar.');
+await call(agent, 'post_score', T.id, [5, 5, 5, 5, 5], 'Better: the oar stays with us.', '', '');
+check((await sql(null, `SELECT * FROM score WHERE turn_id = ${T.id}`))[0].total === 50, 'a scored coach attempt uses the poetry weights: [5,5,5,5,5] = 50');
 await call(arena, 'create_room', 'poetry', 1, 2, 2, 80, 'four_beat', true, false, true);
 const P1 = (await sql(null, 'SELECT * FROM room'))
   .filter(x => x.host[0] === `0x${arena.hex}`)
@@ -561,6 +566,34 @@ await call(arena, 'advance', Bx.id);
 check((await room(Bx.id)).phase === 'finale', 'one bout: the finale');
 await call(arena, 'rematch', Bx.id);
 check((await room(Bx.id)).phase === 'ready' && (await fighterOf(BB.id)).health === 100 && (await punchesIn()).length === 0, 'rematch: back in the corners, healed');
+
+// Up to four: a demo hall takes four poets, and boxing becomes winner-stays-on.
+const [cy, di, ed] = await Promise.all([identity(), identity(), identity()]);
+await call(arena, 'create_room', 'pygmachia', 1, 2, 2, 80, 'four_beat', false, false, true);
+const Bq = (await sql(null, 'SELECT * FROM room'))
+  .filter(x => x.host[0] === `0x${arena.hex}`)
+  .sort((a, b) => b.id - a.id)[0];
+await call(ada, 'join_room', Bq.code, 'Ada', '', []);
+await call(bo, 'join_room', Bq.code, 'Bo', '', []);
+await call(cy, 'join_room', Bq.code, 'Cy', '', []);
+await call(di, 'join_room', Bq.code, 'Di', '', []);
+check(await fails(ed, 'join_room', Bq.code, 'Ed', '', []), 'a demo hall holds four: the fifth is refused');
+const q = await sql(null, `SELECT * FROM player WHERE room_id = ${Bq.id}`);
+const id = n => q.find(p => p.name === n).id;
+await call(arena, 'start_battle', Bq.id);
+let fighters = await sql(null, `SELECT * FROM fighter WHERE room_id = ${Bq.id}`);
+check((await room(Bq.id)).rounds === 3 && fighters.length === 2 && fighters.every(f => [id('Ada'), id('Bo')].includes(f.player_id)), 'four fighters: three bouts, Ada and Bo first');
+await call(arena, 'start_fight', Bq.id);
+await sleep(3200);
+for (let i = 0; i < 8 && (await room(Bq.id)).phase === 'speaking'; i++) {
+  await call(bo, 'throw_punch', Bq.id, 'hook', 1, 0, 0.5);
+  await sleep(270);
+}
+check((await sql(null, `SELECT * FROM fight WHERE room_id = ${Bq.id}`))[0].winner_id === id('Bo'), 'Bo knocks Ada out');
+await call(arena, 'advance', Bq.id);
+fighters = await sql(null, `SELECT * FROM fighter WHERE room_id = ${Bq.id}`);
+check((await room(Bq.id)).phase === 'ready' && (await room(Bq.id)).round_no === 2 && fighters.find(f => f.seat === 0).player_id === id('Bo') && fighters.find(f => f.seat === 1).player_id === id('Cy') && fighters.every(f => f.health === 100), 'winner stays on: Bo meets the next challenger, Cy, at full health');
+await call(arena, 'end_battle', Bq.id);
 
 console.log(failures === 0 ? '\nall checks passed' : `\n${failures} check(s) failed`);
 process.exit(failures === 0 ? 0 : 1);
