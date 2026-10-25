@@ -85,7 +85,7 @@ For our web designer, from Matus. As of Sun Oct 25, ~12:55 AM. Every line below 
 | Bracket | Who |
 | --- | --- |
 | `[N]`, `[first]`, `[last]`, `[time]` (the first-timer study numbers) | Matus's score sheet. Until then, use the `[B]` lines |
-| `[poet's name]`, `[the poet's scene]`, `[poet quote]`, `[composer's name]`, `[how the score was made]`, `[team]` | Matus |
+| `[poet's name]`, `[the poet's scene]`, `[poet quote]`, `[how the score was made]` | Matus (`[composer's name]` and `[team]` are filled: Paul; Matus, Sunya and Paul) |
 | `[turn-to-voice p50]` | Read off the latency HUD at the video shoot |
 | `[real-mic WER]` | swift (if it isn't run, keep the 3%/20% numbers as they are) |
 | `[If debate passed]`, `[If discus passes on 31]`, `[If archery passes on 31]` | leader, from the clean-run counts; delete the line if the event didn't pass |

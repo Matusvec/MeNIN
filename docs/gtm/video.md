@@ -139,12 +139,12 @@ Every line sits over footage, never over a live verse or Homer's live verdict. I
 
 ### (b) On-screen cards and lower thirds (word for word, for artist)
 
-Cards (**C**) are full-screen; lower thirds (**L**) sit bottom-left over footage. Use the app's own type: Bodoni Moda for titles and Inter for everything else, matte, in the Hall palette. **[Brackets] are for Matus.**
+Cards (**C**) are full-screen; lower thirds (**L**) sit bottom-left over footage. Use the app's own type: Bodoni Moda for titles and Inter for everything else, matte, in the Hall palette. **Names: Matus, Sunya and Paul (leader, Sun ~1:50 AM). The spelling "Paul" vs "Paulo" for the score credit and the team is pending Matus; fix both together.**
 
 | # | At | Type | Text |
 | --- | --- | --- | --- |
 | C1 | 0:08–0:14 | Title card, on a hit from Matus's theme | **μῆνιν · MeNIN** / Ancient Greek party games, hosted by Homer |
-| L1 | 0:14–0:20 | Lower third | [Name] · [Name] · [Name] · [Name] / Cal Hacks 13.0 |
+| L1 | 0:14–0:20 | Lower third | Matus · Sunya · Paul / Cal Hacks 13.0 |
 | L2 | 0:25 | Lower third | Join with a code. No account. |
 | L3 | 0:29 | Lower third | A fresh theme from Homer, every round |
 | L4 | 0:33 | Lower third | Three of Homer's phrases, dealt to your phone |
@@ -165,7 +165,7 @@ Cards (**C**) are full-screen; lower thirds (**L**) sit bottom-left over footage
 | L15 | 2:36 | Lower third | 128 hard-coded colors → 37 tokens · 119 views restyled, untouched |
 | L16 | 2:41 | Lower third | The scene: 4 rounds of designer feedback in 17 minutes |
 | L17 | 2:45 | Lower third | One button system, 12 variants · the icon: μ, from μῆνιν |
-| C6 | 2:50–3:00 | End card | **MeNIN** / play.206.189.237.157.sslip.io/homer · github.com/sunya-afrasiabi/MeNIN / Original score by [composer's name] / Built with SpacetimeDB · Cartesia · Claude · Figma · Apify · Moss / [Name] · [Name] · [Name] · [Name] / Cal Hacks 13.0 |
+| C6 | 2:50–3:00 | End card | **MeNIN** / play.206.189.237.157.sslip.io/homer · github.com/sunya-afrasiabi/MeNIN / Original score by Paul / Built with SpacetimeDB · Cartesia · Claude · Figma · Apify · Moss / Matus · Sunya · Paul / Cal Hacks 13.0 |
 
 ### Timeline (what's on screen)
 
@@ -184,33 +184,33 @@ Cards (**C**) are full-screen; lower thirds (**L**) sit bottom-left over footage
 
 ### (c) The shot list: what to film
 
-**Each clip is 6 s or less, with 3 takes at most** (except the montage's raw clips, 10–20 s each, which the edit speeds up). Shoot it all on build 45 (or the judging build). Film the arena with **Screen Studio** on the Mac (1080p, 60 fps, the browser full screen, the cursor hidden; if it can't capture the browser's sound, use OBS as in "Capture settings" above). Film the phones with **Control Center → Screen Recording** (Do Not Disturb on), and film people with a phone camera (1080p, 60 fps, landscape, AE/AF lock on a face).
+**Each clip is 6 s or less, with 3 takes at most** (except the montage's raw clips, 10–20 s each, which the edit speeds up). Shoot it all on build 45 (or the judging build). Film the arena with **OBS** on the Mac (the settings are in "Capture settings" above: the browser's picture and sound, 60 fps, MKV, then remux to MP4), and film **Figma with ⌘⇧5** (Screenshot → Record Selected Portion; no sound needed). Film the phones with **Control Center → Screen Recording** (Do Not Disturb on), and film people with a phone camera (1080p, 60 fps, landscape, AE/AF lock on a face).
 
 **Prep (Matus, 2 minutes):** on each phone, long-press the home screen for 3 s → Dev. Check "Voice diagnostics" is **off** and the server says **Maincloud (homer-calhacks)**. Build 45 has no other debug UI.
 
 | # | Clip | Device | For |
 | --- | --- | --- | --- |
 | 1 | A poet speaking, close, EarPods in | Phone camera | 0:00 cold open |
-| 2 | The scene erupting in color mid-verse | Screen Studio | 0:00 cold open |
-| 3 | Homer's verdict landing on the arena | Screen Studio | 0:00, 0:52 |
+| 2 | The scene erupting in color mid-verse | OBS | 0:00 cold open |
+| 3 | Homer's verdict landing on the arena | OBS | 0:00, 0:52 |
 | 4 | The team at the table, the laptop arena, phones in hand (wide; 3 short takes) | Phone camera | 0:14 hook, 2:50 end |
 | 5 | Typing the room code → "Enter the hall" | Phone screen recording | 0:25 |
-| 6 | The theme landing, with three phrases on a phone | Screen Studio + phone screen recording | 0:29–0:33 |
+| 6 | The theme landing, with three phrases on a phone | OBS + phone screen recording | 0:29–0:33 |
 | 7 | **The hero shot: the poet's TURN.** Big SPEAK, the 20 s ring, live italic words, blue and emotion colors moving behind | Phone screen recording | 0:38 |
-| 8 | Live words on the big screen | Screen Studio | 0:40 |
-| 9 | The freeze rescue: the raised phrase on the arena and Homer's whisper | Screen Studio | 0:46 |
+| 8 | Live words on the big screen | OBS | 0:40 |
+| 9 | The freeze rescue: the raised phrase on the arena and Homer's whisper | OBS | 0:46 |
 | 10 | **The VERDICT card:** frosted Image/Answer/Craft bars and /100 over the voice-colored sea while Homer reads | Phone screen recording | 0:52 |
-| 11 | The carved gold line | Screen Studio | 1:00 |
-| 12 | The stitched song (two clips of 6 s) | Screen Studio | 1:06 |
-| 13 | One Talk to Homer exchange | Screen Studio | 1:15 |
+| 11 | The carved gold line | OBS | 1:00 |
+| 12 | The stitched song (two clips of 6 s) | OBS | 1:06 |
+| 13 | One Talk to Homer exchange | OBS | 1:15 |
 | 14 | Bard lesson one: Homer speaking the Iliad's first line | Phone screen recording, mic on | 1:25 |
-| 15 | The SpacetimeDB timeline next to the arena, as a verdict lands | Screen Studio (Terminal + browser side by side) | 1:43 |
+| 15 | The SpacetimeDB timeline next to the arena, as a verdict lands | OBS (Terminal + browser side by side, as a Display Capture) | 1:43 |
 | 16 | **Montage: each teammate × each game** (the Stadion, camera archery, boxing, discus, a verse). Raw clips of 10–20 s, which the edit speeds up 2–4×. Film the people, not the screens: misses, reactions and high-fives count | Phone camera, **60 fps**, landscape | 2:00–2:30 |
 | 17 | **Slow-mo hero beats** for the 1× ramps: the arrow release, the discus swing and release, a punch landing, a verdict reaction | Phone camera, **120 fps slow-mo** (Camera → Slo-mo) | 2:00–2:30 |
-| 18 | One wide of the arena for each game, so the montage shows what the screen does (discus has no phone screen; boxing reads best on the big screen) | Screen Studio | 2:00–2:30 |
+| 18 | One wide of the arena for each game, so the montage shows what the screen does (discus has no phone screen; boxing reads best on the big screen) | OBS | 2:00–2:30 |
 | 19 | *(Optional)* the two-phone archery BOW screen: the aim circle steadying on the gold next to the arrow pad's "Nocked ✓" pull | Phone screen recording | 2:00–2:30 |
 | 20 | *(Spare)* any extra reaction or high-five from the shoot | Phone camera | 2:00–2:30 |
-| 21 | Figma: the Directions file flipping Atelier → Hall (node 36-128); the scene-round renders (34-179, 31-179); the button sheet (48-216); the μ icon (54-142) | Screen Studio on Figma | 2:30–2:50 |
+| 21 | Figma: the Directions file flipping Atelier → Hall (node 36-128); the scene-round renders (34-179, 31-179); the button sheet (48-216); the μ icon (54-142) | ⌘⇧5 on Figma | 2:30–2:50 |
 
 **Safety for the motion clips:** a grippy case or a wrist strap on every swung phone, arm room all around, and nobody next to the laptops.
 
@@ -247,7 +247,7 @@ Cards (**C**) are full-screen; lower thirds (**L**) sit bottom-left over footage
 > 2:50 Team
 >
 > Built with SpacetimeDB, Cartesia, Claude, Figma, Apify and Moss at Cal Hacks 13.0.
-> Original score by [composer's name]. Nothing in this video is mocked.
+> Built by Matus, Sunya and Paul. Original score by Paul. Nothing in this video is mocked.
 
 Upload it as **Unlisted** or Public (Matus's call), and check it plays in a logged-out window before pasting the link into Devpost.
 
