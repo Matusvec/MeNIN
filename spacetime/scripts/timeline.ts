@@ -213,6 +213,8 @@ function legend() {
 
 let attempt = 0;
 function connect(): void {
+  live = false; // a reconnect's snapshot replays every row as an insert: not news
+
   const mineAttempt = ++attempt;
   conn = DbConnection.builder()
     .withUri(URI)

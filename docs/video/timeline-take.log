@@ -215,3 +215,43 @@
 02:25:58.392	1792920358392	RHTJ	agent	post_song	the song: 4 lines	
 02:26:02.711	1792920362711	RHTJ	arena	advance	the finale	
 02:26:24.988	1792920384988	RHTJ	arena	advance	finished	
+02:27:22.854	1792920442854	YBLC	arena	create_room	watching: Discus · hall YBLC	
+02:27:37.057	1792920457057	YBLC	phone	join_room	Matus joins	
+02:28:54.366	1792920534366	YBLC	arena	start_battle	the battle begins	
+02:28:54.367	1792920534367	YBLC	agent	deal_round	theme: “Throw 1”	
+02:29:00.984	1792920540984	YBLC	arena	start_turn	Hesiod steps into the circle	
+02:29:05.155	1792920545155	YBLC	phone	throw_discus	Hesiod · 64.2 m	
+02:29:16.588	1792920556588	YBLC	arena	advance	next up: Matus	
+02:29:19.132	1792920559132	YBLC	arena	start_turn	Matus steps into the circle	
+02:29:22.567	1792920562567	YBLC	phone	throw_discus	Matus · foul	
+02:29:29.364	1792920569364	YBLC	arena	advance	the finale	
+02:29:35.001	1792920575001	YBLC	arena	advance	finished	
+02:30:03.457	1792920603457	XXQD	arena	create_room	new hall: Discus · hall XXQD	
+02:30:16.430	1792920616430	XXQD	phone	join_room	Hesiod joins	
+02:30:30.848	1792920630848	XXQD	phone	join_room	Matus joins	
+02:30:42.813	1792920642813	XXQD	arena	start_battle	the battle begins	
+02:30:42.814	1792920642814	XXQD	agent	deal_round	theme: “Throw 1”	
+02:30:49.181	1792920649181	XXQD	arena	start_turn	Hesiod steps into the circle	
+02:30:51.936	1792920651936	XXQD	phone	throw_discus	Hesiod · 28.3 m	
+02:31:01.518	1792920661518	XXQD	arena	advance	next up: Matus	
+02:31:04.042	1792920664042	XXQD	arena	start_turn	Matus steps into the circle	
+02:31:06.754	1792920666754	XXQD	phone	throw_discus	Matus · 63.3 m	
+02:31:17.432	1792920677432	XXQD	arena	advance	the finale	
+02:31:21.762	1792920681762	XXQD	arena	advance	finished	
+02:31:27.870	1792920687870	XPBB	arena	create_room	new hall: Stadion · hall XPBB	
+02:31:45.025	1792920705025	XPBB	phone	join_room	Hesiod joins	
+02:31:52.244	1792920712244	XPBB	phone	join_room	Matus joins	
+02:32:02.581	1792920722581	XPBB	arena	start_battle	the battle begins	
+02:32:48.173	1792920768173	ENAK	arena	create_room	new hall: Pygmachia · hall ENAK	
+02:33:00.820	1792920780820	ENAK	phone	join_room	Hesiod joins	
+02:33:08.099	1792920788099	ENAK	phone	join_room	Matus joins	
+02:33:10.631	1792920790631	ENAK	arena	start_battle	the battle begins	
+02:34:06.697	1792920846697	ENAK	arena	advance	the finale	
+02:34:09.547	1792920849547	ENAK	arena	advance	finished	
+02:34:19.307	1792920859307	ENSC	arena	create_room	new hall: Toxeia · hall ENSC	
+02:34:27.338	1792920867338	ENSC	phone	join_room	Hesiod joins	
+02:34:28.134	1792920868134	ENSC	phone	join_room	Matus joins	
+02:34:35.098	1792920875098	ENSC	arena	start_battle	the battle begins	
+02:36:03.420	1792920963420	ENSC	arena	advance	the finale	
+02:36:09.652	1792920969652	ENSC	arena	advance	finished	
+02:40:09.793	1792921209793	ENSC	arena	create_room	watching: Toxeia · hall ENSC	
