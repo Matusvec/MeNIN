@@ -49,8 +49,10 @@ One screen is the arena: our website at [URL], open in any laptop browser. Every
 | **Poetry battle** (main event) | Homer | Improvise free verse, answering the poet before you |
 | [If debate passed] **Socratic debate** | Socrates | Argue a question in timed spoken turns |
 | **Discus** | Homer announces | Swing your phone; its motion sensors measure the throw |
+| **Talk to Homer** | Homer | Speak a verse; Homer answers out loud in two sentences, quoting your words, with one fix. A conversation with no scorecard. |
+| [If it passed] **Stadion** | Homer announces | Pump your arms with the phone in your hand like a sprinter; everyone races at once, live on the screen |
 
-Other events show as locked tiles, because we only unlock what's solid.
+Other events show as locked tiles, because we only unlock what's solid: an event goes live only after 5 clean runs on real phones.
 
 **The poetry battle.** Two to five poets in one room, three rounds. Each poet's iPhone is their mic and their private cards.
 - Homer announces each poet with a fresh epithet he coins for this battle: "Enter Matus, Breaker of Horses!"
