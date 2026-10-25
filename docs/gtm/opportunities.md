@@ -78,7 +78,7 @@ Write down their answer, and tell gtm.
 ### Moss: theme-fitting dealing (builder, after Fetch)
 - **No rubric or Moss-specific submission step is published.** Their first example is "Voice agents that listen, respond, and act in real time." Tag it on Devpost, which is unconfirmed but the likely route.
 - [x] Moss retrieval really runs in the dealer (theme in, formulas out), behind `HOMER_DEALER=moss`, with a tested silent fallback
-- [x] Latency measured on the production droplet: p50 13.7 ms, p95 32.2 ms over 60 queries (1.4 ms on a MacBook). Re-measured Sat 5:20 PM on the 180-formula bank: ranked lookup p50 1.55 ms, p95 1.93 ms (`homer/bench/moss-2026-10-24.txt`; builder to name the machine). It's in the blurb.
+- [x] Latency measured on the production droplet: p50 13.7 ms, p95 32.2 ms over 60 queries (1.4 ms on a MacBook). Re-measured Sat ~5:26 PM on the 180-formula bank, on the droplet: ranked lookup p50 13.2 ms, p95 14.9 ms (`homer/bench/moss-2026-10-24-droplet.txt`; 1.55 ms on the MacBook). It's in the blurb.
 - [x] Account and keys are set on the droplet
 - [x] **Leader's call (Sat ~11 AM): Moss stays on for everything, judging included.** The fallback keeps the SPEC rule. Since SPEC 7866476 the themes are fresh every round, so the poets rehearse improvising on unseen themes, and the pitch line is "Homer's phrases were dealt by Moss".
 - [ ] *(Optional; Matus's call)* A social post for their engagement prize. Its rules are unconfirmed, and a hacker's question about it is unanswered.
