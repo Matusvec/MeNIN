@@ -239,13 +239,6 @@ button {
   height: 100%;
 }
 
-/* Homer's frame over the 3D world: the whole viewport, so his full body fits above the dialogue. */
-.homer-stage {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-}
-
 .homer-3d {
   position: absolute;
   z-index: 4;

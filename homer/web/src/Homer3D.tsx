@@ -46,8 +46,8 @@ export default function Homer3D({ speaking, mode, action: actionProp, framing = 
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(27, 1, 0.1, 100)
     if (framing === 'card') {
-      camera.position.set(0, 1.35, 8.4)
-      camera.lookAt(0, 1.4, 0) // a little headroom under the card's badge
+      camera.position.set(0, 1.5, 8.8)
+      camera.lookAt(0, 1.62, 0) // headroom under the card's badge
     } else {
       camera.position.set(0, 1.75, 10)
     }

@@ -4,13 +4,13 @@
 .landing {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  grid-template-rows: auto 1fr auto;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr auto;
   grid-template-areas:
-    'header header'
-    'intro poets'
-    'foot foot';
-  gap: 0 clamp(1.5rem, 4vw, 4rem);
+    'header'
+    'intro'
+    'poets'
+    'foot';
   min-height: 100svh;
   padding: clamp(1.25rem, 3vw, 2.5rem) clamp(1.25rem, 5vw, 5rem);
   overflow: hidden;
@@ -20,7 +20,7 @@
 }
 
 .landing-world {
-  position: absolute;
+  position: fixed; /* fixed, so the scaled-up blur never widens the scrolling page */
   z-index: -2;
   inset: 0;
   filter: saturate(0.85) blur(2px);
@@ -63,8 +63,7 @@
 
 .landing-intro {
   grid-area: intro;
-  align-self: center;
-  max-width: 34rem;
+  margin: clamp(1.25rem, 4vh, 2.5rem) 0 clamp(1rem, 3vh, 2rem);
 }
 
 .landing-kicker {
@@ -77,8 +76,9 @@
 }
 
 .landing-intro h1 {
+  max-width: none;
   margin: 0;
-  font-size: clamp(2.8rem, 6vw, 5.4rem);
+  font-size: clamp(2.5rem, 4.4vw, 4.4rem);
   font-weight: 300;
   line-height: 1.05;
   letter-spacing: -0.02em;
@@ -95,20 +95,19 @@
 
 .landing-poets {
   grid-area: poets;
-  align-self: center;
-  justify-self: center;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1.5rem;
+  align-self: start;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1rem, 2vw, 1.75rem);
   width: 100%;
+  max-width: 72rem;
 }
 
 .poet-card {
   position: relative;
   display: flex;
   flex-direction: column;
-  width: min(100%, 26rem);
+  width: 100%;
   overflow: hidden;
   border: 3px solid #fff;
   border-radius: 1.6rem;
@@ -124,6 +123,9 @@
 
 .poet-badge {
   position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   z-index: 2;
   top: 1rem;
   right: 1rem;
@@ -140,7 +142,7 @@
 
 .poet-figure {
   position: relative;
-  height: clamp(15rem, 34vh, 22rem);
+  height: clamp(10rem, 24vh, 16rem);
   background: radial-gradient(ellipse at 50% 75%, #ffffff 0%, #eef6fa 60%, #e3eff5 100%);
 }
 
@@ -198,7 +200,39 @@
 
 .poet-choose:disabled {
   cursor: default;
-  background: #b9cbd4;
+  color: #6f8794;
+  background: #e3ebef;
+}
+
+/* Locked poets: the avatar dimmed and desaturated behind a lock badge. */
+.poet-card.locked {
+  background: rgb(246 249 251 / 88%);
+}
+
+.poet-card.locked:hover {
+  transform: none;
+  box-shadow: 0 1.5rem 3rem rgb(38 88 120 / 18%);
+}
+
+.poet-card.locked .poet-figure canvas {
+  filter: grayscale(0.6) contrast(0.9);
+  opacity: 0.78;
+}
+
+.poet-card.locked .poet-copy h2,
+.poet-card.locked .poet-title {
+  color: #7d97a5;
+}
+
+.poet-badge.locked {
+  color: #4d6573;
+  background: #dbe5ea;
+}
+
+.poet-badge svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  fill: currentColor;
 }
 
 .landing-footnote {
@@ -241,9 +275,15 @@
   }
 }
 
+@media (max-width: 960px) {
+  .landing-poets {
+    grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+  }
+}
+
 @media (max-width: 860px) {
   .landing {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       'header'
       'intro'
