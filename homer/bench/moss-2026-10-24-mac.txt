@@ -1,3 +1,4 @@
+machine: Matus's MacBook Air (Apple silicon, 24 GB), local Python, 2026-10-24 ~17:20 PT
 bank: 180 formulas, index menin-formulas-ab3f77eff1, loaded in 2593 ms
 
 40 runs over 16 themes

@@ -1,3 +1,4 @@
+machine: Matus's MacBook Air (Apple silicon, 24 GB), calling the Anthropic API from the laptop, 2026-10-24 ~17:20 PT
 claude-opus-5-5:low:fast
   claude-opus-5-5:low:fast     verdict     883 ms  done    1003 ms  cache_read  3125  out   92  Salt in my teeth. That one bites; give the brother one like it.
   claude-opus-5-5:low:fast     verdict    1864 ms  done    2024 ms  cache_read  3125  out  367  Breaker of deadlines. A fine title, but his sea went unanswered.
