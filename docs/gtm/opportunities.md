@@ -33,7 +33,7 @@ Don't spend more than 15 minutes, and never during the battle checkpoints.
 
 ### Matus's line for Microsoft's engineers (after their 10:00–10:45 workshop, 20 s)
 
-> "We built MeNIN: party games for your voice. Homer is a live agent on Claude that hears your verse through Cartesia and judges it in about a second, with a deterministic stress scanner, so the score isn't the model's opinion. It's production-minded: TestFlight now, the agent in Docker on DigitalOcean, and tonight we measure whether one lesson improves first-timers. We're entering Built for the Real World. What would make a project like this stand out to you?"
+> "We built MeNIN: party games for your voice. Homer is a live agent on Claude that hears your verse through Cartesia and judges it out loud within seconds, on what you said: the image, the answer and the craft. It's production-minded: TestFlight now, the agent in Docker on DigitalOcean, and tonight we measure whether one lesson improves first-timers. We're entering Built for the Real World. What would make a project like this stand out to you?"
 
 Write down their answer, and tell gtm.
 
