@@ -4,6 +4,25 @@ This log is the main thing Figma judges. Prizes: **Best Stage Log, $2,000** ("th
 
 **Owner: artist session + Matus. Append entries as you work and never rewrite old ones.** Judges reward a log that is "honest about friction" and that records rework and dead ends, so keep those in.
 
+## Figma files
+
+Share column: "anonymous embed OK" means Figma's public oEmbed endpoint returns the file's title and embed to a logged-out request (checked Sat 21:30; a made-up file key returns 404). That's what a link-viewable file does. Matus's Share dialog is the final word.
+
+| File or node | What it shows | Sharing |
+|---|---|---|
+| **MeNIN · Directions** (Design): https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv | The "MeNIN" variable collection (modes **Atelier**, **Cut paper** and **Hall**; 52 variables, each with its Swift name as iOS code syntax), the components, and every page below | Anyone with the link can view (Matus, Sat AM); anonymous embed OK |
+| Page **Hall · Reskin**: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=30-102 | 12 Hall frames (Join, Turn, Wait, Verdict, the camera Arrow pad, at SE and Pro Max, plus Join keyboard-up and Arrow pad held). Backgrounds are real renders of the scene code | same file |
+| Turn, voice colours mid-shoot: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=34-179 | "Colours on voice": the moods washing through the white sea behind the turn | same file |
+| Join, at rest: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=31-179 | "Blue at rest": the website's wavy white with cool blue, gathered low | same file |
+| Button system: component set https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=48-215, sheet https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=48-216 | 12 variants (Primary, Secondary, Tertiary, Destructive × Default, Pressed, Disabled; Icon on/off), bound to 16 button variables, shown over the scene | same file |
+| Flip, Atelier → Hall: https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv/?node-id=36-128 | One prototype frame twice, side by side; only the variable mode differs (for the deck) | same file |
+| Prototype flow 1 (first open → event menu → Poetry → Practice turn → verdict): https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102 | Clickable Atelier prototype | same file |
+| Prototype flow 2 (join → arena turn → carved line → champion): https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364 | Clickable Atelier prototype | same file |
+| **MeNIN · Discus (Make)**: https://www.figma.com/make/MexcUVEohKsNVAw5pHh596 | Figma Make seeded with the live discus screens (Sat 09:00) | anonymous embed OK |
+| **MeNIN · Stage log (Figma track)** (Slides): https://www.figma.com/slides/oYPLd3JeIjhnkNyt75qfOm | The ten-slide deck | anonymous embed OK; Matus to confirm "can view" in Share |
+
+Receipts in the repo, so the work survives any file change: `docs/figma/` holds 14 PNG exports at frame size (1x; the MCP screenshot doesn't upscale). They are hall-{join,turn,wait,verdict,arrow}-{se,promax}.png, hall-join-se-keyboard.png, hall-arrow-se-held.png, hall-flip-atelier-to-hall.png and hall-buttons.png.
+
 ## What Figma requires (from the official track doc)
 
 - [ ] **Everyone on the team is Edu verified**: https://www.figma.com/education/apply
