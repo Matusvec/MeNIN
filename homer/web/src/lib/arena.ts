@@ -594,10 +594,13 @@ export class Arena {
 
   /** Each tick in a toxeia room: run the webcam, and keep the range's mode (camera or phones) honest. */
   private followCamera(room: Room): void {
-    const range = room.event === 'toxeia' ? this.toxeia().range : null
-    if (!range || !this.cameraOn) {
+    // No range row yet is normal in a camera hall (the row comes with phone stations, or with set_range_camera,
+    // which creates it): the camera starts with the hall, and camera mode is what lets Begin run without stations.
+    const archery = room.event === 'toxeia'
+    const range = archery ? this.toxeia().range : null
+    if (!archery || !this.cameraOn || room.phase === 'finished') {
       if (this.poseCam) this.stopCamera()
-      if (range?.camera) this.rangeCamera(room, false)
+      if (range?.camera && archery && room.phase !== 'finished') this.rangeCamera(room, false)
       return
     }
     if (!this.poseCam) {
@@ -616,14 +619,15 @@ export class Arena {
         w.meninPoseLog = () => log
       }
     }
-    const arrow = range.archerId ? `${range.archerId}.${range.arrowNo}` : ''
+    const arrow = range?.archerId ? `${range.archerId}.${range.arrowNo}` : ''
     this.mapper.newArrow(arrow)
     const live = this.poseCam.status === 'live'
     const lost = this.mapper.reading.lostMs > LOST_MS
-    if (range.camera && (!live || lost)) {
+    const camera = Boolean(range?.camera)
+    if (camera && (!live || lost)) {
       this.phonesSince = arrow // the phones take this arrow; the camera waits for the next
       this.rangeCamera(room, false)
-    } else if (!range.camera && live && !lost && this.mapper.reading.state !== 'searching' && (this.phonesSince === null || this.phonesSince !== arrow)) {
+    } else if (!camera && live && !lost && this.mapper.reading.state !== 'searching' && (this.phonesSince === null || this.phonesSince !== arrow)) {
       this.phonesSince = null
       this.rangeCamera(room, true)
     }
