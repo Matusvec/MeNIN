@@ -168,7 +168,7 @@ These are the only operator steps for the Stadion, boxing (Pygmachia) and archer
 
 ### Archery (Toxeia, beta)
 
-On the website since Sat 6:35 PM; a scripted run passed at 6:34 (2 archers, 6 arrows). Don't run it for judges until it passes its 5 clean runs on real phones. **Nothing starts by itself:** the bow phone starts each archer, and the arena's scoreboard of joined phones hides once the range opens (the range has its own board).
+On the website since Sat 6:35 PM; a scripted run passed at 6:34 (2 archers, 6 arrows). **Needs build 25 or later on both phones:** in build 24 the bow phone can't name the first archer (swift is fixing it in 25). Don't run it for judges until it passes its 5 clean runs on real phones. **Nothing starts by itself:** the bow phone starts each archer, and the arena's scoreboard of joined phones hides once the range opens (the range has its own board).
 
 | Who | Step |
 | --- | --- |
