@@ -15,11 +15,11 @@ Every moving background is the website's own WebGL scene (`homer/web/src/scene`)
 |---|---|
 | C0-greek.png | Transparent overlay for the scene shot: **μῆνιν ἄειδε θεὰ** (Noto Serif Display, 136 px) over *Sing, goddess, the rage…* |
 | C1-title.mp4 / .png | μῆνιν · MeNIN / *A live poetry battle, hosted by Homer*, 4 s |
-| C2-diagram.mp4 / .png | How it works in 4.5 s: Your voice → Cartesia → SpacetimeDB → Claude + Homer's voice. A gold line carries the word "rage" through the four boxes, in italic with a wave until Cartesia hears it. The FigJam version is "MeNIN · How it works (video card C2)". |
-| C3-wer.mp4 / .png | 20% → 3% word errors with keyterms, 4 s |
+| C2-diagram.mp4 / .png | How it works, 6.6 s (the slot for line 6): Your voice → Cartesia → SpacetimeDB → Claude + Homer's voice. A gold line carries the word "rage" through the four boxes, in italic with a wave until Cartesia hears it. The FigJam version is "MeNIN · How it works (video card C2)". |
+| C3-wer.mp4 / .png | 20% → 3% word errors with keyterms, 4.6 s |
 | C5-responsible.mp4 / .png | Built responsibly, five lines, 6 s |
-| C6-end.mp4 / .png | Play it now, the URL, the repo, the score credit, the sponsors and the team, 10 s |
-| F1-flip.mp4 / .png | The Verdict frame (Figma 36-128), wiping from Atelier to Hall between 2.5 and 5 s, 12 s. L14 carries the stat over it, bottom-left. |
+| C6-end.mp4 / .png | Play it now, the URL, the repo, the score credit, the sponsors and the team, 10 s. The URLs are set in Inter, because Bodoni's slashes vanish at video size |
+| F1-flip.mp4 / .png | The Verdict frame (Figma 36-128), wiping from Atelier to Hall between 2.5 and 5 s, 15 s (the Figma slot). L14 carries the stat over it, bottom-left. |
 | BG-rest-loop.mp4 | The scene at rest as a graded, seamless 6 s plate |
 
 ## Lower thirds
