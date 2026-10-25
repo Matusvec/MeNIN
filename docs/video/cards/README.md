@@ -14,7 +14,7 @@ Every moving background is the website's own WebGL scene (`homer/web/src/scene`)
 | File | What it is |
 |---|---|
 | C0-greek.png | Transparent overlay for the scene shot: **μῆνιν ἄειδε θεὰ** (Noto Serif Display, 136 px) over *Sing, goddess, the rage…* |
-| C1-title.mp4 / .png | μῆνιν · MeNIN / *A live poetry battle, hosted by Homer*, 4 s |
+| C1-title.mp4 / .png | μῆνιν · MeNIN / *Homer teaches you to speak. Then you battle.*, 4 s. C1-title-v2 has the same text and sorts first, so it's the one the edit uses |
 | C2-diagram.mp4 / .png | How it works, 6.6 s (the slot for line 6): Your voice → Cartesia → SpacetimeDB → Claude + Homer's voice. A gold line carries the word "rage" through the four boxes, in italic with a wave until Cartesia hears it. The FigJam version is "MeNIN · How it works (video card C2)". |
 | C3-wer.mp4 / .png | 20% → 3% word errors with keyterms, 4.6 s |
 | C5-responsible.mp4 / .png | Built responsibly, five lines, 6 s |
