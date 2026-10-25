@@ -36,13 +36,13 @@ The six lesson scripts for Bard mode. The flow they run in is in `docs/ux-flow.m
 - **Lands when:** both lines have three to five hits (four is the aim; scanner), and the verse says something: the judge weighs it at 40/100 or more. The break, where the hits fall and the timing never fail it.
 - **Unlocks:** the beat, which every mode is built on. Homer points to lesson 2.
 
-**Demo verse**
+**Demo verse.** Homer's own opening, the first lines of Western literature, whose first word is *mēnin*: *Iliad* 1.1–4, in Lang, Leaf and Myers' translation (1883), trimmed and broken into lines, the words unchanged. Homer says "As I sang it." before it.
 
 ```
-the MAST went DOWN / in the BLACK of the STORM
-we LOST the STARS / and we LOST the SHORE
-so I STRUCK the BENCH / and the ROWers SANG
-the STORM had a VOICE / but OURS was LOUDer
+SING, GODdess, / the WRATH of aCHILles
+PEleus' SON, / the RUINous WRATH
+that BROUGHT on the aCHAIans / WOES inNUmerable
+and HURLED down into HAdes / many strong SOULS of HEroes
 ```
 
 **Name the move:** "Four hits a line. A breath in the middle."
@@ -73,13 +73,13 @@ the STORM had a VOICE / but OURS was LOUDer
 - **Unlocks:** the hand and the freeze rescue, which every turn in Practice and Battle uses. Homer points to lesson 3.
 - **The hand for this lesson:** `wine-dark-sea`, `whale-road`, `as-the-fire-took-hold`, `with-nothing-in-my-hands`, `when-dawn-came-early`.
 
-**Demo verse.** Its formulas are the wine-dark sea, the whale-road and "when Dawn came early". Mark them on the lane as Homer says them.
+**Demo verse.** Homer's own formulas as he sang them: early Dawn, the rosy-fingered; grey-eyed Athene; the wine-dark sea. *Odyssey* 2.1, 2.420–421 and 2.427, in Butcher and Lang's translation (1879), trimmed and broken into lines, the words unchanged. Homer says "As I sang it." before it. Mark the formulas on the lane as Homer says them.
 
 ```
-on the WINE-dark SEA / with a CREW of GHOSTS
-I SANG their NAMES / so the GODS would KNOW
-we RODE the WHALE-road / till the STARS gave OUT
-when DAWN came EARly / I was ROWing aLONE
+so soon as EARly DAWN / shone FORTH, the ROsy-fingered
+and GREY-eyed aTHEne / sent them a FAVourable GALE
+a FRESH west WIND, / singing over the WINE-dark SEA
+and the WIND FILLED / the BELly of the SAIL
 ```
 
 **Name the move:** "Half of every line is already written. Pull a phrase from your hand and finish it."
