@@ -351,21 +351,35 @@ async def judge_turn(req: JudgeRequest, request: Request):
             j = await judge().judge(turn, on_verdict=lambda v: queue.put_nowait(("verdict", {"verdict": v})))
             queue.put_nowait(("scorecard", scorecard(j, req.bpm, req.started_at, req.event)))
         except EmptyVerse as exc:
+            # The phone shows this as Homer silent: say what it sent (Matus's timed-out Practice, 22:21 and 22:47).
+            log.warning("judge stream error: %s | transcript %d chars %r | words %d | %s", exc, len(req.transcript),
+                        req.transcript[:40], len(req.words or []), req.mode)
             queue.put_nowait(("error", {"detail": str(exc)}))
         except Exception as exc:  # report, don't hang the stream
+            # "fault", not "error": build 45 reads "error" as an unreadable verse ("No verse came. Again.", no retry).
+            # It skips an unknown event, so the stream ends with no result, it retries once, then says Homer is silent.
             log.exception("judge failed")
-            queue.put_nowait(("error", {"detail": type(exc).__name__}))
+            queue.put_nowait(("fault", {"detail": type(exc).__name__}))
 
     async def stream():
+        # Each stream's end is logged: the timing log only sees the headers (~10 ms for every stream).
         task = asyncio.create_task(run())
+        t0, sent, done = time.perf_counter(), [], False
         try:
             while True:
                 name, data = await queue.get()
                 yield f"event: {name}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
-                if name in ("scorecard", "error"):
+                sent.append(name)
+                if name in ("scorecard", "error", "fault"):
+                    done = True
                     break
         finally:
             task.cancel()
+            ms = (time.perf_counter() - t0) * 1000
+            if done:
+                log.info("judge stream done: %s in %.0f ms", "+".join(sent), ms)
+            else:
+                log.warning("judge stream closed by the client after %.0f ms, events sent: %s", ms, "+".join(sent) or "none")
 
     return StreamingResponse(stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
 

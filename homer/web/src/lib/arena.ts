@@ -17,6 +17,7 @@ import { PoseCamera } from '../pose/camera'
 import { ArcheryMapper, LOST_MS } from '../pose/archery'
 import type { ArcherPose, CameraState } from '../toxeia/CameraView'
 import { Stage } from './stage'
+import { after, every, sleep } from './clock'
 import { HomerVoice } from './voice'
 
 const STDB_URI = import.meta.env.VITE_STDB_URI || 'wss://maincloud.spacetimedb.com'
@@ -93,7 +94,6 @@ const TICK_MS = 300
 const CAMERA_SEND_MS = 50 // set_camera_aim at ~20 Hz
 const CAMERA_SWITCH_MS = 1000 // set_range_camera at most this often (the subscription takes a beat to show it)
 // Test halls only: a video file stands in for the webcam (headless runs), ?camera-file=/test/archer.webm.
-export const CAMERA_TRIAL = STDB_DB !== 'homer-calhacks' // test halls start with the camera on; the prod hall starts with it off
 const CAMERA_FILE = STDB_DB !== 'homer-calhacks' ? new URLSearchParams(window.location.search).get('camera-file') ?? '' : ''
 const FINALE_CAP_MS = 45000 // a finale still on screen this long is advanced (a song + crown is ~20 s): insurance only
 const STEP_UP_MS = 2000 // auto-ready: a short beat before each turn starts (debate, discus; and after a reconnect)
@@ -134,7 +134,7 @@ export type ArenaView = {
   comeback: { name: string; secondsLeft: number } | null // waiting for a poet's phone to come back, counting down
   voiceNote: string // the operator corner: why Homer is on text ("Voice credits out", "Voice offline"), or ''
   camera: CameraFeed | null // toxeia: the webcam's corner view
-  cameraOn: boolean // the operator's camera switch (on by default in archery)
+  cameraOn: boolean // the host's camera switch for this hall (off until clicked)
 } & ToxeiaFeed
 
 /** The verdict the agent posts when the judge never answered (homer/homer/judge.py SILENT_VERDICT): the
@@ -212,7 +212,7 @@ export class Arena {
   // module ships there) never subscribes, and a set_event switch tears it down and sets it up.
   private toxSub: { roomId: bigint; sub: { unsubscribe: () => void } } | null = null
   private awaitingCreated = false
-  private ticker = 0
+  private stopTicker: (() => void) | null = null // the 300 ms tick, from the worker clock (lib/clock.ts)
   // BattleClient's arena duties
   private generation = 0
   private lastPhaseSeen: string | null = null
@@ -245,9 +245,10 @@ export class Arena {
   private lastFreshCall = 0
   private onsets = { turn: 0n, count: 0, armed: true } // the live verse's voice onsets
   // Archery by camera: the webcam's pose drives the range's aim and draw; the phones take over when it can't.
-  // The operator's switch. Off by default on the prod hall until the camera passes its runs (leader); test halls
-  // start with it on.
-  private cameraOn = CAMERA_TRIAL
+  // The host's switch, per hall: off until "Camera on" is clicked, and only that click puts the range in camera mode
+  // (leader, Sat 23:20: the webcam seeing someone flipped a two-phone hall into camera mode). Reset for every hall.
+  private cameraOn = false
+  private cameraFailed = '' // why the camera last gave up ('denied' | 'failed'), for the corner note
   private poseCam: PoseCamera | null = null
   private mapper = new ArcheryMapper()
   private cameraSentAt = 0
@@ -356,8 +357,8 @@ export class Arena {
         this.publish()
       })
       .build()
-    window.clearInterval(this.ticker)
-    this.ticker = window.setInterval(() => this.tick(), TICK_MS)
+    this.stopTicker?.()
+    this.stopTicker = every(TICK_MS, () => this.tick())
     this.side('', 0) // load the debate's questions and sides now, before any call-up needs them
   }
 
@@ -379,7 +380,8 @@ export class Arena {
   disconnect(): void {
     this.disposed = true
     window.clearTimeout(this.watchdog)
-    window.clearInterval(this.ticker)
+    this.stopTicker?.()
+    this.stopTicker = null
     this.releaseLock?.()
     this.stage?.stopBeat()
     this.voice?.close()
@@ -459,6 +461,9 @@ export class Arena {
     if (!this.conn || (id === this.roomId && this.roomSub)) return
     this.roomSub?.unsubscribe()
     this.roomId = id
+    this.cameraOn = false // a new hall starts on the two phones
+    this.cameraFailed = ''
+    this.stopCamera()
     const queries = [`SELECT * FROM room WHERE id = ${id}`].concat(
       ['player', 'round', 'turn', 'score', 'scene', 'song_line', 'prosody', 'discus_throw', 'heat', 'runner', 'fight', 'fighter', 'punch'].map((t) => `SELECT * FROM ${t} WHERE room_id = ${id}`),
     )
@@ -590,7 +595,13 @@ export class Arena {
   /** The operator's camera switch: off hands the range to the phones until it's turned back on. */
   setCamera(on: boolean): void {
     this.cameraOn = on
+    this.cameraFailed = ''
     if (!on) this.stopCamera()
+    const room = this.room()
+    if (room?.event === 'toxeia' && room.phase !== 'finished') {
+      this.rangeCameraAt = 0 // the click is the decision: no debounce
+      this.rangeCamera(room, on)
+    }
     this.publish()
   }
 
@@ -623,14 +634,17 @@ export class Arena {
     }
     const arrow = range?.archerId ? `${range.archerId}.${range.arrowNo}` : ''
     this.mapper.newArrow(arrow)
-    // In camera mode each archer holds only their own phone, so losing sight of them never hands the arrow to two
-    // phones (pm, leader): the arrow holds (no aim is sent, the dot freezes, "Step into view", the clock runs) and
-    // resumes when they're back. Only a camera that fails outright (denied, no device, a model error) or the
-    // operator's switch gives the range back to the phones.
+    // The range is in camera mode because the host clicked "Camera on", never because the webcam sees someone.
+    // Losing sight of the archer holds the arrow (no aim is sent, "Step into view", the clock runs). Only "Camera off"
+    // or a camera that fails outright (denied, no device, a model error) gives the range back to the two phones,
+    // and a failure turns the switch off, so it doesn't flip back by itself.
     const failed = this.poseCam.status === 'denied' || this.poseCam.status === 'failed'
     const camera = Boolean(range?.camera)
-    if (camera && failed) this.rangeCamera(room, false)
-    else if (!camera && this.poseCam.status === 'live' && this.mapper.reading.state !== 'searching') this.rangeCamera(room, true)
+    if (failed) {
+      this.cameraFailed = this.poseCam.status
+      this.cameraOn = false
+      if (camera) this.rangeCamera(room, false)
+    } else if (!camera) this.rangeCamera(room, true) // the click's set_range_camera may predate the range row
   }
 
   private rangeCamera(room: Room, on: boolean): void {
@@ -641,10 +655,12 @@ export class Arena {
 
   /** Every pose frame (~30 fps): map it, and while an arrow is up in camera mode send the aim and draw at 20 Hz. */
   private onPose(frame: Parameters<ArcheryMapper['update']>[0]): void {
-    const reading = this.mapper.update(frame)
-    this.poseLog?.({ ...this.mapper.probe, yaw: reading.yaw, pitch: reading.pitch, draw: reading.draw, seen: reading.state === 'searching' ? 0 : 1 })
     const room = this.room()
     const range = room?.event === 'toxeia' ? this.toxeia().range : null
+    // The arrow up, on every frame (the tick is 300 ms): a new arrow must never be sent the last one's peak draw.
+    this.mapper.newArrow(range?.archerId ? `${range.archerId}.${range.arrowNo}` : '')
+    const reading = this.mapper.update(frame)
+    this.poseLog?.({ ...this.mapper.probe, yaw: reading.yaw, pitch: reading.pitch, draw: reading.draw, seen: reading.state === 'searching' ? 0 : 1 })
     const now = Date.now()
     if (room && range?.camera && range.archerId && room.phase === 'speaking' && reading.state !== 'searching' && now - this.cameraSentAt >= CAMERA_SEND_MS) {
       this.cameraSentAt = now
@@ -661,7 +677,10 @@ export class Arena {
 
   private cameraFeed(): CameraFeed | null {
     const cam = this.poseCam
-    if (!this.cameraOn) return { stream: null, pose: null, state: 'searching', draw: 0, note: 'Camera off: phones' }
+    if (!this.cameraOn) {
+      const why = this.cameraFailed === 'denied' ? 'Camera denied' : this.cameraFailed ? 'No camera' : ''
+      return { stream: null, pose: null, state: 'searching', draw: 0, note: why ? `${why}: two phones` : 'Two phones: bow + arrow' }
+    }
     if (!cam) return null
     if (cam.status === 'denied') return { stream: null, pose: null, state: 'searching', draw: 0, note: 'Camera denied: phones' }
     if (cam.status === 'failed') return { stream: null, pose: null, state: 'searching', draw: 0, note: 'No camera: phones' }
@@ -1139,7 +1158,7 @@ export class Arena {
     const from = this.revealKey()
     const advance = room.autoReady
       ? () => {
-          window.setTimeout(() => this.advanceOnce(from), ADVANCE_AFTER_MS)
+          after(ADVANCE_AFTER_MS, () => this.advanceOnce(from))
         }
       : undefined
     const poets = this.poets()
@@ -1304,6 +1323,3 @@ export class Arena {
   }
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => window.setTimeout(resolve, ms))
-}

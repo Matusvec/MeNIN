@@ -112,7 +112,7 @@ export default function BoxingPanel({ bout, live }: { bout: Bout; live: boolean 
         )}
         {combo && (
           <span key={`combo-${combo.id}`} className={`combo ${combo.from === a.id ? 'a' : 'b'}`}>
-            {combo.combo}× COMBO
+            {Math.min(combo.combo, 3)}× COMBO {/* the bonus caps at ×3; a real bout ran to 36 */}
           </span>
         )}
         {loser && <Dust key={`dust-${bout.endedAt}`} side={loser.id === a.id ? 'a' : 'b'} />}

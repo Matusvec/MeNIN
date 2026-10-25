@@ -9,6 +9,7 @@
 // archer's next arrow, or back to the bow phone for the next name.
 
 import type { Conductor } from './arena'
+import { sleep } from './clock' // a Web Worker clock: a backgrounded arena tab can't stretch a hold
 import type { Archer, ArrowShot, Player, Range } from '../stdb/types'
 import { FLIGHT_S } from '../toxeia/Range'
 
@@ -153,8 +154,4 @@ export function conductToxeia(c: Conductor & ToxeiaFeed): void {
       return
     }
   }
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => window.setTimeout(resolve, ms))
 }

@@ -133,3 +133,37 @@ def test_a_verse_during_the_warm_up_waits_for_it():
     waited = asyncio.run(run())
     assert 0.15 < waited < 2.0
     asyncio.run(server.until_warm())  # warm (or no warm-up): no wait at all
+
+
+def test_an_unjudgeable_stream_says_what_it_got(client, caplog):
+    # Nothing the scanner can read: the stream's error event, and a log line naming what the phone sent.
+    import logging
+
+    with caplog.at_level(logging.WARNING, logger="homer"):
+        r = client.post("/judge", json={"transcript": "... ,"}, headers={"accept": "text/event-stream"})
+    assert "event: error" in r.text
+    assert any("judge stream error" in m and "5 chars" in m for m in caplog.messages)
+
+
+def test_a_stream_logs_how_it_ended(client, caplog):
+    import logging
+
+    with caplog.at_level(logging.INFO, logger="homer"):
+        r = client.post("/judge", json={"transcript": "the wind was cold, the waves were grey\nthe sea kept time and so did I"},
+                        headers={"accept": "text/event-stream"})
+    assert "event: scorecard" in r.text
+    assert any(m.startswith("judge stream done: verdict+scorecard in") for m in caplog.messages)
+
+
+def test_a_judge_that_raises_ends_the_stream_with_a_fault_not_an_error(client, monkeypatch, caplog):
+    # Build 45 reads "error" as an unreadable verse ("No verse came. Again.", no retry): a judge fault is "fault".
+    import logging
+
+    async def broken(turn, on_verdict=None):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(server.judge(), "judge", broken)
+    with caplog.at_level(logging.INFO, logger="homer"):
+        r = client.post("/judge", json={"transcript": "the wind was cold, the waves were grey"}, headers={"accept": "text/event-stream"})
+    assert "event: fault" in r.text and "event: error" not in r.text and '"detail": "RuntimeError"' in r.text
+    assert any(m.startswith("judge stream done: fault in") for m in caplog.messages)

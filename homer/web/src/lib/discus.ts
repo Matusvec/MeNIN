@@ -8,6 +8,7 @@
 // so the arc and his voice stay in step whatever the device clocks say.
 
 import type { Conductor } from './arena'
+import { sleep } from './clock' // a Web Worker clock: a backgrounded arena tab can't stretch a hold
 import type { DiscusThrow, Player } from '../stdb/types'
 
 /** The Phayllos line: the ancient legend's throw, marked on the field (DiscusPhysics.phayllos). */
@@ -148,8 +149,4 @@ export function conductDiscus(c: Conductor): void {
       return
     }
   }
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => window.setTimeout(resolve, ms))
 }

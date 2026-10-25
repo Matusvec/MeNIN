@@ -1,10 +1,11 @@
 // /join/CODE: where the arena's QR lands on a phone. Opens the room in the MeNIN app,
-// or points the way to TestFlight for a phone without it.
+// or points the way to TestFlight for a phone without it. With `onPlayInBrowser` (?web=1 for now),
+// also "Play in your browser": the no-install poet (src/poet/), poetry and Talk to Homer.
 
 import { appJoinLink, hasTestFlight, TESTFLIGHT_URL } from './lib/links'
 import './wired.css'
 
-export default function JoinCard({ code }: { code: string }) {
+export default function JoinCard({ code, onPlayInBrowser }: { code: string; onPlayInBrowser?: () => void }) {
   return (
     <>
       <div className="dialogue-copy">
@@ -16,6 +17,11 @@ export default function JoinCard({ code }: { code: string }) {
         <a className="primary-action" href={appJoinLink(code)}>
           Open in MeNIN
         </a>
+        {onPlayInBrowser && (
+          <button className="secondary-action" type="button" onClick={onPlayInBrowser}>
+            Play in your browser
+          </button>
+        )}
         {hasTestFlight() ? (
           <a className="secondary-action" href={TESTFLIGHT_URL} target="_blank" rel="noreferrer">
             Get MeNIN on TestFlight

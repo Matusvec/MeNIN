@@ -4,6 +4,7 @@
 // fists mirror each other (Matus), and a punch throws the hand on the side the phone points to.
 
 import type { Conductor } from './arena'
+import { after } from './clock'
 import type { Aim, Hand, Punch as RigPunch, ThrowPhase } from '../boxing/rig'
 
 export type BoutFighter = {
@@ -131,7 +132,7 @@ export function callFor(p: BoutPunch, attacker: string, defender: string): strin
   if (p.result !== 'landed') return null
   const what = WHAT[p.kind] ?? 'A blow'
   if (p.counter) return 'COUNTER!'
-  if (p.combo >= 3) return p.combo === 3 ? `A combo! Three for ${attacker}!` : `${p.combo} in a row! ${defender} is reeling!`
+  if (p.combo === 3) return `A combo! Three for ${attacker}!` // the bonus caps at the third punch (multiplayer): so does the call
   if (p.damage >= 14) return `A hard ${p.kind} ${WHERE(p)}! ${defender} staggers!`
   return p.id.endsWith('0') || p.id.endsWith('5') ? `${attacker} lands ${WHERE(p)}!` : `${what} ${WHERE(p)}!`
 }
@@ -175,7 +176,7 @@ export function conductPygmachia(c: Conductor): void {
       const loser = bout.fighters.find((f) => f.id !== bout.winnerId)?.name ?? ''
       const line = bout.ko && winner ? `${loser} is down! The fight goes to ${winner}!`
         : winner ? `The bell! ${winner} takes it on the cards.` : 'The bell! Neither falls. A draw.'
-      c.say(`box result ${c.battleKey}`, line, () => window.setTimeout(() => c.advanceOnce(from), 2500))
+      c.say(`box result ${c.battleKey}`, line, () => after(2500, () => c.advanceOnce(from)))
       return
     }
     case 'finale': {

@@ -3,7 +3,7 @@
 // MediaPipe's depth for it is too rough to aim with. Everything is read in the 2D image instead, in shoulder
 // widths (the shoulders are square to the camera), which a recording of Matus showed is steady:
 //   - the bow arm is the lower hand (the drawing hand comes up to the jaw), locked per archer once it's clear;
-//   - AIM is the bow wrist's offset from its shoulder, zeroed per arrow once it holds still (like the phone);
+//   - AIM is the bow wrist's offset from its shoulder, zeroed per arrow at the anchor (the first full-ish draw);
 //     AIM_SW shoulder widths from the zero reach the target's rim;
 //   - DRAW blends the drawing wrist's height against its shoulder (below at the nock, at the jaw at full draw)
 //     with the gap between the wrists (together at the nock, a shoulder and a half apart at full draw).
@@ -25,13 +25,16 @@ const NOCK_GAP = 0.75 // the wrists this far apart (shoulder widths): draw 0
 const FULL_GAP = 1.3 // …this far: draw 1
 const HAND_SPLIT = 0.35 // one wrist this much lower than the other (shoulder widths) says which arm is the bow
 const VISIBLE = 0.5 // the shoulders and wrists must be at least this visible
-const STEADY_SW = 0.1 // the bow wrist counts as still while it moves less than this…
-const STEADY_MS = 300 // …for this long: then the arrow's zero is taken
-const ZERO_CAP_MS = 1200 // …or at most this long into the arrow, still or not (DWUX: a hold of 9.7 s froze the aim)
+// The arrow's zero is taken at the ANCHOR: the first moment the draw reaches ANCHOR_DRAW and holds there for
+// ANCHOR_MS, with the bow arm up and pointed. Taken at arrow-up (BPXW, 23:00), it caught the arm still rising and
+// the pitch drifted a metre. A droop after the anchor still counts, as in real archery.
+const ANCHOR_DRAW = 0.5
+const ANCHOR_MS = 200
+const ZERO_CAP_MS = 8000 // no anchor this long into the arrow: zero where the arm is (the aim never sits frozen)
+const PITCH_GAIN = 0.7 // pitch is damped: the arm droops and lifts more than it swings (BPXW drift ±0.4-1.0)
 const LOST_MS = 1000 // no archer this long: the phones take over (the caller decides)
 const AIM_SMOOTH_MS = 120 // aim smoothing: the pose jitters ~5-10x the phone's (DWUX)
 const DRAW_SMOOTH_MS = 70 // draw smoothing
-const DRAW_HOLD_MS = 800 // the draw sent is the peak of this long: the hand moves forward as the thumb looses
 
 export type ArcheryReading = {
   state: CameraState // searching (nobody), steadying (zeroing the arrow), tracking (live)
@@ -59,7 +62,9 @@ export class ArcheryMapper {
   private still: { at: number; x: number; y: number } | null = null
   private smooth: { x: number; y: number; draw: number; at: number } | null = null
   private arrowAt: number | null = null // the first frame of this arrow (its zero is due by ZERO_CAP_MS)
-  private draws: { at: number; draw: number }[] = [] // the last DRAW_HOLD_MS of draws, for the peak
+  // The arrow flies at the strongest draw since it went up: the hand eases forward before the thumb looses, and
+  // the 45 s auto-loose may come long after the pull (AJDS: peaks 0.96 and 0.53 loosed at 0.21 and 0.11).
+  private peak = 0
   private seenAt = -Infinity
   private last: ArcheryReading = { state: 'searching', pose: null, yaw: 0, pitch: 0, draw: 0, lostMs: 0 }
   /** Test halls: the raw signals of the last frame, for tuning against a recording. */
@@ -72,6 +77,7 @@ export class ArcheryMapper {
     this.zero = null
     this.still = null
     this.arrowAt = null
+    this.peak = 0
     const archer = key.split('.')[0]
     if (archer !== this.archer) {
       this.archer = archer
@@ -121,17 +127,14 @@ export class ArcheryMapper {
       at,
     }
     this.smooth = next
-    this.draws = this.draws.filter((d) => at - d.at <= DRAW_HOLD_MS)
-    this.draws.push({ at, draw: next.draw })
-    const heldDraw = Math.max(...this.draws.map((d) => d.draw))
+    this.peak = Math.max(this.peak, next.draw)
 
-    // The arrow's zero: the bow wrist held still for STEADY_MS (as the phone zeroes at each arrow), and taken
-    // anyway ZERO_CAP_MS into the arrow, so the aim never sits frozen at the centre.
+    // The arrow's zero, at the anchor (ANCHOR_DRAW held ANCHOR_MS), or ZERO_CAP_MS into the arrow regardless.
     if (!this.zero) {
       this.arrowAt ??= at
-      const st = this.still
-      if (!st || Math.hypot(next.x - st.x, next.y - st.y) > STEADY_SW) this.still = { at, x: next.x, y: next.y }
-      if ((this.still && at - this.still.at >= STEADY_MS) || at - this.arrowAt >= ZERO_CAP_MS) this.zero = { x: next.x, y: next.y }
+      if (next.draw < ANCHOR_DRAW) this.still = null
+      else this.still ??= { at, x: next.x, y: next.y }
+      if ((this.still && at - this.still.at >= ANCHOR_MS) || at - this.arrowAt >= ZERO_CAP_MS) this.zero = { x: next.x, y: next.y }
     }
 
     const pose: ArcherPose = {
@@ -150,8 +153,8 @@ export class ArcheryMapper {
       state: this.zero ? 'tracking' : 'steadying',
       pose,
       yaw: this.zero ? toFace(-(next.x - this.zero.x)) : 0,
-      pitch: this.zero ? toFace(-(next.y - this.zero.y)) : 0,
-      draw: heldDraw,
+      pitch: this.zero ? toFace(-(next.y - this.zero.y) * PITCH_GAIN) : 0,
+      draw: this.peak,
       lostMs: 0,
     }
     return this.last

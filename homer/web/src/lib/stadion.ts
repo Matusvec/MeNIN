@@ -7,6 +7,7 @@
 // begin, so the 3-2-1 on screen and Homer's "They're off!" land with the phones' haptics.
 
 import type { Conductor } from './arena'
+import { sleep } from './clock' // a Web Worker clock: a backgrounded arena tab can't stretch a hold
 import type { Heat, Player, Runner } from '../stdb/types'
 
 /** One stadion, Olympia's track. */
@@ -108,8 +109,4 @@ export function conductStadion(c: Conductor): void {
       return
     }
   }
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => window.setTimeout(resolve, ms))
 }

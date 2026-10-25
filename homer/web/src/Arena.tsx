@@ -121,6 +121,38 @@ function waitingFor(view: ArenaView | null): string {
   }
 }
 
+/** Whether this tab is hidden, and (for a few seconds after it comes back) how long it was away. While
+ *  hidden, the tab's title says the arena is paused: the one place a judge can see it from another tab. */
+function useBackground(): { hidden: boolean; awayS: number } {
+  const [state, setState] = useState({ hidden: typeof document !== 'undefined' && document.hidden, awayS: 0 })
+  useEffect(() => {
+    let since = document.hidden ? Date.now() : 0
+    let clear = 0
+    const title = document.title
+    const onChange = () => {
+      window.clearTimeout(clear)
+      if (document.hidden) {
+        since = Date.now()
+        document.title = '⏸ Arena paused · bring this tab to the front'
+        setState({ hidden: true, awayS: 0 })
+      } else {
+        document.title = title
+        const awayS = since ? Math.round((Date.now() - since) / 1000) : 0
+        since = 0
+        setState({ hidden: false, awayS })
+        clear = window.setTimeout(() => setState({ hidden: false, awayS: 0 }), 8000)
+      }
+    }
+    document.addEventListener('visibilitychange', onChange)
+    return () => {
+      window.clearTimeout(clear)
+      document.removeEventListener('visibilitychange', onChange)
+      document.title = title
+    }
+  }, [])
+  return state
+}
+
 /** A line of verse with the played formulas marked, for the gold underline. */
 function withFormulas(line: string, played: string[]): ReactNode {
   const phrases = played.map((p) => p.trim()).filter(Boolean)
@@ -220,6 +252,7 @@ export default function ArenaPanel({
     return Date.now() - goneSince.current.get(id)! > 3000
   }
   const status = waitingFor(view)
+  const background = useBackground()
   useEffect(() => {
     onStatus(status)
   }, [status, onStatus])
@@ -433,6 +466,20 @@ export default function ArenaPanel({
         )}
 
         {view.error && <p className="wired-note">{view.error}</p>}
+        {archery && room.phase !== 'finished' && (
+          // The range's mode, plainly: only the host's "Camera on" puts it in camera mode (leader).
+          <p className={`wired-note range-mode${view.range?.camera ? ' camera' : ''}`}>
+            {view.range?.camera ? 'Camera mode: the webcam aims and draws; the archer’s phone looses.' : 'Two phones: bow + arrow.'}
+          </p>
+        )}
+        {/* The arena keeps running in the background (lib/clock.ts), but Homer's voice and the screen need it in front. */}
+        {(background.hidden || (background.awayS >= 2 && !['lobby', 'finished'].includes(room.phase))) && (
+          <p className="wired-note arena-paused">
+            {background.hidden
+              ? 'Arena paused: bring this tab to the front.'
+              : `The arena was in the background for ${background.awayS} s. Keep this tab in front during a battle.`}
+          </p>
+        )}
 
         <div className="wired-actions">
           {room.phase === 'lobby' && (

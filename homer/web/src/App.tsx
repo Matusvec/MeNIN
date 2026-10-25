@@ -4,6 +4,7 @@ import Homer3D, { type HomerAction } from './Homer3D'
 import { resolveAction } from './poets/rig'
 import World3D from './world/World3D'
 import JoinCard from './JoinCard'
+import WebPoet from './poet/WebPoet'
 import Landing from './Landing'
 import { FIELD_EVENTS } from './lib/arena'
 import { hasTestFlight, joinCodeFromPath, TESTFLIGHT_URL } from './lib/links'
@@ -274,6 +275,9 @@ function ModePage({
   )
 }
 
+// The no-install poet (src/poet/): behind ?web=1 until the team says go (leader). ?web=1&play skips the join card.
+const WEB_POET = new URLSearchParams(window.location.search).has('web')
+
 // The landing page (the Poets' Hall) lives at /, each poet's hall at /<poet>. The server serves
 // index.html for unknown paths, so a reload on /homer stays in Homer's hall.
 const onPoetPath = () => window.location.pathname.replace(/\/+$/, '') === '/homer'
@@ -296,6 +300,7 @@ export default function App() {
 }
 
 function HomerHall({ joinCode, onBack }: { joinCode: string | null; onBack: () => void }) {
+  const [playInBrowser, setPlayInBrowser] = useState(() => WEB_POET && new URLSearchParams(window.location.search).has('play'))
   const [isOpen, setIsOpen] = useState(false)
   const [selectedMode, setSelectedMode] = useState<HomerMode | null>(null)
   const [activeMode, setActiveMode] = useState<HomerMode | null>(null)
@@ -320,6 +325,7 @@ function HomerHall({ joinCode, onBack }: { joinCode: string | null; onBack: () =
 
   const isSpeaking = spokenMessage.length < fullMessage.length
 
+  if (joinCode && playInBrowser) return <WebPoet code={joinCode} />
   if (joinCode) {
     // The join page runs on the poet's phone and only hands them to the app: the light SVG sea, not the 3D world.
     return (
@@ -341,7 +347,7 @@ function HomerHall({ joinCode, onBack }: { joinCode: string | null; onBack: () =
           <i aria-hidden="true" />
         </header>
         <section className="dialogue join-dialogue" aria-label={`Join room ${joinCode}`}>
-          <JoinCard code={joinCode} />
+          <JoinCard code={joinCode} onPlayInBrowser={WEB_POET ? () => setPlayInBrowser(true) : undefined} />
         </section>
       </main>
     )
