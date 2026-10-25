@@ -1181,6 +1181,22 @@ One demo-mode debate on the new fixed question, in the same slot as the visual p
   - Any music plays from Begin to the crown.
 - **Write down:** both verdicts word for word, and both sets of scores.
 
+### Sunday morning: the browser poet on iPhone Safari (2 min)
+
+The browser poet is hidden behind `?web=1` (SPEC a3ad34e, leader, Sun 1 AM). It's the judges' fallback if the public TestFlight link isn't approved. Poetry battle and Talk to Homer only. Builder's three runs passed ("I'm done", the timeout, Talk to Homer), but none was on a real iPhone. The run sheet doesn't offer it until Matus's check passes. Steps from builder:
+
+1. **Laptop:** open https://play.206.189.237.157.sslip.io/homer → Host a battle → **Talk to Homer**. It runs with one player; a Poetry battle needs a second poet. Note the 4-letter code.
+2. **iPhone, in Safari (not the app):** open https://play.206.189.237.157.sslip.io/join/CODE?web=1 → **Play in your browser** → type a name → **Join with my mic** → **Allow** the microphone.
+3. **Lobby:** say something. The mic check bar should move.
+4. **The lock test (pm):** put the phone down in the lobby for 45 s and don't touch it. The screen should stay on. If it dims or locks, unlock it and say something: the bar must still move, or the page must say "Welcome back … Tap to turn your mic back on". A dead bar with no prompt is a fail. A judge's phone sits through other poets' turns, so a 30 s Auto-Lock would end the mic before their SPEAK. Write down the phone's Auto-Lock setting.
+5. **Laptop:** **Begin**. Phone: "You're up next" → 3-2-1 → **SPEAK**. Speak two lines; your words should appear live under the ring. Tap **I'm done**, or let the 20 s run out (both should work).
+6. **Expect** "Homer is listening back…", then a score /100 and Homer's line on the phone and the big screen. Homer's voice comes from the laptop, not the phone. Two lines of verse get a score. If you only talk to him, there's no score, only his reply, and that's correct.
+
+Keep the screen on and the page in front throughout. If the mic was blocked once: tap **aA** in the address bar → Website Settings → Microphone → Allow, then tap Join again.
+
+- **Also a fail:** music between Begin and Homer's reply. Anything on the phone clips or needs scrolling at SPEAK. "I'm done" isn't in the thumb zone. SPEAK, the ring's seconds or the live words are hard to read at arm's length.
+- **If it fails, tell builder:** the step number; the exact red line on the phone ("The mic is off…", "No live words: …", "Can't reach the hall…"); whether the bar moved in step 3 and step 4; the room code and the time. One phone screenshot of that step helps. If the phone is cabled, pm takes a single capture once Matus says the MeNIN page is on screen, the same as for the app.
+
 ### Results
 
 | Event | Run | Time | Pass or fail | What failed | Notes |
@@ -1310,6 +1326,16 @@ This is the list of layouts to design. The states above describe what changes in
 13. Stadion run screen: count, speed, progress, place (R0–R4)
 14. Boxing fight screen: health, stamina, seconds, hit flashes, Up next (X0–X3)
 15. Archery: the bow, the arrow pad (Hold to nock, Nocked, Full draw), Take aim, Pass both phones (A0–A4)
+
+**Phone browser (hidden, `?web=1`, SPEC a3ad34e: poetry and Talk to Homer only)**
+
+1. Join page with "Play in your browser"
+2. Name and "Join with my mic", or "Welcome back … Rejoin" after a reload
+3. Lobby with the mic check bar
+4. Waiting, with the last verdict
+5. You're up next, the 3-2-1, SPEAK with the ring, live words, "I'm done" and the phrases
+6. "Homer is listening back…", then the verdict and score
+7. "This hall is playing a motion game" (the app-only events)
 
 ## Open questions for Matus
 
