@@ -264,7 +264,8 @@ Matus was filling this in at Sun 1:21 AM. Paste-ready answers:
 
 ## Submission checklist
 
-- [ ] **Tonight: create the Devpost project draft** (cal-hacks-13-0.devpost.com → My projects → start a submission), add every teammate, and **tick every track in the locked list to check each one is selectable**. Hackers asked whether an initial submission is due "before midnight" (#0-ask-directors, Sat 11:08 PM, no answer). The written deadline is 9:00 AM, but a draft tonight removes the risk, and it can be edited until the deadline.
+- [ ] **Tonight: SUBMIT an initial version, then keep editing until 9:00.** Organizers: "We highly recommend making an initial submission NOW and continuing to edit until the final deadline." (#0-announcements, Sun 1:50 AM, organizer, "Cal Hacks 13.0 Judging Information"). A draft isn't a submission, so finish all 5 steps and press Submit; it stays editable until 9:00. Add every teammate.
+- [ ] **Tick every opt-in prize track before 9:00:** "you must also select all the opt-in prize tracks... We will be unable to add your project to any prize tracks you forget to select." (#0-announcements, Sun 1:50 AM, organizer, "Cal Hacks 13.0 Judging Information"). The list is in "Tracks to tag on Devpost" above.
 - [ ] Every teammate added on Devpost. **Use the same email as your Cal Hacks sign-up:** asked whether it must match, an organizer said "no but ideally yes" (#0-ask-directors, Sat 4:46 PM).
 - [ ] **Team name, a 2–3 sentence elevator pitch and our table number.** The Hive FAQ: "All submissions must include a 2-3 sentence elevator pitch / summary, team location (your table number), and the team name." Tables are assigned "shortly after the 9:00 AM submission deadline" (Hacker Guide), so add the table number then if Devpost has a field for it.
 - [ ] No keys in the repo: `.env` gitignored, `.env.example` committed, and the leader's full-history secret scan rerun after the Sat ~11 PM freeze

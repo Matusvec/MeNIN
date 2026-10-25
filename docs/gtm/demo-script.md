@@ -52,6 +52,8 @@ Setup: iPhones plus the website as the arena, full screen in a browser on the Ma
 
 **Music (SPEC "Music"):** the original score plays on the menu, as each event's intro, as the fanfare after a discus throw and as the champion sting. It never plays under a speaking poet: battle turns are silent apart from the poet's voice, Homer's stitched song keeps its beat, and the music ducks under Homer's voice. **No sound effects** (Matus: weird effects are worse than silence). Set the score's and the song beat's levels in the Saturday-night hall test.
 
+**The judging format** (#0-announcements, Sun 1:50 AM, organizer): "prepare a three-minute pitch", with "no more than *5 minutes total*" per judge, and at least three judges per project. Our 2:00 script plus one extra or Q&A fits; stop by 5:00.
+
 **After 2:00, if the judge stays (this is where Hacker's Choice gets won):**
 - **To switch games:** from the results screen, the operator clicks **New event**, picks the game, then **Begin**. It's the same hall and every phone stays joined, so there's no new code (every phone on build 31 or later; if one stays on the old game, it rejoins with the same code).
 - **If debate passed the Sat 8 PM check, Socrates goes first** (decided with leader). He's the thesis made literal: the art of moving people, hosted by the man who questioned Athens. Play 10–15 s of Socrates opening a debate, then offer the judge a side: "Want to argue with Socrates?" It's especially strong for Cartesia, since it's the second voice, and for Anthropic.
