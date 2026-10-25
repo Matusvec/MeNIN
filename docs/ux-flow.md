@@ -781,7 +781,7 @@ The checkpoint (`docs/gtm/reality-check.md`): an extra event that can't run **5 
 **Rules for every run**
 
 - **Set up as at the table:** the arena is the website, full screen in a browser on the arena Mac, on Ethernet. Phones in poetry and debate have wired EarPods. The production agent service runs with Moss dealing, demo mode is on, and every phone is on **build 31 or later**, which TestFlight shows as 0.1.0 (202610242009). That's the build judges get (leader, 8:13 PM), and every phone in a run is on the same build. Check the number in TestFlight on every phone before an event's first run. **Runs on builds 24 to 30 don't count:** build 31 fixes the SDK cache behind every game's screens (stuck screens after a reconnect), so every series starts again on 31. Run it in the hacking hall, not in a quiet room.
-- **The count:** 5 clean runs in a row per event, and 3 for Talk to Homer. A failure resets that event's count to 0, and you can start again right away. A new build, a redeploy or a code change also resets it.
+- **The count:** 5 clean runs in a row per event, 3 for Talk to Homer, and 2 for two-phone archery. A failure resets that event's count to 0, and you can start again right away. A new build, a redeploy or a code change also resets it.
 - **When:** debate, poetry and Talk to Homer have to finish by 9 PM, when the hall noise test starts. The motion events (discus, the Stadion, boxing and archery) use no mic, so hall noise doesn't touch them. If there are enough people, run them at the same time on a second laptop in the hall. If not, run them after 9 PM and finish by the leader's cutoff (proposed: 10:30 PM, so the tiles are settled before the 11 PM freeze).
 - **Order:** debate, then poetry, then Talk to Homer, about 50 minutes for all three. The motion events go in this order: the Stadion, boxing, discus, then archery, about 45 minutes for all four. Boxing comes after the Stadion because SPEC opens boxing only once the Stadion passes. Archery goes last because it's the newest, and until it passes, its tile stays locked.
 - **Motion events:** play only where there's arm room, away from laptops and other people, with a firm grip on the phone. If a phone leaves anyone's hand, that's a failure, and it stops that event for the night until the leader says otherwise.
@@ -907,7 +907,7 @@ Player slips aren't failures when the app handles them as designed: a freeze get
 
 ### Archery
 
-Archery has two modes (SPEC, Sat 7:20 PM). **Camera mode is the main one:** the Mac's webcam tracks the archer's bow arm and drawing hand, and each archer's own phone nocks and looses, so nobody passes phones. **Two-phone mode is the fallback:** if the camera is off, or loses the archer for more than 1 s, the two phones take that arrow, and the camera picks up again on the next. Like every event, archery runs on build 31 or later. The series runs in camera mode. The leader decides whether two-phone mode needs its own 5 runs.
+Archery has two modes (SPEC, Sat 7:20 PM). **Camera mode is the main one:** the Mac's webcam tracks the archer's bow arm and drawing hand, and each archer's own phone nocks and looses, so nobody passes phones. **Two-phone mode is the fallback:** if the camera is off, or loses the archer for more than 1 s, the two phones take that arrow, and the camera picks up again on the next. Like every event, archery runs on build 31 or later. The series runs in camera mode, 5 clean in a row. Two-phone mode is only the fallback, so it gets 2 clean runs with **Camera off** (leader).
 
 - **One run (camera):** two archers, each holding their own phone, shooting in join order, with three arrows each.
   - **Start:** press New event, pick Toxeia (beta) and press Begin. Begin reads "Waiting for the bow and the arrow" until two phones are in. Then the operator presses **Camera on**, since the production hall starts with it off, and allows the browser's camera prompt the first time. A small camera view with the tracked skeleton sits in a corner of the range.
@@ -934,7 +934,7 @@ Archery has two modes (SPEC, Sat 7:20 PM). **Camera mode is the main one:** the 
   - An archer gets more or fewer than three arrows, or the wrong archer is named the winner.
 - **Write down, but not a failure (camera):** any arrow the phones took, and why. Also write down what happened in the staged step-out: whether that arrow could still be shot, and with which phone. If the phones take an arrow without a step-out twice in the series, tell the leader.
 
-**Two-phone mode,** for any runs the leader asks for with **Camera off**:
+**Two-phone mode,** 2 clean runs in a row with **Camera off**:
 
 - **One run (two phones):** two archers, three arrows each. Archers are the joined players, in the order they joined, so nobody types a name. The first phone in is the **bow** and its player shoots first. The second phone is the **arrow**, and its player shoots second. Each phone says which it is in big type. Begin reads "Waiting for the bow and the arrow" until both are in. Then Homer gives the rules ("Toxeia. One phone is the bow: point it at the target. The other is the arrow: hold, pull back, let go.") and says "{name}, take both phones." The archer holds the bow out at the target and taps **Ready**, and Homer says "{name} steps to the line." The arena shows only the target, with a live dot where the bow points, a draw meter, and the wind for each arrow: a direction arrow and a speed in m/s. When the wind is 3 m/s or more, Homer warns "A strong wind, to the left" (or right). The archer holds the arrow phone's button to nock, pulls it back toward their face to draw, and lets go to loose. The arrow flies, drifts with the wind, scores on the rings and gets Homer's call, and the next arrow follows by itself. After the third arrow, Homer says "{name} finishes on {total}." and "Pass both phones to {next}.", and the next archer taps Ready. After the last joined player shoots come the results and "The bow goes to {name}, with {total}.", and then **Rematch** for the next run.
 - **Who plays (two phones):** two archers per run, with someone who has never shot in at least 2 of the 5. In at least one run a third archer joins on a third phone, to check that a phone that's neither bow nor arrow still gets a turn. The pass happens in every run, hand to hand, as it will at the table.
@@ -985,6 +985,8 @@ Archery has two modes (SPEC, Sat 7:20 PM). **Camera mode is the main one:** the 
 | Archery | 3 | | | | |
 | Archery | 4 | | | | |
 | Archery | 5 | | | | |
+| Archery (two phones) | 1 | | | | |
+| Archery (two phones) | 2 | | | | |
 
 In Notes, write the verse scores in order for Talk to Homer, the winner's time for the Stadion, how each boxing bout ended and how long it lasted, and any arrow the phones took (or fumbled pass) in archery.
 
@@ -996,7 +998,7 @@ In Notes, write the verse scores in order for Talk to Homer, the winner's time f
 | 4 | | | | | |
 | 5 | | | | | |
 
-Add rows for any restarted series. If an event never gets its clean runs in a row (5, or 3 for Talk to Homer) by its cutoff (9 PM for debate and Talk to Homer, the leader's cutoff for the motion events), its tile stays locked, and the demo script's lines for that event don't run. If Talk to Homer misses, tell the leader before the video shoot.
+Add rows for any restarted series. If an event never gets its clean runs in a row (5, or 3 for Talk to Homer and 2 for two-phone archery) by its cutoff (9 PM for debate and Talk to Homer, the leader's cutoff for the motion events), its tile stays locked, and the demo script's lines for that event don't run. If Talk to Homer misses, tell the leader before the video shoot.
 
 ---
 
