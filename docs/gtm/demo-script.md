@@ -15,7 +15,7 @@ Setup: iPhones plus the website as the arena, full screen in a browser on the Ma
 ## Before a judge reaches the table (not part of the 2 minutes)
 
 - The Mac runs **the website, full screen in a browser**, **with its display turned to face the judges** (we have no external screen). SPEC: the website is the only arena people see. The lobby is open: the room code is showing and both poets have joined.
-- **Click "Open the hall", then check Homer speaks.** That click is also what lets the browser play sound; after a reload, it's "Resume". Check it before every judge.
+- **Open https://play.206.189.237.157.sslip.io/homer** (not "/", which is now the Poets' Hall landing page), **click "Host a battle", then "Open the hall: Poetry battle", and check Homer speaks.** That click is also what lets the browser play sound; after a reload, it's "Host a battle" → "Resume [code]". Check it before every judge.
 - **Demo config is loaded.** It's the same live engine with a shorter battle, nothing mocked:
   - 1 round, 2 poets, a 20-second free-verse window per turn with a countdown ring (SPEC 69c5135); "I'm done" ends it early
   - The step-up wait is skipped, so the poet is ready automatically
@@ -91,7 +91,7 @@ Swap the 1:10–1:26 line for theirs. Same length, same spot.
 | What breaks | Do this | Don't |
 | --- | --- | --- |
 | A phone won't join, or SpacetimeDB wedges | **Reload the website's tab and click "Resume [code]"**: same room, same code, same scores, and the battle carries on from its phase (nothing advances while the tab is gone; the phones just wait). If that fails, click **"Open the hall"** for a new room, and the poets type its new code. If that fails too, switch to **Practice Spar** on one device: the poet against Homer, with the same turn, verdict and scene. | Debug at the table |
-| The Mac dies | **Open the website in Safari on another device**: the iPad, a teammate's laptop, or iPhone C (under 900 px it lays out as one column). Click "Open the hall" for a **new room**, and the poets join its new code: another device can't take over the Mac's room, because the host identity lives in that browser. Last resort only: the app's emergency arena on iPhone C, behind the Dev screen. | Apologize for the screen size more than once |
+| The Mac dies | **Open https://play.206.189.237.157.sslip.io/homer in Safari on another device**: the iPad, a teammate's laptop, or iPhone C (under 900 px it lays out as one column). Click "Host a battle", then "Open the hall: Poetry battle" for a **new room**, and the poets join its new code: another device can't take over the Mac's room, because the host identity lives in that browser. Last resort only: the app's emergency arena on iPhone C, behind the Dev screen. | Apologize for the screen size more than once |
 | STT is garbage (noise) | Headset closer to the mouth, one retry. If it fails again, play the backup video. | Retry three times |
 | No verdict at 4 s | Homer's pre-recorded stall line plays ("The Muse is still counting."). Keep talking. | Fill silence with apologies |
 | No verdict at 10 s | Nothing to do: the arena doesn't stall. Homer says "Homer is silent on this one.", the verse gets a neutral Image 4 / Answer 4 / Craft 4 = 40/100, its best line still shows, and the battle moves on (builder, Sat 4:15 PM). Say it plainly if a judge notices: "The judge timed out, so that turn got a neutral score." Never show a canned verdict; that would be a mocked response. | Fake it |

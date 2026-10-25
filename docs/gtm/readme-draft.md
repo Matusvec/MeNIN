@@ -10,7 +10,7 @@ Sponsor judges may score asynchronously from this page and the video alone (Devp
 
 μῆνιν (*mēnin*, "MAY-nin") means **rage**. It's the first word of the Iliad.
 
-**Try it: https://play.206.189.237.157.sslip.io** (open it on a laptop and it's the arena) · **iPhone app:** [TestFlight link] · **Video:** [link] · **Devpost:** [link] · **Figma:** [design file](https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv) · prototypes: [first open → practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102), [a full battle](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364)
+**Try it: https://play.206.189.237.157.sslip.io** (open it on a laptop, choose Homer, and "Host a battle" makes it the arena; https://play.206.189.237.157.sslip.io/homer goes straight in) · **iPhone app:** [TestFlight link] · **Video:** [link] · **Devpost:** [link] · **Figma:** [design file](https://www.figma.com/design/qyaXnV3HbIUPIfYVbyqKwv) · prototypes: [first open → practice](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-102&starting-point-node-id=15%3A102), [a full battle](https://www.figma.com/proto/qyaXnV3HbIUPIfYVbyqKwv?node-id=15-364&starting-point-node-id=15%3A364)
 
 Built at Cal Hacks 13.0 by [team: names and roles], with a team of Claude Code sessions. Original score by [composer's name].
 
