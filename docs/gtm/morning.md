@@ -2,7 +2,7 @@
 
 | Time | What | Who | From |
 | --- | --- | --- | --- |
-| 7:00 | Pack from the packing list. The Mac, three iPhones and the power banks at 100%, or charging now. | All | run-sheet.md: Sunday timeline (7:00), Power, Packing list |
+| 7:00 | Pack from the packing list. The Mac, three iPhones and the power banks at 100%, or charging now. Lanyards on all day (a lost one means a trip to the entrance desk). | All | run-sheet.md: Sunday timeline (7:00), Power, Packing list |
 | 7:00 | Watch **`~/Movies/MeNIN-video/out/menin-demo-3min-final.mp4`** (2:41) once, start to finish, sound on; then `menin-demo-2min-final.mp4` (1:56, Cartesia's cut). Both passed the leader's frame and audio checks overnight (three independent reviews, v4 → v7). | **MATUS** | video.md: "Morning, 7:00" |
 | 7:20 | Any fixes go to builder, in one message. Confirm Sunya is up for the 8:00 repo flip. | **MATUS** | video.md: "Morning, 7:00"; run-sheet.md: Sat night |
 | 7:40 | **YouTube, Unlisted:** `menin-demo-3min-final.mp4` (2:41), titled **"MeNIN: Homer teaches you to speak. Then you battle. (Cal Hacks 13.0)"**, with the description from video.md (e). Then `menin-demo-2min-final.mp4` (1:56) as its own Unlisted video, for Cartesia. Play both in a logged-out window. | **MATUS** | video.md: Export, (e) YouTube |
@@ -18,7 +18,8 @@
 | **8:30–8:40** | **Starts at 8:30 no matter what. Only if Homer on Agentverse shipped:** the Fetch.ai Submission agent in ASI:One. Matus creates the team and enters the GitHub, Devpost and Fetch-cut video URLs; every teammate joins with the Team ID until it reads "Submitted". | **MATUS** + every teammate | opportunities.md: Fetch.ai; run-sheet.md: 8:00–8:40 |
 | 8:40 | **Devpost emails match Hive** for all three on the team page; each teammate fixes their own. | Matus checks, each fixes | devpost.md: Submission checklist; run-sheet.md: 8:45 |
 | 8:40 | Devpost final pass: every track ticked (Fetch.ai only if submitted), the Figma Slides link in "Try it out", the video is the 2:41 link, no `[` left. | **MATUS** | submission-packet.md: §3; devpost.md |
-| **8:45** | **Devpost submitted.** The hard deadline is 9:00. | **MATUS** | run-sheet.md: 8:45 |
+| **8:45** | **Devpost submitted.** **Submissions lock at 9:00** (MLH, 6:07 AM): the 2:41 link and every track must be in by then, with no swaps after. | **MATUS** | run-sheet.md: 8:45; gtm sweep 14 |
+| 9:00 | **Freeze.** Submissions lock at 9:00 (MLH, 6:07 AM): no commits, deploys, TestFlight builds or website changes after this unless an organizer says bug fixes are allowed (the 5:54 AM question is unanswered). The public repo shows every commit time. Judges have NOT watched the video ("No they wont"): the table demo shows each track's tech itself, never "as you saw in our video". Whole team at the table 10:30–12:30 ("Technically, your whole team needs to be present"). | **All** (leader enforces the freeze) | slack-intel.md: sweep 14; run-sheet.md: 8:45 and judging rows |
 | 9:00–9:20 | **Visual pass** (cosmetic; build 45 is final either way) → debate on Achilles' choice → verdict without the arena tab → Safari browser poet. Over time: Safari slips first, then the no-arena-tab check, to right after table setup. | **MATUS**, pm, a second teammate | ux-flow.md: "Visual pass" through "the verdict without the arena tab"; run-sheet.md: 9:00–9:20 |
 | **9:30** | Whole team at the Palace of Fine Arts (the official arrival). | All | run-sheet.md: 9:30 |
 | **9:45** | **Table assignment** is announced; move within 30–45 min. Add the table number on Devpost if it has a field. | All (Devpost: Matus) | run-sheet.md: 9:45; devpost.md: Submission checklist |
@@ -29,4 +30,4 @@
 | 10:20 | `caffeinate -dims` running, lid open, Mac plugged in if the table has power. Backup video on the Mac and every phone, offline. | Operator | run-sheet.md: Before each judge, Power |
 | 10:20 | **Phones charged**, every one on build 45, power banks at the table. | All | run-sheet.md: Power, Device roles |
 | 10:25 | **Personal hotspots off** on every phone (otherwise we're disqualified). | All | run-sheet.md: 10:30–12:30, Fallbacks |
-| **10:30–12:30** | **Judging. The whole team stays at the table.** | All | run-sheet.md: 10:30–12:30 |
+| **10:30–12:30** | **Judging. The whole team stays at the table** (MLH, 6:08 AM: "Technically, your whole team needs to be present"; a sick teammate asks an organizer at the concierge). Judges won't have watched the video: show each track's tech live, never "as you saw in the video". | All | run-sheet.md: 10:30–12:30; gtm sweep 14 |

@@ -18,7 +18,7 @@ It has 20 slides and is cleaned up. Every Figma file in it passes the logged-out
 3. **Slide 10, "The website, as Paul built it in Figma Make": embed the Make file** over the website screenshot: https://www.figma.com/make/0o7GzG4KEQejktGJeUuNbt/MeNIN
    Then delete the "[Make embed goes here]" chip and the screenshot under it. The slide's title, description and "Open the Make file ↗" link are already in place.
 
-4. **Slide 3, "The demo · 3:00": the video.** Paste the YouTube link of the final cut and choose **Embed**. If Slides won't embed YouTube, drag the final MP4 onto the slide instead. Then delete the "[video embed goes here]" chip and the poster (the C1 title card) under it.
+4. **Slide 3, "The demo · 3:00": the video.** Paste the YouTube link of the final cut and choose **Embed**. If Slides won't embed YouTube, drag the final MP4 onto the slide instead. Then delete the "[video embed goes here]" chip and the poster (the C1 title card) under it. **If both ask for a Pro upgrade** (a hacker says video embeds need Pro, #spons-figma, Sun 5:07 AM; no Figma answer), keep the C1 poster, put the YouTube link on it as a visible text link, and delete only the chip.
 
 5. **Share: confirm only.** The deck and every file in it already answer logged out, so link sharing is on. In the deck's **Share** dialog, check it says **Anyone with the link → can view**.
 
