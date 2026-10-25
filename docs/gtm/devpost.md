@@ -204,24 +204,34 @@ It's published on the Apify Store: https://apify.com/matusnator/epithet-miner (A
 
 ## Tracks to tag on Devpost
 
-**Rechecked Sat 4:17 PM:** Devpost splits Apify into two entries again (tag both), merges Microsoft's two prizes into one entry, and still has no MLH Gen AI, .Tech or DigitalOcean. **As of Sat 12:20 PM, Devpost lists "[Spacetime] Best Use of Spacetime" and "[Anthropic] Claude for Public Benefit". Tag both** (leader). It still has no MLH Gen AI, .Tech or DigitalOcean (Hive has all three; Devpost lists Vultr instead). **As of Sat 2:20 PM, Figma's five old entries are one: "[Figma] Best Figma Workflow Hack".** MLH: "you can opt in to multiple prize categories at time of submission!" An organizer: "Devpost will also be updated soon!" (#0-ask-directors, Sat 10:40–10:50 AM). Tag every track below that Devpost offers on Sunday morning. **How:** tracks are picked on the submission form ("step 3 or 4"), after joining the Cal Hacks 13.0 Devpost (MLH, #0-ask-directors, Sat 12:24 PM). A hacker reported that Step 4 lists individual prize names, such as "1st place from Microsoft", so tick every prize line under each track we enter.
+**LOCKED by gtm, Sat 10:15 PM**, against the live Devpost prize list (47 entries, rechecked 10:12 PM, unchanged since 6:20 PM). Tick these under Sponsors & Special Prizes. There's no cap on tags ("As many as your project applies to!", organizers). But organizers shortlist each project "for the track we best believe your project fits" (#0-ask-directors, Sat 7:51 PM), so the page leads with the live voice battle.
 
-- [ ] **Spacetime: Best Use of Spacetime** (on Devpost since Sat ~12 PM)
-- [ ] **Meta: "[Meta] Meta/Facebook: Bringing People Closer Together with AI"**: an "Invitation to advance to the Round 2 Hackathon hosted at Meta's Menlo Park campus. Travel and accommodations provided." (Devpost, Sat 4:17 PM)
-- [ ] Cartesia: Best Use of Cartesia
-- [ ] **Anthropic: Claude for Public Benefit** (on Devpost since Sat ~12 PM)
-- [ ] **Figma: "[Figma] Best Figma Workflow Hack"** (one entry since Sat ~2 PM; add the Figma Slides link and the stage log). Devpost shows "$1,000 in cash, 1 winner" in Amazon gift cards, but Figma's brief still lists four prizes: Best Figma Workflow $2,000, Best Stage Log $2,000, Best Design $500, Most Creative $500. The booth activation ended at 2 PM, so Matus can ask in #spons-figma (draft in [slack-intel.md](slack-intel.md)). We submit the same three deliverables either way: the video (3 minutes max), the stage log and the Figma Slides deck.
-- [ ] MLH: Best Use of Gen AI
-- [ ] MLH: Best .Tech Domain Name (if registered)
-- [ ] MLH: Commit Fellowship (if we want it)
-- [ ] **Microsoft: "[Microsoft] Built for the Real World (1st), Customer Impact Award (2nd)"**, one entry since Sat ~4 PM ([opportunities.md](opportunities.md) #3)
-- [ ] MLH: Best Domain Name from GoDaddy Registry (only if we register one)
-- [ ] **Fetch.ai: Best Use of Fetch.ai** (only if Homer's judge is live on Agentverse and usable from ASI:One)
-- [ ] **Moss: Best Use of Moss.** Shipped: `HOMER_DEALER=moss` is live on the droplet, a ranked lookup p50 13.2 ms on the droplet, 180-formula bank (`homer/bench/moss-2026-10-24-droplet.txt`), with a tested fallback. Tag it.
-- [ ] MLH: Best Use of DigitalOcean (the agent service runs there)
-- [ ] **Apify, two entries again (Devpost, Sat 4:17 PM): tag both.** "[Apify] Best Use of Apify" (5 winners: $2,000 / $1,000 / $800 / $400 / $400) and **"[Apify] Best Actor sponsored by Apify"** ($400, 1 winner: "a Best Actor award for building an actor for this event. Project must be using Apify in a meaningful way."). Epithet Miner was built at this event and mined 55 of the bank's 180 formulas. The blurb still says **Epithet Miner is an Apify Actor, built with AI chat**, and gives the Store link and Actor ID `v4i7ItNXjHMmnKzfo`, as Apify staff asked ("in your submission just share the link and id for us", #spons-apify, Sat 1:13 PM).
+**Tick: sponsor tracks where the sponsor does a job MeNIN needs**
+- [ ] **[Spacetime] Best Use of Spacetime**: $2,048 / $1,024 / $512. The server runs the battle.
+- [ ] **[Cartesia] Best Use of Cartesia**: Meta glasses. Voice is the whole game.
+- [ ] **[Anthropic] Claude for Public Benefit**: $5,000 in Claude credits, a year of Max 20x and office hours. Claude judges and hosts; Claude Code built it.
+- [ ] **[Meta] Meta/Facebook: Bringing People Closer Together with AI**: a Round 2 invite at Menlo Park.
+- [ ] **[Figma] Best Figma Workflow Hack**: $1,000 on Devpost ($2,000 + $2,000 + $500 + $500 in Figma's brief). The Slides link goes in "Try it Out links".
+- [ ] **[Apify] Best Use of Apify**: $2,000 / $1,000 / $800 / $400 / $400.
+- [ ] **[Apify] Best Actor sponsored by Apify**: $400. Give the Store link and the Actor ID.
+- [ ] **[Moss] Best Use of Moss**: AirPods, 2 winners. It's live in the dealer, with a droplet bench.
+- [ ] **[Microsoft] Built for the Real World (1st), Customer Impact Award (2nd)**: a Surface per member. A long shot, but true and free.
 
-Main prizes are automatic.
+**Tick: Cal Hacks main prizes** (if the form lists them; "Main prizes are automatic" was our earlier read, but Devpost lists them as entries, so tick them to be safe)
+- [ ] **Cal Hacks Most Creative Hack**: our best main-prize bet
+- [ ] Cal Hacks First / Second / Third Overall
+- [ ] Cal Hacks Most Technically Complex Hack
+- [ ] Cal Hacks Best People-First Social Impact Hack: practicing to speak, with friends
+- [ ] Cal Hacks Hacker's Choice
+
+**Tick only if the condition is true by 8:45 AM**
+- [ ] **[Fetch.ai] Best Use of Fetch.ai**: $1,500 / $1,000 / $500. Only if Homer answers in an ASI:One chat today and `[ASI:One link]` is filled. Otherwise untick it and delete the Fetch blurb. Pitch it only to Fetch judges, never in the main 2:00.
+- [ ] **[MLH] Best Domain Name from GoDaddy Registry**: a digital gift card. Only if Matus registers the free domain tonight (code `MLHCH2681` at mlh.link/godaddyregistry → tech.study; `playmenin.tech`) and points it at the website. That's 10 minutes.
+- [ ] **[MLH] Commit Fellowship Prize Category**: an interview for a 3-week founder sprint. Only if the team might continue after Sunday (Matus's call).
+
+**Don't tick** (we'd have to fake it, or it's not us): Best Beginner, Best Solo, Best Hardware, Best Planet-First; Gemini, Solana, Tiger Data, Vultr, Snowflake; Hyphenate, Visa, Factory, Armadin, Convex, Creao AI (all three), Bitdeer, Elastic, Capital One, CRS, SpaceXSI, Coinbase, Notability, Mana, Bright Data, Atlassian.
+
+**Not on Devpost, so they can't be tagged:** MLH Best Use of Gen AI, Best .Tech Domain Name, Best Use of DigitalOcean (Hive lists them; Devpost doesn't). Still name DigitalOcean and Claude in the README and the "Built with" list.
 
 ## Submission checklist
 
