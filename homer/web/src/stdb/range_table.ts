@@ -23,4 +23,5 @@ export default __t.row({
   openedAt: __t.timestamp().name("opened_at"),
   endsAt: __t.timestamp().name("ends_at"),
   updatedAt: __t.timestamp().name("updated_at"),
+  camera: __t.bool(),
 });

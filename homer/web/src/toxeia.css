@@ -261,6 +261,125 @@
   animation: tox-stamp 0.4s ease-out both;
 }
 
+/* ── The camera: the archer, live, in the range's bottom-left corner ────────── */
+/* src/toxeia/CameraView.tsx, inside .range:
+     <figure class="tox-cam starting | searching | steadying | tracking">
+       <div class="tox-cam-frame"><video/><svg>the arms</svg></div>
+       <figcaption><i></i>Tracking</figcaption>
+     </figure>
+   Small, clear of the target, the wind and the meter; video and arms mirrored together. */
+.toxeia .tox-cam {
+  position: absolute;
+  left: 2.5%;
+  bottom: 5%;
+  z-index: 2;
+  display: grid;
+  gap: 0.35rem;
+  width: min(22%, 17rem);
+  margin: 0;
+}
+
+.toxeia .tox-cam-frame {
+  position: relative;
+  overflow: hidden;
+  background: var(--figure);
+  border: 3px solid var(--figure);
+  border-radius: 0.7rem;
+}
+
+.toxeia .tox-cam-frame > video,
+.toxeia .tox-cam-frame > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  scale: -1 1;
+}
+
+.toxeia .tox-cam-frame > video {
+  object-fit: cover;
+  filter: saturate(0.7) contrast(0.95);
+}
+
+/* Nobody in frame yet: the picture dims under the dashed figure of where to stand. */
+.toxeia .tox-cam.searching .tox-cam-frame > video,
+.toxeia .tox-cam.starting .tox-cam-frame > video {
+  opacity: 0.45;
+}
+
+.toxeia .tox-cam-ghost {
+  animation: tox-ghost 1.4s ease-in-out infinite alternate;
+}
+
+.toxeia .tox-cam .draw-ring {
+  fill: none;
+  stroke: var(--slip);
+  transition: r 0.08s linear;
+}
+
+.toxeia .tox-cam .draw-ring.good {
+  stroke: #f6c79a;
+}
+
+.toxeia .tox-cam .draw-ring.full {
+  stroke: var(--gold);
+}
+
+/* The caption: a dark pill; a live vermilion dot while tracking, gold while it
+   zeroes, hollow while it looks for the archer. */
+.toxeia .tox-cam figcaption {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  justify-self: start;
+  padding: 0.3rem 0.7rem 0.3rem 0.55rem;
+  color: var(--slip);
+  font: 700 0.72rem/1 system-ui, sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--figure);
+  border-radius: 99rem;
+}
+
+.toxeia .tox-cam figcaption i {
+  width: 0.6rem;
+  height: 0.6rem;
+  border: 2px solid var(--slip);
+  border-radius: 50%;
+}
+
+.toxeia .tox-cam.tracking figcaption i {
+  background: #c8452c;
+  border-color: #c8452c;
+  animation: tox-live 1.2s ease-in-out infinite;
+}
+
+.toxeia .tox-cam.steadying figcaption {
+  color: var(--figure);
+  background: var(--gold);
+}
+
+.toxeia .tox-cam.steadying figcaption i {
+  background: var(--figure);
+  border-color: var(--figure);
+}
+
+/* Fallen back to the phones: only the operator's note, quiet. */
+.toxeia .tox-cam.off figcaption {
+  opacity: 0.75;
+}
+
+/* Off the results screen, and under the pass overlay. */
+.toxeia[data-phase='done'] .tox-cam {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .toxeia .tox-cam {
+    width: 30%;
+  }
+}
+
 /* ── The board: every archer's three arrows and total ─────────────────────── */
 
 .toxeia .tox-board {
@@ -415,7 +534,18 @@
   to { opacity: 0; }
 }
 
+@keyframes tox-ghost {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+
+@keyframes tox-live {
+  50% { opacity: 0.35; }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .toxeia .tox-cam-ghost,
+  .toxeia .tox-cam.tracking figcaption i,
   .toxeia .range-art .aim-pulse,
   .toxeia .draw-meter.loosed .draw-frame,
   .toxeia .range-art .target.thunk,

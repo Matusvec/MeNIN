@@ -25,6 +25,7 @@
 .coach {
   display: grid;
   gap: 1rem;
+  margin-top: 0.8rem;
   color: #2c4b5c;
 }
 

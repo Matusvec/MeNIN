@@ -22,13 +22,18 @@ export type ToxeiaFeed = {
   range: Range | null // the station, the archer up, and the arrow on the string (wind, live aim and draw)
   archers: Archer[] // any order
   arrows: ArrowShot[] // this room's arrow_shot rows, any order
+  nextArcher?: (name: string) => void // camera mode: the host's next_archer (there's no bow phone)
 }
+
+/** Camera mode (range.camera, appended): the webcam aims and draws, each archer's phone looses. */
+export const isCamera = (range: Range | null) => Boolean((range as (Range & { camera?: boolean }) | null)?.camera)
 
 const SCORED_MS = 2500
 const CHAMPION_MS = 3000
 const STRONG_WIND = 3 // m/s: worth a word before the draw
 
 export const RULES = 'Toxeia. One phone is the bow: point it at the target. The other is the arrow: hold, pull back, let go.'
+export const CAMERA_RULES = 'Toxeia. Face the target and raise your bow arm. Phone in the other hand: thumb down, draw it back to your face, lift your thumb to loose.'
 
 /** When this screen first saw each arrow land (local ms), by arrow_shot id. */
 const seen = new Map<bigint, number>()
@@ -87,7 +92,7 @@ function call(shot: ArrowShot): string | null {
   if (shot.ring === 10) return 'Into the gold!'
   const drift = 0.18 * shot.wind * shot.flight
   const blown = Math.abs(drift) >= 0.12 && Math.sign(shot.x) === Math.sign(shot.wind) && Math.abs(shot.x) >= 0.15
-  const short = shot.draw < 0.8 && shot.y < -0.2
+  const short = shot.draw < 0.6 && shot.y < -0.15 // below a 0.6 draw the arrow drops (the module's landing)
   if (shot.ring === 0 && short) return 'A soft draw. It fell short.'
   if (shot.ring === 0 && blown) return 'The wind took it.'
   if (shot.ring === 0) return 'Off the face.'
@@ -104,10 +109,13 @@ export function conductToxeia(c: Conductor & ToxeiaFeed): void {
   const up = range && range.archerId ? archers.find((a) => a.id === range.archerId) : undefined
   switch (room.phase) {
     case 'ready': {
-      // The rules once per hall, then whoever's next in join order; Ready on the bow starts them.
-      if (!archers.length) c.say(`toxeia rules ${room.id}`, RULES)
+      // The rules once per hall, then whoever's next in join order. Two phones: Ready on the bow
+      // starts them. Camera: there's no bow phone, so this calls them up once Homer has said it.
+      const camera = isCamera(range)
+      if (!archers.length) c.say(`toxeia rules ${room.id}`, camera ? CAMERA_RULES : RULES)
       const next = nextUp(c.poets, archers)
-      if (next) c.say(`toxeia next ${c.battleKey} ${next.id}`, archers.length ? `Pass both phones to ${next.name}.` : `${next.name}, take both phones.`)
+      if (next && camera) c.say(`toxeia step ${c.battleKey} ${next.id}`, `${next.name}, step up to the line.`, () => c.nextArcher?.(next.name))
+      else if (next) c.say(`toxeia next ${c.battleKey} ${next.id}`, archers.length ? `Pass both phones to ${next.name}.` : `${next.name}, take both phones.`)
       return
     }
     case 'speaking': {

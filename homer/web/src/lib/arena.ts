@@ -13,6 +13,9 @@ import { conductDiscus } from './discus'
 import { conductStadion } from './stadion'
 import { type Bout, conductPygmachia } from './boxing'
 import { conductToxeia, type ToxeiaFeed } from './toxeia'
+import { PoseCamera } from '../pose/camera'
+import { ArcheryMapper, LOST_MS } from '../pose/archery'
+import type { ArcherPose, CameraState } from '../toxeia/CameraView'
 import { Stage } from './stage'
 import { HomerVoice } from './voice'
 
@@ -74,9 +77,24 @@ export type Conductor = {
   say: (key: string, text: string, then?: () => void) => void // Homer's line, queued, once per key
   perform: (key: string, task: () => Promise<void>) => void // any timed hold, queued with his lines, once per key
   advanceOnce: (from: string | null) => void
+  nextArcher: (name: string) => void // toxeia, camera mode: the host calls up the next archer (join order)
 } & ToxeiaFeed // toxeia: the range, the archers and their arrows (lib/toxeia.ts, multiplayer's)
 
+/** Archery by camera (SPEC "Toxeia"): what the corner view shows (artist's CameraView), or null when it's off. */
+export type CameraFeed = {
+  stream: MediaStream | null
+  pose: ArcherPose | null
+  state: CameraState
+  draw: number
+  note: string // the operator's word when the phones have taken over ("Camera denied: phones")
+}
+
 const TICK_MS = 300
+const CAMERA_SEND_MS = 50 // set_camera_aim at ~20 Hz
+const CAMERA_SWITCH_MS = 1000 // set_range_camera at most this often (the subscription takes a beat to show it)
+// Test halls only: a video file stands in for the webcam (headless runs), ?camera-file=/test/archer.webm.
+export const CAMERA_TRIAL = STDB_DB !== 'homer-calhacks' // the camera switch shows (and starts on) in test halls
+const CAMERA_FILE = STDB_DB !== 'homer-calhacks' ? new URLSearchParams(window.location.search).get('camera-file') ?? '' : ''
 const FINALE_CAP_MS = 45000 // a finale still on screen this long is advanced (a song + crown is ~20 s): insurance only
 const STEP_UP_MS = 2000 // auto-ready: a short beat before each turn starts (debate, discus; and after a reconnect)
 // Poetry: ready to SPEAK in about 6 s. The phone warms its mic for MIN_READY_MS of `ready`, and the
@@ -115,6 +133,8 @@ export type ArenaView = {
   sound: boolean // the hall was started with a click: voice and drum are on
   comeback: { name: string; secondsLeft: number } | null // waiting for a poet's phone to come back, counting down
   voiceNote: string // the operator corner: why Homer is on text ("Voice credits out", "Voice offline"), or ''
+  camera: CameraFeed | null // toxeia: the webcam's corner view
+  cameraOn: boolean // the operator's camera switch (on by default in archery)
 } & ToxeiaFeed
 
 /** The verdict the agent posts when the judge never answered (homer/homer/judge.py SILENT_VERDICT): the
@@ -221,6 +241,15 @@ export class Arena {
   private fightClock: { go: number; offset: number } | null = null // server go_at -> this browser's clock
   private lastFreshCall = 0
   private onsets = { turn: 0n, count: 0, armed: true } // the live verse's voice onsets
+  // Archery by camera: the webcam's pose drives the range's aim and draw; the phones take over when it can't.
+  // The operator's switch. Off by default on the prod hall until the camera passes its runs (leader); test halls
+  // start with it on.
+  private cameraOn = CAMERA_TRIAL
+  private poseCam: PoseCamera | null = null
+  private mapper = new ArcheryMapper()
+  private cameraSentAt = 0
+  private rangeCameraAt = 0 // when set_range_camera was last called
+  private phonesSince: string | null = null // the arrow the phones took over on: the camera waits for the next
 
   constructor(private onView: (view: ArenaView) => void) {}
 
@@ -353,6 +382,7 @@ export class Arena {
     this.voice?.close()
     this.roomSub?.unsubscribe()
     this.dropToxeia()
+    this.stopCamera()
     this.conn?.disconnect()
     this.conn = null
   }
@@ -502,6 +532,7 @@ export class Arena {
     if (!room || this.status !== 'connected') return
     this.trackGeneration(room)
     this.followToxeia(room)
+    this.followCamera(room)
     this.autoStartIfNeeded(room)
     this.askAgentIfNeeded(room)
     if (room.event === 'discus') conductDiscus(this.conductor(room))
@@ -547,6 +578,89 @@ export class Arena {
       say: (key, text, then) => this.say(key, text, then),
       perform: (key, task) => this.perform(task, key),
       advanceOnce: (from) => this.advanceOnce(from),
+      nextArcher: (name) => this.call(() => this.conn!.reducers.nextArcher({ roomId: room.id, name })),
+    }
+  }
+
+  // ----- archery by camera -------------------------------------------------------
+
+  /** The operator's camera switch: off hands the range to the phones until it's turned back on. */
+  setCamera(on: boolean): void {
+    this.cameraOn = on
+    if (!on) this.stopCamera()
+    this.publish()
+  }
+
+  /** Each tick in a toxeia room: run the webcam, and keep the range's mode (camera or phones) honest. */
+  private followCamera(room: Room): void {
+    const range = room.event === 'toxeia' ? this.toxeia().range : null
+    if (!range || !this.cameraOn) {
+      if (this.poseCam) this.stopCamera()
+      if (range?.camera) this.rangeCamera(room, false)
+      return
+    }
+    if (!this.poseCam) {
+      this.poseCam = new PoseCamera((frame) => this.onPose(frame), () => this.publish())
+      void this.poseCam.start(CAMERA_FILE)
+      // Test halls: headless runs read the camera from the console (window.meninCamera()).
+      if (STDB_DB !== 'homer-calhacks') {
+        ;(window as unknown as { meninCamera?: () => unknown }).meninCamera = () => ({
+          status: this.poseCam?.status, error: this.poseCam?.error, reading: { ...this.mapper.reading, pose: undefined },
+        })
+      }
+    }
+    const arrow = range.archerId ? `${range.archerId}.${range.arrowNo}` : ''
+    this.mapper.newArrow(arrow)
+    const live = this.poseCam.status === 'live'
+    const lost = this.mapper.reading.lostMs > LOST_MS
+    if (range.camera && (!live || lost)) {
+      this.phonesSince = arrow // the phones take this arrow; the camera waits for the next
+      this.rangeCamera(room, false)
+    } else if (!range.camera && live && !lost && this.mapper.reading.state !== 'searching' && (this.phonesSince === null || this.phonesSince !== arrow)) {
+      this.phonesSince = null
+      this.rangeCamera(room, true)
+    }
+  }
+
+  private rangeCamera(room: Room, on: boolean): void {
+    if (Date.now() - this.rangeCameraAt < CAMERA_SWITCH_MS) return
+    this.rangeCameraAt = Date.now()
+    this.call(() => this.conn!.reducers.setRangeCamera({ roomId: room.id, on }))
+  }
+
+  /** Every pose frame (~30 fps): map it, and while an arrow is up in camera mode send the aim and draw at 20 Hz. */
+  private onPose(frame: Parameters<ArcheryMapper['update']>[0]): void {
+    const reading = this.mapper.update(frame)
+    const room = this.room()
+    const range = room?.event === 'toxeia' ? this.toxeia().range : null
+    const now = Date.now()
+    if (room && range?.camera && range.archerId && room.phase === 'speaking' && reading.state !== 'searching' && now - this.cameraSentAt >= CAMERA_SEND_MS) {
+      this.cameraSentAt = now
+      const { yaw, pitch, draw } = reading
+      this.call(() => this.conn!.reducers.setCameraAim({ roomId: room.id, yaw, pitch, draw }))
+    }
+    this.publish()
+  }
+
+  private stopCamera(): void {
+    this.poseCam?.stop()
+    this.poseCam = null
+  }
+
+  private cameraFeed(): CameraFeed | null {
+    const cam = this.poseCam
+    if (!this.cameraOn) return { stream: null, pose: null, state: 'searching', draw: 0, note: 'Camera off: phones' }
+    if (!cam) return null
+    if (cam.status === 'denied') return { stream: null, pose: null, state: 'searching', draw: 0, note: 'Camera denied: phones' }
+    if (cam.status === 'failed') return { stream: null, pose: null, state: 'searching', draw: 0, note: 'No camera: phones' }
+    const r = this.mapper.reading
+    const starting = cam.status !== 'live'
+    return {
+      stream: cam.stream,
+      pose: r.pose,
+      state: starting ? 'starting' : r.state,
+      draw: r.draw,
+      note: !starting && r.lostMs > LOST_MS ? 'Step into view: phones meanwhile' : '',
     }
   }
 
@@ -1171,6 +1285,8 @@ export class Arena {
       carvedBy: room ? this.carvedBy(room) : '',
       sound: Boolean(this.stage),
       voiceNote: this.voiceNote,
+      camera: room?.event === 'toxeia' ? this.cameraFeed() : null,
+      cameraOn: this.cameraOn,
       comeback: this.comeback ? { name: this.comeback.name, secondsLeft: Math.max(0, Math.ceil((this.comeback.until - Date.now()) / 1000)) } : null,
     })
   }

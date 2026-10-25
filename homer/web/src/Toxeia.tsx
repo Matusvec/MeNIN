@@ -5,7 +5,7 @@
 
 import { useEffect, useState, type CSSProperties } from 'react'
 import type { ArenaView } from './lib/arena'
-import { AIM_SPAN, ARROWS, arrowsOf, newest, nextUp, onFace, order, seenAt, standings, windOf, type ToxeiaFeed } from './lib/toxeia'
+import { AIM_SPAN, ARROWS, arrowsOf, isCamera, newest, nextUp, onFace, order, seenAt, standings, windOf, type ToxeiaFeed } from './lib/toxeia'
 import Range, { FLIGHT_S, type ToxShot } from './toxeia/Range'
 import './toxeia.css'
 
@@ -87,7 +87,11 @@ export default function ToxeiaPanel({ view }: { view: ArenaView & ToxeiaFeed }) 
             {shot.ring}
           </div>
         )}
-        {next && <div className="tox-pass">{archers.length ? `Pass both phones to ${next.name}` : `${next.name}, take both phones`}</div>}
+        {next && (
+          <div className="tox-pass">
+            {isCamera(range) ? `${next.name}, step up to the line` : archers.length ? `Pass both phones to ${next.name}` : `${next.name}, take both phones`}
+          </div>
+        )}
       </div>
       <ol className="tox-board">
         {board.map((a) => {

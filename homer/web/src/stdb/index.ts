@@ -57,10 +57,12 @@ import ReactReducer from "./react_reducer";
 import RematchReducer from "./rematch_reducer";
 import RescueReducer from "./rescue_reducer";
 import SetBowAimReducer from "./set_bow_aim_reducer";
+import SetCameraAimReducer from "./set_camera_aim_reducer";
 import SetDrawReducer from "./set_draw_reducer";
 import SetEventReducer from "./set_event_reducer";
 import SetFistAimReducer from "./set_fist_aim_reducer";
 import SetProsodyReducer from "./set_prosody_reducer";
+import SetRangeCameraReducer from "./set_range_camera_reducer";
 import SetSceneReducer from "./set_scene_reducer";
 import SetServiceKeyReducer from "./set_service_key_reducer";
 import SetStrideReducer from "./set_stride_reducer";
@@ -404,10 +406,12 @@ const reducersSchema = __reducers(
   __reducerSchema("rematch", RematchReducer),
   __reducerSchema("rescue", RescueReducer),
   __reducerSchema("set_bow_aim", SetBowAimReducer),
+  __reducerSchema("set_camera_aim", SetCameraAimReducer),
   __reducerSchema("set_draw", SetDrawReducer),
   __reducerSchema("set_event", SetEventReducer),
   __reducerSchema("set_fist_aim", SetFistAimReducer),
   __reducerSchema("set_prosody", SetProsodyReducer),
+  __reducerSchema("set_range_camera", SetRangeCameraReducer),
   __reducerSchema("set_scene", SetSceneReducer),
   __reducerSchema("set_service_key", SetServiceKeyReducer),
   __reducerSchema("set_stride", SetStrideReducer),

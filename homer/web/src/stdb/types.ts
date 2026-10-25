@@ -215,6 +215,7 @@ export const Range = __t.object("Range", {
   openedAt: __t.timestamp(),
   endsAt: __t.timestamp(),
   updatedAt: __t.timestamp(),
+  camera: __t.bool(),
 });
 export type Range = __Infer<typeof Range>;
 
