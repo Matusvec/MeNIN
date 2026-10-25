@@ -10,7 +10,7 @@ Status key: ✅ the receipt is in the repo · ⚠️ true, but the wording or th
 - multiplayer: `CONTRACT.md` line 16.
 - artist: the Figma Handoff and Code-generation entries, and the Slides deck.
 - leader, at the freeze: the root README and the LICENSE.
-- Matus decides: MIT, the Apify "Matus checked them" wording, and Make's AI.
+- Matus decides: ~~MIT~~ (**decided: MIT**, `LICENSE`, 1fa4be3, Sat 10:52 PM), the Apify "Matus checked them" wording, and Make's AI.
 
 gtm swaps each bracket for its real number as the receipts land.
 
@@ -42,6 +42,7 @@ gtm swaps each bracket for its real number as the receipts land.
 | --- | --- | --- |
 | The battle is a phase machine in reducers, and a scheduled reducer closes each turn | ✅ | `spacetime/src/index.ts` (`advance`, `start_turn` with `ScheduleAt`, `turnTimeout` with `onSchedule`); `spacetime/CONTRACT.md` lines 44–73 |
 | Only your phone can read your hand | ⚠️ wording | It's **row-level security** (a `clientVisibilityFilter` on the `hand` table, `index.ts` ~277), not a private table. `smoke.mjs`: "Ada sees only her own hand", "an anonymous client sees no hands". Say "row-level security". |
+| A phone that loses the network comes back by itself, on the right screen, with no relaunch | ✅ live | Build 31's reconnect fix (`8a50d58`: a reconnect replaces each table's rows instead of stacking ghosts). Matus, on a real iPhone: after the airplane-mode test at Sat 10:49 PM he was on the right screen with everyone listed, no relaunch (leader, Sat 10:52 PM). |
 | A phone that dies takes its seat back with its score | ✅ code, ❌ live | `index.ts` ~844 (seat takeover by name); `smoke.mjs`; `scripts/hall-soak.ts` ("takes the seat back from a new device mid-turn"). Claim it live only if take 2 of the evening shoot or multiplayer's runs pass. |
 | The speaker's voice streams at 20 Hz into a table the arena subscribes to | ⚠️ wording | Only the **speaking** phone streams (one `prosody` row per room, overwritten about every 50 ms). Say "the speaking phone", not "each phone". |
 | iOS uses the community Swift SDK with two patches | ✅ | `ios/Vendor/SpacetimeDB/README.md`; `grep -rn "HOMER PATCH" ios/Vendor` |
@@ -105,6 +106,7 @@ Judged on workflow design, adoptability, output quality, presentation and innova
 - ✅ A root `.gitignore` now covers `.env*`, `.token-*`, `*.p8`, `Secrets.xcconfig` and `node_modules` (83abf4b).
 - ⚠️ Stadion and boxing exist only as uncommitted changes. Claim them only once they're committed and pass 5 clean runs.
 - ⚠️ `spacetime/CONTRACT.md` line 16 still names the local database `homer`; the demo one is `homer-calhacks`.
+- ✅ License: MIT (`LICENSE`, commit 1fa4be3; Matus, Sat 10:52 PM). The README draft links it.
 - ✅ No secrets are committed: the freeze secret scan (gitleaks, all 365 commits) came back clean (leader, Sat ~10:05 PM). The droplet IP is public in a few files, which is fine.
 - ✅ The Google Calendar link in `slack-intel.md` is removed (gtm, Sat ~5:30 PM).
 

@@ -148,3 +148,7 @@ The optional app key goes in `ios/Homer/Support/Secrets.xcconfig` (gitignored).
 | `homer/` | The agent service: the judge, the scanner, the dealer, voice tokens |
 | `content/` | Lessons and the formula bank |
 | `docs/` | The UX flow, voice research, the music brief, and go-to-market (`docs/gtm/`) |
+
+## License
+
+MIT. See [`LICENSE`](LICENSE).
