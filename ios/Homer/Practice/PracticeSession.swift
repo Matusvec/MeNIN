@@ -189,7 +189,10 @@ final class PracticeSession {
         tasks.append(Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(max(0, Int(endAt - Date().timeIntervalSince1970 * 1000))))
             guard let self, self.phase == .live else { return }
-            await self.finish()
+            // finish() cancels every task in `tasks`, this one included, which would cancel the
+            // judge call mid-flight ("Homer is silent" the instant the window ran out). Hand off
+            // to an untracked task instead.
+            Task { @MainActor [weak self] in await self?.finish() }
         })
         // The scene's color, and the samples Range is scored from: about every 1.5 s.
         tasks.append(Task { [weak self] in
@@ -304,11 +307,34 @@ final class PracticeSession {
             hand: hand.map(\.text), played: Array(played), rescues: rescues, previous: nil,
             emotionHistory: emotionHistory.isEmpty ? nil : emotionHistory, hoard: hoard, demo: false
         )
+        // A silent judge (the agent restarting, a Claude blip) gets one more ask, 2 s later, before
+        // Homer says he's silent. The poet stays on "weighing" meanwhile.
+        for attempt in 0..<2 {
+            if attempt > 0 {
+                result = nil
+                try? await Task.sleep(for: .seconds(2))
+            }
+            await ask(agent, request)
+            Self.log.notice("practice judge try \(attempt): result \(self.result == nil ? "none" : (self.result!.isSilent ? "silent" : "scored"), privacy: .public) verdict \(self.verdictText ?? "-", privacy: .public) words \(verse.split(separator: " ").count)")
+            if let r = result, !r.isSilent { break }
+            if result == nil, verdictText != nil { break }  // a streamed verdict with no scorecard
+        }
+        if verdictText == nil {
+            verdictText = Self.silentLine
+            Task { await homer.say(Self.silentLine) }
+        }
+        phase = .verdict
+    }
+
+    private static let silentLine = "Homer is silent on this one."
+
+    private func ask(_ agent: AgentClient, _ request: JudgeRequest) async {
         do {
             // The verdict line arrives first, so Homer starts speaking before the scores land.
             for try await event in agent.judgeStream(request) {
                 switch event {
                 case .verdict(let text):
+                    guard text != Self.silentLine else { continue }  // held until the retry decides
                     verdictText = text
                     Task { await homer.say(text) }
                 case .scorecard(let r):
@@ -316,10 +342,14 @@ final class PracticeSession {
                 }
             }
         } catch {
-            if result == nil, let r = try? await agent.judge(request) { accept(r) }
+            Self.log.error("practice judge stream failed: \(String(describing: error), privacy: .public)")
+            guard result == nil else { return }
+            do {
+                accept(try await agent.judge(request))
+            } catch {
+                Self.log.error("practice judge failed: \(String(describing: error), privacy: .public)")
+            }
         }
-        if result == nil, verdictText == nil { verdictText = "Homer is silent on this one." }
-        phase = .verdict
     }
 
     private func accept(_ r: JudgeResult) {
@@ -328,8 +358,9 @@ final class PracticeSession {
         print("PRACTICE verdict \(r.verdict) | best \(r.bestLine)")
         #endif
         result = r
+        if r.isSilent { return }  // judge() asks once more before Homer says he's silent
         if verdictText == nil {
-            verdictText = r.isDeclined ? "Not in my hall. Give me another." : (r.isSilent ? "Homer is silent on this one." : r.verdict)
+            verdictText = r.isDeclined ? "Not in my hall. Give me another." : r.verdict
             if let text = verdictText { Task { await homer.say(text) } }
         }
         if let coined = r.coined, !coined.isEmpty { onCoin(coined) }

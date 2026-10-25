@@ -42,7 +42,7 @@ struct RootView: View {
                     join: { code in app.route = .player(code: code.uppercased()) },
                     bard: { app.route = .bard },
                     practice: { app.route = .practice },
-                    discus: { app.route = .discusThrow }
+                    discus: nil  // Matus, Sat 10:24 PM: discus lives on the website; the route stays for the controller
                 )
             )
             .simultaneousGesture(LongPressGesture(minimumDuration: 3).onEnded { _ in app.route = .dev })

@@ -151,10 +151,13 @@ final class BardLessonSession {
                 onsetsMs: turn.onsetsMs.isEmpty ? nil : turn.onsetsMs,
                 name: poetName.isEmpty ? nil : poetName
             )
-            let feedback: LessonFeedback
-            do {
-                feedback = try await agent.lessonFeedback(request)
-            } catch {
+            // A silent judge (the agent restarting, a blip) gets one more ask, 2 s later.
+            var got = try? await agent.lessonFeedback(request)
+            if got == nil || got?.miss == "Homer is silent" {
+                try? await Task.sleep(for: .seconds(2))
+                if let again = try? await agent.lessonFeedback(request) { got = again }
+            }
+            guard let feedback = got else {
                 note = "Homer is silent on this one."
                 phase = .note
                 try? await Task.sleep(for: .seconds(2))
