@@ -167,7 +167,106 @@
 
 .coach .reply p {
   margin: 0;
-  font: italic 400 clamp(1.6rem, 2.8vw, 2.6rem)/1.3 Georgia, serif;
+  font: italic 400 clamp(1.5rem, 2.5vw, 2.3rem)/1.3 Georgia, serif;
+}
+
+/* The score of the attempt Homer just answered, on his card, so it's in view as it
+   lands (the log keeps the history below). Only when his latest reply is to a
+   scored verse attempt; Coach.tsx adds it after the p:
+
+     <div class="reply-score best? neutral?">
+       <strong>58</strong><small>/100</small>
+       <em class="trend up | down | same">52 → 58 ↑</em>          no em on the first
+       <span><i class="high?">Image <b>8</b></i><i>Answer <b>3</b></i><i>Craft <b>7</b></i></span>
+     </div> */
+.coach .reply-score {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.6rem;
+  margin-top: 0.35rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgb(255 255 255 / 18%);
+}
+
+.coach .reply-score strong {
+  color: #fff;
+  font: 700 2.2rem/1 Georgia, serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.coach .reply-score small {
+  margin-left: -0.3rem;
+  color: #c9dbe3;
+  font: 600 0.95rem/1 system-ui, sans-serif;
+}
+
+.coach .reply-score .trend {
+  padding: 0.3rem 0.7rem;
+  color: #fff;
+  font: 600 0.95rem/1 system-ui, sans-serif;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  background: rgb(255 255 255 / 14%);
+  border-radius: 99rem;
+}
+
+.coach .reply-score .trend.up {
+  color: #10303d;
+  background: #8fcbe0;
+}
+
+.coach .reply-score span {
+  display: flex;
+  gap: 0.9rem;
+  margin-left: auto;
+}
+
+.coach .reply-score i {
+  color: #c9dbe3;
+  font: 700 0.75rem/1 system-ui, sans-serif;
+  font-style: normal;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.coach .reply-score i b {
+  margin-left: 0.2rem;
+  color: #fff;
+  font: 700 1.25rem/1 Georgia, serif;
+  letter-spacing: 0;
+}
+
+.coach .reply-score i.high b {
+  color: #e2bd6c;
+}
+
+/* The best so far: the gold seal, stamped, and it says so. */
+.coach .reply-score.best strong {
+  padding: 0.12rem 0.5rem;
+  color: #2c2416;
+  background: #e2bd6c;
+  border-radius: 0.45rem;
+  animation: coach-stamp 0.45s ease-out 0.2s both;
+}
+
+.coach .reply-score.best small::after {
+  content: ' · best so far';
+}
+
+/* The judge never answered: grey, no trend, and it says why. */
+.coach .reply-score.neutral strong,
+.coach .reply-score.neutral i b {
+  color: #9fb0b8;
+}
+
+.coach .reply-score.neutral small::after {
+  content: ' · neutral, the judge timed out';
+}
+
+.coach .reply-score.neutral .trend {
+  display: none;
 }
 
 /* ── Your live words: big, so you see Homer hears you ────────────────────── */
@@ -196,6 +295,14 @@
 
 .coach[data-mic='listening'] .live-words {
   border-left-color: #328eaf;
+}
+
+/* Empty and not listening (Homer speaks, or waiting): a slim line, so Homer's card
+   and the score stay in view; it opens to full size when the mic does. */
+.coach:not([data-mic='listening']) .live-words:empty {
+  min-height: 0;
+  padding: 0.55rem 1.2rem;
+  font-size: 1.6rem;
 }
 
 /* ── The conversation: a calm scroll, newest at the bottom ────────────────── */
@@ -503,7 +610,8 @@
   .coach .turn,
   .coach .note-card,
   .coach .landed,
-  .coach .turn.you.latest.best .attempt-score strong {
+  .coach .turn.you.latest.best .attempt-score strong,
+  .coach .reply-score.best strong {
     animation: none;
   }
 

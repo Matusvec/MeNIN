@@ -218,7 +218,8 @@
   animation: tox-shock 0.5s ease-out var(--flight, 0.55s) both;
 }
 
-/* The score, stamped as the arrow lands: big, right of the target. The gold is gold. */
+/* The score, stamped as the arrow lands (Toxeia.tsx mounts it after the flight, so no
+   delay here): big, right of the target. The gold is gold. */
 .toxeia .tox-stamp {
   position: absolute;
   top: 10%;
@@ -234,8 +235,8 @@
   rotate: 6deg;
   pointer-events: none;
   animation:
-    tox-stamp 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2) 0.55s both,
-    tox-out 0.4s ease-in 2.6s forwards;
+    tox-stamp 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2) both,
+    tox-out 0.4s ease-in 2.2s forwards;
 }
 
 .toxeia .tox-stamp.bull {

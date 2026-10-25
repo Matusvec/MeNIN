@@ -41,6 +41,11 @@ export default function CoachPanel({ view, onWord }: { view: ArenaView; onWord: 
     if (!best || total >= best.total) bestOf.set(t.playerId, { id: t.id, total })
   }
 
+  // The newest exchange's score, up in Homer's reply card (artist: in view at 1440x900, not only in the log).
+  // Only when that reply answers a verse attempt: after a talk-back the card shows no score, so it's never stale.
+  const last = exchanges[exchanges.length - 1]
+  const lastScore = last ? scored.get(last.id) : undefined
+
   useEffect(() => {
     if (log.current) log.current.scrollTop = log.current.scrollHeight
   }, [exchanges.length])
@@ -68,6 +73,14 @@ export default function CoachPanel({ view, onWord }: { view: ArenaView; onWord: 
         <blockquote className="reply">
           <b>Homer</b>
           <p>{latest}</p>
+          {last && lastScore && (
+            <ReplyScore
+              score={lastScore}
+              prev={prevTotal.get(last.id)}
+              best={judged(last.id) && bestOf.get(last.playerId)?.id === last.id}
+              neutral={!judged(last.id)}
+            />
+          )}
         </blockquote>
       )}
       <TailVerse turnKey={turn ? `${turn.id}-${turn.attempt}` : ''} text={live} className="live-words" lines={false} onWord={onWord} />
@@ -103,18 +116,51 @@ export default function CoachPanel({ view, onWord }: { view: ArenaView; onWord: 
   )
 }
 
+type AttemptScore = { total: number; axes: ArrayLike<number> }
+
+/** "52 → 58 ↑" against the poet's previous judged attempt; none on a first attempt or a neutral score. */
+function Trend({ score, prev, neutral }: { score: AttemptScore; prev?: number; neutral: boolean }) {
+  if (prev === undefined || neutral) return null
+  const trend = score.total > prev ? 'up' : score.total < prev ? 'down' : 'same'
+  return (
+    <em className={`trend ${trend}`}>
+      {prev} → {score.total} {trend === 'up' ? '↑' : trend === 'down' ? '↓' : '='}
+    </em>
+  )
+}
+
+/** The newest attempt's score inside Homer's reply card (coach.css .reply-score). */
+function ReplyScore({ score, prev, best, neutral }: { score: AttemptScore; prev?: number; best: boolean; neutral: boolean }) {
+  return (
+    <div className={['reply-score', best && 'best', neutral && 'neutral'].filter(Boolean).join(' ')}>
+      <strong>{score.total}</strong>
+      <small>/100</small>
+      <Trend score={score} prev={prev} neutral={neutral} />
+      <span>
+        {CONTENT.map(([label, i]) => {
+          const v = score.axes[i] ?? 0
+          return (
+            <i key={label} className={v >= 8 ? 'high' : undefined}>
+              {label} <b>{v}</b>
+            </i>
+          )
+        })}
+      </span>
+    </div>
+  )
+}
+
 /** A poet's line in the log; a verse attempt also shows its score, the trend and (newest only) the bars. */
 function AttemptEntry({ who, text, score, prev, latest, best, neutral }: {
   who: string
   text: string
-  score?: { total: number; axes: ArrayLike<number> }
+  score?: AttemptScore
   prev?: number
   latest: boolean
   best: boolean
   neutral: boolean
 }) {
   const classes = ['turn', 'you', score && 'scored', best && 'best', score && latest && 'latest', neutral && 'neutral'].filter(Boolean).join(' ')
-  const trend = !score || prev === undefined ? null : score.total > prev ? 'up' : score.total < prev ? 'down' : 'same'
   return (
     <li className={classes}>
       <b>{who}</b>
@@ -123,11 +169,7 @@ function AttemptEntry({ who, text, score, prev, latest, best, neutral }: {
         <div className="attempt-score">
           <strong>{score.total}</strong>
           <small>/100</small>
-          {trend && !neutral && (
-            <em className={`trend ${trend}`}>
-              {prev} → {score.total} {trend === 'up' ? '↑' : trend === 'down' ? '↓' : '='}
-            </em>
-          )}
+          <Trend score={score} prev={prev} neutral={neutral} />
         </div>
       )}
       {score && latest && (
