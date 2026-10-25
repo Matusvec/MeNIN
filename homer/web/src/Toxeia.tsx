@@ -1,11 +1,13 @@
 // Toxeia on the arena screen: who's shooting, the range (artist's Range: the target with the
-// bow's live aim dot, the wind, the draw meter, the flight and the thunk), the score stamp, and
-// the board. lib/toxeia.ts calls the range; this only draws it, in artist's white-ground look
-// (toxeia.css, artist's file: its class contract is at its top).
+// bow's live aim dot, the wind, the draw meter, the flight and the thunk), the webcam's corner
+// view in camera mode (artist's CameraView, fed by the arena's pose tracking), the score stamp,
+// and the board. lib/toxeia.ts calls the range; this only draws it, in artist's white-ground
+// look (toxeia.css, artist's file: its class contract is at its top).
 
 import { useEffect, useState, type CSSProperties } from 'react'
 import type { ArenaView } from './lib/arena'
 import { AIM_SPAN, ARROWS, arrowsOf, isCamera, newest, nextUp, onFace, order, seenAt, standings, windOf, type ToxeiaFeed } from './lib/toxeia'
+import CameraView from './toxeia/CameraView'
 import Range, { FLIGHT_S, type ToxShot } from './toxeia/Range'
 import './toxeia.css'
 
@@ -82,6 +84,7 @@ export default function ToxeiaPanel({ view }: { view: ArenaView & ToxeiaFeed }) 
           flying={shot && shot.flight > 0 && since < FLYING_MS ? toShot(shot) : null}
           seat={shooter ? ink(shooter.id) : undefined}
         />
+        {view.camera && <CameraView {...view.camera} />}
         {shot && since >= FLIGHT_S * 1000 && (
           <div className={`tox-stamp${shot.ring === 10 ? ' bull' : ''}`} key={shot.id.toString()}>
             {shot.ring}

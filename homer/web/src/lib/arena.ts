@@ -93,7 +93,7 @@ const TICK_MS = 300
 const CAMERA_SEND_MS = 50 // set_camera_aim at ~20 Hz
 const CAMERA_SWITCH_MS = 1000 // set_range_camera at most this often (the subscription takes a beat to show it)
 // Test halls only: a video file stands in for the webcam (headless runs), ?camera-file=/test/archer.webm.
-export const CAMERA_TRIAL = STDB_DB !== 'homer-calhacks' // the camera switch shows (and starts on) in test halls
+export const CAMERA_TRIAL = STDB_DB !== 'homer-calhacks' // test halls start with the camera on; the prod hall starts with it off
 const CAMERA_FILE = STDB_DB !== 'homer-calhacks' ? new URLSearchParams(window.location.search).get('camera-file') ?? '' : ''
 const FINALE_CAP_MS = 45000 // a finale still on screen this long is advanced (a song + crown is ~20 s): insurance only
 const STEP_UP_MS = 2000 // auto-ready: a short beat before each turn starts (debate, discus; and after a reconnect)
@@ -250,6 +250,7 @@ export class Arena {
   private cameraSentAt = 0
   private rangeCameraAt = 0 // when set_range_camera was last called
   private phonesSince: string | null = null // the arrow the phones took over on: the camera waits for the next
+  private poseLog: ((row: Record<string, number>) => void) | null = null // test halls: per-frame tuning log
 
   constructor(private onView: (view: ArenaView) => void) {}
 
@@ -602,11 +603,17 @@ export class Arena {
     if (!this.poseCam) {
       this.poseCam = new PoseCamera((frame) => this.onPose(frame), () => this.publish())
       void this.poseCam.start(CAMERA_FILE)
-      // Test halls: headless runs read the camera from the console (window.meninCamera()).
+      // Test halls: headless runs read the camera from the console (window.meninCamera(), window.meninPoseLog()).
       if (STDB_DB !== 'homer-calhacks') {
-        ;(window as unknown as { meninCamera?: () => unknown }).meninCamera = () => ({
-          status: this.poseCam?.status, error: this.poseCam?.error, reading: { ...this.mapper.reading, pose: undefined },
-        })
+        const log: Record<string, number>[] = []
+        const t0 = performance.now()
+        this.poseLog = (row) => {
+          log.push({ t: Math.round(performance.now() - t0), ...row })
+          if (log.length > 3000) log.shift()
+        }
+        const w = window as unknown as { meninCamera?: () => unknown; meninPoseLog?: () => unknown }
+        w.meninCamera = () => ({ status: this.poseCam?.status, error: this.poseCam?.error, reading: { ...this.mapper.reading, pose: undefined } })
+        w.meninPoseLog = () => log
       }
     }
     const arrow = range.archerId ? `${range.archerId}.${range.arrowNo}` : ''
@@ -631,6 +638,7 @@ export class Arena {
   /** Every pose frame (~30 fps): map it, and while an arrow is up in camera mode send the aim and draw at 20 Hz. */
   private onPose(frame: Parameters<ArcheryMapper['update']>[0]): void {
     const reading = this.mapper.update(frame)
+    this.poseLog?.({ ...this.mapper.probe, yaw: reading.yaw, pitch: reading.pitch, draw: reading.draw, seen: reading.state === 'searching' ? 0 : 1 })
     const room = this.room()
     const range = room?.event === 'toxeia' ? this.toxeia().range : null
     const now = Date.now()

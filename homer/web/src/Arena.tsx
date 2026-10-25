@@ -10,7 +10,7 @@ import DiscusPanel from './Discus'
 import StadionPanel from './Stadion'
 import BoxingPanel from './Boxing'
 import ToxeiaPanel from './Toxeia'
-import { Arena, CAMERA_TRIAL, FIELD_EVENTS, QUIET_SCENE, SILENT_VERDICT, STDB_DB, type ArenaView, type GameEvent, type SceneFeed } from './lib/arena'
+import { Arena, FIELD_EVENTS, QUIET_SCENE, SILENT_VERDICT, STDB_DB, type ArenaView, type GameEvent, type SceneFeed } from './lib/arena'
 import { webJoinLink } from './lib/links'
 import type { SceneTheme } from './scene/moods'
 import SceneBackdrop from './scene/SceneBackdrop'
@@ -442,6 +442,12 @@ export default function ArenaPanel({
               {coach ? 'New conversation' : 'Rematch'}
             </button>
           )}
+          {archery && room.phase !== 'finished' && (
+            // Archery by camera (SPEC "Toxeia"): on, the webcam aims and draws; off, the two phones do
+            <button className="secondary-action camera-switch" onClick={() => arena.current?.setCamera(!view.cameraOn)}>
+              {view.cameraOn ? 'Camera off' : 'Camera on'}
+            </button>
+          )}
           {['lobby', 'finished'].includes(room.phase) && (
             <button className="secondary-action new-event" onClick={() => setPicking(!picking)}>
               {picking ? 'Cancel' : 'New event'}
@@ -450,12 +456,6 @@ export default function ArenaPanel({
           {view.comeback && (
           <button className="secondary-action operator" onClick={() => arena.current?.skipComeback()}>
             Skip
-          </button>
-        )}
-        {archery && CAMERA_TRIAL && room.phase !== 'finished' && (
-          // Archery by camera: off hands the range to the two phones (SPEC "Toxeia")
-          <button className="secondary-action operator camera-switch" onClick={() => arena.current?.setCamera(!view.cameraOn)}>
-            {view.cameraOn ? 'Camera off' : 'Camera on'}
           </button>
         )}
         {coach && !['lobby', 'finished'].includes(room.phase) && (
