@@ -6,9 +6,15 @@
 //   npm run -s timeline                     # homer-calhacks; follows the newest hall
 //   ROOM=ABCD npm run -s timeline           # one hall
 //   STDB_URL=http://127.0.0.1:3000 STDB_DB=homer-test npm run -s timeline
+//   LOG=../docs/video/timeline-take.log npm run -s timeline   # also log every event for the video
+//
+// With LOG, each event is also appended there as one tab-separated line: wall-clock time
+// (HH:MM:SS.mmm), epoch ms, caller (phone, agent, arena, timer), reducer, text, and the mood's
+// colour (#rrggbb, scene lines only). scripts/render-timeline.mjs turns it into video.
 //
 // Lines are cut to the terminal's width, so nothing wraps; about 60 columns shows them whole.
 
+import { appendFileSync } from 'node:fs';
 import { setGlobalLogLevel } from 'spacetimedb';
 import { DbConnection } from './bindings/index';
 
@@ -17,6 +23,7 @@ setGlobalLogLevel('warn'); // no SDK chatter on the recording
 const URI = (process.env.STDB_URL ?? 'https://maincloud.spacetimedb.com').replace(/^http/, 'ws');
 const DBN = process.env.STDB_DB ?? 'homer-calhacks';
 const ROOM = (process.env.ROOM ?? '').trim().toUpperCase();
+const LOG = process.env.LOG ?? '';
 
 // Who calls each reducer, by colour.
 const PHONE = 36, AGENT = 35, ARENA = 33, TIMER = 34;
@@ -56,9 +63,16 @@ function fit(line: string): string {
   }
   return out + '…' + esc('0');
 }
-function say(reducer: string, text: string, swatch = '') {
+const WHO: Record<number, string> = { [PHONE]: 'phone', [AGENT]: 'agent', [ARENA]: 'arena', [TIMER]: 'timer' };
+function say(reducer: string, text: string, swatch = '', hex = 0) {
   const label = reducer.padEnd(17);
   console.log(fit(`${esc('2')}${stamp()}${esc('0')} ${esc(`1;${CALLER[reducer] ?? 37}`)}${label}${esc('0')} ${swatch}${text}`));
+  if (LOG) {
+    const now = new Date();
+    const wall = now.toTimeString().slice(0, 8) + '.' + String(now.getMilliseconds()).padStart(3, '0');
+    const colour = hex ? '#' + hex.toString(16).padStart(6, '0') : '';
+    appendFileSync(LOG, [wall, now.getTime(), WHO[CALLER[reducer]] ?? 'other', reducer, text.replace(/\t/g, ' '), colour].join('\t') + '\n');
+  }
 }
 const quote = (s: string, n: number) => {
   const t = s.replace(/\s+/g, ' ').trim();
@@ -168,7 +182,7 @@ function wire() {
     const before = EMOTIONS.map(e => Number((a as any)[e])).join();
     if (before === EMOTIONS.map(e => Number((b as any)[e])).join() || ranked[0].w <= 0) return;
     const second = ranked[1].w > 0.25 ? ` · ${ranked[1].e} ${ranked[1].w.toFixed(2)}` : '';
-    say('set_scene', `${ranked[0].e} ${ranked[0].w.toFixed(2)}${second}`, swatch(MOOD[ranked[0].e]));
+    say('set_scene', `${ranked[0].e} ${ranked[0].w.toFixed(2)}${second}`, swatch(MOOD[ranked[0].e]), MOOD[ranked[0].e]);
   });
   conn.db.discusThrow.onInsert((_c, d) => {
     if (live && mine(d)) say('throw_discus', `${name(d.playerId)} · ${d.foul ? 'foul' : `${d.distance.toFixed(1)} m`}`);
