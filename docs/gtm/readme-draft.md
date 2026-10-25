@@ -91,9 +91,11 @@ Voice is the whole game: you play by speaking, and Homer answers out loud.
 - **Row-level security guards your cards:** a client visibility filter on the `hand` table means only your phone can read the phrases Homer dealt you.
 - **The speaking phone streams loudness and pitch about 20 times a second** into one row per room that the arena subscribes to, so the scene moves with whoever is speaking.
 - **A phone that drops loses nothing.** Lose the network mid-battle and it comes back on the right screen by itself, with no relaunch (tested on a real iPhone in airplane mode). A new connection with the same name takes a disconnected seat back with its score (`join_room`; covered by `npm run smoke` and `hall-soak.ts`).
-- **The iPhone client** is the community Swift SDK [avias8/spacetimedb-swift](https://github.com/avias8/spacetimedb-swift) 0.23.0, vendored with two patches (`ios/Vendor/SpacetimeDB/README.md`):
-  - Upstream subscribes every client to whole tables, which would send every phone every room's 20 Hz stream. Ours subscribes per room.
-  - When subscriptions overlap, rows are listed once.
+- **The iPhone client** runs on the community Swift SDK [avias8/spacetimedb-swift](https://github.com/avias8/spacetimedb-swift) 0.23.0 (Clockwork Labs has no official Swift SDK), vendored in `ios/Vendor/SpacetimeDB` with three fixes for bugs that showed up on real phones:
+  - Every phone was subscribed to every table on connect, so it would have received every room's 20 Hz stream. Now the app's own per-room subscriptions decide what a phone holds.
+  - When subscriptions overlap, each row is listed once, not twice.
+  - A reconnect replaces each table's cached rows, so a phone that drops comes back on the right screen instead of keeping ghost rows.
+  - **The fixes are public and sent upstream:** our fork [Matusvec/spacetimedb-swift](https://github.com/Matusvec/spacetimedb-swift) has the fixes, their tests (`swift test`: 86 passed, 0 failures) and a [FORK.md](https://github.com/Matusvec/spacetimedb-swift/blob/menin-fixes/FORK.md) on how they were tested; the draft PR is [avias8/spacetimedb-swift#3](https://github.com/avias8/spacetimedb-swift/pull/3). The license is unchanged: SpacetimeDB's Business Source License 1.1.
 
 ## Claude: the judge, the coach, the MC
 
@@ -164,4 +166,4 @@ The optional app key goes in `ios/Homer/Support/Secrets.xcconfig` (gitignored).
 
 ## License
 
-MIT. See [`LICENSE`](LICENSE).
+MIT. See [`LICENSE`](LICENSE). The one exception is the vendored Swift SDK in `ios/Vendor/SpacetimeDB`, which keeps its own SpacetimeDB Business Source License 1.1 ([`ios/Vendor/SpacetimeDB/LICENSE.txt`](ios/Vendor/SpacetimeDB/LICENSE.txt)), as does our public fork of it.

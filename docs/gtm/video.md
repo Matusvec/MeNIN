@@ -154,7 +154,7 @@ builder renders these through Cartesia, which doubles as the Cartesia showcase. 
 
 ### (b) Cards and lower thirds (word for word, for artist)
 
-**Sponsor logos** (Matus, Sun ~3:40 AM) go on the lower thirds and cards where each sponsor's part appears: Cartesia on L3, L4 and C3; Claude (Anthropic) on L4 and C2; SpacetimeDB on L10 and C2; Figma on L14; and all of them (SpacetimeDB, Cartesia, Claude, Figma, Apify, Moss) on the C6 end card's "Built with" line. Use each sponsor's official logo file, small and in one cream tone to match the grade, always as "built with", never implying the sponsor made the video.
+**Sponsor logos** (Matus, Sun ~3:40 AM) go on the lower thirds and cards where each sponsor's part appears: Cartesia on L3, L4 and C3; Claude (Anthropic) on L4 and C2; SpacetimeDB on L10, C2 and L15; Figma on L14; and all of them (SpacetimeDB, Cartesia, Claude, Figma, Apify, Moss) on the C6 end card's "Built with" line. Use each sponsor's official logo file, small and in one cream tone to match the grade, always as "built with", never implying the sponsor made the video.
 
 **Type:** cards in Bodoni Moda, big and centered; lower thirds in Inter only; the Greek at **90 px or more**. Names: Matus, Sunya and Paul ("Paul" confirmed, Matus, Sun ~3:40 AM).
 
@@ -178,7 +178,10 @@ builder renders these through Cartesia, which doubles as the Cartesia showcase. 
 | C5 | 1:55–2:00 | Responsible card | Built responsibly / Captions on everything Homer says · The mic opens only on your turn · No audio passes through our server · Homer never names your emotion · No account needed |
 | L13 | 2:00–2:14 | One per game, at that game's first clip | Stadion / Toxeia (archery): the webcam tracks your bow arm / Pygmachia (boxing) / Discus, each with "· beta" if it hasn't passed its runs on 31+ |
 | L14 | 2:14–2:29 | One stat, over the Figma footage | 128 hard-coded colors → 37 tokens |
+| L15 | 2:29–2:50 | Lower third, under M4 from "And our Swift SDK fixes…" to the end of M4 | Our Swift SDK fixes: a public fork, sent upstream · github.com/Matusvec/spacetimedb-swift |
 | C6 | 2:50–3:00 | End card; **hold "Play it now" and the URL for 5 s** | **Play it now** / play.206.189.237.157.sslip.io/homer / github.com/sunya-afrasiabi/MeNIN / Original score by Paul / Built with SpacetimeDB · Cartesia · Claude · Figma · Apify · Moss / Matus · Sunya · Paul · Cal Hacks 13.0 |
+
+*L15 (leader, Sun ~4:25 AM): the fork is public (https://github.com/Matusvec/spacetimedb-swift, BSL 1.1 kept) and the draft PR is open upstream (https://github.com/avias8/spacetimedb-swift/pull/3). Say "a public fork with fixes sent upstream", never "open-sourced" or "our SDK": it's a fork of the community SDK, and Clockwork Labs has no official one. M4's spoken line stays as recorded; it's still true.*
 
 *L14 uses the stat nobody can dispute (leader, Sun ~2:25 AM): builder's count of the website's CSS, `docs/hall-tokens.md`.*
 
