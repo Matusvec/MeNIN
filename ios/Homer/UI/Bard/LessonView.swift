@@ -199,7 +199,7 @@ struct LessonView: View {
         switch model.phase {
         case .failed:
             if let retry = actions.retry {
-                Button(action: retry) { ArrowLabel(title: "Try again") }.buttonStyle(.homer(wide: true))
+                Button(action: retry) { ArrowLabel(title: "Call Homer back") }.buttonStyle(.homer(wide: true))
             }
         case .trying(_, _, _, let level, _, _, _, _):
             VStack(spacing: Metrics.s2) {
@@ -226,12 +226,12 @@ struct LessonView: View {
             VStack(spacing: Metrics.s2) {
                 if actions.again != nil || actions.spar != nil {
                     HStack(spacing: Metrics.s2) {
-                        if let again = actions.again { Button("Again", action: again).buttonStyle(.homer(.secondary, wide: true)) }
-                        if let spar = actions.spar { Button("Spar", action: spar).buttonStyle(.homer(.secondary, wide: true)) }
+                        if let again = actions.again { Button("Once more", action: again).buttonStyle(.homer(.secondary, wide: true)) }
+                        if let spar = actions.spar { Button("Spar with Homer", action: spar).buttonStyle(.homer(.secondary, wide: true)) }
                     }
                 }
                 if let next = actions.next {
-                    Button(action: next) { ArrowLabel(title: "Next lesson") }.buttonStyle(.homer(wide: true))
+                    Button(action: next) { ArrowLabel(title: "Teach me more") }.buttonStyle(.homer(wide: true))
                 }
             }
         default:
@@ -307,7 +307,7 @@ struct LessonView: View {
         case .failed(let why):
             VStack(spacing: Metrics.s4 * k) {
                 Text(why).font(Typeface.text(15 * k)).foregroundStyle(Palette.ink2).multilineTextAlignment(.center)
-                if let retry = actions.retry { Button("Try again", action: retry).buttonStyle(.homer) }
+                if let retry = actions.retry { Button("Call Homer back", action: retry).buttonStyle(.homer) }
             }
             .padding(Metrics.s5 * k)
             .paper()
@@ -363,7 +363,7 @@ struct LessonView: View {
                 HStack {
                     MicLevelView(level: level)
                     Spacer()
-                    if let done = actions.done { Button("Done", action: done).buttonStyle(.homer(.secondary)) }
+                    if let done = actions.done { Button("I'm done", action: done).buttonStyle(.homer(.secondary)) }
                 }
                 .padding(Metrics.s3 * k)
                 .paper()
@@ -389,9 +389,9 @@ struct LessonView: View {
                 }
                 if note != nil || beatScore != nil { NoteCard(note: note, beatScore: beatScore) }
                 HStack(spacing: Metrics.s3 * k) {
-                    if let again = actions.again { Button("Again", action: again).buttonStyle(.homer(.secondary)) }
-                    if let next = actions.next { Button(action: next) { ArrowLabel(title: "Next lesson") }.buttonStyle(.homer) }
-                    if let spar = actions.spar { Button("Spar", action: spar).buttonStyle(.homer(.secondary)) }
+                    if let again = actions.again { Button("Once more", action: again).buttonStyle(.homer(.secondary)) }
+                    if let next = actions.next { Button(action: next) { ArrowLabel(title: "Teach me more") }.buttonStyle(.homer) }
+                    if let spar = actions.spar { Button("Spar with Homer", action: spar).buttonStyle(.homer(.secondary)) }
                 }
             }
         }

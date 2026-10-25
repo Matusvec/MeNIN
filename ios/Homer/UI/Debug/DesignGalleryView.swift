@@ -31,31 +31,49 @@ struct DesignGalleryView: View {
             ForEach(Array(GallerySample.phoneMoments.enumerated()), id: \.offset) { i, m in
                 GalleryPhone(model: m).tag(30 + i)
             }
+            // Camera archery's arrow pad, and a phone that waits while someone else shoots.
+            ArrowView(model: ArrowModel(phase: .drawing, nocked: true, draw: 0.62, shot: 2, lastScore: 9, total: 17, camera: true)).tag(40)
+            ArrowView(model: ArrowModel(phase: .waiting("\(GallerySample.poets[0].name) is shooting"), total: 17, camera: true)).tag(41)
             GalleryDiscusPhone(model: DiscusPhoneModel(phase: .winding(power: 0.62), attemptsLeft: 2, best: 41.2,
-                                                       notice: nil)).tag(35)
-            GalleryDiscusPhone(model: DiscusPhoneModel(phase: .safety)).tag(36)
+                                                       notice: nil)).tag(50)
+            GalleryDiscusPhone(model: DiscusPhoneModel(phase: .safety)).tag(51)
             GalleryDiscusPhone(model: DiscusPhoneModel(phase: .thrown(distance: 33.0, foul: true), attemptsLeft: 1, best: 41.2,
-                                                       notice: "That's a drop, not a throw.")).tag(37)
+                                                       notice: "That's a drop, not a throw.")).tag(52)
             ZStack {
                 SceneView(emotion: EmotionWeights([.joy: 0.5, .awe: 0.5]))
                 DiscusArenaScreen(model: GallerySample.discusLanded, code: "WKRD")
             }
             .tag(23)
         }
-        .tabViewStyle(.page(indexDisplayMode: .always))
+        .tabViewStyle(.page(indexDisplayMode: GallerySample.worst ? .never : .always))  // renders: no dots over the action
         .ignoresSafeArea()
         .background(Palette.ink)
     }
 }
 
 enum GallerySample {
-    static let poets = [
-        PoetPlate(id: "a", name: "Matus", epithet: "Breaker of Deadlines", seat: 0, total: 74),
+    /// `-galleryWorst YES`: the product manager's worst strings, for layout renders at SE size.
+    static var worst: Bool { UserDefaults.standard.bool(forKey: "galleryWorst") }
+
+    static var poets: [PoetPlate] { worst ? worstPoets : bestPoets }
+    private static let worstPoets = [
+        PoetPlate(id: "a", name: "Konstantina", epithet: "Tamer of the Wine-Dark Sea", seat: 0, total: 100),
+        PoetPlate(id: "b", name: "Alexandros", epithet: "Storm-Throated", seat: 1, total: 81),
+        PoetPlate(id: "c", name: "Ham", epithet: "Keeper of the Lyre", seat: 2, total: 66),
+    ]
+    private static let bestPoets = [
+        PoetPlate(id: "a", name: "Matus", epithet: "Breaker of Horses", seat: 0, total: 74),
         PoetPlate(id: "b", name: "Sunya", epithet: "Storm-Throated", seat: 1, total: 81),
         PoetPlate(id: "c", name: "Ham", epithet: "Keeper of the Lyre", seat: 2, total: 66),
     ]
 
-    static let hand: [FormulaCard] = [
+    static var hand: [FormulaCard] { worst ? worstHand : bestHand }
+    private static let worstHand: [FormulaCard] = [
+        FormulaCard(id: "1", text: "when rose-fingered Dawn came early", kind: .halfLine, used: false),
+        FormulaCard(id: "2", text: "the wine-dark sea that took the ships", kind: .halfLine, used: false),
+        FormulaCard(id: "3", text: "storm-throated keeper of the lyre", kind: .epithet, used: false),
+    ]
+    private static let bestHand: [FormulaCard] = [
         FormulaCard(id: "1", text: "the whale-road", kind: .kenning, used: true),
         FormulaCard(id: "2", text: "grey-eyed Athena", kind: .epithet, used: false),
         FormulaCard(id: "3", text: "when rose-fingered Dawn came early", kind: .halfLine, used: false),
@@ -63,7 +81,12 @@ enum GallerySample {
         FormulaCard(id: "5", text: "bone-house", kind: .kenning, used: false),
     ]
 
-    static let card = Scorecard(
+    static var card: Scorecard { worst ? worstCard : bestCard }
+    private static let worstCard = Scorecard(
+        scores: Scores(beat: 10, craft: 10, image: 10, answer: 10, range: 10),
+        verdict: "Every line landed where the sea wanted it. Homer has nothing to add.",
+        bestLine: "The wine-dark sea that took the ships came back for me", total: 100)
+    private static let bestCard = Scorecard(
         scores: Scores(beat: 8, craft: 7, image: 9, answer: 6, range: 7),
         verdict: "Strong bones, thin blood. Your third line carried you.",
         bestLine: "The whale-road swallowed his sails")
@@ -383,15 +406,15 @@ extension GallerySample {
         let me = poets[0]
         var join = PlayerModel()
         join.moment = .joining(error: nil)
-        var speak = PlayerModel(me: me, code: "WKRD", round: 2, rounds: 3, theme: "A ship that never came home")
+        var speak = PlayerModel(me: me, code: "WKRD", round: 1, rounds: 1, theme: worst ? "The ship that left without you" : "A ship that never came home")
         speak.moment = .speaking(lane: lane(ago: 13.2), transcript: "Wine-dark sea took my brother's ship\nthe whale-road swallowed his sails",
                                  hand: hand, rescueId: "2", talking: true, level: 0.6, pushToTalk: true)
         speak.homer = HomerLine(text: "Grey-eyed Athena.", whisper: true)
         speak.handsFree = true
         speak.verseWindow = VerseWindow(start: Date().addingTimeInterval(-7), end: Date().addingTimeInterval(13))
-        var result = PlayerModel(me: me, code: "WKRD", round: 2, rounds: 3)
+        var result = PlayerModel(me: me, code: "WKRD", round: 1, rounds: 1)
         result.moment = .result(card: card, reveal: 1, coined: "storm-throated")
-        var final = PlayerModel(me: me, code: "WKRD", round: 3, rounds: 3)
+        var final = PlayerModel(me: me, code: "WKRD", round: 1, rounds: 1)
         final.moment = .final(place: 2, of: 3, champion: poets[1])
         var debate = PlayerModel(event: .debate, me: me, code: "WKRD", round: 1, rounds: 3)
         debate.moment = .debating(side: .affirm, question: "Is it better to suffer injustice than to do it?",
@@ -403,7 +426,13 @@ extension GallerySample {
                                           FormulaCard(id: "m5", text: "Ask a question", kind: .move, used: false)],
                                   whisperedId: "m2", talking: true, level: 0.5, endsAt: Date().addingTimeInterval(23), seconds: 45)
         debate.homer = HomerLine(text: "What would a tyrant say to that?", whisper: true)
-        return [join, speak, result, final, debate]
+        var finding = PlayerModel(me: me, code: "WKRD", round: 1, rounds: 1)
+        finding.moment = .joining(error: nil)
+        finding.wait = .findingRoom("WKRD")
+        var watching = PlayerModel(me: me, code: "WKRD", round: 1, rounds: 1, theme: speak.theme)
+        watching.moment = .speaking(lane: lane(ago: 5), transcript: "", hand: hand, rescueId: nil, talking: false, level: 0, pushToTalk: false)
+        watching.wait = .speaking(poets[1].name)
+        return [join, speak, result, final, debate, finding, watching]
     }
 }
 
@@ -436,7 +465,7 @@ private struct GalleryPhone: View {
         ZStack {
             SceneView(emotion: EmotionWeights([.grief: 0.5, .longing: 0.5]), prosody: Prosody(energy: 0.4, pitch: 150))
             PlayerView(model: model, actions: PlayerActions(join: { _, _ in }, imHere: {}, ready: {}, setTalking: { _ in }, done: {}))
-                .safeAreaPadding(.top, 54)
+                .safeAreaPadding(.top, UIScreen.main.bounds.height < 700 ? 20 : 54)  // the real status bar
         }
     }
 }

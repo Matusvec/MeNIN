@@ -257,18 +257,22 @@ struct FlowLayout: Layout {
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         let rows = arrange(bounds.width, subviews)
         for (i, origin) in rows.origins.enumerated() {
-            subviews[i].place(at: CGPoint(x: bounds.minX + origin.x, y: bounds.minY + origin.y), proposal: .unspecified)
+            subviews[i].place(at: CGPoint(x: bounds.minX + origin.x, y: bounds.minY + origin.y), proposal: ProposedViewSize(rows.sizes[i]))
         }
     }
 
-    private func arrange(_ width: CGFloat, _ subviews: Subviews) -> (origins: [CGPoint], width: CGFloat, height: CGFloat) {
+    private func arrange(_ width: CGFloat, _ subviews: Subviews) -> (origins: [CGPoint], sizes: [CGSize], width: CGFloat, height: CGFloat) {
         var origins: [CGPoint] = []
+        var sizes: [CGSize] = []
         var x: CGFloat = 0
         var y: CGFloat = 0
         var rowHeight: CGFloat = 0
         var maxX: CGFloat = 0
         for view in subviews {
-            let size = view.sizeThatFits(.unspecified)
+            // A child wider than the row (a long phrase on an SE) wraps inside it instead of running off the edge.
+            let ideal = view.sizeThatFits(.unspecified)
+            let size = ideal.width > width ? view.sizeThatFits(ProposedViewSize(width: width, height: nil)) : ideal
+            sizes.append(size)
             if x > 0, x + size.width > width {
                 x = 0
                 y += rowHeight + spacing
@@ -279,7 +283,7 @@ struct FlowLayout: Layout {
             maxX = max(maxX, x - spacing)
             rowHeight = max(rowHeight, size.height)
         }
-        return (origins, maxX, y + rowHeight)
+        return (origins, sizes, maxX, y + rowHeight)
     }
 }
 

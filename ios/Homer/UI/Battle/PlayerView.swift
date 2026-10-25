@@ -145,7 +145,7 @@ struct PlayerView: View {
                 if autoReady {
                     Text("The arena starts your turn").chip(11)
                 } else if let ready = actions.ready {
-                    Button(action: ready) { ArrowLabel(title: "Ready") }.buttonStyle(.homer(wide: true))
+                    Button(action: ready) { ArrowLabel(title: "Step up") }.buttonStyle(.homer(wide: true))
                 }
             }
 
@@ -274,7 +274,7 @@ struct PlayerView: View {
                 }
             } action: {
                 if let leave = actions.leave {
-                    Button(action: leave) { ArrowLabel(title: "Back to the hall") }.buttonStyle(.homer(.secondary, wide: true))
+                    Button(action: leave) { ArrowLabel(title: "To the hall") }.buttonStyle(.homer(.secondary, wide: true))
                 }
             }
 
@@ -484,13 +484,15 @@ private struct MyPlate: View {
 /// The hand, named for what it is to a first-time player.
 struct PhrasesHeader: View {
     var onColor = false
+    /// Small type on the seat's tint: cream, or ink on the light gold seat (cream there is 3.9:1).
+    var smallInk: Color = Palette.cream
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("Homer's phrases").tracked(10, color: onColor ? Palette.cream.opacity(0.8) : Palette.accent)
+            Text("Homer's phrases").tracked(10, color: onColor ? smallInk.opacity(0.8) : Palette.accent)
             Text("Stuck? Use one of Homer's phrases. It scores Craft.")
                 .font(Typeface.text(13, weight: 500))
-                .foregroundStyle(onColor ? Palette.cream : Palette.ink2)
+                .foregroundStyle(onColor ? smallInk : Palette.ink2)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.horizontal, onColor ? 0 : Metrics.s3)
@@ -532,7 +534,7 @@ struct VerseStage: View {
             let cue = cue(at: context.date.timeIntervalSince1970 * 1000)
             ZStack {
                 background(cue).ignoresSafeArea()
-                VStack(spacing: Metrics.s4) {
+                VStack(spacing: compact ? Metrics.s2 : Metrics.s4) {
                     header(cue)
                     Spacer(minLength: 0)
                     word(cue)
@@ -558,9 +560,11 @@ struct VerseStage: View {
     @ViewBuilder
     private func background(_ cue: Cue) -> some View {
         switch cue {
-        case .speak: ink
-        case .count: Palette.ink
-        case .done: Palette.hero
+        // A tint, not a fill, so the scene's blue moves behind SPEAK. 0.82 is the floor where cream
+        // text stays ≥ 4.5:1 on the sea seat over the white sea (the gold seat is 3.9:1 even opaque).
+        case .speak: ink.opacity(0.82)
+        case .count: Palette.ink.opacity(0.82)
+        case .done: Palette.hero.opacity(0.82)
         case .ready: Color.clear
         }
     }
@@ -594,11 +598,18 @@ struct VerseStage: View {
         }
     }
 
+    /// The gold seat is light: small type on its tint is ink, not cream (pm: cream there is 3.9:1).
+    private var smallInk: Color { ink == Palette.seats[2] ? Palette.ink : Palette.cream }
+
+    /// An SE-height phone (667 pt): SPEAK, the ring and the live line shrink so the whispered
+    /// phrase and "I'm done" stay on screen.
+    private var compact: Bool { UIScreen.main.bounds.height < 700 }
+
     private func progress(_ cue: Cue) -> String { "" }
 
     @ViewBuilder
     private func word(_ cue: Cue) -> some View {
-        VStack(spacing: Metrics.s3) {
+        VStack(spacing: compact ? Metrics.s2 : Metrics.s3) {
             switch cue {
             case .ready:
                 WaitLine(state: .custom("Get ready: the drum counts you in"))
@@ -613,7 +624,7 @@ struct VerseStage: View {
                     .foregroundStyle(Palette.cream.opacity(0.8))
             case .speak(let left):
                 Text("SPEAK")
-                    .font(Typeface.display(88, weight: 900))
+                    .font(Typeface.display(compact ? 60 : 88, weight: 900))
                     .foregroundStyle(Palette.cream)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
@@ -630,22 +641,22 @@ struct VerseStage: View {
                             .font(Typeface.display(38, weight: 700))
                             .foregroundStyle(Palette.cream)
                             .contentTransition(.numericText(countsDown: true))
-                        Text("sec").tracked(9, color: Palette.cream.opacity(0.75))
+                        Text("sec").tracked(9, color: smallInk.opacity(0.75))
                     }
                 }
-                .frame(width: 104, height: 104)
+                .frame(width: compact ? 80 : 104, height: compact ? 80 : 104)
                 .animation(.linear(duration: 1.0 / 30), value: left)
                 MicLevelView(level: level, tint: Palette.cream)
                 Text("The mic is open. Just go.")
                     .font(Typeface.text(15, weight: 600))
-                    .foregroundStyle(Palette.cream.opacity(0.85))
+                    .foregroundStyle(smallInk.opacity(0.85))
                 if let last = lines.last, !last.isEmpty {
                     Text(last)
                         .font(Typeface.display(22, italic: true))
                         .foregroundStyle(Palette.cream)
                         .multilineTextAlignment(.center)
-                        .lineLimit(2)
-                        .padding(.top, Metrics.s2)
+                        .lineLimit(compact ? 1 : 2)
+                        .padding(.top, compact ? 0 : Metrics.s2)
                 }
             case .done:
                 Text("Time")
@@ -665,7 +676,7 @@ struct VerseStage: View {
                            + hand.filter { $0.id != rescueId && $0.used }).prefix(3))
         return VStack(alignment: .leading, spacing: Metrics.s2) {
             HStack(alignment: .top) {
-                PhrasesHeader(onColor: onColor(cue))
+                PhrasesHeader(onColor: onColor(cue), smallInk: cue == .ready ? Palette.cream : smallInk)
                 Spacer(minLength: 0)
                 Text("+Craft")
                     .chip(11, fill: Palette.gold, color: Palette.ink)
@@ -854,7 +865,7 @@ private struct JoinScreen: View {
                 Spacer(minLength: 0)
             }
         } action: {
-            Button(action: submit) { ArrowLabel(title: "Join") }
+            Button(action: submit) { ArrowLabel(title: "Enter the hall") }
                 .buttonStyle(.homer(wide: true))
                 .disabled(!ready)
         }

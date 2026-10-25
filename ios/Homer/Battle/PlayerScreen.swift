@@ -7,6 +7,9 @@ struct PlayerScreen: View {
     var initialCode = ""
     /// The way out from the art lead's header (a back arrow before the wordmark).
     var onLeave: (() -> Void)? = nil
+    /// The app's background scene. Display only: it mirrors the room's emotion row (already
+    /// subscribed) and, on this poet's own verse, their own mic, like the website's battle sea.
+    var scene: SceneDriver? = nil
 
     @State private var battle = BattleClient(role: .player)
     @State private var autopilot: DevAutopilot?
@@ -38,7 +41,7 @@ struct PlayerScreen: View {
             // On the Group, so every screen's back asks (the sport screens' back set the flag with no
             // dialog to show it, so leaving mid-event did nothing and only quitting the app got out).
             .confirmationDialog("Leave the battle?", isPresented: $confirmLeave, titleVisibility: .visible) {
-                Button("Leave", role: .destructive) { leave() }
+                Button("Walk away", role: .destructive) { leave() }
             } message: {
                 Text("Your seat stays open for a while; rejoin with the same code.")
             }
@@ -55,6 +58,13 @@ struct PlayerScreen: View {
                 // tears down its motion and takes its own tables); back in a voice event, drop the
                 // last sport's tables.
                 if !["stadion", "pygmachia", "toxeia"].contains(event ?? "") { battle.watchEventTables(event ?? "") }
+            }
+            .onChange(of: battle.scene?.weights, initial: true) { _, weights in
+                scene?.emotion = weights ?? EmotionWeights()
+            }
+            .onChange(of: recorder?.mic.prosody) { _, p in
+                let live = battle.isMyTurn && recorder?.phase == .live
+                scene?.prosody = live ? (p ?? .silent) : .silent
             }
             .onChange(of: recorder?.draftFromVoice) { _, heard in
                 // Voice failed mid-verse: the typed field starts with what was already heard.
@@ -79,6 +89,8 @@ struct PlayerScreen: View {
                 autopilot?.start()
             }
             .onDisappear {
+                scene?.emotion = EmotionWeights()  // back to the resting sea
+                scene?.prosody = .silent
                 UIApplication.shared.isIdleTimerDisabled = false
                 recorder?.detach()
                 autopilot?.stop()
