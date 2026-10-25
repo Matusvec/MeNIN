@@ -223,3 +223,27 @@ def test_fast_mode_rate_limit_falls_back_to_standard_speed():
     assert not j.silent and j.verdict
     assert client.calls[0]["speed"] == "fast" and "speed" not in client.calls[1]
     assert "fast-mode-2026-02-01" not in client.calls[1].get("betas", [])
+
+
+def test_a_fast_api_error_gets_one_more_try_not_silence():
+    # Matus's spar at 22:16: a /judge failed in 11 ms and came back "Homer is silent". A blip gets a second try.
+    import anthropic
+    import httpx
+
+    from fakes import FakeClient, reply
+
+    class Flaky(FakeClient):
+        def __init__(self):
+            super().__init__(reply())
+            self.failures = 1
+
+        def _stream(self, **kwargs):
+            if self.failures:
+                self.failures -= 1
+                self.calls.append(kwargs)
+                raise anthropic.APIConnectionError(message="reset", request=httpx.Request("POST", "https://api.anthropic.com"))
+            return super()._stream(**kwargs)
+
+    client = Flaky()
+    j = asyncio.run(Judge(client=client, cfg=cfg()).judge(Turn("the wind was cold, the waves were grey\nthe sea kept time and so did I")))
+    assert not j.silent and len(client.calls) == 2

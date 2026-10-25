@@ -110,3 +110,26 @@ def test_call_for_any_theme():
     from homer.deal import FLOOR, THEME_CALLS, call_for, themes
     assert all(call_for(t) == THEME_CALLS[t] for t in themes()) and len(THEME_CALLS) == 16
     assert call_for("  a SHIP that never came home ") == "The sea is yours." and call_for("My own theme") == FLOOR
+
+
+def test_a_verse_during_the_warm_up_waits_for_it():
+    # A restart must never turn a real verse into "Homer is silent": a judging call waits for the warm-up.
+    import asyncio
+    import time
+
+    async def run():
+        was = server.status["judge"]
+        server.status["judge"] = "warming"
+        server._warmed.clear()
+        try:
+            asyncio.get_running_loop().call_later(0.2, server._warmed.set)
+            t0 = time.perf_counter()
+            await server.until_warm()
+            return time.perf_counter() - t0
+        finally:
+            server.status["judge"] = was
+            server._warmed.set()
+
+    waited = asyncio.run(run())
+    assert 0.15 < waited < 2.0
+    asyncio.run(server.until_warm())  # warm (or no warm-up): no wait at all

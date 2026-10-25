@@ -91,9 +91,28 @@ async def written(work):
 status: dict[str, str] = {"judge": "off", "stdb": "off"}
 
 
+# A verse that arrives while the agent is still warming up after a restart waits for it (up to WARM_WAIT_S)
+# and is then judged for real: a deploy must never turn a real verse into "Homer is silent" (Matus's spar, 22:16).
+WARM_WAIT_S = 10.0
+_warmed = asyncio.Event()
+
+
 async def _warm_judge() -> None:
     status["judge"] = "warming"
-    status["judge"] = "warm" if await judge().warm() else "failed"
+    try:
+        status["judge"] = "warm" if await judge().warm() else "failed"
+    finally:
+        _warmed.set()
+
+
+async def until_warm() -> None:
+    """Hold a judging call while the warm-up runs (no-op once warm, failed, or when there's no warm-up)."""
+    if status["judge"] != "warming" or _warmed.is_set():
+        return
+    try:
+        await asyncio.wait_for(_warmed.wait(), WARM_WAIT_S)
+    except asyncio.TimeoutError:
+        log.warning("judge still warming after %.0f s; judging anyway", WARM_WAIT_S)
 
 
 @asynccontextmanager
@@ -295,6 +314,7 @@ async def scan(req: ScanRequest) -> dict[str, Any]:
 @app.post("/judge")
 async def judge_turn(req: JudgeRequest, request: Request):
     """Judge one verse (practice, lesson). JSON, or SSE when the client asks for text/event-stream."""
+    await until_warm()
     if req.event not in events.EVENTS:
         raise HTTPException(400, f"unknown event: {req.event}")
     if not req.transcript.strip() and not req.words:
@@ -508,6 +528,7 @@ class BattleJudgeRequest(Model):
 @app.post("/battle/judge")
 async def battle_judge(req: BattleJudgeRequest) -> dict[str, Any]:
     """Judge a battle verse and write it: post_score, or decline_turn. Safe to retry."""
+    await until_warm()
     if req.event not in events.EVENTS:
         raise HTTPException(400, f"unknown event: {req.event}")
     bt = BattleTurn(
@@ -716,6 +737,7 @@ class LessonFeedbackRequest(Model):
 @app.post("/lesson/feedback")
 async def lesson_feedback_endpoint(req: LessonFeedbackRequest) -> dict[str, Any]:
     """Homer's one line for a try: the first miss in the lesson's table, or its success line."""
+    await until_warm()
     if req.lesson not in lessons():
         raise HTTPException(404, f"no lesson {req.lesson}")
     attempt = Attempt(
@@ -750,6 +772,7 @@ class SparRequest(Model):
 @app.post("/spar")
 async def spar(req: SparRequest) -> dict[str, Any]:
     """The host's own turn in a spar. Homer: a verse from formulas, checked by the scanner. Socrates: the other side, in questions."""
+    await until_warm()
     if events.get(req.event).hand == "moves":
         q = debate.question(req.theme) if req.theme.strip() else debate.pick_question()
         ask = q.ask if q else req.theme.strip()

@@ -21,5 +21,5 @@ export const EVENTS: EventInfo[] = [
   // Beta: live for Matus's first real fights (build 20); scripted runs follow.
   { id: 'pygmachia', name: 'Pygmachia', host: 'Homer announces', line: 'Box with your phone: punch, block, counter', beta: true },
   // Beta: module on prod 18:20; a scripted run passed 18:34 (2 archers, 6 arrows); Matus's real runs next.
-  { id: 'toxeia', name: 'Toxeia', host: 'Homer announces', line: 'Draw the bow with your phones and aim for the rings', beta: true },
+  { id: 'toxeia', name: 'Toxeia', host: 'Homer announces', line: 'The camera tracks your bow arm. Draw back, and loose with your phone', beta: true },
 ]

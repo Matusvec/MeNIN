@@ -301,15 +301,22 @@ class Judge:
             text, final = await asyncio.wait_for(
                 self._call(self.request(turn, event, content), j, t0, on_verdict), self.cfg.judge_timeout
             )
-        except (asyncio.TimeoutError, anthropic.APIError, BudgetExceeded) as exc:
-            j.silent, j.error = True, type(exc).__name__
-            j.scores.update({a.key: SILENT_SCORE for a in event.claude_axes})
-            j.verdict = SILENT_VERDICT
-            j.best_line = lines[fallback] if fallback is not None else ""
-            if event.hand == "moves":
-                j.best_line = debate.clean_line(j.best_line)
-            j.timing["done"] = _ms(t0)
-            return j
+        except anthropic.APIError as exc:
+            # An error back in a blink (a connection reset, an overload) gets one more try in what's left of
+            # the time; a slow failure doesn't (it already spent the budget).
+            left = self.cfg.judge_timeout - (time.perf_counter() - t0)
+            if left < 2.0:
+                return self._silent(j, event, lines, fallback, t0, exc)
+            log.warning("judge call failed fast (%s); trying once more", type(exc).__name__)
+            await asyncio.sleep(0.3)
+            try:
+                text, final = await asyncio.wait_for(
+                    self._call(self.request(turn, event, content), j, t0, on_verdict), left - 0.3
+                )
+            except (asyncio.TimeoutError, anthropic.APIError, BudgetExceeded) as again:
+                return self._silent(j, event, lines, fallback, t0, again)
+        except (asyncio.TimeoutError, BudgetExceeded) as exc:
+            return self._silent(j, event, lines, fallback, t0, exc)
         j.timing["done"] = _ms(t0)
         j.model = getattr(final, "model", j.model) or j.model
         usage = getattr(final, "usage", None)
@@ -393,6 +400,18 @@ class Judge:
         if not 1 <= strong_hits(coined) <= 2:
             return ""
         return " ".join(coined.split()).strip(" \"'“”.,;:!?")
+
+    def _silent(self, j: Judgment, event, lines: list[str], fallback: int | None, t0: float, exc: BaseException) -> Judgment:
+        """Claude didn't answer: the neutral score and SILENT_VERDICT, and the cause in the log."""
+        j.silent, j.error = True, type(exc).__name__
+        log.warning("judge silent after %d ms: %s %s", _ms(t0), j.error, str(exc)[:160])
+        j.scores.update({a.key: SILENT_SCORE for a in event.claude_axes})
+        j.verdict = SILENT_VERDICT
+        j.best_line = lines[fallback] if fallback is not None else ""
+        if event.hand == "moves":
+            j.best_line = debate.clean_line(j.best_line)
+        j.timing["done"] = _ms(t0)
+        return j
 
     async def warm(self) -> bool:
         """One real judge call so the system prompt is cached before the first turn."""

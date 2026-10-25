@@ -321,10 +321,18 @@ function HomerHall({ joinCode, onBack }: { joinCode: string | null; onBack: () =
   const isSpeaking = spokenMessage.length < fullMessage.length
 
   if (joinCode) {
+    // The join page runs on the poet's phone and only hands them to the app: the light SVG sea, not the 3D world.
     return (
       <main className="scene">
         <div className="animated-background" aria-hidden="true">
-          <World3D fallback={<div className="scene-artboard"><AegeanScene /></div>} />
+          <div className="scene-artboard">
+            <AegeanScene />
+            <span className="sun-haze" />
+            <span className="cloud cloud-one" />
+            <span className="cloud cloud-two" />
+            <span className="sea-light sea-light-one" />
+            <span className="sea-light sea-light-two" />
+          </div>
         </div>
         <header className="nameplate" aria-label="Homer">
           <span>Homer</span>
