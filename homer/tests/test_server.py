@@ -102,7 +102,7 @@ def test_themes_carry_homers_call_and_debate_has_a_demo_question():
         some = c.get("/themes?n=5").json()
         assert len(some["calls"]) == len(some["themes"]) == 5 and all(some["calls"])
         debate = c.get("/themes?event=debate&demo=true").json()
-        assert debate == {"themes": ["Is it cheating to let an AI write your love letter?"], "calls": [""]}
+        assert debate == {"themes": ["Achilles could live a long life and be forgotten, or die young and be sung forever. Which would you choose?"], "calls": [""]}
         assert len(c.get("/themes?event=debate").json()["themes"]) == 3
 
 

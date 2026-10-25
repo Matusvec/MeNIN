@@ -10,7 +10,7 @@ import DiscusPanel from './Discus'
 import StadionPanel from './Stadion'
 import BoxingPanel from './Boxing'
 import ToxeiaPanel from './Toxeia'
-import { Arena, FIELD_EVENTS, QUIET_SCENE, SILENT_VERDICT, STDB_DB, type ArenaView, type GameEvent, type SceneFeed } from './lib/arena'
+import { Arena, FIELD_EVENTS, QUIET_SCENE, SILENT_VERDICT, isSilent, STDB_DB, type ArenaView, type GameEvent, type SceneFeed } from './lib/arena'
 import { webJoinLink } from './lib/links'
 import type { SceneTheme } from './scene/moods'
 import SceneBackdrop from './scene/SceneBackdrop'
@@ -385,8 +385,8 @@ export default function ArenaPanel({
 
         {room.phase === 'scored' && score && !field && !coach && (
           // A judge that never answered posts SILENT_VERDICT and a neutral score: grey it and say so.
-          <div className={`score-panel five${!score.verdict || score.verdict === SILENT_VERDICT ? ' neutral' : ''}`}>
-            {(!score.verdict || score.verdict === SILENT_VERDICT) && (
+          <div className={`score-panel five${isSilent(score.verdict) ? ' neutral' : ''}`}>
+            {isSilent(score.verdict) && (
               <small className="neutral-mark">Neutral score: the judge timed out</small>
             )}
             {(AXES[room.event] ?? AXES.poetry).map(([label, i]) => {

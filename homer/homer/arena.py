@@ -29,7 +29,7 @@ from .deal import CANDIDATES, call_for, deal, pick_theme
 from .host import Host, Verse
 from .lines import break_lines
 from .scanner import scan_verse
-from .judge import SILENT_SCORE, SILENT_VERDICT, EmptyVerse, Judge, Judgment, Turn
+from .judge import SILENT_SCORE, SILENT_VERDICT, EmptyVerse, Judge, Judgment, Turn, silent_verdict
 from .stdb import Refused, Stdb, StdbError
 
 T = TypeVar("T")
@@ -160,7 +160,7 @@ class Arena:
         reply). A post the module refuses falls back to decline_turn, unless the turn has already moved on."""
         coach = bt.event == "coach"
         event = events.POETRY if coach else events.get(bt.event)
-        j = Judgment(scores={}, verdict=SILENT_VERDICT, silent=True, error=f"{type(exc).__name__}: {exc}"[:200],
+        j = Judgment(scores={}, verdict=silent_verdict(event), silent=True, error=f"{type(exc).__name__}: {exc}"[:200],
                      weights={a.key: a.weight for a in event.axes})
         log.warning("judge turn=%s %s settled after %s", bt.turn_id, bt.event, j.error or type(exc).__name__)
         try:
@@ -171,7 +171,7 @@ class Arena:
             if not coach:
                 j.scores = {a.key: SILENT_SCORE for a in event.axes}
             await self.db.call("post_score", bt.turn_id, [j.scores[a.key] for a in event.axes] if j.scores else [],
-                               SILENT_VERDICT, "", "")
+                               j.verdict, "", "")
             return "post_score", j
         except StdbError:
             rows = await self.db.sql(f"SELECT * FROM turn WHERE id = {int(bt.turn_id)}")

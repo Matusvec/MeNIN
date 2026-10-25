@@ -108,6 +108,12 @@ SILENT_SCORE = 4
 # ...and the verdict posted with it, so every client can tell a neutral fallback from a judgment and say so
 # (the website's lib/arena.ts SILENT_VERDICT and the phone match it exactly).
 SILENT_VERDICT = "Homer is silent on this one."
+SOCRATES_SILENT = "Socrates is silent on this one."  # a debate's host is Socrates (the website matches both)
+
+
+def silent_verdict(event: events.Event) -> str:
+    """The honest line when the judge never answered, in the voice of the event's host."""
+    return SOCRATES_SILENT if event.hand == "moves" else SILENT_VERDICT
 
 
 class EmptyVerse(ValueError):
@@ -331,8 +337,9 @@ class Judge:
             data = json.loads(text)
         except json.JSONDecodeError:
             j.silent, j.error = True, f"bad JSON (stop_reason={final.stop_reason})"
+            log.warning("judge silent: %s", j.error)
             j.scores.update({a.key: SILENT_SCORE for a in event.claude_axes})
-            j.verdict = SILENT_VERDICT
+            j.verdict = silent_verdict(event)
             j.best_line = lines[fallback] if fallback is not None else ""
             return j
         if not data.get("fit", True):
@@ -406,7 +413,7 @@ class Judge:
         j.silent, j.error = True, type(exc).__name__
         log.warning("judge silent after %d ms: %s %s", _ms(t0), j.error, str(exc)[:160])
         j.scores.update({a.key: SILENT_SCORE for a in event.claude_axes})
-        j.verdict = SILENT_VERDICT
+        j.verdict = silent_verdict(event)
         j.best_line = lines[fallback] if fallback is not None else ""
         if event.hand == "moves":
             j.best_line = debate.clean_line(j.best_line)

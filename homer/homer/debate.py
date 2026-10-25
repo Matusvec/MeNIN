@@ -140,7 +140,7 @@ def lines() -> dict[str, dict[str, str]]:
 # ----- Dealing ---------------------------------------------------------------
 
 
-DEMO_QUESTION = "ai-love-letter"  # the demo's one debate question: our thesis (/themes?event=debate&demo=true)
+DEMO_QUESTION = "achilles-choice"  # the demo's one debate question: Achilles' choice (/themes?event=debate&demo=true)
 
 
 def pick_question(rng: random.Random | None = None, avoid: Iterable[str] = ()) -> Question:

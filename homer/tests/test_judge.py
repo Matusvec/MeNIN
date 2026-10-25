@@ -247,3 +247,10 @@ def test_a_fast_api_error_gets_one_more_try_not_silence():
     client = Flaky()
     j = asyncio.run(Judge(client=client, cfg=cfg()).judge(Turn("the wind was cold, the waves were grey\nthe sea kept time and so did I")))
     assert not j.silent and len(client.calls) == 2
+
+
+def test_a_silent_debate_is_socrates_not_homer():
+    from homer.judge import SOCRATES_SILENT, silent_verdict
+
+    assert silent_verdict(events.get("debate")) == SOCRATES_SILENT == "Socrates is silent on this one."
+    assert silent_verdict(events.get("poetry")) == SILENT_VERDICT

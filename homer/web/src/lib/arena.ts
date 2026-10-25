@@ -44,8 +44,8 @@ export const FIELD_EVENTS: string[] = ['discus', 'stadion', 'pygmachia', 'toxeia
 /** Free-verse turns (a 3-2-1, one SPEAK window, the arena silent): poetry, and coach ("Talk to Homer"). */
 export const freeVerse = (event: string): boolean => event === 'poetry' || event === 'coach'
 
-/** The demo's one debate question, our thesis: "Is it cheating to let an AI write your love letter?" */
-const DEMO_QUESTION = 'ai-love-letter'
+/** The demo's one debate question: "Achilles could live a long life and be forgotten, or die young and be sung forever. Which would you choose?" */
+const DEMO_QUESTION = 'achilles-choice'
 
 /** One preset per game (BattleReducers.swift preset(event:demo:)): debate is one round, discus three throws each. */
 export const PRESETS: Record<GameEvent, typeof DEMO_ROOM> = {
@@ -140,6 +140,9 @@ export type ArenaView = {
 /** The verdict the agent posts when the judge never answered (homer/homer/judge.py SILENT_VERDICT): the
  *  score is a neutral fallback, not a judgment, and the scorecard says so. */
 export const SILENT_VERDICT = 'Homer is silent on this one.'
+/** The same, in a debate (its host is Socrates): homer/homer/judge.py SOCRATES_SILENT. */
+export const SOCRATES_SILENT = 'Socrates is silent on this one.'
+export const isSilent = (verdict: string): boolean => !verdict || verdict === SILENT_VERDICT || verdict === SOCRATES_SILENT
 
 export const EMOTIONS = ['anger', 'grief', 'joy', 'awe', 'tenderness', 'fear', 'defiance', 'longing'] as const
 export type Emotion = (typeof EMOTIONS)[number]
