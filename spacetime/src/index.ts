@@ -370,6 +370,9 @@ const range = table(
     openedAt: t.timestamp(), // this arrow's window
     endsAt: t.timestamp(),
     updatedAt: t.timestamp(),
+    // Appended. Camera mode (SPEC): the arena's webcam aims and draws (set_camera_aim), there's
+    // no bow phone (bow_id 0), and the archer's own phone is the arrow (arrow_id = their player).
+    camera: t.bool().default(false),
   }
 );
 
@@ -515,18 +518,25 @@ const LOW_STAMINA = 30; // below this: half damage and no combo bonus
 const COMBO_MICROS = 1_200_000n; // the next punch within this keeps the chain
 const GUARD_HEAD = 0.25; // a raised guard lets this much of a head shot through
 const GUARD_BODY = 0.5; // and this much of a body shot
-// Toxeia: the sight is set for a full draw, so a weak one flies slow and drops; the wind
-// pushes the arrow sideways for as long as it's in the air.
+// Toxeia: a weak draw flies slower (so the wind has longer to push it sideways) and drops low;
+// a strong one flies true.
 const ARROWS = 3; // each archer's
 const ARROW_SECONDS = 45; // an arrow's window: no loose by then and it's lost
 const MAX_ARCHERS = 12;
 const RANGE_METRES = 30; // the line to the target
 const MAX_WIND = 6; // m/s
-const FULL_DRAW = 0.9; // drawn this far back counts as full
+const FULL_DRAW = 0.9; // drawn this far back flies at full speed
+const NO_DROP_DRAW = 0.6; // drawn this far back, the arrow doesn't drop
+const RIM_DROP_DRAW = 0.2; // the drop grows linearly to the rim (0.61 m) at this draw
 const AUTO_LOOSE_DRAW = 0.2; // drawn at least this far when the window runs out: it flies anyway
+const MIN_LOOSE_DRAW = 0.05; // a loose drawn less than this is a stray tap: the arrow stays on the string
+// A loose counts only once this arrow has been drawn (see loose). Off until every phone sends
+// set_draw before its loose (build 28): builds 24–27 don't, so a loose whose draw stream never
+// got through would be ignored and the arrow lost.
+// TODO(spec): turn on once the demo phones are all on build 28 or later.
+const LOOSE_NEEDS_DRAW = false;
 const SLOW_ARROW = 30; // m/s off a bare draw
 const FAST_ARROW = 70; // m/s off a full one
-const GRAVITY = 9.81;
 const WIND_DRIFT = 0.18; // metres sideways per m/s of wind per second of flight
 const AIM_SPAN = 1; // the bow's aim at ±1 is this many metres from the gold
 const RING_WIDTH = 0.061; // ten rings on a 122 cm face
@@ -771,25 +781,32 @@ function rangeOf(ctx: Ctx, roomId: bigint): Range {
     ctx.db.range.roomId.find(roomId) ??
     ctx.db.range.insert({
       roomId, bowId: 0n, arrowId: 0n, archerId: 0n, arrowNo: 0, wind: 0, aimYaw: 0, aimPitch: 0, draw: 0,
-      openedAt: EPOCH, endsAt: EPOCH, updatedAt: ctx.timestamp,
+      openedAt: EPOCH, endsAt: EPOCH, updatedAt: ctx.timestamp, camera: false,
     })
   );
 }
 
-// The range opens: phones that never claimed a station fill the free ones in seat order,
-// connected first, and the bow phone asks for the first archer's name.
-function openRange(ctx: Ctx, r: Room): void {
-  const st = rangeOf(ctx, r.id);
-  const players = playersOf(ctx, r.id).sort((a, b) => Number(b.connected) - Number(a.connected));
+// The two phones' stations: those still held stay, and phones that never claimed one fill the
+// free ones in seat order, connected first. 0 where there's no phone for it.
+function fillStations(ctx: Ctx, roomId: bigint, st: Range): { bowId: bigint; arrowId: bigint } {
+  const players = playersOf(ctx, roomId).sort((a, b) => Number(b.connected) - Number(a.connected));
   const held = (id: bigint) => players.some(p => p.id === id);
   let bowId = held(st.bowId) ? st.bowId : 0n;
-  let arrowId = held(st.arrowId) ? st.arrowId : 0n;
+  let arrowId = held(st.arrowId) && st.arrowId !== bowId ? st.arrowId : 0n;
   for (const p of players) {
     if (p.id === bowId || p.id === arrowId) continue;
     if (!bowId) bowId = p.id;
     else if (!arrowId) arrowId = p.id;
   }
-  if (!bowId || !arrowId) throw new SenderError('archery needs two phones: a bow and an arrow');
+  return { bowId, arrowId };
+}
+
+// The range opens and waits for the first archer. Two phones: the stations fill (see
+// fillStations) and the bow phone names the archer. Camera: no stations; the arena names them.
+function openRange(ctx: Ctx, r: Room): void {
+  const st = rangeOf(ctx, r.id);
+  const { bowId, arrowId } = st.camera ? { bowId: 0n, arrowId: 0n } : fillStations(ctx, r.id, st);
+  if (!st.camera && (!bowId || !arrowId)) throw new SenderError('archery needs two phones: a bow and an arrow');
   ctx.db.range.roomId.update({
     ...st, bowId, arrowId, archerId: 0n, arrowNo: 0, wind: 0, draw: 0, openedAt: EPOCH, endsAt: EPOCH, updatedAt: ctx.timestamp,
   });
@@ -810,13 +827,13 @@ function nockArrow(ctx: Ctx, roomId: bigint, archerId: bigint, arrowNo: number):
 }
 
 // Where an arrow lands on the face. It flies at 30 m/s off a bare draw up to 70 m/s off a
-// full one (FULL_DRAW and past); the sight is set for full, so a slower arrow drops by the
-// extra fall over its longer flight, and the wind drifts it sideways for the whole flight.
+// full one (FULL_DRAW and past), and the wind drifts it sideways for the whole flight. Drawn
+// to NO_DROP_DRAW or more it flies level; below that it drops, linearly, reaching the rim at
+// RIM_DROP_DRAW (leader, from real phones: a half pull should cost rings, not the arrow).
 function landing(yaw: number, pitch: number, draw: number, wind: number): { x: number; y: number; ring: number; flight: number } {
   const v = SLOW_ARROW + (FAST_ARROW - SLOW_ARROW) * Math.min(1, draw / FULL_DRAW);
   const flight = RANGE_METRES / v;
-  const sighted = RANGE_METRES / FAST_ARROW;
-  const drop = 0.5 * GRAVITY * (flight * flight - sighted * sighted);
+  const drop = draw >= NO_DROP_DRAW ? 0 : (10 * RING_WIDTH * (NO_DROP_DRAW - draw)) / (NO_DROP_DRAW - RIM_DROP_DRAW);
   const x = Math.round((AIM_SPAN * yaw + WIND_DRIFT * wind * flight) * 1000) / 1000;
   const y = Math.round((AIM_SPAN * pitch - drop) * 1000) / 1000;
   const r = Math.hypot(x, y);
@@ -838,11 +855,13 @@ function recordArrow(ctx: Ctx, roomId: bigint, st: Range, draw: number | null): 
   setPhase(ctx, getRoom(ctx, roomId), 'scored', 0n);
 }
 
-// The range and the sender's station, while an arrow is up; null otherwise.
+// The range and the sender's station, while an arrow is up; null otherwise. In camera mode
+// there's no bow phone (bow_id 0) and the arrow is the archer's own phone.
 function onRange(ctx: Ctx, roomId: bigint, station: 'bow' | 'arrow'): Range | null {
   const r = ctx.db.room.id.find(roomId);
   const st = ctx.db.range.roomId.find(roomId);
   if (!r || !st || !isToxeia(r) || r.phase !== 'speaking' || st.archerId === 0n) return null;
+  if (station === 'bow' && st.camera) return null;
   const p = playerOf(ctx, roomId);
   return p && p.id === (station === 'bow' ? st.bowId : st.arrowId) ? st : null;
 }
@@ -949,7 +968,7 @@ function clearBattle(ctx: Ctx, roomId: bigint): void {
   ctx.db.arrowShot.roomId.delete(roomId);
   ctx.db.arrowTimer.roomId.delete(roomId);
   const st = ctx.db.range.roomId.find(roomId); // the stations stay: same phones, next battle
-  if (st) ctx.db.range.roomId.update({ ...st, archerId: 0n, arrowNo: 0, wind: 0, draw: 0, openedAt: EPOCH, endsAt: EPOCH });
+  if (st) ctx.db.range.roomId.update({ ...st, archerId: 0n, arrowId: st.camera ? 0n : st.arrowId, arrowNo: 0, wind: 0, draw: 0, openedAt: EPOCH, endsAt: EPOCH });
   for (const p of playersOf(ctx, roomId)) {
     ctx.db.player.id.update({ ...p, total: 0 });
     const h = ctx.db.hand.playerId.find(p.id);
@@ -969,7 +988,8 @@ function idleScene(ctx: Ctx, roomId: bigint): void {
 
 function beginBattle(ctx: Ctx, r: Room): void {
   const n = playersOf(ctx, r.id).length;
-  const min = isCoach(r) || isStadion(r) ? 1 : MIN_PLAYERS; // Judge mode: one poet and Homer; a lone runner races the clock
+  // Judge mode: one poet and Homer; a lone runner races the clock; a lone archer at the camera.
+  const min = isCoach(r) || isStadion(r) || (isToxeia(r) && ctx.db.range.roomId.find(r.id)?.camera) ? 1 : MIN_PLAYERS;
   if (n < min) throw new SenderError(`need at least ${min} poet${min === 1 ? '' : 's'}`);
   if (isDiscus(r)) {
     startThrowRound(ctx, r, 1);
@@ -1212,7 +1232,7 @@ export const advance = spacetimedb.reducer({ roomId: t.u64() }, (ctx, { roomId }
     else if (a && a.arrows < ARROWS) nockArrow(ctx, roomId, a.id, a.arrows + 1);
     else {
       // Archers go in join order (SPEC): once every player has shot, straight to the results.
-      ctx.db.range.roomId.update({ ...st, archerId: 0n, arrowNo: 0, wind: 0, draw: 0, updatedAt: ctx.timestamp });
+      ctx.db.range.roomId.update({ ...st, archerId: 0n, arrowId: st.camera ? 0n : st.arrowId, arrowNo: 0, wind: 0, draw: 0, updatedAt: ctx.timestamp });
       const shot = new Set([...ctx.db.archer.roomId.filter(roomId)].filter(x => x.arrows >= ARROWS).map(x => x.name.toLowerCase()));
       setPhase(ctx, r, playersOf(ctx, roomId).every(p => shot.has(p.name.toLowerCase())) ? 'finale' : 'ready', 0n);
     }
@@ -1608,6 +1628,7 @@ export const claimStation = spacetimedb.reducer({ roomId: t.u64(), role: t.strin
   const p = playerOf(ctx, roomId);
   if (!p) throw new SenderError('you are not in this room');
   const st = rangeOf(ctx, roomId);
+  if (st.camera) return; // the module seats the archer up; phones claim nothing
   const free = (id: bigint) => id === 0n || id === p.id || !ctx.db.player.id.find(id);
   const mine = st.bowId === p.id ? 'bow' : st.arrowId === p.id ? 'arrow' : '';
   let want = role || mine;
@@ -1640,6 +1661,10 @@ export const nextArcher = spacetimedb.reducer({ roomId: t.u64(), name: t.string(
   const n = text(name, 'name', 1, 24);
   if (archers.some(a => a.name.toLowerCase() === n.toLowerCase())) throw new SenderError(`${n} has shot: another name`);
   if (archers.length >= MAX_ARCHERS) throw new SenderError('the range is full');
+  // Camera: the archer is a player, and their own phone is the arrow.
+  const them = playersOf(ctx, roomId).find(x => x.name.toLowerCase() === n.toLowerCase());
+  if (st.camera && !them) throw new SenderError(`no player called ${n}`);
+  if (st.camera) ctx.db.range.roomId.update({ ...st, bowId: 0n, arrowId: them!.id });
   const a = ctx.db.archer.insert({ id: 0n, roomId, name: n, total: 0, arrows: 0, at: ctx.timestamp });
   ctx.db.room.id.update({ ...r, roundNo: archers.length + 1 });
   nockArrow(ctx, roomId, a.id, 1);
@@ -1659,17 +1684,49 @@ export const setBowAim = spacetimedb.reducer(
 // arrow and an arrow is up.
 export const setDraw = spacetimedb.reducer({ roomId: t.u64(), draw: t.f32() }, (ctx, { roomId, draw }) => {
   const st = onRange(ctx, roomId, 'arrow');
-  if (st) ctx.db.range.roomId.update({ ...st, draw: clamp01(draw), updatedAt: ctx.timestamp });
+  if (st && !st.camera) ctx.db.range.roomId.update({ ...st, draw: clamp01(draw), updatedAt: ctx.timestamp });
 });
 
 // The arrow phone lets go: the arrow flies from the bow's latest aim, at this draw, through
-// this arrow's wind (see landing). Silent unless it's the arrow and an arrow is up, and the
-// arrow phone has drawn this arrow: each new arrow starts at draw 0, so a loose resent for the
-// last arrow (phones resend until it lands) can't shoot this one before the archer touches it.
+// this arrow's wind (see landing). A loose at a draw under MIN_LOOSE_DRAW is a stray tap or a
+// cancelled touch, never a shot: ignored, so the archer keeps the arrow. Silent unless it's the
+// arrow and an arrow is up, and (with
+// LOOSE_NEEDS_DRAW) the arrow phone has drawn this arrow: each new arrow starts at draw 0, so a
+// loose resent for the last arrow (phones resend until it lands) can't shoot this one before
+// the archer touches it.
 export const loose = spacetimedb.reducer({ roomId: t.u64(), draw: t.f32() }, (ctx, { roomId, draw }) => {
   const st = onRange(ctx, roomId, 'arrow');
-  if (st && st.draw > 0) recordArrow(ctx, roomId, st, clamp01(draw));
+  const d = st?.camera ? st.draw : clamp01(draw); // camera mode: the camera's draw, not the phone's
+  if (st && d >= MIN_LOOSE_DRAW && (st.camera || !LOOSE_NEEDS_DRAW || st.draw > 0)) recordArrow(ctx, roomId, st, d);
 });
+
+// The arena switches camera mode (SPEC: the webcam aims and draws, the archer's own phone
+// looses). On: no bow phone, and the arrow is the archer up's own phone. Off (the camera is off,
+// denied, or lost the archer): back to two phones, the stations filled by seat.
+export const setRangeCamera = spacetimedb.reducer({ roomId: t.u64(), on: t.bool() }, (ctx, { roomId, on }) => {
+  const r = getRoom(ctx, roomId);
+  requireHost(ctx, r);
+  if (!isToxeia(r)) throw new SenderError('not an archery range');
+  const st = rangeOf(ctx, roomId);
+  const up = st.archerId ? ctx.db.archer.id.find(st.archerId) : undefined;
+  const archerPhone = up ? playersOf(ctx, roomId).find(x => x.name.toLowerCase() === up.name.toLowerCase())?.id ?? 0n : 0n;
+  const stations = on ? { bowId: 0n, arrowId: archerPhone } : fillStations(ctx, roomId, { ...st, bowId: 0n, arrowId: 0n });
+  ctx.db.range.roomId.update({ ...st, ...stations, camera: on, updatedAt: ctx.timestamp });
+});
+
+// The arena's webcam, about 20 Hz: the bow arm's aim (-1..1 each way, as the bow phone's) and
+// the drawing hand's draw (0..1). Only the arena; silent unless camera mode and an arrow is up.
+export const setCameraAim = spacetimedb.reducer(
+  { roomId: t.u64(), yaw: t.f32(), pitch: t.f32(), draw: t.f32() },
+  (ctx, { roomId, yaw, pitch, draw }) => {
+    const r = ctx.db.room.id.find(roomId);
+    if (!r) return;
+    if (!r.host.isEqual(ctx.sender)) throw new SenderError('only the arena tracks the camera');
+    const st = ctx.db.range.roomId.find(roomId);
+    if (!st || !st.camera || !isToxeia(r) || r.phase !== 'speaking' || st.archerId === 0n) return;
+    ctx.db.range.roomId.update({ ...st, aimYaw: unit(yaw), aimPitch: unit(pitch), draw: clamp01(draw), updatedAt: ctx.timestamp });
+  }
+);
 
 // The window runs out. An arrow still drawn (the arrow phone streamed a draw of 0.2 or more and
 // its loose never came, say a stuck thumb) flies from that draw and the bow's current aim;

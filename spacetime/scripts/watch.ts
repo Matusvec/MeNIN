@@ -238,12 +238,14 @@ function wire() {
   });
   conn.db.range.onUpdate((_c, a, b) => {
     const c = code(b.roomId);
-    if (a.bowId !== b.bowId || a.arrowId !== b.arrowId) {
+    if (a.camera !== b.camera) say(`${c} camera ${b.camera ? 'ON: the webcam aims and draws' : 'OFF: two phones'}`);
+    else if (!b.camera && (a.bowId !== b.bowId || a.arrowId !== b.arrowId)) {
       say(`${c} stations: bow ${b.bowId ? poet(b.bowId) : '-'}, arrow ${b.arrowId ? poet(b.arrowId) : '-'}`);
     }
     if (b.archerId && (a.archerId !== b.archerId || a.arrowNo !== b.arrowNo)) {
       arrows.set(b.roomId, { up: Date.now(), aims: [], draws: [], aim: [{ t: Date.now(), yaw: b.aimYaw, pitch: b.aimPitch }], draw: [] });
-      say(`${c} ${archerName(b.archerId)}, arrow ${b.arrowNo}: wind ${b.wind >= 0 ? '→' : '←'} ${Math.abs(b.wind).toFixed(1)} m/s`);
+      say(`${c} ${archerName(b.archerId)}, arrow ${b.arrowNo}: wind ${b.wind >= 0 ? '→' : '←'} ${Math.abs(b.wind).toFixed(1)} m/s` +
+        (b.camera ? ` (camera; ${poet(b.arrowId)}'s phone looses)` : ''));
       return;
     }
     const m = arrows.get(b.roomId);
@@ -267,7 +269,8 @@ function wire() {
     const total = all('archer').find(a => a.id === x.archerId)?.total ?? 0;
     if (x.flight === 0) say(`${c}   time ran out: arrow ${x.arrowNo} lost`);
     else say(`${c}   loosed at draw ${x.draw.toFixed(2)}: ring ${x.ring} at (${x.x.toFixed(2)}, ${x.y.toFixed(2)}) m, ${x.flight.toFixed(2)} s in the air; pushed in ${Date.now() - micros(x.at)} ms`);
-    if (m) say(`${c}   ${secs(micros(x.at) - m.up)} on the string; bow aim ${rate(m.aims)}, draw ${rate(m.draws)}; ${archerName(x.archerId)} has ${total}`);
+    const cam = all('range').find(r => r.roomId === x.roomId)?.camera;
+    if (m) say(`${c}   ${secs(micros(x.at) - m.up)} on the string; ${cam ? 'camera' : 'bow'} aim ${rate(m.aims)}, draw ${rate(m.draws)}; ${archerName(x.archerId)} has ${total}`);
     if (m && m.aim.length > 1) say(`${c}   aim: ${aimSummary(m.aim)}; draw peak ${Math.max(0, ...m.draw.map(d => d.d)).toFixed(2)}`);
     if (m && AIM_DIR) {
       const file = `${AIM_DIR}/${c}-${archerName(x.archerId)}-${x.arrowNo}.csv`;

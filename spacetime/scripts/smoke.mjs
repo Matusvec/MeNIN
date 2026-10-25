@@ -641,11 +641,12 @@ const ody = (await archers())[0];
 check((await room(Tx.id)).phase === 'speaking' && st.archer_id === ody.id && st.arrow_no === 1 && Math.abs(st.wind) <= 6, `Odysseus is up: arrow 1, wind ${st.wind.toFixed(1)} m/s`);
 check(st.ends_at[0] - st.opened_at[0] === 45_000_000, 'a 45 s window an arrow');
 check(await fails(ada, 'next_archer', Tx.id, 'Penelope'), 'one archer at a time');
-// The module's flight, for the expectations: 30 m at 30..70 m/s, the sight set for a full draw.
+// The module's flight, for the expectations: 30 m at 30..70 m/s; no drop from a 0.6 draw up,
+// below it a linear drop that reaches the rim (0.61 m) at 0.2.
 const fly = (yaw, pitch, draw, wind) => {
   const t = 30 / (30 + 40 * Math.min(1, draw / 0.9));
   const x = yaw + 0.18 * wind * t;
-  const y = pitch - 0.5 * 9.81 * (t * t - (30 / 70) ** 2);
+  const y = pitch - (draw >= 0.6 ? 0 : (0.61 * (0.6 - draw)) / 0.4);
   const r = Math.hypot(x, y);
   return { x, y, t, ring: r < 0.61 ? 10 - Math.floor(r / 0.061) : 0 };
 };
@@ -671,14 +672,15 @@ await call(arena, 'advance', Tx.id);
 st = await range();
 check((await room(Tx.id)).phase === 'speaking' && st.arrow_no === 2 && st.draw === 0, `arrow 2: fresh wind (${st.wind.toFixed(1)} m/s)`);
 await call(ada, 'set_bow_aim', Tx.id, 0, 0);
-await call(bo, 'loose', Tx.id, 1);
-check((await shots()).length === 1 && (await room(Tx.id)).phase === 'speaking', 'a loose before this arrow is drawn is ignored: a resend for the last arrow cannot shoot the next');
+// (With LOOSE_NEEDS_DRAW on, a loose before this arrow is drawn is ignored: check it here then.)
+await call(bo, 'loose', Tx.id, 0.02);
+check((await shots()).length === 1 && (await room(Tx.id)).phase === 'speaking', 'a loose at a draw under 0.05 is a stray tap: ignored, the arrow stays up');
 await call(bo, 'set_draw', Tx.id, 0.45);
 await call(bo, 'loose', Tx.id, 0.45);
 shot = (await shots()).at(-1);
 let want = fly(0, 0, 0.45, st.wind);
-check(shot.ring === 0 && shot.y < -0.6 && Math.abs(shot.y - want.y) < 0.002 && Math.abs(shot.x - want.x) < 0.002 && Math.abs(shot.flight - 0.6) < 0.001,
-  `a half draw flies slow (0.6 s) and drops under the face: ${shot.y} m`);
+check(shot.ring === want.ring && Math.abs(shot.y + 0.229) < 0.002 && Math.abs(shot.x - want.x) < 0.002 && Math.abs(shot.flight - 0.6) < 0.001,
+  `a weak draw (0.45) flies slower (0.6 s) and drops ${shot.y} m: it costs rings (${shot.ring}), not the arrow`);
 await call(arena, 'advance', Tx.id);
 // Meanwhile in a second range, an arrow drawn to 0.6 whose loose never comes (a stuck thumb).
 await call(arena, 'create_room', 'toxeia', 1, 2, 2, 80, 'four_beat', false, false, true);
@@ -713,7 +715,9 @@ console.log('     waiting for the 60 s judging cap...');
 await sleep(Math.max(0, judgingSince + 61_000 - Date.now()));
 check((await turn(Tj)).status === 'skipped' && (await room(Cj.id)).phase === 'scored', 'unjudged for 60 s: the module skips the verse, so no room is ever stuck in judging');
 await call(arena, 'end_battle', Cj.id);
-check((await archers())[0].arrows === 3 && (await archers())[0].total === 10, 'three arrows: Odysseus finishes on 10');
+const odyId = (await archers())[0].id;
+const odyRings = (await shots()).filter(x => x.archer_id === odyId).reduce((t, x) => t + x.ring, 0);
+check((await archers())[0].arrows === 3 && (await archers())[0].total === odyRings && odyRings >= 10, `three arrows: Odysseus finishes on his rings (${odyRings})`);
 await call(arena, 'advance', Tx.id);
 st = await range();
 check((await room(Tx.id)).phase === 'ready' && st.archer_id === 0, 'three arrows each: back to the bow for the next name');
@@ -760,6 +764,70 @@ for (const [n, who] of [['Ada', 1], ['Cy', 2]]) {
   const phase = (await room(Tx.id)).phase;
   check(who === 1 ? phase === 'ready' : phase === 'finale', who === 1 ? 'Ada (joined first) has shot: back to the bow for Cy' : 'Cy, the last to join, has shot: straight to the results');
 }
+
+// Camera mode (SPEC): the arena's webcam aims and draws, each archer's own phone looses.
+await call(arena, 'create_room', 'toxeia', 1, 2, 2, 80, 'four_beat', false, false, true);
+const Tc = (await sql(null, 'SELECT * FROM room')).filter(x => x.host[0] === `0x${arena.hex}`).sort((a, b) => b.id - a.id)[0];
+await call(ada, 'join_room', Tc.code, 'Ada', '', []);
+const rangeC = async () => (await sql(null, `SELECT * FROM range WHERE room_id = ${Tc.id}`))[0];
+const shotsC = async () => (await sql(null, `SELECT * FROM arrow_shot WHERE room_id = ${Tc.id}`)).sort((a, b) => a.id - b.id);
+check(await fails(ada, 'set_range_camera', Tc.id, true), 'only the arena switches the camera on');
+await call(arena, 'set_range_camera', Tc.id, true);
+await call(bo, 'join_room', Tc.code, 'Bo', '', []);
+await call(bo, 'claim_station', Tc.id, 'bow');
+let rc = await rangeC();
+check(rc.camera && rc.bow_id === 0 && rc.arrow_id === 0, 'camera on: no stations, and a claim from an older phone changes nothing');
+const tcp = await sql(null, `SELECT * FROM player WHERE room_id = ${Tc.id}`);
+const tcid = n => tcp.find(p => p.name === n).id;
+await call(arena, 'start_battle', Tc.id);
+check((await room(Tc.id)).phase === 'ready', 'camera: the range opens with no phones on stations');
+check(await fails(ada, 'next_archer', Tc.id, 'Ada'), 'camera: only the arena calls the archer up');
+check(await fails(arena, 'next_archer', Tc.id, 'Zed'), 'camera: the archer must be a player in the room');
+await call(arena, 'next_archer', Tc.id, 'Ada');
+rc = await rangeC();
+check((await room(Tc.id)).phase === 'speaking' && rc.arrow_id === tcid('Ada') && rc.bow_id === 0, "camera: Ada is up, and her own phone is the arrow");
+check(await fails(ada, 'set_camera_aim', Tc.id, 0, 0, 0.5), 'only the arena tracks the camera');
+await call(ada, 'set_bow_aim', Tc.id, 0.5, 0.5);
+await call(ada, 'set_draw', Tc.id, 0.7);
+rc = await rangeC();
+check(rc.aim_yaw === 0 && rc.draw === 0, 'camera: the phones neither aim nor draw');
+await call(arena, 'set_camera_aim', Tc.id, -0.18 * rc.wind * (30 / 70), 0, 0.01);
+await call(ada, 'loose', Tc.id, 1);
+check((await shotsC()).length === 0, "camera: the camera's draw is a stray tap (0.01), whatever the phone says: ignored");
+await call(arena, 'set_camera_aim', Tc.id, -0.18 * rc.wind * (30 / 70), 0, 1);
+await call(bo, 'loose', Tc.id, 1);
+check((await shotsC()).length === 0, "camera: only the archer's own phone looses");
+await call(ada, 'loose', Tc.id, 0.02);
+const camShot = (await shotsC())[0];
+check(camShot && camShot.draw === 1 && camShot.ring === 10, `camera: the loose flies at the camera's draw (1.0), not the phone's (0.02): ring ${camShot?.ring}`);
+await call(arena, 'advance', Tc.id);
+for (let i = 2; i <= 3; i++) {
+  await call(arena, 'set_camera_aim', Tc.id, 0, 0, 0.8);
+  await call(ada, 'loose', Tc.id, 0.8);
+  await call(arena, 'advance', Tc.id);
+}
+rc = await rangeC();
+check((await room(Tc.id)).phase === 'ready' && rc.arrow_id === 0 && rc.archer_id === 0, 'camera: between archers nobody holds the arrow');
+await call(arena, 'next_archer', Tc.id, 'bo');
+check((await rangeC()).arrow_id === tcid('Bo'), "camera: Bo is up on his own phone");
+await call(arena, 'set_range_camera', Tc.id, false);
+rc = await rangeC();
+check(!rc.camera && rc.bow_id === tcid('Ada') && rc.arrow_id === tcid('Bo') && (await room(Tc.id)).phase === 'speaking', 'camera off mid-arrow: back to two phones by seat, the arrow still up');
+await call(bo, 'set_draw', Tc.id, 0.9);
+await call(bo, 'loose', Tc.id, 0.9);
+check((await shotsC()).length === 4, 'two phones again: the arrow phone draws and looses');
+await call(arena, 'set_range_camera', Tc.id, true);
+check((await rangeC()).arrow_id === tcid('Bo') && (await rangeC()).bow_id === 0, "camera back on: Bo, the archer up, holds the arrow");
+await call(arena, 'end_battle', Tc.id);
+// A lone archer at the camera.
+await call(arena, 'create_room', 'toxeia', 1, 2, 2, 80, 'four_beat', false, false, true);
+const Tl = (await sql(null, 'SELECT * FROM room')).filter(x => x.host[0] === `0x${arena.hex}`).sort((a, b) => b.id - a.id)[0];
+await call(ada, 'join_room', Tl.code, 'Ada', '', []);
+check(await fails(arena, 'start_battle', Tl.id), 'two phones need two players');
+await call(arena, 'set_range_camera', Tl.id, true);
+await call(arena, 'start_battle', Tl.id);
+check((await room(Tl.id)).phase === 'ready', 'camera: one archer is enough');
+await call(arena, 'end_battle', Tl.id);
 
 console.log(failures === 0 ? '\nall checks passed' : `\n${failures} check(s) failed`);
 process.exit(failures === 0 ? 0 : 1);
