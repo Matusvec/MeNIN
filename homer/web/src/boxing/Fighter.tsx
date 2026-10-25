@@ -1,10 +1,13 @@
-// A black-figure boxer (artist), drawn from the rig in rig.ts: the body and head
-// as one piece, each arm as an upper arm rotating at the shoulder and a forearm
+// A black-figure boxer (artist), drawn from the rig in rig.ts: the legs, then the
+// upper body as one group that turns at the hips (a punch's shoulder turn, a body
+// shot's crumple, a tired sag), with the head as its own group that snaps back at
+// the neck. Each arm is an upper arm rotating at the shoulder and a forearm
 // rotating at the elbow, the fists wrapped in himantes. Fighter B is A mirrored.
-// Builder drives it with the phone's aim and the punch thrown; boxing.css
-// animates the hit and the KO.
+// Builder drives it with the phone's aim and the punch thrown; boxing.css animates
+// the lean, the hit and the KO.
 
-import { BEARD, FORE, HEAD, HIPS, INCISIONS, KNOT, KO_FISTS, LEAD_SHOULDER, LEGS, REAR_SHOULDER, TORSO, UPPER, armAngles, fists, type Aim, type Hand, type Punch } from './rig'
+import type { CSSProperties } from 'react'
+import { BEARD, FORE, HEAD, HIP_PIVOT, HIPS, INCISIONS_LEGS, INCISIONS_UPPER, KNOT, KO_FISTS, LEAD_SHOULDER, LEGS, NECK_PIVOT, REAR_SHOULDER, TORSO, UPPER, armAngles, fists, type Aim, type Hand, type Punch, type ThrowPhase } from './rig'
 
 const INK = '#1f1612'
 const CLAY = '#c96b3c'
@@ -17,6 +20,10 @@ export type FighterProps = {
   /** The hand thrown right now (on the side the phone points to), or null for the guard. */
   hand?: Hand | null
   punch?: Punch
+  /** The punch's beat: cocked, fired, carried through. */
+  throwPhase?: ThrowPhase
+  /** Out of wind: the guard sags to the chest. */
+  tired?: boolean
   /** fight (the default), hit (shaken), or ko (tips over). */
   state?: 'fight' | 'hit' | 'ko'
   /** The fighter's seat color, for the name pill. */
@@ -24,37 +31,51 @@ export type FighterProps = {
   name?: string
 }
 
-export default function Fighter({ side, aim, hand = null, punch = 'straight', state = 'fight', seat, name }: FighterProps) {
-  const f = state === 'ko' ? { ...KO_FISTS, leadElbowUp: false, rearElbowUp: false } : fists(aim, hand, punch)
+const pivot = ([x, y]: [number, number]): CSSProperties => ({ transformBox: 'view-box', transformOrigin: `${x}px ${y}px` })
+
+export default function Fighter({ side, aim, hand = null, punch = 'straight', throwPhase = 'snap', tired = false, state = 'fight', seat, name }: FighterProps) {
+  const f = state === 'ko' ? { ...KO_FISTS, leadElbowUp: false, rearElbowUp: false } : fists(aim, hand, punch, throwPhase, tired)
   const lead = armAngles(LEAD_SHOULDER, f.lead, f.leadElbowUp)
   const rear = armAngles(REAR_SHOULDER, f.rear, f.rearElbowUp)
   return (
-    <div className={`fighter ${side} ${state}${hand ? ' punching' : ''}`} style={seat ? ({ '--seat': seat } as React.CSSProperties) : undefined}>
+    <div className={`fighter ${side} ${state}${hand ? ' punching' : ''}${tired ? ' tired' : ''}`} style={seat ? ({ '--seat': seat } as CSSProperties) : undefined}>
       <div className="fall">
         <svg className="figure" viewBox="0 0 200 240" aria-hidden="true">
-          <Arm at={REAR_SHOULDER} angles={rear} className="arm rear" />
-          <g className="f-body">
+          <g className="f-legs">
             <g stroke={INK} strokeLinecap="round">
               {LEGS.map(([x1, y1, x2, y2, w], i) => (
                 <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} strokeWidth={w} />
               ))}
             </g>
             <ellipse {...HIPS} fill={INK} />
-            <polygon points={TORSO} fill={INK} />
-            <circle {...HEAD} fill={INK} />
-            <circle {...KNOT} fill={INK} />
-            <polygon points={BEARD} fill={INK} />
-            <g stroke={CLAY} strokeWidth={1.4} strokeLinecap="round" fill="none">
-              {INCISIONS.map((d) => (
-                <path key={d} d={d} />
-              ))}
-            </g>
+            <Incisions paths={INCISIONS_LEGS} />
           </g>
-          <Arm at={LEAD_SHOULDER} angles={lead} className="arm lead" />
+          <g className="upper" style={pivot(HIP_PIVOT)}>
+            <Arm at={REAR_SHOULDER} angles={rear} className="arm rear" />
+            <polygon points={TORSO} fill={INK} />
+            <Incisions paths={INCISIONS_UPPER} />
+            <g className="head" style={pivot(NECK_PIVOT)}>
+              <circle {...HEAD} fill={INK} />
+              <circle {...KNOT} fill={INK} />
+              <polygon points={BEARD} fill={INK} />
+            </g>
+            <Arm at={LEAD_SHOULDER} angles={lead} className="arm lead" />
+          </g>
         </svg>
       </div>
       {name && <span className="fighter-name">{name}</span>}
     </div>
+  )
+}
+
+/** Lines scratched through the black to the clay, as on the pots. */
+function Incisions({ paths }: { paths: string[] }) {
+  return (
+    <g stroke={CLAY} strokeWidth={1.4} strokeLinecap="round" fill="none">
+      {paths.map((d) => (
+        <path key={d} d={d} />
+      ))}
+    </g>
   )
 }
 
