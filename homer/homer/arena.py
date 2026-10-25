@@ -29,7 +29,7 @@ from .deal import CANDIDATES, call_for, deal, pick_theme
 from .host import Host, Verse
 from .lines import break_lines
 from .scanner import scan_verse
-from .judge import SILENT_VERDICT, EmptyVerse, Judge, Judgment, Turn
+from .judge import SILENT_SCORE, SILENT_VERDICT, EmptyVerse, Judge, Judgment, Turn
 from .stdb import Refused, Stdb, StdbError
 
 T = TypeVar("T")
@@ -40,6 +40,7 @@ FLOW_NEUTRAL = 5  # Flow for a verse with no breath breaks from the phone: no li
 HOSTS = frozenset({"homer", "socrates"})  # the hosts' names; a poet who types one becomes "Poet {seat}"
 RECENT_THEMES = 20  # themes a generated one may not repeat
 THEME_WAIT = 4.0  # seconds a deal waits for a theme still being coined, then takes a written one
+JUDGE_CAP = 30.0  # seconds a turn may sit with the agent; then it settles on the neutral score (never stuck in judging)
 
 
 @dataclass
@@ -96,7 +97,12 @@ class Arena:
         return await asyncio.shield(task)
 
     async def judge_turn(self, bt: BattleTurn) -> tuple[str, Judgment]:
-        """Judge a verse and post the score (or decline it). Returns the reducer called."""
+        """Judge a verse and post the score (or decline it). Returns the reducer called.
+
+        Once the turn is confirmed in `judging` it never stays there: a failure, or a judge past JUDGE_CAP,
+        settles it (_settle) instead of raising, because the arena retries every 2 s and a failure that
+        repeats would hold the room for good (MWET's turn 3, Talk to Homer, 17:20).
+        """
 
         async def work() -> tuple[str, Judgment]:
             # The live turn, not the request, says what's judged: only a turn in `judging`
@@ -107,39 +113,75 @@ class Arena:
             live = rows[0]
             if live.get("status") != "judging":
                 raise Refused(f"turn {bt.turn_id} is {live.get('status')}, not judging")
-            if bt.event == "coach":  # a wrong event can't slip through: the module refuses axes that don't fit the room
-                return await self._coach_turn(bt.turn_id, live)
-            event = events.get(bt.event)
-            said = live.get("transcript") or ""
-            turn = Turn(
-                transcript=break_lines(said) if event.hand == "formulas" else said,  # free verse: a line per breath
-                mode="battle",
-                event=bt.event,
-                theme=bt.theme,
-                hand=self.dealt.get(bt.player_id, []),
-                played=list(live.get("played") or []),
-                rescues=int(live.get("rescues") or 0),
-                previous=bt.previous,
-                lines_expected=None if event.hand == "formulas" else bt.lines_expected,  # free verse: as many lines as breaths
-                emotion_history=self.history.get(bt.turn_id, []),
-                hoard=bt.hoard,
-                demo=bt.demo,
-                side=bt.side,
-                turn_seconds=bt.turn_seconds,
-                spoken_seconds=bt.spoken_seconds,
-            )
-            j = await self.judge.judge(turn)
-            if event.hand == "formulas" and "\n" not in said.strip():
-                # The splitter cuts lines to about four stresses, so Flow on its lines is a free 10.
-                j.scores["beat"] = FLOW_NEUTRAL
-            if j.declined:
-                await self.db.call("decline_turn", bt.turn_id)
-                return "decline_turn", j
-            axes = [j.scores[a.key] for a in event.axes]
-            await self.db.call("post_score", bt.turn_id, axes, j.verdict, j.best_line, j.coined)
-            return "post_score", j
+            # A wrong event can't slip through: the module refuses axes that don't fit the room.
+            judged = self._coach_turn(bt.turn_id, live) if bt.event == "coach" else self._battle_turn(bt, live)
+            try:
+                return await asyncio.wait_for(judged, JUDGE_CAP)
+            except Exception as exc:  # every failure settles the turn; a shutdown's cancel still propagates
+                return await self._settle(bt, exc)
 
         return await self.once(("judge", bt.turn_id), work)
+
+    async def _battle_turn(self, bt: BattleTurn, live: dict) -> tuple[str, Judgment]:
+        """A poetry or debate verse: judged, then post_score (or decline_turn when unfit for the hall)."""
+        event = events.get(bt.event)
+        said = live.get("transcript") or ""
+        turn = Turn(
+            transcript=break_lines(said) if event.hand == "formulas" else said,  # free verse: a line per breath
+            mode="battle",
+            event=bt.event,
+            theme=bt.theme,
+            hand=self.dealt.get(bt.player_id, []),
+            played=list(live.get("played") or []),
+            rescues=int(live.get("rescues") or 0),
+            previous=bt.previous,
+            lines_expected=None if event.hand == "formulas" else bt.lines_expected,  # free verse: as many lines as breaths
+            emotion_history=self.history.get(bt.turn_id, []),
+            hoard=bt.hoard,
+            demo=bt.demo,
+            side=bt.side,
+            turn_seconds=bt.turn_seconds,
+            spoken_seconds=bt.spoken_seconds,
+        )
+        j = await self.judge.judge(turn)
+        if event.hand == "formulas" and "\n" not in said.strip():
+            # The splitter cuts lines to about four stresses, so Flow on its lines is a free 10.
+            j.scores["beat"] = FLOW_NEUTRAL
+        if j.declined:
+            await self.db.call("decline_turn", bt.turn_id)
+            return "decline_turn", j
+        axes = [j.scores[a.key] for a in event.axes]
+        await self.db.call("post_score", bt.turn_id, axes, j.verdict, j.best_line, j.coined)
+        return "post_score", j
+
+    async def _settle(self, bt: BattleTurn, exc: Exception) -> tuple[str, Judgment]:
+        """The way out of `judging` when judging failed. Nothing said: a battle turn is declined, and in Talk to
+        Homer he is silent. Anything else posts the neutral score (SILENT_SCORE on every axis; coach: a silent
+        reply). A post the module refuses falls back to decline_turn, unless the turn has already moved on."""
+        coach = bt.event == "coach"
+        event = events.POETRY if coach else events.get(bt.event)
+        j = Judgment(scores={}, verdict=SILENT_VERDICT, silent=True, error=f"{type(exc).__name__}: {exc}"[:200],
+                     weights={a.key: a.weight for a in event.axes})
+        log.warning("judge turn=%s %s settled after %s", bt.turn_id, bt.event, j.error or type(exc).__name__)
+        try:
+            if isinstance(exc, EmptyVerse) and not coach:
+                j.declined, j.verdict = True, ""
+                await self.db.call("decline_turn", bt.turn_id)
+                return "decline_turn", j
+            if not coach:
+                j.scores = {a.key: SILENT_SCORE for a in event.axes}
+            await self.db.call("post_score", bt.turn_id, [j.scores[a.key] for a in event.axes] if j.scores else [],
+                               SILENT_VERDICT, "", "")
+            return "post_score", j
+        except StdbError:
+            rows = await self.db.sql(f"SELECT * FROM turn WHERE id = {int(bt.turn_id)}")
+            if rows and rows[0].get("status") != "judging":
+                return "settled", j  # already out (a late post, the arena's skip)
+            if j.declined:
+                raise
+            await self.db.call("decline_turn", bt.turn_id)
+            j.declined = True
+            return "decline_turn", j
 
     async def _coach_turn(self, turn_id: int, live: dict) -> tuple[str, Judgment]:
         """Talk to Homer: his spoken reply to this turn, from the room's conversation so far, posted as the verdict."""

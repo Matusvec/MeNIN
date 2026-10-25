@@ -74,13 +74,6 @@ def test_unfit_verse_declines_the_turn():
     assert posted == "decline_turn" and db.calls == [("decline_turn", [7], "Bearer tok")]
 
 
-def test_a_refusal_is_raised_not_retried():
-    arena, db = make(refuse={"post_score"})
-    with pytest.raises(Refused):
-        asyncio.run(arena.judge_turn(BattleTurn(turn_id=1, transcript=VERSE)))
-    assert len(db.calls) == 1
-
-
 def test_a_retry_while_judging_shares_one_claude_call():
     arena, db = make(delay=0.005)
 
@@ -227,10 +220,15 @@ def test_emotion_for_a_dead_turn_is_refused_and_free():
     assert arena.judge.client.calls == []
 
 
-def test_an_empty_live_verse_is_422(monkeypatch):
+def test_an_empty_live_verse_is_declined_not_left_in_judging(monkeypatch):
+    # A 422 left the turn in judging: the arena retries every 2 s, and the same 422 came back forever.
     monkeypatch.setenv("HOMER_WARM", "0")
+    calls = []
 
     def blank(request):
+        if not request.url.path.endswith("/sql"):
+            calls.append(request.url.path.rsplit("/", 1)[-1])
+            return httpx2.Response(200)
         cols = ["id", "status", "transcript", "played", "rescues"]
         return httpx2.Response(200, json=[{"schema": {"elements": [{"name": {"some": c}} for c in cols]},
                                            "rows": [[9, "judging", " ", [], 0]]}])
@@ -239,9 +237,50 @@ def test_an_empty_live_verse_is_422(monkeypatch):
     server._judge, server._arena = arena.judge, arena
     try:
         with TestClient(server.app) as c:
-            assert c.post("/battle/judge", json={"turnId": 9, "transcript": VERSE}).status_code == 422
+            r = c.post("/battle/judge", json={"turnId": 9, "transcript": VERSE})
+            assert r.status_code == 200 and r.json()["posted"] == "decline_turn"
+        assert calls == ["decline_turn"] and arena.judge.client.calls == []
     finally:
         server._judge = server._arena = None
+
+
+def test_a_judge_that_breaks_posts_the_neutral_score():
+    arena, db = make()
+
+    async def broken(turn, on_verdict=None):
+        raise KeyError("craft")
+
+    arena.judge.judge = broken
+    posted, j = asyncio.run(arena.judge_turn(BattleTurn(turn_id=42, transcript=VERSE)))
+    assert posted == "post_score" and j.silent and j.total == 40
+    assert db.calls[0][:2] == ("post_score", [42, [4, 4, 4, 4, 4], "Homer is silent on this one.", "", ""])
+
+
+def test_a_judge_past_the_cap_posts_the_neutral_score(monkeypatch):
+    monkeypatch.setattr("homer.arena.JUDGE_CAP", 0.05)
+    arena, db = make(delay=1.0)
+    posted, j = asyncio.run(arena.judge_turn(BattleTurn(turn_id=42, transcript=VERSE)))
+    assert posted == "post_score" and "TimeoutError" in j.error
+    assert db.calls[0][1][1] == [4, 4, 4, 4, 4]
+
+
+def test_a_refused_post_falls_back_to_decline_turn():
+    arena, db = make(refuse={"post_score"})
+    posted, j = asyncio.run(arena.judge_turn(BattleTurn(turn_id=42, transcript=VERSE)))
+    assert posted == "decline_turn" and j.declined
+    assert [c[0] for c in db.calls] == ["post_score", "post_score", "decline_turn"]
+
+
+def test_a_settle_on_a_turn_that_moved_on_is_quiet():
+    arena, db = make(refuse={"post_score"})
+    statuses = iter(["judging", "scored"])  # the arena skipped it while Claude was out
+
+    async def sql(q):
+        return [{"id": 42, "status": next(statuses), "transcript": VERSE, "played": [], "rescues": 0}]
+
+    arena.db.sql = sql
+    posted, _ = asyncio.run(arena.judge_turn(BattleTurn(turn_id=42, transcript=VERSE)))
+    assert posted == "settled" and "decline_turn" not in [c[0] for c in db.calls]
 
 
 def test_free_verse_is_judged_a_line_per_breath_and_long_lines_split():
@@ -328,3 +367,16 @@ def test_a_coach_verse_attempt_is_scored_like_a_battle_verse_and_talk_is_not():
     arena = Arena(Judge(client=client, cfg=cfg()), Stdb(cfg(), httpx2.AsyncClient(transport=httpx2.MockTransport(talk.handler))))
     asyncio.run(arena.judge_turn(BattleTurn(turn_id=2, transcript="", event="coach")))
     assert talk.calls[0][1][1] == []  # talking back: no score
+
+
+def test_a_coach_turn_whose_reply_breaks_gets_homers_silence_not_a_hang():
+    db = CoachDb()
+    arena = Arena(Judge(client=FakeClient({}), cfg=cfg()), Stdb(cfg(), httpx2.AsyncClient(transport=httpx2.MockTransport(db.handler))))
+
+    async def broken(history, theme):
+        raise RuntimeError("overloaded")
+
+    arena.host.coach = broken
+    posted, j = asyncio.run(arena.judge_turn(BattleTurn(turn_id=2, transcript="", event="coach")))
+    assert posted == "post_score" and j.silent and "overloaded" in j.error
+    assert db.calls[0][:2] == ("post_score", [2, [], "Homer is silent on this one.", "", ""])
