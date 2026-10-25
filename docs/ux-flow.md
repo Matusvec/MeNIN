@@ -753,7 +753,7 @@ MeNIN has an original soundtrack by a teammate (spec, "Music"). The composer's b
 - **Never with the beat.** In lessons only the staff's pulse plays, and under the stitched song only its beat. In battle turns nothing plays at all, only the poet's voice (free verse). Music fades out before the beat starts.
 - **Ducks under a host** (spec). When Homer or Socrates speaks, music drops about 12 dB and comes back about 0.5 s after he stops. The exception is the first-open bed, which is written to sit under Homer and plays at full level.
 - **The arena plays it** (spec). In a hall, only the arena plays music. Phones never do, since they're the mics. In solo modes the one device plays it.
-- **The hall theme on the website** (spec, Sat 8:15–8:25 PM): Matus's MeNIN theme (`menin-theme.m4a`, 3:38) loops in the menu, the lobby, the results and under the motion games, which have no mic. It starts on the first click, plays at its bed, ducks only under Homer's and Socrates' voices, and is silent from a turn's count-in to its verdict. There's a speaker toggle in the header, and M mutes all music. This supersedes P19's always-ducked demo rule.
+- **The hall theme on the website** (spec, Sat 8:15–8:25 PM): Matus's MeNIN theme (`menin-theme.m4a`, 3:38) loops in the menu, the lobby, the results and under the motion games, which have no mic. It starts on the first click, plays at its bed, and ducks only under Homer's and Socrates' voices. **In poetry, debate and Talk to Homer, it's off for the whole battle, from Begin to the crown** (Matus, Sat 10:40 PM). It plays in the lobbies, the results and under the motion games. There's a speaker toggle in the header, and M mutes all music. This supersedes P19's always-ducked demo rule.
 - **Stings start on their cue, with no delay,** and play once. A host line can start over a sting's tail, ducked.
 - **Loops fade out.** `hall-theme` and `training-ambience` loop until their screen ends, then fade out over about 1 s.
 
@@ -788,7 +788,7 @@ Judge mode (spec, "The website"): a conversation with Homer on the big screen. Y
 
 - **Arena:** New event → Talk to Homer (or its card in E0). The lobby reads "Join with the code {code} · Scan with the MeNIN app". **Begin** works with one poet ("Waiting for a poet" until then).
 - **Phone:** Home → CODE → Enter the hall, then the wait.
-- **Music:** The hall theme at its bed.
+- **Music:** The hall theme at its bed in the lobby, off from Begin until the conversation ends (spec).
 - **Next:** Begin.
 
 #### K1 · The theme · ~3 s
@@ -813,7 +813,7 @@ Judge mode (spec, "The website"): a conversation with Homer on the big screen. Y
 #### K4 · End · until a new one
 
 - **Arena:** **End** (the operator's only button while it runs) → "The conversation is over · Start a new one when you like". Then **New conversation** (a fresh theme) or **New event**.
-- **Music:** The hall theme comes back.
+- **Music:** The hall theme comes back once the conversation is over.
 
 ---
 
@@ -956,7 +956,7 @@ The checkpoint (`docs/gtm/reality-check.md`): an extra event that can't run **5 
 - The host is silent where he should speak, or he speaks with no caption.
 - The arena or a phone shows a state that doesn't match the run, like the wrong player, a stale screen or a missing score.
 - A wait of more than a moment shows no loading mark and no line, so the screen looks frozen.
-- Music plays under an open mic.
+- Music plays under an open mic, or at any point between Begin and the crown in poetry, debate or Talk to Homer (spec, Sat 10:40 PM).
 - Any sound effect plays. The only sounds allowed are the beat, the soft strike, the hosts' voices and the music cues: no whoosh, crowd, card flip, knock, chisel, thump, punch, bell, starting gun or bowstring. Haptic ticks and buzzes on the phones are fine.
 
 Player slips aren't failures when the app handles them as designed: a freeze gets a rescue, silence gets "Again", a short swing counts as a drop, a runner who slows down gets placed at the 40 s cap, punches faster than four a second are dropped, a weak draw drops the arrow low, and an arrow not loosed within 45 s is lost. Handling those is part of what we're testing.
@@ -1114,9 +1114,9 @@ Archery has two modes (SPEC, Sat 7:20 PM). **Camera mode is the main one:** the 
   - The wrong archer is named the winner.
 - **Write down, but not a failure (two phones):** a phone fumbled in the pass. If it happens twice in the series, tell the leader, since judges would pass the phones at the table.
 
-### Visual pass (build 44)
+### Visual pass (the 1 AM fix build)
 
-One pass through every phone screen on build 44, the Hall reskin with the final scene colours, the button system and Homer's labels (SPEC "The look", Sat 8:40 PM). It runs once, on the newest build, to save Matus installs (leader). It isn't a 5-run series. Fix what fails, and check again on the next build.
+One pass through every phone screen on the 1 AM fix build (leader: build 44, plus the second Practice cancel fix and the "Socrates is silent" match). pm diffs that build for the runs rule first. The pass covers the Hall reskin with the final scene colours, the button system and Homer's labels (SPEC "The look", Sat 8:40 PM). It runs once, on the newest build, to save Matus installs (leader). It isn't a 5-run series. Fix what fails, and check again on the next build.
 
 - **Phones:** two real phones and one render.
   - **Matus's iPhone 16 Plus** (430 pt wide, the Pro Max class): Matus walks the list. Each time he says MeNIN is on screen, pm takes one capture over the cable, reads it, then deletes it. Never a capture loop.
@@ -1144,6 +1144,7 @@ One pass through every phone screen on build 44, the Hall reskin with the final 
   - On the poet's own turn, SPEAK, the ring's seconds and the live words are hard to read over the translucent seat tint while the scene's colours move behind them. Build 33's phone background mirrors the room's live scene and the poet's own mic. Check it with someone actually speaking loudly.
   - A wait over a moment has no loading mark and no line.
   - Lesson 1's score label changed from "Beat" without the leader's OK. The study's pitch line says "Beat score".
+- **The reconnect check** (build 45 changes the SDK's reconnect policy to 0.5 s doubling up to 3 s): in a live poetry hall, on Matus's phone, turn on airplane mode for about 5 s during a wait, then turn it off. It passes if the phone shows "Reconnecting…" with the loading mark, rejoins on its own within about 5 s of the network returning, and lands on the room's current screen: the right poet, the right phase, no stale turn and nothing stuck. It fails if it takes more than about 10 s, needs a rejoin or a relaunch, or the screen doesn't match the arena. Before build 45 it took 20.6 s.
 
 | Phone (model) | Screen size | Screens checked | Pass or fail | What failed |
 | --- | --- | --- | --- | --- |
