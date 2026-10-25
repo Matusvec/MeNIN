@@ -1,4 +1,4 @@
-import { defineConfig, type HtmlTagDescriptor, type Plugin } from 'vite'
+import { defineConfig, loadEnv, type HtmlTagDescriptor, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import fs from 'node:fs'
@@ -8,11 +8,20 @@ import siteConfiguration from './.figma/make/site.json'
 
 
 // Vite config — https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ command, mode }) => {
   // .figma/make/deploy-preview passes `--mode development` for cached-preview builds.
   const emitSourcemaps = mode === 'development'
 
+  // Dev server only: the agent sends CORS headers just to HOMER_WEB_ORIGINS (the deployed site), so a
+  // localhost page can't call it directly. Route agent calls through Vite at /agent instead; the proxy
+  // drops the browser's Origin, so the agent sees an ordinary keyless call (same rate limits apply).
+  // Builds are untouched. Set VITE_AGENT_URL (e.g. in .env.development.local) to bypass the proxy.
+  const env = loadEnv(mode, process.cwd(), 'VITE_')
+  const proxyAgent = command === 'serve' && !env.VITE_AGENT_URL && !process.env.VITE_AGENT_URL
+  const agentTarget = env.VITE_AGENT_PROXY_TARGET || 'https://206.189.237.157.sslip.io'
+
   return {
+    define: proxyAgent ? { 'import.meta.env.VITE_AGENT_URL': JSON.stringify('/agent') } : {},
     base: process.env.FIGMA_PUBLIC_URL ? `${process.env.FIGMA_PUBLIC_URL}/` : '/',
     build: {
       sourcemap: emitSourcemaps ? 'inline' : false,
@@ -36,6 +45,18 @@ react(),
       host: process.env.FIGMA_DEV_SERVER_HOST || '0.0.0.0',
       port: parseInt(process.env.PORT || '8443'),
       strictPort: true,
+      proxy: proxyAgent
+        ? {
+            '/agent': {
+              target: agentTarget,
+              changeOrigin: true,
+              rewrite: (p: string) => p.replace(/^\/agent/, ''),
+              configure: (proxy) => {
+                proxy.on('proxyReq', (req) => req.removeHeader('origin'))
+              },
+            },
+          }
+        : undefined,
       watch: {
         ignored: [
           '**/.figma/**',
