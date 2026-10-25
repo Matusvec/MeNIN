@@ -205,7 +205,7 @@ export default function ArenaPanel({
   const spokenGame = ['poetry', 'debate', 'coach'].includes(view?.room?.event ?? '')
   useMusic({
     hush: spokenGame && ['ready', 'speaking', 'judging', 'scored'].includes(view?.room?.phase ?? ''),
-    duck: Boolean(view?.speaking || view?.room?.demo), // SPEC "Music": in demo mode the hall theme stays ducked
+    duck: Boolean(view?.speaking), // the bed in lobbies and results, ducked only under Homer (leader overrides SPEC's "demo stays ducked")
   })
   // A poet's phone that drops for a moment shows nothing; "away" only after 3 s gone.
   const anyGone = Boolean(view?.poets.some((p) => !p.connected))

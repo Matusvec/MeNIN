@@ -4,14 +4,17 @@
 // Homer) it fades out from the count-in through the verdict, so the Mac's speakers never
 // leak into a phone's mic or talk over Homer. Every change is a fade; nothing cuts.
 // Browsers block autoplay, so it starts at the first click or key after a screen that
-// plays it mounts (MusicToggle arms it). The header toggle is remembered per browser.
+// plays it mounts (MusicToggle arms it). The header toggle is remembered per browser;
+// the operator's key, M, flips the same toggle (SPEC "Music": a key mutes all music).
 // Music, not a sound effect: outside the SPEC's no-effects rule (Matus's call).
 
 import { useEffect, useId, useSyncExternalStore } from 'react'
 
-const SRC = '/audio/menin-theme.m4a'
-const BED = 0.25
-const DUCKED = 0.08
+const SRC = '/audio/menin-theme.m4a?v=2' // v2: the loudness-normalised master; the query skips a cached quiet copy
+// Levels for the loudness-normalised master (−16.7 LUFS): a bed you hear on MacBook
+// speakers, ducked well under Homer.
+const BED = 0.5
+const DUCKED = 0.15
 const FADE_S = 1.5
 const KEY = 'menin.music'
 
@@ -35,7 +38,7 @@ class Music {
   private armed = false
   private stopTimer = 0
 
-  /** Start at the first gesture (once); a screen that plays the music calls this on mount. */
+  /** Start at the first gesture (once), and listen for M; a screen that plays the music calls this on mount. */
   arm() {
     if (this.armed) return
     this.armed = true
@@ -46,6 +49,13 @@ class Music {
     }
     window.addEventListener('pointerdown', go, true)
     window.addEventListener('keydown', go, true)
+    window.addEventListener('keydown', (e) => {
+      if (e.key !== 'm' && e.key !== 'M') return
+      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return
+      const t = e.target as HTMLElement | null
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return // typing, not the key
+      this.setEnabled(!this.enabled)
+    })
   }
 
   /** One screen's wish: hush (a spoken turn is on) and duck (Homer is speaking). Any hush wins. */
